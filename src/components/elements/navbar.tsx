@@ -1,5 +1,5 @@
 import { Button, Heading, Separator } from "@radix-ui/themes";
-import { useTheme } from "./themeProvider";
+import { useTheme } from "../themeProvider.tsx";
 import {GearIcon, GitHubLogoIcon, RocketIcon, SunIcon} from "@radix-ui/react-icons";
 
 export default function NavBar() {
@@ -7,7 +7,7 @@ export default function NavBar() {
 
   return (
     <nav>
-      <div className="h-14 border-b dark:border-white/50 flex bg-secondary/25 justify-between align-center items-center align-middle">
+      <div className="h-[50px] border-b dark:border-white/50 flex bg-secondary/25 justify-between align-center items-center align-middle">
         <div className="pl-10 align-middle flex items-center space-x-3">
           <div className="flex align-middle items-center">
             <RocketIcon width="20" height="20" />

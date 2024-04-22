@@ -20,6 +20,7 @@ export default function SummarizeForm({ setResponse}: {setResponse: SetStateActi
     });
 
     const formInputs: string = watch("message");
+
     async function onSubmit(form: { message: string }) {
         setResponse({
             model: "midjourney",
@@ -32,6 +33,13 @@ export default function SummarizeForm({ setResponse}: {setResponse: SetStateActi
             ],
         });
     }
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            onSubmit({message: formInputs});
+        }
+    };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -46,6 +54,7 @@ export default function SummarizeForm({ setResponse}: {setResponse: SetStateActi
                                 <textarea
                                     value={field.value}
                                     ref={ref}
+                                    onKeyDown={handleKeyDown}
                                     onChange={field.onChange}
                                     className="m-0 w-full h-[52px] resize-none items-center align-middle border-0 bg-transparent pt-2 focus:ring-0 focus-visible:ring-0 dark:bg-transparent py-[10px] pr-10 md:py-2 md:pr-12 max-h-52 placeholder-black/50 dark:placeholder-white/50 pl-4 md:pl-6"
                                 />

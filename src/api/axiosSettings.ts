@@ -8,7 +8,7 @@ const OLLAMA_SETTINGS = {
 
 const axiosInstance: AxiosInstance = axios.create({
     baseURL: `${OLLAMA_SETTINGS.host}:${OLLAMA_SETTINGS.port}${OLLAMA_SETTINGS.endpoint}`,
-    timeout: 15000,
+    timeout: 45000,
     headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
 });
 

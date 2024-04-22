@@ -18,7 +18,7 @@ const ResponseBox: React.FC<ResponseBox> = ({username, message, isBot}) => {
                 </Avatar>
                 <span className="px-1.5">{username}</span>
             </div>
-            <div className={`my-1 pl-8 flex items-center w-full border rounded ${isBot ? 'min-h-[3em] pr-8 p-3 bg-indigo-600/5 border-indigo-400/75' : 'm-0 border-0'}`}>
+            <div className={`my-1 pl-8 flex items-center w-full border rounded-xl ${isBot ? 'min-h-[3em] mt-3 pr-8 p-3 bg-indigo-600/5 border-indigo-400/75' : 'm-0 border-0'}`}>
                 <div>{message}</div>
             </div>
         </>

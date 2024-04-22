@@ -15,7 +15,6 @@ export default function Root() {
         mutationFn: (formData: Chat) => {
             const history = response.flatMap(message => message.messages?.at(0) || message.message);
             formData.messages = [formData.messages[0], ...history];
-            console.log(formData);
             return postChat(formData);
         },
         mutationKey: ['chats'],

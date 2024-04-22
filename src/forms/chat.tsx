@@ -13,7 +13,7 @@ const FormSchema = z.object({
 
 export default function SummarizeForm({ setResponse}: {setResponse: SetStateAction<any>}) {
     const ref = useRef<HTMLTextAreaElement>(null);
-    const {handleSubmit, control, watch
+    const {handleSubmit, control, watch, reset
     } = useForm({
         resolver: zodResolver(FormSchema) ,
         defaultValues: { message: "" }
@@ -23,7 +23,7 @@ export default function SummarizeForm({ setResponse}: {setResponse: SetStateActi
 
     async function onSubmit(form: { message: string }) {
         setResponse({
-            model: "midjourney",
+            model: "llama3",
             stream: false,
             messages: [
                 {
@@ -32,6 +32,7 @@ export default function SummarizeForm({ setResponse}: {setResponse: SetStateActi
                 },
             ],
         });
+        reset();
     }
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -46,7 +47,7 @@ export default function SummarizeForm({ setResponse}: {setResponse: SetStateActi
             <div className="relative flex h-full flex-1 flex-col">
                 <div className="flex w-full items-center">
                     <div
-                        className="overflow-hidden transition-colors border-2 items-center align-middle border-white/50 [&:has(textarea:focus)]:border-indigo-500 [&:has(textarea:focus)]:shadow-[0_2px_6px_rgba(0,0,0,.05)] flex flex-col w-full flex-grow relative dark:text-white rounded-xl">
+                        className="overflow-hidden flex transition-colors border-2 border-white/50 [&:has(textarea:focus)]:border-[#3E63DD] flex-col w-full flex-grow relative dark:text-white rounded-xl">
                         <Controller
                             control={control}
                             name="message"
@@ -56,7 +57,11 @@ export default function SummarizeForm({ setResponse}: {setResponse: SetStateActi
                                     ref={ref}
                                     onKeyDown={handleKeyDown}
                                     onChange={field.onChange}
-                                    className="m-0 w-full h-[52px] resize-none items-center align-middle border-0 bg-transparent pt-2 focus:ring-0 focus-visible:ring-0 dark:bg-transparent py-[10px] pr-10 md:py-2 md:pr-12 max-h-52 placeholder-black/50 dark:placeholder-white/50 pl-4 md:pl-6"
+                                    style={{
+                                        paddingTop: `${.85}rem`,
+
+                                    }}
+                                    className="m-0 w-full flex h-[52px] resize-none items-center align-middle border-0 bg-transparent focus:ring-0 focus-visible:ring-0 dark:bg-transparent py-[10px] pr-10 md:py-2 md:pr-12 max-h-52 placeholder-black/50 dark:placeholder-white/50 pl-4 md:pl-6"
                                 />
                             )}
                         />

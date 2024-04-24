@@ -1,5 +1,5 @@
 import {AxiosInstance, AxiosResponse} from "axios";
-import axiosInstance from "../settings/axios.ts";
+import axiosInstance from "../../settings/axios.ts";
 
 interface Data {
     // Define your API response type here

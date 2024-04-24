@@ -2,3 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+.hljs {
+    border-radius: 8px; /* Set the border radius to create rounded corners */
+    overflow: hidden; /* Ensure the content within the code block doesn't overflow */
+  }

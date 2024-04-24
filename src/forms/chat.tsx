@@ -24,7 +24,7 @@ export default function SummarizeForm({ setResponse}: {setResponse: SetStateActi
 
     async function onSubmit(form: { message: string }) {
         setResponse({
-            model: "ethan",
+            model: "llama3",
             stream: false,
             messages: [
                 {

@@ -1,6 +1,6 @@
 import {AxiosInstance, AxiosResponse} from 'axios';
 import {useQuery} from "@tanstack/react-query";
-import axiosInstance from "./axiosSettings.ts";
+import axiosInstance from "../../settings/axios.ts";
 
 interface Data {
     // Define your API response type here

@@ -1,10 +1,5 @@
 import axios, {AxiosInstance} from 'axios';
-
-const OLLAMA_SETTINGS = {
-    endpoint: '/api',
-    host: 'http://192.168.0.25',
-    port: '11434',
-}
+import { OLLAMA_SETTINGS } from './ollama'
 
 const axiosInstance: AxiosInstance = axios.create({
     baseURL: `${OLLAMA_SETTINGS.host}:${OLLAMA_SETTINGS.port}${OLLAMA_SETTINGS.endpoint}`,

@@ -10,7 +10,7 @@ export default function Root() {
         <header className="sticky top-0 z-10 flex h-[53px] items-center gap-1 border-b bg-background px-4">
           <h1 className="text-xl pl-2 font-semibold">Nulzo's Ollama WebUI</h1>
         </header>
-      </div>
+      </div> 
       <ChatPage />
     </div>
   );

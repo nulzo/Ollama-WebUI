@@ -24,6 +24,7 @@ interface Response {
 
 export default function ChatPage() {
     const [response, setResponse] = useState<Response>([]);
+    const [model, setModel] = useState('');
     const queryClient = useQueryClient();
     const ref = useRef<HTMLTextAreaElement>(null);
     const allModels = useQuery({queryKey: ['models'], queryFn: getModels})
@@ -74,7 +75,7 @@ export default function ChatPage() {
             model: "none"
         }];
         setResponse(newMessageHistory);
-        reset();
+        reset({message: "", model: form.model});
     }
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {

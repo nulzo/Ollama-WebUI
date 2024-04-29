@@ -1,5 +1,5 @@
 import React from "react";
-import MarkdownRenderer from "../helpers/markdown";
+import MarkdownRenderer from "../helpers/markdown.tsx";
 import {SquareUser} from "lucide-react";
 import LoadingSpinner from "@/components/loadingSpinner.tsx";
 

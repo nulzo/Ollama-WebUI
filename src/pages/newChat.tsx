@@ -17,9 +17,9 @@ import getModels from "@/api/getModels.ts";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {Mic, Paperclip, Send} from "lucide-react";
 import {useState} from "react";
-import postChat, {Chat} from "@/api/postChat.ts";
 import ResponseBox from "@/components/responseBox.tsx";
 import {ScrollArea} from "@/components/ui/scroll-area.tsx";
+import {Ollama} from "@/services/ollama.ts";
 
 interface Message {
     role: string;
@@ -28,32 +28,49 @@ interface Message {
 
 export function Dashboard() {
     const allModels = useQuery({queryKey: ['models'], queryFn: getModels});
-    const queryClient = useQueryClient();
-    const [history, setHistory] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [model, setModel] = useState('');
     const [message, setMessage] = useState('');
+    const [indeterminate, setIndeterminate] = useState('');
+    const [isTyping, setIsTyping] = useState(false);
+    const [userMessages, setUserMessages] = useState<Message[]>([]);
+    const [botMessages, setBotMessages] = useState<Message[]>([]);
 
-    const mutation = useMutation({
-        mutationFn: (data: Chat) => {
-            return postChat(data);
-        },
-        mutationKey: ["chats"],
-        onSuccess: (result: any) => {
-            setHistory([...history, result.message]);
-            queryClient.setQueryData(["chats"], [...history, result.message]);
-        },
+    const ollama = new Ollama({
+        endpoint: 'api',
+        host: 'http://192.168.0.25',
+        port: 11434
     });
 
-    function onSubmit(event: any) {
+    async function write(response): Promise<(Message | { role: string; content: string })[]> {
+        setIsTyping(true);
+        let curr = '';
+        for await (const part of response) {
+            curr += part.message.content;
+            setIndeterminate(curr + part.message.content);
+        }
+        setIndeterminate('');
+        setIsTyping(false);
+        const newHistory = [...botMessages, {role: "assistant", content: curr}]
+        setBotMessages(newHistory);
+        return newHistory;
+    }
+
+    async function onSubmit(event: any) {
         event.preventDefault();
-        setMessage('');
+        const newHistory = [...userMessages, {role: "user", content: message}]
+        setUserMessages(newHistory);
+        const history = ollama.mergeMessageArray(newHistory, botMessages);
         const data = {
             model: model,
-            stream: false,
-            messages: [...history.map(obj => Object.assign({}, obj)), {role: "user", content: message}],
+            stream: true,
+            messages: history,
         };
-        mutation.mutate(data);
-        setHistory([...history, data.messages[data.messages.length - 1]]);
+        setMessage('');
+        const response = await ollama.post('chat', data, {stream: true});
+        const botMessage = await write(response);
+        const mes = ollama.mergeMessageArray(newHistory, botMessage);
+        setMessages(mes);
     }
 
     return (
@@ -141,11 +158,11 @@ export function Dashboard() {
                         <ScrollArea
                             className="relative flex h-full max-h-[80vh] min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4">
                             <div className="mx-4">
-                                {history.map(message => (
+                                {messages.map(message => (
                                     <ResponseBox isBot={message.role !== "user"} message={message.content}
                                                  username={message.role}/>
                                 ))}
-                                {mutation.isPending && <ResponseBox isBot={true} message="" isLoading={true} username="assistant"/>}
+                                {isTyping &&  <ResponseBox isBot={true} message={indeterminate} username="assistant"/> }
                             </div>
                         </ScrollArea>
                         <div className="flex flex-col mt-4">

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from 'highlight.js';
-import 'highlight.js/styles/tokyo-night-dark.css';
+import 'highlight.js/styles/atom-one-dark.css';
 
 interface MarkdownRendererProps {
   markdown: string;

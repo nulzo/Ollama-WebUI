@@ -8,7 +8,6 @@ interface Data {
 async function getModels(): Promise<any> {
     const axiosClient: AxiosInstance = axiosInstance;
     const response: AxiosResponse<Data> = await axiosClient.get('/tags');
-    console.log(response.data)
     return response.data;
 }
 

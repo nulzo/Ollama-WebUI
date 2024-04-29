@@ -4,6 +4,12 @@ export interface OllamaSettings {
     endpoint?: string
 }
 
+export interface Message {
+    role: string
+    content: string
+    images?: Uint8Array[] | string[]
+}
+
 export interface OllamaOpts {
     num_ctx: number
     low_vram: boolean
@@ -21,4 +27,26 @@ export interface OllamaOpts {
     frequency_penalty: number
     penalize_newline: boolean
     stop: string[]
+}
+
+export interface Chat {
+    model: string
+    messages?: Message[]
+    stream?: boolean
+    format?: string
+    keep_alive?: string | number
+    opts?: OllamaOpts
+}
+
+export interface ChatResponse {
+    model: string
+    created_at: Date
+    message: Message
+    done: boolean
+    total_duration: number
+    load_duration: number
+    prompt_eval_count: number
+    prompt_eval_duration: number
+    eval_count: number
+    eval_duration: number
 }

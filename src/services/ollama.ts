@@ -34,8 +34,12 @@ export class Ollama {
         })();
     }
 
-    async post(endpoint: string, data: any, opts: {stream?: boolean}): Promise<any> {
-        return this.stream(endpoint, data, opts);
+    async chat(data: any, opts: {stream?: boolean}): Promise<any> {
+        return this.stream('chat', data, opts);
+    }
+
+    async generate(data: any, opts: {stream?: boolean}): Promise<any> {
+        return this.stream('generate', data, opts);
     }
 
     mergeMessageArray(userMessages: any[], botMessages: any[]): any[] {

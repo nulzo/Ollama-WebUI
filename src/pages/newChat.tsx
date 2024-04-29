@@ -1,30 +1,20 @@
-import {Button} from "@/components/ui/button"
-import {Input} from "@/components/ui/input"
-import {Label} from "@/components/ui/label"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import {Textarea} from "@/components/ui/textarea"
-import NavBar from "@/components/elements/navbar.tsx";
-import Sidebar from "@/components/elements/sidebar.tsx";
-import {Skeleton} from "@/components/ui/skeleton.tsx";
-import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import getModels from "@/api/getModels.ts";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
-import {Mic, Paperclip, Send} from "lucide-react";
-import {useState} from "react";
-import ResponseBox from "@/components/responseBox.tsx";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {ScrollArea} from "@/components/ui/scroll-area.tsx";
+import Sidebar from "@/components/elements/sidebar.tsx";
+import ResponseBox from "@/components/responseBox.tsx";
+import NavBar from "@/components/elements/navbar.tsx";
+import {Skeleton} from "@/components/ui/skeleton.tsx";
+import {Textarea} from "@/components/ui/textarea";
+import {Mic, Paperclip, Send, Image} from "lucide-react";
+import {useQuery} from "@tanstack/react-query";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
 import {Ollama} from "@/services/ollama.ts";
-
-interface Message {
-    role: string;
-    content: string;
-}
+import getModels from "@/api/getModels.ts";
+import React, {useState} from "react";
+import {ChatResponse, Message} from "@/types/ollama";
 
 export function Dashboard() {
     const allModels = useQuery({queryKey: ['models'], queryFn: getModels});
@@ -36,40 +26,40 @@ export function Dashboard() {
     const [userMessages, setUserMessages] = useState<Message[]>([]);
     const [botMessages, setBotMessages] = useState<Message[]>([]);
 
-    const ollama = new Ollama({
+    const ollama: Ollama = new Ollama({
         endpoint: 'api',
         host: 'http://192.168.0.25',
         port: 11434
     });
 
-    async function write(response): Promise<(Message | { role: string; content: string })[]> {
+    async function write(response: ChatResponse[]): Promise<(Message | { role: string; content: string })[]> {
         setIsTyping(true);
-        let curr = '';
+        let curr: string = '';
         for await (const part of response) {
             curr += part.message.content;
             setIndeterminate(curr + part.message.content);
         }
         setIndeterminate('');
         setIsTyping(false);
-        const newHistory = [...botMessages, {role: "assistant", content: curr}]
+        const newHistory = [...botMessages, {role: "assistant", content: curr}];
         setBotMessages(newHistory);
         return newHistory;
     }
 
-    async function onSubmit(event: any) {
+    async function onSubmit(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         event.preventDefault();
-        const newHistory = [...userMessages, {role: "user", content: message}]
+        const newHistory: Message[] = [...userMessages, {role: "user", content: message}]
         setUserMessages(newHistory);
-        const history = ollama.mergeMessageArray(newHistory, botMessages);
+        const history:Message[] = ollama.mergeMessageArray(newHistory, botMessages);
         const data = {
             model: model,
             stream: true,
             messages: history,
         };
         setMessage('');
-        const response = await ollama.post('chat', data, {stream: true});
-        const botMessage = await write(response);
-        const mes = ollama.mergeMessageArray(newHistory, botMessage);
+        const response: ChatResponse[] = await ollama.chat(data, {stream: true});
+        const botMessage: Message[] = await write(response);
+        const mes: Message[] = ollama.mergeMessageArray(newHistory, botMessage);
         setMessages(mes);
     }
 
@@ -100,10 +90,8 @@ export function Dashboard() {
                                                 <SelectValue placeholder="Select a model"/>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {allModels.data?.models?.map((m: any) => (
-                                                    <SelectItem
-                                                        key={m.model}
-                                                        value={m.model}>
+                                                {allModels.data?.models?.map((m: ChatResponse) => (
+                                                    <SelectItem key={m.model} value={m.model}>
                                                         {m.model}
                                                     </SelectItem>
                                                 ))}
@@ -158,9 +146,11 @@ export function Dashboard() {
                         <ScrollArea
                             className="relative flex h-full max-h-[80vh] min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4">
                             <div className="mx-4">
-                                {messages.map(message => (
-                                    <ResponseBox isBot={message.role !== "user"} message={message.content}
-                                                 username={message.role}/>
+                                {messages.map((message: Message) => (
+                                    <ResponseBox isBot={message.role !== "user"}
+                                                 message={message.content}
+                                                 username={message.role}
+                                    />
                                 ))}
                                 {isTyping &&  <ResponseBox isBot={true} message={indeterminate} username="assistant"/> }
                             </div>
@@ -183,7 +173,7 @@ export function Dashboard() {
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button variant="ghost" size="icon">
-                                                    <Paperclip className="size-4"/>
+                                                    <Paperclip className="size-3"/>
                                                     <span className="sr-only">Attach file</span>
                                                 </Button>
                                             </TooltipTrigger>
@@ -194,7 +184,18 @@ export function Dashboard() {
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button variant="ghost" size="icon">
-                                                    <Mic className="size-4"/>
+                                                    <Image className="size-3"/>
+                                                    <span className="sr-only">Upload Image</span>
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top">Upload Image</TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <Mic className="size-3"/>
                                                     <span className="sr-only">Use Microphone</span>
                                                 </Button>
                                             </TooltipTrigger>
@@ -204,7 +205,7 @@ export function Dashboard() {
                                     <Button type="submit"
                                             disabled={message.length === 0 || model.length === 0}
                                             onClick={onSubmit} size="sm" className="ml-auto gap-1.5 text-foreground">
-                                        <Send className="size-4"/>
+                                        <Send className="size-3"/>
                                         <span className="sr-only">Send Message</span>
                                     </Button>
                                 </div>

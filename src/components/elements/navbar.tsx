@@ -1,14 +1,5 @@
 import {useTheme} from "../themeProvider.tsx";
-import {GearIcon, GitHubLogoIcon, RocketIcon, SunIcon} from "@radix-ui/react-icons";
-import {
-    Bird, Cog,
-    Github,
-    Rabbit,
-    Settings,
-    Share, SunMedium,
-    Turtle
-} from "lucide-react";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
+import {Bird, Cog, Github, Rabbit, Settings, SunMedium, Turtle} from "lucide-react";
 import {Button} from "@/components/ui/button.tsx";
 import {
     Drawer,
@@ -28,9 +19,12 @@ export default function NavBar() {
 
     return (
         <>
-            <h1 className="text-xl font-semibold">@nulzo's Ollama WebUI</h1>
-                <Drawer>
-                    <DrawerTrigger asChild>
+            <div>
+                <h1 className="text-xl font-semibold">Ollama WebUI</h1>
+                <h5 className="text-xs leading-none p-0 m-0 text-muted-foreground font-semibold">@nulzo</h5>
+            </div>
+            <Drawer>
+                <DrawerTrigger asChild>
                         <Button variant="ghost" size="icon" className="md:hidden">
                             <Settings className="size-4"/>
                             <span className="sr-only">Settings</span>

@@ -7,15 +7,15 @@ interface ResponseBox {
     username: string;
     message: string;
     isBot: boolean;
-    isLoading: boolean;
+    isTyping: boolean;
 }
 
-const ResponseBox: React.FC<ResponseBox> = ({username, message, isBot, isLoading}) => {
+const ResponseBox: React.FC<ResponseBox> = ({username, message, isBot, isTyping}) => {
     return (
         <div className="py-2">
             <div className='font-bold flex items-center mb-2'>
                 {!isBot && <SquareUser/>}
-                {isBot && ( isLoading
+                {isBot && ( isTyping
                         ? <img
                             src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Exploding%20Head.png"
                             alt="Exploding Head" width="25" height="25"/>
@@ -25,7 +25,7 @@ const ResponseBox: React.FC<ResponseBox> = ({username, message, isBot, isLoading
             </div>
             <div className="bg-background/50 border rounded-xl py-3">
                 <div className='my-1 px-8 flex items-center w-full rounded-xl m-0 border-0'>
-                    {isLoading ? <LoadingSpinner color="#fb923c" /> : <MarkdownRenderer markdown={message}/> }
+                    {(isTyping && (message.length <= 1 || !message || message === '<empty string>')) ? <LoadingSpinner color="#fb923c" /> : <MarkdownRenderer markdown={message}/> }
                 </div>
             </div>
         </div>

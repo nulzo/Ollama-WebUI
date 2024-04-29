@@ -16,6 +16,11 @@ import getModels from "@/api/getModels.ts";
 import React, {useState} from "react";
 import {ChatResponse, Message} from "@/types/ollama";
 
+interface MessageState {
+    userMessage: Message,
+    botMessage: Message
+}
+
 export function Dashboard() {
     const allModels = useQuery({queryKey: ['models'], queryFn: getModels});
     const [messages, setMessages] = useState<Message[]>([]);
@@ -25,6 +30,7 @@ export function Dashboard() {
     const [isTyping, setIsTyping] = useState(false);
     const [userMessages, setUserMessages] = useState<Message[]>([]);
     const [botMessages, setBotMessages] = useState<Message[]>([]);
+    const [nmessages, setNmessages] = useState<MessageState[]>([]);
 
     const ollama: Ollama = new Ollama({
         endpoint: 'api',
@@ -33,11 +39,10 @@ export function Dashboard() {
     });
 
     async function write(response: ChatResponse[]): Promise<(Message | { role: string; content: string })[]> {
-        setIsTyping(true);
         let curr: string = '';
         for await (const part of response) {
             curr += part.message.content;
-            setIndeterminate(curr + part.message.content);
+            setNmessages([...nmessages, {userMessage: {role: 'user', content: message}, botMessage: {role: 'assistant', content: curr }}])
         }
         setIndeterminate('');
         setIsTyping(false);
@@ -50,13 +55,11 @@ export function Dashboard() {
         event.preventDefault();
         const newHistory: Message[] = [...userMessages, {role: "user", content: message}]
         setUserMessages(newHistory);
+        setNmessages([...nmessages, {userMessage: {role: 'user', content: message}, botMessage: {role: 'assistant', content: '' }}])
         const history:Message[] = ollama.mergeMessageArray(newHistory, botMessages);
-        const data = {
-            model: model,
-            stream: true,
-            messages: history,
-        };
+        const data = {model: model, stream: true, messages: history};
         setMessage('');
+        setIsTyping(true);
         const response: ChatResponse[] = await ollama.chat(data, {stream: true});
         const botMessage: Message[] = await write(response);
         const mes: Message[] = ollama.mergeMessageArray(newHistory, botMessage);
@@ -146,13 +149,22 @@ export function Dashboard() {
                         <ScrollArea
                             className="relative flex h-full max-h-[80vh] min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4">
                             <div className="mx-4">
-                                {messages.map((message: Message) => (
-                                    <ResponseBox isBot={message.role !== "user"}
-                                                 message={message.content}
-                                                 username={message.role}
-                                    />
+                                {nmessages.length !== 0 && nmessages.map((message) => (
+                                    <>
+                                        <ResponseBox
+                                            isBot={false}
+                                            isTyping={false}
+                                            message={message?.userMessage?.content}
+                                            username={message.userMessage?.role}
+                                        />
+                                        <ResponseBox
+                                            isBot={true}
+                                            isTyping={isTyping}
+                                            message={message?.botMessage?.content}
+                                            username={message?.botMessage?.role}
+                                        />
+                                    </>
                                 ))}
-                                {isTyping &&  <ResponseBox isBot={true} message={indeterminate} username="assistant"/> }
                             </div>
                         </ScrollArea>
                         <div className="flex flex-col mt-4">

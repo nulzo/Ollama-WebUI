@@ -15,11 +15,11 @@ const ResponseBox: React.FC<ResponseBox> = ({username, message, isBot, isTyping}
         <div className="py-2">
             <div className='font-bold flex items-center mb-2'>
                 {!isBot && <SquareUser/>}
-                {isBot && ( isTyping
+                {isBot && (isTyping
                         ? <img
-                            src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Exploding%20Head.png"
-                            alt="Exploding Head" width="25" height="25"/>
-                        : <img src="src/assets/exploding_head_3d.png" width="25" height="25"  alt="Exploded Head" />
+                            src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Dolphin.png"
+                            alt="Dolphin" width="25" height="25"/>
+                        : <img src="src/assets/dolphin_3d.png" width="25" height="25" alt="Exploded Head"/>
                 )}
                 <span className="px-1.5">{username}</span>
             </div>

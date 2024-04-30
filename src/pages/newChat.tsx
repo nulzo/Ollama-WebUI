@@ -23,10 +23,8 @@ interface MessageState {
 
 export function Dashboard() {
     const allModels = useQuery({queryKey: ['models'], queryFn: getModels});
-    const [messages, setMessages] = useState<Message[]>([]);
     const [model, setModel] = useState('');
     const [message, setMessage] = useState('');
-    const [indeterminate, setIndeterminate] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [userMessages, setUserMessages] = useState<Message[]>([]);
     const [botMessages, setBotMessages] = useState<Message[]>([]);
@@ -44,8 +42,6 @@ export function Dashboard() {
             curr += part.message.content;
             setNmessages([...nmessages, {userMessage: {role: 'user', content: message}, botMessage: {role: 'assistant', content: curr }}])
         }
-        setIndeterminate('');
-        setIsTyping(false);
         const newHistory = [...botMessages, {role: "assistant", content: curr}];
         setBotMessages(newHistory);
         return newHistory;
@@ -54,16 +50,14 @@ export function Dashboard() {
     async function onSubmit(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         event.preventDefault();
         const newHistory: Message[] = [...userMessages, {role: "user", content: message}]
-        setUserMessages(newHistory);
         setNmessages([...nmessages, {userMessage: {role: 'user', content: message}, botMessage: {role: 'assistant', content: '' }}])
         const history:Message[] = ollama.mergeMessageArray(newHistory, botMessages);
         const data = {model: model, stream: true, messages: history};
         setMessage('');
         setIsTyping(true);
         const response: ChatResponse[] = await ollama.chat(data, {stream: true});
-        const botMessage: Message[] = await write(response);
-        const mes: Message[] = ollama.mergeMessageArray(newHistory, botMessage);
-        setMessages(mes);
+        setIsTyping(false);
+        await write(response);
     }
 
     return (

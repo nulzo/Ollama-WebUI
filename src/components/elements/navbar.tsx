@@ -20,7 +20,7 @@ export default function NavBar() {
     return (
         <>
             <div>
-                <h1 className="text-xl font-semibold">Ollama WebUI</h1>
+                <h1 className="text-xl font-bold">Ollama WebUI</h1>
                 <h5 className="text-xs leading-none p-0 m-0 text-muted-foreground font-semibold">@nulzo</h5>
             </div>
             <Drawer>
@@ -143,6 +143,7 @@ export default function NavBar() {
                     </DrawerContent>
                 </Drawer>
                 <div className="ml-auto flex gap-2 items-center align-middle">
+                    <a href="https://github.com/nulzo/Ollama-WebUI">
                     <Button
                         variant="outline"
                         size="sm"
@@ -150,6 +151,7 @@ export default function NavBar() {
                     >
                         <Github className="size-4"/>
                     </Button>
+                    </a>
                     <Button
                         variant="outline"
                         size="sm"

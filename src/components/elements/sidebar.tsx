@@ -11,7 +11,7 @@ const Sidebar = () => {
     });
     return (
         <aside className="inset-y fixed left-0 z-20 flex h-full flex-col border-r">
-            <div className="border-b p-2">
+            <div className="mt-1 p-2">
                 <Button variant="outline" size="icon" aria-label="Home">
                     <img className="rounded-xl" src="https://avatars.githubusercontent.com/u/65730528?v=4" alt="nulzo" />
                 </Button>

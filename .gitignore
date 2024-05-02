@@ -5,6 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
+.vite
 
 # Distribution / packaging
 .Python

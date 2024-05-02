@@ -49,6 +49,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
+    "dexie": "^4.0.4",
     "embla-carousel-react": "^8.0.2",
     "highlight.js": "^11.9.0",
     "input-otp": "^1.2.4",

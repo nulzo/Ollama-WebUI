@@ -34,15 +34,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import Dexie from 'dexie';
-
-const db = new Dexie('myDatabase');
-
-db.version(1).stores({
-  tasks: '++id, name, description'
-});
-
-console.log(db)
 
 interface MessageState {
   userMessage: Message;
@@ -84,9 +75,7 @@ export function ChatPage() {
   }
 
   function onKeyPress(event) {
-    if(event.key === 'Enter') {
-      onSubmit(event);
-    }
+    if(event.key === 'Enter') { onSubmit(event); }
   }
 
   async function onSubmit(
@@ -111,6 +100,7 @@ export function ChatPage() {
     const data = { model: model, stream: true, messages: history };
     setMessage("");
     setIsTyping(true);
+    setUserMessages(newHistory);
     const response: ChatResponse[] = await ollama.chat(data, { stream: true });
     setIsTyping(false);
     await write(response);

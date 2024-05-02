@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom/client";
 import "./style/output.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "./components/themeProvider";
+import { ThemeProvider } from "./components/themeProvider.tsx";
 import Root from "./Root.tsx";
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 

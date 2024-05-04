@@ -15,7 +15,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     return (
         <div className="flex w-full ml-auto mr-auto text-center align-middle items-center content-center">
             <PulseLoader
-                color={color}
+                className='text-primary stroke-primary bg-primary'
                 loading={true}
                 size={size}
                 speedMultiplier={speedMultiplier}

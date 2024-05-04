@@ -36,4 +36,9 @@ export class FetchWrapper {
         await isValid(response);
         return response;
     }
+
+    async get (fetch: Fetch, endpoint: string): Promise<Response> {
+        const url: string = `${this._params.host}:${this._params.port}/${this._params.endpoint}/${endpoint}`;
+        return await this.process(fetch, url, {method: 'GET'});
+    }
 }

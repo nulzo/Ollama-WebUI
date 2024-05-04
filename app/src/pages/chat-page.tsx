@@ -52,7 +52,7 @@ export function ChatPage() {
 
   const ollama: Ollama = new Ollama({
     endpoint: "api",
-    host: "http://192.168.0.25",
+    host: "http://127.0.0.1",
     port: 11434,
   });
 

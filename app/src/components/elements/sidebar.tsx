@@ -1,14 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import getModels from "../../api/getModels";
 import {Button} from "@/components/ui/button.tsx";
 import {ArrowUpDown, Bot, LifeBuoy, MessageSquareCode, SquareUser} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 
 const Sidebar = () => {
-    useQuery({
-        queryKey: ['models'],
-        queryFn: getModels
-    });
     return (
         <aside className="inset-y fixed left-0 z-20 flex h-full flex-col border-r">
             <div className="mt-1 p-2">
@@ -25,11 +19,13 @@ const Sidebar = () => {
                                 size="icon"
                                 className="rounded-lg bg-muted"
                                 aria-label="Chat"
+                                id="chat"
+                                key="chat"
                             >
-                                <MessageSquareCode className="size-5"/>
+                                <MessageSquareCode id="chat" className="size-5"/>
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="right" sideOffset={5}>
+                        <TooltipContent side="right" sideOffset={5} className="bg-accent">
                             Chat
                         </TooltipContent>
                     </Tooltip>
@@ -46,7 +42,7 @@ const Sidebar = () => {
                                 <Bot className="size-5"/>
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="right" sideOffset={5}>
+                        <TooltipContent side="right" sideOffset={5} className="bg-accent">
                             Models
                         </TooltipContent>
                     </Tooltip>
@@ -63,7 +59,7 @@ const Sidebar = () => {
                                 <ArrowUpDown className="size-4"/>
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="right" sideOffset={5}>
+                        <TooltipContent side="right" sideOffset={5} className="bg-accent">
                             Download Models
                         </TooltipContent>
                     </Tooltip>
@@ -82,7 +78,7 @@ const Sidebar = () => {
                                 <LifeBuoy className="size-5"/>
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="right" sideOffset={5}>
+                        <TooltipContent side="right" sideOffset={5} className="bg-accent">
                             Help
                         </TooltipContent>
                     </Tooltip>
@@ -99,7 +95,7 @@ const Sidebar = () => {
                                 <SquareUser className="size-5"/>
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="right" sideOffset={5}>
+                        <TooltipContent side="right" sideOffset={5} className="bg-accent">
                             User Settings
                         </TooltipContent>
                     </Tooltip>

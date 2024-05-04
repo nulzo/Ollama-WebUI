@@ -1,8 +1,12 @@
 import { ChatPage } from "@/pages/chat-page";
 import Sidebar from "@/components/elements/sidebar.tsx";
 import NavBar from "@/components/elements/navbar.tsx";
+import ModelPage from "./pages/model-page";
+import { useEffect, useState } from "react";
 
 export default function Root() {
+  const [route, setRoute] = useState('chat');
+
   return (
     <div className="grid h-screen w-full pl-[56px]">
       <Sidebar />

@@ -696,10 +696,6 @@ video {
 :root {
   --background: 0 0% 100%;
   --foreground: 0 0% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.8%;
   --primary: 200 100% 30%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 96.1%;
@@ -711,19 +707,14 @@ video {
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
   --border: 0 0% 89.8%;
-  --input: 0 0% 89.8%;
-  --ring: 200 100% 30%;
   --radius: 0.5rem;
+  --border-width: 5rem;
 }
 
 .dark {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
-  --card: 0 0% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 0 0% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 200 100% 35%;
+  --primary: 290 80% 60%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 14.9%;
   --secondary-foreground: 0 0% 98%;
@@ -734,8 +725,6 @@ video {
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
   --border: 0 0% 14.9%;
-  --input: 0 0% 14.9%;
-  --ring: 200 100% 28%;
 }
 
 .hljs {
@@ -910,10 +899,6 @@ body {
 
 .inset-0 {
   inset: 0px
-}
-
-.inset-2 {
-  inset: 0.5rem
 }
 
 .inset-x-0 {
@@ -1241,6 +1226,10 @@ body {
   height: 75vh
 }
 
+.h-\[85vh\] {
+  height: 85vh
+}
+
 .h-\[var\(--radix-navigation-menu-viewport-height\)\] {
   height: var(--radix-navigation-menu-viewport-height)
 }
@@ -1279,6 +1268,10 @@ body {
 
 .max-h-\[80vh\] {
   max-height: 80vh
+}
+
+.max-h-\[85vh\] {
+  max-height: 85vh
 }
 
 .max-h-screen {
@@ -1525,6 +1518,14 @@ body {
   align-items: center
 }
 
+.justify-start {
+  justify-content: flex-start
+}
+
+.justify-end {
+  justify-content: flex-end
+}
+
 .justify-center {
   justify-content: center
 }
@@ -1663,11 +1664,11 @@ body {
 }
 
 .border-0 {
-  border-width: 0px
+  border-width: v
 }
 
 .border-2 {
-  border-width: 2px
+  border-width: r
 }
 
 .border-y {
@@ -1700,7 +1701,7 @@ body {
 }
 
 .border-input {
-  border-color: hsl(var(--input))
+  border-color: hsl(var(--border))
 }
 
 .border-primary {
@@ -1748,7 +1749,7 @@ body {
 }
 
 .bg-card {
-  background-color: hsl(var(--card))
+  background-color: hsl(var(--accent))
 }
 
 .bg-destructive {
@@ -1768,7 +1769,7 @@ body {
 }
 
 .bg-popover {
-  background-color: hsl(var(--popover))
+  background-color: hsl(var(--accent))
 }
 
 .bg-primary {
@@ -1801,6 +1802,10 @@ body {
 
 .fill-primary {
   fill: hsl(var(--primary))
+}
+
+.stroke-primary {
+  stroke: hsl(var(--primary))
 }
 
 .p-0 {
@@ -2014,6 +2019,14 @@ body {
   font-weight: 600
 }
 
+.uppercase {
+  text-transform: uppercase
+}
+
+.leading-3 {
+  line-height: .75rem
+}
+
 .leading-none {
   line-height: 1
 }
@@ -2031,7 +2044,7 @@ body {
 }
 
 .text-card-foreground {
-  color: hsl(var(--card-foreground))
+  color: hsl(var(--accent-foreground))
 }
 
 .text-current {
@@ -2059,7 +2072,7 @@ body {
 }
 
 .text-popover-foreground {
-  color: hsl(var(--popover-foreground))
+  color: hsl(var(--accent-foreground))
 }
 
 .text-primary {
@@ -2149,12 +2162,8 @@ body {
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)
 }
 
-.ring-inset {
-  --tw-ring-inset: inset
-}
-
 .ring-ring {
-  --tw-ring-color: hsl(var(--ring))
+  --tw-ring-color: hsl(var(--primary))
 }
 
 .ring-offset-background {
@@ -2262,7 +2271,7 @@ body {
 }
 
 .file\:border-0::file-selector-button {
-  border-width: 0px
+  border-width: v
 }
 
 .file\:bg-transparent::file-selector-button {
@@ -2335,12 +2344,6 @@ body {
   z-index: 20
 }
 
-.focus-within\:ring-1:focus-within {
-  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)
-}
-
 .focus-within\:ring-2:focus-within {
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
   --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
@@ -2348,7 +2351,7 @@ body {
 }
 
 .focus-within\:ring-ring:focus-within {
-  --tw-ring-color: hsl(var(--ring))
+  --tw-ring-color: hsl(var(--primary))
 }
 
 .hover\:bg-accent:hover {
@@ -2457,7 +2460,7 @@ body {
 }
 
 .focus\:ring-ring:focus {
-  --tw-ring-color: hsl(var(--ring))
+  --tw-ring-color: hsl(var(--primary))
 }
 
 .focus\:ring-offset-2:focus {
@@ -2488,7 +2491,7 @@ body {
 }
 
 .focus-visible\:ring-ring:focus-visible {
-  --tw-ring-color: hsl(var(--ring))
+  --tw-ring-color: hsl(var(--primary))
 }
 
 .focus-visible\:ring-offset-1:focus-visible {
@@ -2750,7 +2753,7 @@ body {
 }
 
 .data-\[state\=unchecked\]\:bg-input[data-state=unchecked] {
-  background-color: hsl(var(--input))
+  background-color: hsl(var(--border))
 }
 
 .data-\[state\=active\]\:text-foreground[data-state=active] {
@@ -3246,7 +3249,7 @@ body {
 }
 
 .\[\&\>tr\]\:last\:border-b-0:last-child>tr {
-  border-bottom-width: 0px
+  border-bottom-width: v
 }
 
 .\[\&\[data-panel-group-direction\=vertical\]\>div\]\:rotate-90[data-panel-group-direction=vertical]>div {
@@ -3330,7 +3333,7 @@ body {
 }
 
 .\[\&_tr\:last-child\]\:border-0 tr:last-child {
-  border-width: 0px
+  border-width: v
 }
 
 .\[\&_tr\]\:border-b tr {

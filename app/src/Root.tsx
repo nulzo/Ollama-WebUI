@@ -2,11 +2,9 @@ import { ChatPage } from "@/pages/chat-page";
 import Sidebar from "@/components/elements/sidebar.tsx";
 import NavBar from "@/components/elements/navbar.tsx";
 import ModelPage from "./pages/model-page";
-import { useEffect, useState } from "react";
+import { Routes, Route, Outlet, Link } from "react-router-dom";
 
 export default function Root() {
-  const [route, setRoute] = useState('chat');
-
   return (
     <div className="grid h-screen w-full pl-[56px]">
       <Sidebar />
@@ -14,7 +12,7 @@ export default function Root() {
         <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
           <NavBar />
         </header>
-        <ChatPage />
+        <Outlet />
       </div>
     </div>
   );

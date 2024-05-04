@@ -33,6 +33,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip.tsx";
+import { Link } from "react-router-dom";
 
 export default function NavBar() {
   const { theme, setTheme } = useTheme();
@@ -41,8 +42,8 @@ export default function NavBar() {
     <>
       <div>
         <h1 className="text-xl font-bold">Ollama WebUI</h1>
-        <h5 className="text-xs leading-none p-0 m-0 text-muted-foreground font-semibold">
-          @nulzo
+        <h5 className="text-xs leading-none p-0 m-0 font-semibold text-muted-foreground">
+        <span className="font-thin">made with love by </span><span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-primary inline-block text-transparent bg-clip-text">nulzo</span>
         </h5>
       </div>
       <Drawer>

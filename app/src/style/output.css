@@ -694,9 +694,9 @@ video {
 }
 
 :root {
-  --background: 0 0% 100%;
+  --background: 0 0% 98%;
   --foreground: 0 0% 3.9%;
-  --primary: 200 100% 30%;
+  --primary: 260 100% 70%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 96.1%;
   --secondary-foreground: 0 0% 9%;
@@ -714,7 +714,7 @@ video {
 .dark {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
-  --primary: 290 80% 60%;
+  --primary: 260 79% 71%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 14.9%;
   --secondary-foreground: 0 0% 98%;
@@ -1117,6 +1117,10 @@ body {
 
 .block {
   display: block
+}
+
+.inline-block {
+  display: inline-block
 }
 
 .flex {
@@ -1716,6 +1720,10 @@ body {
   border-color: transparent
 }
 
+.border-border {
+  border-color: hsl(var(--border))
+}
+
 .border-l-transparent {
   border-left-color: transparent
 }
@@ -1794,6 +1802,48 @@ body {
 
 .bg-transparent {
   background-color: transparent
+}
+
+.bg-card\/50 {
+  background-color: hsl(var(--accent) / 0.5)
+}
+
+.bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-stops))
+}
+
+.from-blue-600 {
+  --tw-gradient-from: #2563eb var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(37 99 235 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to)
+}
+
+.via-green-500 {
+  --tw-gradient-to: rgb(34 197 94 / 0)  var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), #22c55e var(--tw-gradient-via-position), var(--tw-gradient-to)
+}
+
+.via-primary {
+  --tw-gradient-to: hsl(var(--primary) / 0)  var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), hsl(var(--primary)) var(--tw-gradient-via-position), var(--tw-gradient-to)
+}
+
+.via-indigo-500 {
+  --tw-gradient-to: rgb(99 102 241 / 0)  var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), #6366f1 var(--tw-gradient-via-position), var(--tw-gradient-to)
+}
+
+.to-indigo-400 {
+  --tw-gradient-to: #818cf8 var(--tw-gradient-to-position)
+}
+
+.to-primary {
+  --tw-gradient-to: hsl(var(--primary)) var(--tw-gradient-to-position)
+}
+
+.bg-clip-text {
+  -webkit-background-clip: text;
+          background-clip: text
 }
 
 .fill-current {
@@ -2019,6 +2069,10 @@ body {
   font-weight: 600
 }
 
+.font-thin {
+  font-weight: 100
+}
+
 .uppercase {
   text-transform: uppercase
 }
@@ -2085,6 +2139,10 @@ body {
 
 .text-secondary-foreground {
   color: hsl(var(--secondary-foreground))
+}
+
+.text-transparent {
+  color: transparent
 }
 
 .underline-offset-4 {

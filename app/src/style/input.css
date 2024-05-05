@@ -44,8 +44,9 @@
         margin-bottom: 2rem !important;
         border-radius: 8px;
         overflow: hidden;
-        background: var(--background) !important;
         border: dashed 1px var(--border);
+        font-size: small;
+        background: hsl(var(--accent)) !important;
     }
 }
 

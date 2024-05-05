@@ -13,6 +13,7 @@ const queryClient: QueryClient = new QueryClient();
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ReactQueryDevtools />
     <BrowserRouter>
       <Routes>
           <Route path="/" element={<Root />}>

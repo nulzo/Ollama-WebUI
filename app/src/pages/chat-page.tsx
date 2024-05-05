@@ -20,7 +20,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Ollama } from "@/services/ollama.ts";
-import getModels from "@/api/getModels.ts";
 import React, { useState } from "react";
 import { ChatResponse, Message } from "@/types/ollama";
 import {
@@ -35,11 +34,18 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {Badge} from "@/components/ui/badge.tsx";
+import getModels from "@/api/getModels";
 
 interface MessageState {
   userMessage: Message;
   botMessage: Message;
 }
+
+const ollama: Ollama = new Ollama({
+  endpoint: "api",
+  host: "http://127.0.0.1",
+  port: 11434,
+});
 
 export function ChatPage() {
   const allModels = useQuery({ queryKey: ["models"], queryFn: getModels });
@@ -49,12 +55,6 @@ export function ChatPage() {
   const [userMessages, setUserMessages] = useState<Message[]>([]);
   const [botMessages, setBotMessages] = useState<Message[]>([]);
   const [nmessages, setNmessages] = useState<MessageState[]>([]);
-
-  const ollama: Ollama = new Ollama({
-    endpoint: "api",
-    host: "http://127.0.0.1",
-    port: 11434,
-  });
 
   async function write(
     response: ChatResponse[]

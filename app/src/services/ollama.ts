@@ -59,7 +59,6 @@ export class Ollama {
         const iterator = streamJSON<any>(response.body);
         if(!opts.stream) {
             const message = await iterator.next();
-            // if (!message.value?.done && message.value?.status !== 'success') throw new Error('Expected a completed response.');
             return message.value;
         }
         return (async function* () {
@@ -74,8 +73,7 @@ export class Ollama {
 
     protected async retrieve(endpoint: string): Promise<any> {
         const response = await this._client.get(this._fetch, endpoint);
-        if (!response) { throw new Error('Data not received properly'); }
-        return response;
+        return await response.json();
     }
 
     async chat(data: Chat, opts: {stream?: boolean}): Promise<any> {
@@ -96,7 +94,7 @@ export class Ollama {
 
     async list() {
         // List all available models
-        return this.retrieve('tags');
+        return await this._client.get(this._fetch, 'tags');
     }
 
     async create(data: Create, opts: any) {

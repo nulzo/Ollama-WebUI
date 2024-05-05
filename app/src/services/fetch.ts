@@ -15,6 +15,7 @@ export class FetchWrapper {
     }
 
     process (fetch: Fetch, endpoint: string, opts: RequestInit = {}): Promise<Response> {
+        console.log({...opts});
         opts.headers = {
             ...this.defaultHeaders,
             ...opts.headers,

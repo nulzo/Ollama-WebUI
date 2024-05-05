@@ -57,7 +57,7 @@ const storage: Storage = new Storage({
 
 export function ChatPage() {
   const allModels = useQuery({ queryKey: ["models"], queryFn: getModels });
-  const allChats = useQuery({ queryKey: ["chats"], queryFn: QueryChats});
+  // const allChats = useQuery({ queryKey: ["chats"], queryFn: QueryChats});
   const [model, setModel] = useState("");
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -80,9 +80,9 @@ export function ChatPage() {
       ]);
     }
     const newHistory = [...botMessages, { role: "assistant", content: curr }];
-    await storage.createMessage(
-      {model: model, message: curr, role: "assistance", chat: 1}
-    );
+    // await storage.createMessage(
+    //   {model: model, message: curr, role: "assistance", chat: 1}
+    // );
     setBotMessages(newHistory);
     return newHistory;
   }
@@ -95,9 +95,9 @@ export function ChatPage() {
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) {
     event.preventDefault();
-    await storage.createMessage(
-      {model: '', message: message, role: "user", chat: 1}
-    );
+    // await storage.createMessage(
+    //   {model: '', message: message, role: "user", chat: 1}
+    // );
     
     const newHistory: Message[] = [
       ...userMessages,
@@ -199,6 +199,9 @@ export function ChatPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            {/* {!allChats.isLoading && allChats.data && allChats.data.map(chat => {
+              <div>{chat}</div>
+            })} */}
           </div>
           <div className="h-[100px] p-4 items-center flex flex-col text-center justify-center rounded-lg border-primary/50 border-2 bg-primary/5">
             <div className="flex font-semibold text-sm align-middle gap-1 mb-2 justify-center items-center">

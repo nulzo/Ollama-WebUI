@@ -1696,6 +1696,10 @@ body {
   border-top-width: 1px
 }
 
+.border-border {
+  border-color: hsl(var(--border))
+}
+
 .border-destructive {
   border-color: hsl(var(--destructive))
 }
@@ -1718,10 +1722,6 @@ body {
 
 .border-transparent {
   border-color: transparent
-}
-
-.border-border {
-  border-color: hsl(var(--border))
 }
 
 .border-l-transparent {
@@ -1756,8 +1756,8 @@ body {
   background-color: hsl(var(--border))
 }
 
-.bg-card {
-  background-color: hsl(var(--accent))
+.bg-card\/50 {
+  background-color: hsl(var(--accent) / 0.5)
 }
 
 .bg-destructive {
@@ -1804,10 +1804,6 @@ body {
   background-color: transparent
 }
 
-.bg-card\/50 {
-  background-color: hsl(var(--accent) / 0.5)
-}
-
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops))
 }
@@ -1818,23 +1814,9 @@ body {
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to)
 }
 
-.via-green-500 {
-  --tw-gradient-to: rgb(34 197 94 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #22c55e var(--tw-gradient-via-position), var(--tw-gradient-to)
-}
-
-.via-primary {
-  --tw-gradient-to: hsl(var(--primary) / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), hsl(var(--primary)) var(--tw-gradient-via-position), var(--tw-gradient-to)
-}
-
 .via-indigo-500 {
   --tw-gradient-to: rgb(99 102 241 / 0)  var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), #6366f1 var(--tw-gradient-via-position), var(--tw-gradient-to)
-}
-
-.to-indigo-400 {
-  --tw-gradient-to: #818cf8 var(--tw-gradient-to-position)
 }
 
 .to-primary {

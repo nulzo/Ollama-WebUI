@@ -33,7 +33,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip.tsx";
-import { Link } from "react-router-dom";
 
 export default function NavBar() {
   const { theme, setTheme } = useTheme();

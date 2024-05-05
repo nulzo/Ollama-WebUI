@@ -36,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import {Badge} from "@/components/ui/badge.tsx";
 import getModels from "@/api/getModels";
 import { Storage } from "@/services/storage";
+import { QueryChats } from "@/services/query";
 
 interface MessageState {
   userMessage: Message;
@@ -56,6 +57,7 @@ const storage: Storage = new Storage({
 
 export function ChatPage() {
   const allModels = useQuery({ queryKey: ["models"], queryFn: getModels });
+  const allChats = useQuery({ queryKey: ["chats"], queryFn: QueryChats});
   const [model, setModel] = useState("");
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -78,6 +80,9 @@ export function ChatPage() {
       ]);
     }
     const newHistory = [...botMessages, { role: "assistant", content: curr }];
+    await storage.createMessage(
+      {model: model, message: curr, role: "assistance", chat: 1}
+    );
     setBotMessages(newHistory);
     return newHistory;
   }
@@ -90,8 +95,10 @@ export function ChatPage() {
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) {
     event.preventDefault();
-    const deez = await storage.createMessage({ role: "user", content: message });
-    console.log(deez);
+    await storage.createMessage(
+      {model: '', message: message, role: "user", chat: 1}
+    );
+    
     const newHistory: Message[] = [
       ...userMessages,
       { role: "user", content: message },
@@ -114,6 +121,10 @@ export function ChatPage() {
     const response: ChatResponse[] = await ollama.chat(data, { stream: true });
     setIsTyping(false);
     await write(response);
+  }
+
+  async function createChat(name: string = '') {
+    await storage.createChat({name: name, model: model});
   }
 
   return (
@@ -183,7 +194,7 @@ export function ChatPage() {
                     </Button>
                   </DialogClose>
                   <DialogClose asChild>
-                  <Button type="submit">Start Chat</Button>
+                  <Button type="submit" onClick={() => {createChat()}}>Start Chat</Button>
                   </DialogClose>
                 </DialogFooter>
               </DialogContent>

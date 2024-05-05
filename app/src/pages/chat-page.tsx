@@ -35,6 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import {Badge} from "@/components/ui/badge.tsx";
 import getModels from "@/api/getModels";
+import { Storage } from "@/services/storage";
 
 interface MessageState {
   userMessage: Message;
@@ -42,10 +43,16 @@ interface MessageState {
 }
 
 const ollama: Ollama = new Ollama({
-  endpoint: "api",
+  endpoint: "/api",
   host: "http://127.0.0.1",
   port: 11434,
 });
+
+const storage: Storage = new Storage({
+  endpoint: '/api/v1',
+  host: 'http://127.0.0.1',
+  port: 8000
+})
 
 export function ChatPage() {
   const allModels = useQuery({ queryKey: ["models"], queryFn: getModels });
@@ -83,6 +90,8 @@ export function ChatPage() {
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) {
     event.preventDefault();
+    const deez = await storage.createMessage({ role: "user", content: message });
+    console.log(deez);
     const newHistory: Message[] = [
       ...userMessages,
       { role: "user", content: message },

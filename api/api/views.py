@@ -1,25 +1,44 @@
 from rest_framework import generics
-from .models import Chat, Message
-from .serializers import ChatSerializer, MessageSerializer
+from api.models.user import UserSettings
+from api.models.chat import Chat
+from api.models.message import Message
+from api.serializers.message import MessageSerializer
+from api.serializers.user import UserSerializer
+from api.serializers.chat import ChatSerializer
 
-class ChatListCreateAPIView(generics.ListCreateAPIView):
+
+class ChatList(generics.ListCreateAPIView):
     queryset = Chat.objects.all()
     serializer_class = ChatSerializer
 
-class ChatRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+
+class ChatDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Chat.objects.all()
     serializer_class = ChatSerializer
 
-class MessageListCreateAPIView(generics.ListCreateAPIView):
+
+class MessageList(generics.ListCreateAPIView):
+    queryset = Message.objects.all()
     serializer_class = MessageSerializer
 
     def get_queryset(self):
-        chat_id = self.kwargs['chat_id']
-        return Message.objects.filter(chat_id=chat_id)
+        queryset = Message.objects.all()
+        chat_id = self.request.query_params.get('chat', None)
+        if chat_id is not None:
+            queryset = queryset.filter(chat__id=chat_id)
+        return queryset
 
-    def perform_create(self, serializer):
-        serializer.save(chat_id=self.kwargs['chat_id'])
 
-class MessageRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+class MessageDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
+
+
+class UserSettingsList(generics.ListCreateAPIView):
+    queryset = UserSettings.objects.all()
+    serializer_class = UserSerializer
+
+
+class UserSettingsDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = UserSettings.objects.all()
+    serializer_class = UserSerializer

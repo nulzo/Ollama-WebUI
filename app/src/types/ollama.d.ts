@@ -1,4 +1,4 @@
-export interface OllamaSettings {
+export interface FetchConfig {
     host: string,
     port?: number,
     endpoint?: string

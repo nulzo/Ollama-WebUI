@@ -1,6 +1,6 @@
 import {streamJSON} from "@/services/utility.ts";
 import {FetchWrapper} from "@/services/fetch.ts";
-import {Message, OllamaSettings} from "@/types/ollama";
+import {Message, FetchConfig} from "@/types/ollama";
 import {Fetch} from "@/types/fetch";
 
 export interface Chat {
@@ -43,10 +43,10 @@ export interface Pull {
 
 export class Ollama {
     private _client: FetchWrapper;
-    private readonly _settings: OllamaSettings;
+    private readonly _settings: FetchConfig;
     private readonly _fetch: Fetch;
 
-    constructor(settings: OllamaSettings) {
+    constructor(settings: FetchConfig) {
         this._settings = settings;
         this._client = new FetchWrapper(this._settings);
         this._fetch = fetch;
@@ -78,18 +78,18 @@ export class Ollama {
 
     async chat(data: Chat, opts: {stream?: boolean}): Promise<any> {
         // Streaming with message history
-        return this.stream('chat', data, opts);
+        return this.stream('/chat', data, opts);
     }
 
     async generate(data: Generate, opts: {stream?: boolean}): Promise<any> {
         // One shot chat messaging
-        return this.stream('generate', data, opts);
+        return this.stream('/generate', data, opts);
     }
 
     async show(data: Show, opts: any = {}) {
         // Show model information
         // data is {'name': <model>}
-        return this.stream('show', data, opts);
+        return this.stream('/show', data, opts);
     }
 
     async list() {
@@ -100,12 +100,12 @@ export class Ollama {
     async create(data: Create, opts: any) {
         // Create a new model api/create
         // takes in {name: string, modelfile: string|opt, stream: boolean|opt, path: string|opt}
-        return this.stream('create', data, opts);
+        return this.stream('/create', data, opts);
     }
 
     async pull(data: Pull, opts: any) {
         // pulls a model from public ollama library api/pull
-        return this.stream('pull', data, opts);
+        return this.stream('/pull', data, opts);
     }
 
     mergeMessageArray(userMessages: any[], botMessages: any[]): any[] {

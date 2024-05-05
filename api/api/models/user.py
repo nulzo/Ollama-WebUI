@@ -1,4 +1,6 @@
 from django.db import models
 
+
 class UserSettings(models.Model):
-    pass
+    name = models.CharField(max_length=150)
+    color = models.CharField(max_length=150)

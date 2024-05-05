@@ -24,7 +24,7 @@ export class FetchWrapper {
     }
 
     async post (fetch: Fetch, endpoint: string, data?: Record<string, unknown> | BodyInit, options?: { signal: AbortSignal } | undefined): Promise<Response> {
-        const url: string = `${this._params.host}:${this._params.port}/${this._params.endpoint}/${endpoint}`;
+        const url: string = `${this._params.host}:${this._params.port}${this._params.endpoint}${endpoint}`;
         const isRecord = (input: Record<string, unknown> | BodyInit | undefined): input is Record<string, unknown> | BodyInit | undefined => {
             return input !== null && typeof input === 'object' && !Array.isArray(input)
         };
@@ -38,8 +38,8 @@ export class FetchWrapper {
         return response;
     }
 
-    async get (fetch: Fetch, endpoint: string): Promise<Response> {
-        const url: string = `${this._params.host}:${this._params.port}/${this._params.endpoint}/${endpoint}`;
-        return await this.process(fetch, url, {method: 'GET'});
+    async get (fetch: Fetch, endpoint: string, opts?: Record<string, unknown>): Promise<Response> {
+        const url: string = `${this._params.host}:${this._params.port}${this._params.endpoint}${endpoint}`;
+        return await this.process(fetch, url, {...opts, method: 'GET'});
     }
 }

@@ -235,7 +235,7 @@ export function ChatPage() {
         </div>
       </div>
       <div className="lg:col-span-4">
-        <ScrollArea className="relative flex h-full max-h-[75vh] min-h-[50vh] flex-col rounded-xl bg-accent/25 border p-4">
+        <ScrollArea className="relative whitespace-pre-line flex h-full max-h-[75vh] min-h-[50vh] flex-col rounded-xl bg-accent/25 border p-4">
           <div className="mx-4">
             {nmessages.length !== 0 &&
               nmessages.map((message) => (

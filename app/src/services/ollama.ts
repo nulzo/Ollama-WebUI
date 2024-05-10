@@ -41,6 +41,10 @@ export interface Pull {
     stream?: boolean
 }
 
+/* The Ollama interface serves as a custom wrapper that sits around the Ollama API.
+ *
+ * **/
+
 export class Ollama {
     private _client: FetchWrapper;
     private readonly _settings: FetchConfig;
@@ -94,7 +98,7 @@ export class Ollama {
 
     async list() {
         // List all available models
-        return await this._client.get(this._fetch, 'tags');
+        return await this.retrieve("tags");
     }
 
     async create(data: Create, opts: any) {

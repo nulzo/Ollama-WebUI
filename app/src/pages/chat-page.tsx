@@ -34,9 +34,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {Badge} from "@/components/ui/badge.tsx";
-import getModels from "@/api/getModels";
 import { Storage } from "@/services/storage";
 import { QueryChats } from "@/services/query";
+import { useModels } from "@/hooks/use-models";
+import {useChats} from "@/hooks/use-chats.ts";
+import {useUser} from "@/hooks/use-user.ts";
 
 interface MessageState {
   userMessage: Message;
@@ -56,8 +58,9 @@ const storage: Storage = new Storage({
 })
 
 export function ChatPage() {
-  const allModels = useQuery({ queryKey: ["models"], queryFn: getModels });
-  const allChats = useQuery({ queryKey: ["chats"], queryFn: QueryChats});
+  const allModels = useModels();
+  const allChats = useChats();
+  const user = useUser();
   const [model, setModel] = useState("");
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -88,7 +91,7 @@ export function ChatPage() {
     return newHistory;
   }
 
-  function onKeyPress(event) {
+  function onKeyPress(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     if(event.key === 'Enter') { onSubmit(event); }
   }
 
@@ -169,7 +172,7 @@ export function ChatPage() {
                       <Label htmlFor="model" className="text-right">
                         Model<span className="text-primary ml-1">*</span>
                       </Label>
-                      {allModels.isLoading ? (
+                      {allModels?.isLoading ? (
                         <Skeleton className="h-9 w-full col-span-3 rounded-lg" />
                       ) : (
                         <Select

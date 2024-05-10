@@ -1,12 +1,11 @@
-import {OllamaSettings} from "@/types/ollama";
 import {isValid} from "@/services/utility.ts";
-import {Fetch} from "@/types/fetch";
+import {Fetch, FetchConfig} from "@/types/fetch";
 
 export class FetchWrapper {
-    private _params: OllamaSettings;
+    private _params: FetchConfig;
     protected defaultHeaders: Headers;
 
-    constructor(params: OllamaSettings) {
+    constructor(params: FetchConfig) {
         this._params = params;
         this.defaultHeaders = {
             'Content-Type': 'application/json',

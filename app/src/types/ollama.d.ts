@@ -1,9 +1,3 @@
-export interface FetchConfig {
-    host: string,
-    port?: number,
-    endpoint?: string
-}
-
 export interface Message {
     role: string
     content: string

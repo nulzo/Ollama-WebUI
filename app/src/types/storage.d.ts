@@ -9,3 +9,8 @@ export interface CreateChat {
     model: string,
     name?: string
 }
+
+export interface Settings {
+    name: string
+    color?: string
+}

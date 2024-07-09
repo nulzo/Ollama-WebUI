@@ -33,12 +33,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import {Badge} from "@/components/ui/badge.tsx";
+import { Badge } from "@/components/ui/badge.tsx";
 import { Storage } from "@/services/storage";
 import { QueryChats } from "@/services/query";
 import { useModels } from "@/hooks/use-models";
-import {useChats} from "@/hooks/use-chats.ts";
-import {useUser} from "@/hooks/use-user.ts";
+import { useChats } from "@/hooks/use-chats.ts";
+import { useUser } from "@/hooks/use-user.ts";
 
 interface MessageState {
   userMessage: Message;
@@ -47,15 +47,15 @@ interface MessageState {
 
 const ollama: Ollama = new Ollama({
   endpoint: "/api",
-  host: "http://127.0.0.1",
+  host: "http://192.168.0.25",
   port: 11434,
 });
 
 const storage: Storage = new Storage({
-  endpoint: '/api/v1',
-  host: 'http://127.0.0.1',
-  port: 8000
-})
+  endpoint: "/api/v1",
+  host: "http://127.0.0.1",
+  port: 8000,
+});
 
 export function ChatPage() {
   const allModels = useModels();
@@ -67,10 +67,10 @@ export function ChatPage() {
   const [userMessages, setUserMessages] = useState<Message[]>([]);
   const [botMessages, setBotMessages] = useState<Message[]>([]);
   const [nmessages, setNmessages] = useState<MessageState[]>([]);
-  const [chatID, setChatID] = useState<number|undefined>(undefined);
+  const [chatID, setChatID] = useState<number | undefined>(undefined);
 
   async function write(
-    response: ChatResponse[]
+    response: ChatResponse[],
   ): Promise<(Message | { role: string; content: string })[]> {
     let curr: string = "";
     for await (const part of response) {
@@ -84,25 +84,33 @@ export function ChatPage() {
       ]);
     }
     const newHistory = [...botMessages, { role: "assistant", content: curr }];
-    await storage.createMessage(
-      {model: model, message: curr, role: "assistance", chat: 1}
-    );
+    await storage.createMessage({
+      model: model,
+      message: curr,
+      role: "assistance",
+      chat: 1,
+    });
     setBotMessages(newHistory);
     return newHistory;
   }
 
   function onKeyPress(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-    if(event.key === 'Enter') { onSubmit(event); }
+    if (event.key === "Enter") {
+      onSubmit(event);
+    }
   }
 
   async function onSubmit(
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) {
     event.preventDefault();
-    await storage.createMessage(
-      {model: '', message: message, role: "user", chat: 1}
-    );
-    
+    await storage.createMessage({
+      model: "",
+      message: message,
+      role: "user",
+      chat: 1,
+    });
+
     const newHistory: Message[] = [
       ...userMessages,
       { role: "user", content: message },
@@ -116,7 +124,7 @@ export function ChatPage() {
     ]);
     const history: Message[] = ollama.mergeMessageArray(
       newHistory,
-      botMessages
+      botMessages,
     );
     const data = { model: model, stream: true, messages: history };
     setMessage("");
@@ -127,8 +135,8 @@ export function ChatPage() {
     await write(response);
   }
 
-  async function createChat(name: string = '') {
-    await storage.createChat({name: name, model: model});
+  async function createChat(name: string = "") {
+    await storage.createChat({ name: name, model: model });
   }
 
   async function getChatHistory(id: number) {
@@ -152,7 +160,9 @@ export function ChatPage() {
       <div className="relative hidden md:flex items-start">
         <div className="w-full space-y-4">
           <div className="flex flex-col w-full h-[75vh] rounded-lg border p-4">
-            <Label className="px-1 text-sm font-semibold mb-4"><Badge variant="outline">Chat History</Badge></Label>
+            <Label className="px-1 text-sm font-semibold mb-4">
+              <Badge variant="outline">Chat History</Badge>
+            </Label>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="default">
@@ -169,32 +179,31 @@ export function ChatPage() {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="model" className="text-right">
-                        Model<span className="text-primary ml-1">*</span>
-                      </Label>
-                      {allModels?.isLoading ? (
-                        <Skeleton className="h-9 w-full col-span-3 rounded-lg" />
-                      ) : (
-                        <Select
-                          onValueChange={(value) => setModel(value)}
-                          defaultValue={model}
+                    <Label htmlFor="model" className="text-right">
+                      Model<span className="text-primary ml-1">*</span>
+                    </Label>
+                    {allModels?.isLoading ? (
+                      <Skeleton className="h-9 w-full col-span-3 rounded-lg" />
+                    ) : (
+                      <Select
+                        onValueChange={(value) => setModel(value)}
+                        defaultValue={model}
+                      >
+                        <SelectTrigger
+                          id="model"
+                          className="items-start col-span-3 [&_[data-description]]:hidden"
                         >
-                          <SelectTrigger
-                            id="model"
-                            className="items-start col-span-3 [&_[data-description]]:hidden"
-                          >
-                            <SelectValue placeholder="Select a model" />
-                          </SelectTrigger>
-                          <SelectContent className="w-full">
-                            {allModels.data?.models?.map((m: ChatResponse) => (
-                              <SelectItem key={m.model} value={m.model}>
-                                {m.model}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                 
+                          <SelectValue placeholder="Select a model" />
+                        </SelectTrigger>
+                        <SelectContent className="w-full">
+                          {allModels.data?.models?.map((m: ChatResponse) => (
+                            <SelectItem key={m.model} value={m.model}>
+                              {m.model}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">
@@ -214,17 +223,34 @@ export function ChatPage() {
                     </Button>
                   </DialogClose>
                   <DialogClose asChild>
-                  <Button type="submit" onClick={() => {createChat()}}>Start Chat</Button>
+                    <Button
+                      type="submit"
+                      onClick={() => {
+                        createChat();
+                      }}
+                    >
+                      Start Chat
+                    </Button>
                   </DialogClose>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
             <div className="space-y-1">
-            {!allChats.isLoading && allChats.data.map(chat => (
-                <Button onClick={(event) => {getChatHistory(event.target.value)}} value={chat.id} size="sm" variant="ghost" className="w-full text-xs" key={`chat-${chat.id}`}>
-                  {chat.name}
-                </Button>
-            ))}
+              {!allChats.isLoading &&
+                allChats.data.map((chat) => (
+                  <Button
+                    onClick={(event) => {
+                      getChatHistory(event.target.value);
+                    }}
+                    value={chat.id}
+                    size="sm"
+                    variant="ghost"
+                    className="w-full text-xs"
+                    key={`chat-${chat.id}`}
+                  >
+                    {chat.name}
+                  </Button>
+                ))}
             </div>
           </div>
           <div className="h-[100px] p-4 items-center flex flex-col text-center justify-center rounded-lg border-primary/50 border-2 bg-primary/5">
@@ -232,7 +258,9 @@ export function ChatPage() {
               Don't forget to give me a star! <Star className="size-3" />
             </div>
             <div className="flex flex-col text-xs align-middle gap-1 justify-center items-center">
-              <div className="flex">I am just kidding. Don't do that... Touch grass instead</div>
+              <div className="flex">
+                I am just kidding. Don't do that... Touch grass instead
+              </div>
             </div>
           </div>
         </div>
@@ -262,7 +290,9 @@ export function ChatPage() {
         <div className="flex flex-col mt-4">
           <div className="flex-1" />
           <div className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-2 focus-within:ring-ring">
-            <Label htmlFor="chatMessage" className="sr-only">Chat Message</Label>
+            <Label htmlFor="chatMessage" className="sr-only">
+              Chat Message
+            </Label>
             <Textarea
               id="chatMessage"
               className="m-0 w-full focus:border-transparent focus-visible:ring-0 resize-none border-0 p-3 shadow-none h-[52px] min-h-[52px] items-center bg-background align-middle"

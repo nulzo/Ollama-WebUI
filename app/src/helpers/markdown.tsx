@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
-import hljs from 'highlight.js';
-import 'highlight.js/styles/atom-one-dark.css';
+import hljs from "highlight.js";
+import "highlight.js/styles/atom-one-dark.css";
 
 interface MarkdownRendererProps {
   markdown: string;
@@ -10,11 +10,11 @@ interface MarkdownRendererProps {
 
 const markedInstance = new Marked(
   markedHighlight({
-    langPrefix: 'hljs language-',
+    langPrefix: "hljs language-",
     highlight(code) {
       const result = hljs.highlightAuto(code);
       return result.value;
-    }
+    },
   })
 );
 
@@ -24,7 +24,13 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
     hljs.highlightAll();
   }, [markdown]);
   const html = markedInstance.parse(markdown);
-  return <div className='rounded-xl w-full' ref={containerRef} dangerouslySetInnerHTML={{ __html: html }} />;
+  return (
+    <div
+      className="rounded-xl w-full"
+      ref={containerRef}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
 };
 
 export default MarkdownRenderer;

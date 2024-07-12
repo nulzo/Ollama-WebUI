@@ -12,11 +12,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
-import ResponseBox from "@/components/responseBox.tsx";
+import BotMessage from "@/components/bot-message";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, Paperclip, Send, Image, Plus, Star } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Ollama } from "@/services/ollama.ts";
@@ -35,10 +34,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge.tsx";
 import { Storage } from "@/services/storage";
-import { QueryChats } from "@/services/query";
 import { useModels } from "@/hooks/use-models";
 import { useChats } from "@/hooks/use-chats.ts";
-import { useUser } from "@/hooks/use-user.ts";
 
 interface MessageState {
   userMessage: Message;
@@ -60,14 +57,13 @@ const storage: Storage = new Storage({
 export function ChatPage() {
   const allModels = useModels();
   const allChats = useChats();
-  const user = useUser();
   const [model, setModel] = useState("");
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [userMessages, setUserMessages] = useState<Message[]>([]);
   const [botMessages, setBotMessages] = useState<Message[]>([]);
   const [nmessages, setNmessages] = useState<MessageState[]>([]);
-  const [chatID, setChatID] = useState<number | undefined>(undefined);
+  const [_, setChatID] = useState<number | undefined>(undefined);
 
   async function write(
     response: ChatResponse[],
@@ -83,6 +79,7 @@ export function ChatPage() {
         },
       ]);
     }
+    
     const newHistory = [...botMessages, { role: "assistant", content: curr }];
     await storage.createMessage({
       model: model,
@@ -94,19 +91,18 @@ export function ChatPage() {
     return newHistory;
   }
 
-  function onKeyPress(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+  function onKeyPress(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    event.preventDefault();
     if (event.key === "Enter") {
-      onSubmit(event);
+        handleSubmit(event as unknown as React.FormEvent<HTMLFormElement>);
     }
   }
 
-  async function onSubmit(
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await storage.createMessage({
       model: "",
-      message: message,
+      message,
       role: "user",
       chat: 1,
     });
@@ -151,8 +147,6 @@ export function ChatPage() {
         },
       ]);
     });
-    const values = response.messages;
-    console.log(response);
   }
 
   return (
@@ -196,7 +190,7 @@ export function ChatPage() {
                           <SelectValue placeholder="Select a model" />
                         </SelectTrigger>
                         <SelectContent className="w-full">
-                          {allModels.data?.models?.map((m: ChatResponse) => (
+                          {allModels?.data?.models?.map((m: ChatResponse) => (
                             <SelectItem key={m.model} value={m.model}>
                               {m.model}
                             </SelectItem>
@@ -236,16 +230,17 @@ export function ChatPage() {
               </DialogContent>
             </Dialog>
             <div className="space-y-1">
-              {!allChats.isLoading &&
-                allChats.data.map((chat) => (
+              {!allChats?.isLoading &&
+                allChats?.data.map((chat: any) => (
                   <Button
                     onClick={(event) => {
-                      getChatHistory(event.target.value);
+                      const target = event.target as HTMLButtonElement;
+                      getChatHistory(Number(target.value));
                     }}
                     value={chat.id}
                     size="sm"
                     variant="ghost"
-                    className="w-full text-xs"
+                    className="w-full justify-state text-xs"
                     key={`chat-${chat.id}`}
                   >
                     {chat.name}
@@ -266,18 +261,18 @@ export function ChatPage() {
         </div>
       </div>
       <div className="lg:col-span-4">
-        <ScrollArea className="relative whitespace-pre-line flex h-full max-h-[75vh] min-h-[50vh] flex-col rounded-xl bg-accent/25 border p-4">
+        <ScrollArea className="relative  flex h-full max-h-[75vh] min-h-[50vh] flex-col rounded-xl bg-accent/25 border p-4">
           <div className="mx-4">
             {nmessages.length !== 0 &&
               nmessages.map((message) => (
                 <>
-                  <ResponseBox
+                  <BotMessage
                     isBot={false}
                     isTyping={false}
                     message={message?.userMessage?.content}
                     username={message.userMessage?.role}
                   />
-                  <ResponseBox
+                  <BotMessage
                     isBot={true}
                     isTyping={isTyping}
                     message={message?.botMessage?.content}
@@ -337,7 +332,7 @@ export function ChatPage() {
               <Button
                 type="submit"
                 disabled={message.length === 0 || model.length === 0}
-                onClick={onSubmit}
+                onClick={handleSubmit}
                 size="sm"
                 className="ml-auto gap-1.5 text-foreground"
               >

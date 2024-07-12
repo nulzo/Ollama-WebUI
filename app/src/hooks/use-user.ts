@@ -1,19 +1,10 @@
+import { Storage } from "@/services/storage";
 import {keepPreviousData, useQuery} from "@tanstack/react-query";
 
-const settings = {
-    endpoint: '/api/v1',
-    host: 'http://127.0.0.1',
-    port: 8000
-};
-
-export function useUser() {
-    async function queryChats() {
-        const response = await fetch(`${settings.host}:${settings.port}/${settings.endpoint}/settings`, {method: 'GET'});
-        return await response.json();
-    }
+export function useUser(storage: Storage) {
     const data = useQuery({
         queryKey: ["settings"],
-        queryFn: () => queryChats(),
+        queryFn: () => storage.getUser(),
         placeholderData: keepPreviousData,
         staleTime: 30000,
     });

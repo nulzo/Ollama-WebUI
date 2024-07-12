@@ -4,6 +4,12 @@ export interface Message {
     images?: Uint8Array[] | string[]
 }
 
+export interface OllamaConfig {
+    endpoint: string,
+    port: number,
+    host: string
+}
+
 export interface OllamaOpts {
     num_ctx: number
     low_vram: boolean

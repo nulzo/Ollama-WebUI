@@ -1020,8 +1020,20 @@ body {
   z-index: 1
 }
 
+.col-span-2 {
+  grid-column: span 2 / span 2
+}
+
 .col-span-3 {
   grid-column: span 3 / span 3
+}
+
+.col-span-1 {
+  grid-column: span 1 / span 1
+}
+
+.col-span-4 {
+  grid-column: span 4 / span 4
 }
 
 .m-0 {
@@ -1148,6 +1160,11 @@ body {
   aspect-ratio: 1 / 1
 }
 
+.size-2 {
+  width: 0.5rem;
+  height: 0.5rem
+}
+
 .size-3 {
   width: 0.75rem;
   height: 0.75rem
@@ -1259,6 +1276,10 @@ body {
   height: 100vh
 }
 
+.h-3\/4 {
+  height: 75%
+}
+
 .max-h-96 {
   max-height: 24rem
 }
@@ -1364,6 +1385,11 @@ body {
   width: 1px
 }
 
+.w-fit {
+  width: -moz-fit-content;
+  width: fit-content
+}
+
 .min-w-0 {
   min-width: 0px
 }
@@ -1380,6 +1406,10 @@ body {
   min-width: var(--radix-select-trigger-width)
 }
 
+.max-w-\[75\%\] {
+  max-width: 75%
+}
+
 .max-w-lg {
   max-width: 32rem
 }
@@ -1387,14 +1417,6 @@ body {
 .max-w-max {
   max-width: -moz-max-content;
   max-width: max-content
-}
-
-.max-w-\[75\%\] {
-  max-width: 75%
-}
-
-.max-w-\[85\%\] {
-  max-width: 85%
 }
 
 .flex-1 {
@@ -1499,6 +1521,10 @@ body {
   grid-template-columns: repeat(4, minmax(0, 1fr))
 }
 
+.grid-cols-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr))
+}
+
 .flex-row {
   flex-direction: row
 }
@@ -1549,6 +1575,10 @@ body {
 
 .justify-between {
   justify-content: space-between
+}
+
+.justify-items-end {
+  justify-items: end
 }
 
 .gap-0 {
@@ -1635,12 +1665,22 @@ body {
   overflow-x: hidden
 }
 
-.whitespace-nowrap {
+.overflow-y-scroll {
+  overflow-y: scroll
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap
 }
 
-.whitespace-pre-line {
-  white-space: pre-line
+.text-ellipsis {
+  text-overflow: ellipsis
+}
+
+.whitespace-nowrap {
+  white-space: nowrap
 }
 
 .break-words {
@@ -1669,6 +1709,10 @@ body {
 
 .rounded-xl {
   border-radius: 0.75rem
+}
+
+.rounded {
+  border-radius: 0.25rem
 }
 
 .rounded-b-2xl {
@@ -1740,6 +1784,11 @@ body {
   border-color: hsl(var(--destructive) / 0.5)
 }
 
+.border-green-200 {
+  --tw-border-opacity: 1;
+  border-color: rgb(187 247 208 / var(--tw-border-opacity))
+}
+
 .border-input {
   border-color: hsl(var(--border))
 }
@@ -1756,6 +1805,21 @@ body {
   border-color: transparent
 }
 
+.border-red-200 {
+  --tw-border-opacity: 1;
+  border-color: rgb(254 202 202 / var(--tw-border-opacity))
+}
+
+.border-yellow-200 {
+  --tw-border-opacity: 1;
+  border-color: rgb(254 240 138 / var(--tw-border-opacity))
+}
+
+.border-red-400 {
+  --tw-border-opacity: 1;
+  border-color: rgb(248 113 113 / var(--tw-border-opacity))
+}
+
 .border-l-transparent {
   border-left-color: transparent
 }
@@ -1770,6 +1834,10 @@ body {
 
 .bg-accent\/25 {
   background-color: hsl(var(--accent) / 0.25)
+}
+
+.bg-accent\/75 {
+  background-color: hsl(var(--accent) / 0.75)
 }
 
 .bg-background {
@@ -1800,6 +1868,11 @@ body {
   background-color: hsl(var(--foreground))
 }
 
+.bg-green-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(74 222 128 / var(--tw-bg-opacity))
+}
+
 .bg-muted {
   background-color: hsl(var(--muted))
 }
@@ -1824,6 +1897,10 @@ body {
   background-color: hsl(var(--primary) / 0.2)
 }
 
+.bg-primary\/25 {
+  background-color: hsl(var(--primary) / 0.25)
+}
+
 .bg-primary\/5 {
   background-color: hsl(var(--primary) / 0.05)
 }
@@ -1836,16 +1913,14 @@ body {
   background-color: transparent
 }
 
-.bg-accent\/75 {
-  background-color: hsl(var(--accent) / 0.75)
+.bg-red-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(248 113 113 / var(--tw-bg-opacity))
 }
 
-.bg-primary\/75 {
-  background-color: hsl(var(--primary) / 0.75)
-}
-
-.bg-primary\/25 {
-  background-color: hsl(var(--primary) / 0.25)
+.bg-yellow-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(250 204 21 / var(--tw-bg-opacity))
 }
 
 .bg-gradient-to-r {
@@ -1882,10 +1957,6 @@ body {
 
 .stroke-primary {
   stroke: hsl(var(--primary))
-}
-
-.stroke-2 {
-  stroke-width: 2
 }
 
 .p-0 {
@@ -2185,6 +2256,11 @@ body {
 
 .text-transparent {
   color: transparent
+}
+
+.text-red-400 {
+  --tw-text-opacity: 1;
+  color: rgb(248 113 113 / var(--tw-text-opacity))
 }
 
 .underline-offset-4 {

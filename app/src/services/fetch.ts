@@ -1,20 +1,24 @@
 import {isValid} from "@/services/utility.ts";
 import {Fetch, FetchConfig} from "@/types/fetch";
 
+interface DefaultHeaders {
+    'Content-Type'?: string;
+    'Accept'?: string;
+}
+
 export class FetchWrapper {
     private _params: FetchConfig;
-    protected defaultHeaders: Headers;
+    protected defaultHeaders: Headers | DefaultHeaders;
 
     constructor(params: FetchConfig) {
         this._params = params;
         this.defaultHeaders = {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            'Accept': 'application/json'
         }
     }
 
     process (fetch: Fetch, endpoint: string, opts: RequestInit = {}): Promise<Response> {
-        console.log({...opts});
         opts.headers = {
             ...this.defaultHeaders,
             ...opts.headers,

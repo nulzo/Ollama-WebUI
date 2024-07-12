@@ -1,12 +1,10 @@
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 
-import { Mic, Paperclip, Send, Image, Plus, Star } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Ollama } from "@/services/ollama.ts";
-import getModels from "@/api/getModels.ts";
-import React, { useState } from "react";
-import { ChatResponse, Message } from "@/types/ollama";
+import { useState } from "react";
 import {
 Dialog,
 DialogClose,
@@ -17,18 +15,13 @@ DialogHeader,
 DialogTitle,
 DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {Badge} from "@/components/ui/badge.tsx";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import MarkdownRenderer from "@/helpers/markdown";
+import { OLLAMA_SETTINGS } from "@/settings/ollama";
 import { Textarea } from "@/components/ui/textarea";
 
-const ollama: Ollama = new Ollama({
-    endpoint: "api",
-    host: "http://127.0.0.1",
-    port: 11434,
-  });
+const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 
 export default function ModelPage() {
     const models = useQuery({ queryKey: ["models"], queryFn: ollama.list });

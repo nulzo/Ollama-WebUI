@@ -16,16 +16,15 @@ export class Storage {
 
   async createMessage(message: CreateMessage) {
     const response = await this._client.post(this._fetch, '/messages/', {
-      content: message.message,
+      content: message.content,
       role: message.role,
       model: message.model,
-      chat: message.chat_uuid
+      chat: message.chat
     });
     return await response.json();
   }
 
   async createChat(chat: CreateChat) {
-    console.log(chat);
     const response = await this._client.post(this._fetch, '/chats/', {
       model: chat.model, uuid: chat.uuid
     });

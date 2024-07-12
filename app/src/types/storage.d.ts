@@ -1,8 +1,8 @@
 export interface CreateMessage {
     model: string,
-    message: string,
+    content: string,
     role: string,
-    chat_uuid: string
+    chat: string
 }
 
 export interface CreateChat {

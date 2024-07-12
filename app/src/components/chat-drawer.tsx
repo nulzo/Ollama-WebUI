@@ -16,50 +16,35 @@ import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Ollama } from "@/services/ollama.ts";
-import { useState } from "react";
-import { ChatResponse, Message } from "@/types/ollama";
+import { ChatResponse } from "@/types/ollama";
 import { Storage } from "@/services/storage";
 import { useModels } from "@/hooks/use-models";
 import { useChats } from "@/hooks/use-chats.ts";
 import { OLLAMA_SETTINGS } from "@/settings/ollama";
 import { DATABASE_SETTINGS } from "@/settings/database";
-import { v4 as uuidv4 } from "uuid";
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 const storage: Storage = new Storage(DATABASE_SETTINGS);
 
-export default function ChatHistory() {
-    const models = useModels(ollama);
-    const chats = useChats(storage);
+export default function ChatDrawer(props) {
+  const models = useModels(ollama);
+  const chats = useChats(storage);
 
-    const [model, setModel] = useState("llama3:latest");
-    const [uuid, setUuid] = useState("");
-    const [nmessages, setNmessages] = useState<any[]>([]);
-    const [_, setChatID] = useState<number | undefined>(undefined);
+  function updateModel(elem: string) {
+    props.updateModel(elem);
+  }
 
-  
-    async function createChat() {
-      const chat_uuid = uuidv4();
-      setUuid(chat_uuid);
-      await storage.createChat({ uuid: chat_uuid, model: model });
-    }
-  
-    async function getChatHistory(id: number) {
-      const response = await storage.getChat(id);
-      setChatID(id);
-      response.messages.forEach((element: Message) => {
-        setNmessages([
-          ...nmessages,
-          {
-            userMessage: { role: "user", content: element.content },
-            botMessage: { role: "assistant", content: "" },
-          },
-        ]);
-      });
-    }
+  async function createChat() {
+    props.createChat();
+    chats?.refetch();
+  }
 
-    return (
-      <div className="flex flex-col w-full h-[75vh] rounded-lg border p-4">
+  async function getChatHistory(id: string) {
+    props.getChatHistory(id);
+  }
+
+  return (
+    <div className="flex flex-col h-[75vh] rounded-lg border p-4">
       <div className="grid grid-cols-5">
         <div className="flex gap-2 items-center col-span-4">
           {models?.isLoading && (
@@ -70,14 +55,14 @@ export default function ChatHistory() {
           {models?.isError && (
             <div className="items-start w-3/4">
               <div className="h-9 border border-red-400 text-red-400 text-sm justify-center flex items-center rounded-lg w-full [&_[data-description]]:hidden">
-               {models.error.name}!
+                {models.error.name}!
               </div>
             </div>
           )}
           {models?.isSuccess && (
             <Select
-              onValueChange={(value) => setModel(value)}
-              defaultValue={model}
+              onValueChange={(value) => updateModel(value)}
+              defaultValue={props.model}
             >
               <SelectTrigger
                 id="model"
@@ -126,13 +111,13 @@ export default function ChatHistory() {
           </Button>
         </div>
       </div>
-      <div className="space-y-1 mt-4 overflow-y-scroll">
+      <div className="space-y-1 mt-4 overflow-y-scroll w-full">
         {!chats?.isLoading &&
           chats?.data.map((chat: any) => (
             <Button
               onClick={(event) => {
                 const target = event.target as HTMLButtonElement;
-                getChatHistory(Number(target.value));
+                getChatHistory(target.value);
               }}
               value={chat.uuid}
               size="sm"
@@ -140,10 +125,10 @@ export default function ChatHistory() {
               className="w-full justify-start text-xs truncate"
               key={`chat-${chat.uuid}`}
             >
-              {chat.uuid}
+              {chat.messages[0]?.content ?? "some message ..."}
             </Button>
           ))}
       </div>
     </div>
-    )
+  );
 }

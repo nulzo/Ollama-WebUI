@@ -1,5 +1,8 @@
 export interface Message {
-    role: string
+    chat: string
+    role: 'user' | 'assistant'
+    model: string
+    time?: string
     content: string
     images?: Uint8Array[] | string[]
 }

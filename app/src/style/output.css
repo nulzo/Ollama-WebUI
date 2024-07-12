@@ -1020,14 +1020,6 @@ body {
   z-index: 1
 }
 
-.col-span-2 {
-  grid-column: span 2 / span 2
-}
-
-.col-span-3 {
-  grid-column: span 3 / span 3
-}
-
 .col-span-1 {
   grid-column: span 1 / span 1
 }
@@ -1038,6 +1030,10 @@ body {
 
 .m-0 {
   margin: 0px
+}
+
+.m-5 {
+  margin: 1.25rem
 }
 
 .-mx-1 {
@@ -1274,10 +1270,6 @@ body {
 
 .h-screen {
   height: 100vh
-}
-
-.h-3\/4 {
-  height: 75%
 }
 
 .max-h-96 {
@@ -1613,6 +1605,10 @@ body {
   gap: 1.5rem
 }
 
+.gap-5 {
+  gap: 1.25rem
+}
+
 .space-x-1 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.25rem * var(--tw-space-x-reverse));
@@ -1665,6 +1661,14 @@ body {
   overflow-x: hidden
 }
 
+.overflow-x-clip {
+  overflow-x: clip
+}
+
+.overflow-x-visible {
+  overflow-x: visible
+}
+
 .overflow-y-scroll {
   overflow-y: scroll
 }
@@ -1711,10 +1715,6 @@ body {
   border-radius: 0.75rem
 }
 
-.rounded {
-  border-radius: 0.25rem
-}
-
 .rounded-b-2xl {
   border-bottom-right-radius: 1rem;
   border-bottom-left-radius: 1rem
@@ -1737,6 +1737,14 @@ body {
 
 .rounded-tl-sm {
   border-top-left-radius: calc(var(--radius) - 4px)
+}
+
+.rounded-tl-none {
+  border-top-left-radius: 0px
+}
+
+.rounded-tr-none {
+  border-top-right-radius: 0px
 }
 
 .border {
@@ -1801,23 +1809,18 @@ body {
   border-color: hsl(var(--primary) / 0.5)
 }
 
-.border-transparent {
-  border-color: transparent
-}
-
 .border-red-200 {
   --tw-border-opacity: 1;
   border-color: rgb(254 202 202 / var(--tw-border-opacity))
 }
 
-.border-yellow-200 {
-  --tw-border-opacity: 1;
-  border-color: rgb(254 240 138 / var(--tw-border-opacity))
-}
-
 .border-red-400 {
   --tw-border-opacity: 1;
   border-color: rgb(248 113 113 / var(--tw-border-opacity))
+}
+
+.border-transparent {
+  border-color: transparent
 }
 
 .border-l-transparent {
@@ -1905,6 +1908,11 @@ body {
   background-color: hsl(var(--primary) / 0.05)
 }
 
+.bg-red-400 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(248 113 113 / var(--tw-bg-opacity))
+}
+
 .bg-secondary {
   background-color: hsl(var(--secondary))
 }
@@ -1913,14 +1921,13 @@ body {
   background-color: transparent
 }
 
-.bg-red-400 {
+.bg-red-500 {
   --tw-bg-opacity: 1;
-  background-color: rgb(248 113 113 / var(--tw-bg-opacity))
+  background-color: rgb(239 68 68 / var(--tw-bg-opacity))
 }
 
-.bg-yellow-400 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(250 204 21 / var(--tw-bg-opacity))
+.bg-accent\/50 {
+  background-color: hsl(var(--accent) / 0.5)
 }
 
 .bg-gradient-to-r {
@@ -1985,6 +1992,14 @@ body {
 
 .p-\[1px\] {
   padding: 1px
+}
+
+.p-1\.5 {
+  padding: 0.375rem
+}
+
+.p-5 {
+  padding: 1.25rem
 }
 
 .px-1 {
@@ -2062,6 +2077,16 @@ body {
   padding-bottom: 1.5rem
 }
 
+.py-5 {
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem
+}
+
+.px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem
+}
+
 .pb-4 {
   padding-bottom: 1rem
 }
@@ -2126,16 +2151,32 @@ body {
   padding-top: 1rem
 }
 
+.pt-10 {
+  padding-top: 2.5rem
+}
+
+.pt-6 {
+  padding-top: 1.5rem
+}
+
+.pt-8 {
+  padding-top: 2rem
+}
+
+.ps-1 {
+  padding-inline-start: 0.25rem
+}
+
+.pe-1 {
+  padding-inline-end: 0.25rem
+}
+
 .text-left {
   text-align: left
 }
 
 .text-center {
   text-align: center
-}
-
-.text-right {
-  text-align: right
 }
 
 .align-middle {
@@ -2250,6 +2291,11 @@ body {
   color: hsl(var(--primary-foreground))
 }
 
+.text-red-400 {
+  --tw-text-opacity: 1;
+  color: rgb(248 113 113 / var(--tw-text-opacity))
+}
+
 .text-secondary-foreground {
   color: hsl(var(--secondary-foreground))
 }
@@ -2258,9 +2304,12 @@ body {
   color: transparent
 }
 
-.text-red-400 {
-  --tw-text-opacity: 1;
-  color: rgb(248 113 113 / var(--tw-text-opacity))
+.text-primary\/50 {
+  color: hsl(var(--primary) / 0.5)
+}
+
+.text-primary\/75 {
+  color: hsl(var(--primary) / 0.75)
 }
 
 .underline-offset-4 {

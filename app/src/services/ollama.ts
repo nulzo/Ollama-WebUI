@@ -5,7 +5,7 @@ import {Fetch, FetchConfig} from "@/types/fetch";
 
 export interface Chat {
     model: string,
-    messages: Message,
+    message: Message | Message[],
     format?: 'json',
     options?: string,
     stream?: boolean,

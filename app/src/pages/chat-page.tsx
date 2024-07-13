@@ -7,11 +7,11 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area.tsx";
 import BotMessage from "@/components/bot-message";
 import { Textarea } from "@/components/ui/textarea";
-import { Mic, Paperclip, Send, Image, Star } from "lucide-react";
+import { Mic, Paperclip, Send, Image, Star, Origami } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Ollama } from "@/services/ollama.ts";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ChatResponse, Message } from "@/types/ollama";
 import { Storage } from "@/services/storage";
 import { OLLAMA_SETTINGS } from "@/settings/ollama";
@@ -19,10 +19,12 @@ import { DATABASE_SETTINGS } from "@/settings/database";
 import { v4 as uuidv4 } from "uuid";
 import ChatDrawer from "@/components/chat-drawer";
 import { useSearchParams } from "react-router-dom";
+import { PulseLoader } from "react-spinners";
 
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 const storage: Storage = new Storage(DATABASE_SETTINGS);
+
 
 export function ChatPage() {
   const [model, setModel] = useState("llama3:latest");
@@ -30,13 +32,24 @@ export function ChatPage() {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  let [searchParams, setSearch] = useSearchParams();
+  let [_, setSearch] = useSearchParams();
+  const ref = useRef(null);
+
+  const scrollToBottom = () => {
+    ref.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages]);
+
 
   async function write(response: ChatResponse[]): Promise<(Message)[]> {
     let curr: string = "";
     for await (const part of response) {
       curr += part.message.content;
     }
+    setIsTyping(false);
     setMessages(prevMessages => [
       ...prevMessages,
       {
@@ -83,7 +96,6 @@ export function ChatPage() {
     setMessage("");
     setIsTyping(true);
     const response: ChatResponse[] = await ollama.chat(data, { stream: true });
-    setIsTyping(false);
     await write(response);
   }
 
@@ -95,7 +107,7 @@ export function ChatPage() {
     const chat_uuid = uuidv4();
     setUuid(chat_uuid);
     setSearch('');
-    setMessages(msg => []);
+    setMessages(_ => []);
 
     await storage.createChat({ uuid: chat_uuid, model: model });
   }
@@ -131,12 +143,11 @@ export function ChatPage() {
         </div>
       </div>
       <div className="lg:col-span-4">
-        <ScrollArea className="relative  flex h-full max-h-[75vh] min-h-[50vh] flex-col rounded-xl bg-accent/25 border p-4">
+        <ScrollArea className="relative flex overflow-auto flex-col-reverse h-full max-h-[75vh] min-h-[50vh] flex-col rounded-xl bg-accent/25 border p-4">
           <div className="mx-4">
             {messages.length !== 0 &&
               messages.map((message) => (
                 <>
-                {console.log(messages)}
                   <BotMessage
                     isBot={message?.role !== 'user'}
                     isTyping={false}
@@ -146,6 +157,14 @@ export function ChatPage() {
                 </>
               ))}
           </div>
+            {isTyping && (
+              <div className="absolute bottom-4 border-primary border-2 bg-primary/10 p-2 rounded-lg left-6">
+                <div className="flex gap-2 items-center">
+                  <Origami className="size-5" /> {model} is typing <PulseLoader size="3" speedMultiplier={0.75} color="#ffffff" className="stroke-primary-foreground" />
+                </div>
+              </div>
+            )}
+            <div ref={ref} />
         </ScrollArea>
         <div className="flex flex-col mt-4">
           <div className="flex-1" />

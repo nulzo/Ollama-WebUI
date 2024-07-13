@@ -714,7 +714,7 @@ video {
 .dark {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
-  --primary: 260 79% 71%;
+  --primary: 225 79% 71%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 14.9%;
   --secondary-foreground: 0 0% 98%;
@@ -932,6 +932,10 @@ body {
   bottom: 0px
 }
 
+.bottom-4 {
+  bottom: 1rem
+}
+
 .left-0 {
   left: 0px
 }
@@ -946,6 +950,10 @@ body {
 
 .left-2 {
   left: 0.5rem
+}
+
+.left-6 {
+  left: 1.5rem
 }
 
 .left-\[50\%\] {
@@ -1098,6 +1106,10 @@ body {
 
 .mr-auto {
   margin-right: auto
+}
+
+.ms-14 {
+  margin-inline-start: 3.5rem
 }
 
 .mt-1 {
@@ -1377,11 +1389,6 @@ body {
   width: 1px
 }
 
-.w-fit {
-  width: -moz-fit-content;
-  width: fit-content
-}
-
 .min-w-0 {
   min-width: 0px
 }
@@ -1553,6 +1560,10 @@ body {
   align-items: center
 }
 
+.items-baseline {
+  align-items: baseline
+}
+
 .justify-start {
   justify-content: flex-start
 }
@@ -1601,12 +1612,12 @@ body {
   gap: 1rem
 }
 
-.gap-6 {
-  gap: 1.5rem
-}
-
 .gap-5 {
   gap: 1.25rem
+}
+
+.gap-6 {
+  gap: 1.5rem
 }
 
 .space-x-1 > :not([hidden]) ~ :not([hidden]) {
@@ -1661,14 +1672,6 @@ body {
   overflow-x: hidden
 }
 
-.overflow-x-clip {
-  overflow-x: clip
-}
-
-.overflow-x-visible {
-  overflow-x: visible
-}
-
 .overflow-y-scroll {
   overflow-y: scroll
 }
@@ -1677,10 +1680,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap
-}
-
-.text-ellipsis {
-  text-overflow: ellipsis
 }
 
 .whitespace-nowrap {
@@ -1737,10 +1736,6 @@ body {
 
 .rounded-tl-sm {
   border-top-left-radius: calc(var(--radius) - 4px)
-}
-
-.rounded-tl-none {
-  border-top-left-radius: 0px
 }
 
 .rounded-tr-none {
@@ -1921,15 +1916,6 @@ body {
   background-color: transparent
 }
 
-.bg-red-500 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(239 68 68 / var(--tw-bg-opacity))
-}
-
-.bg-accent\/50 {
-  background-color: hsl(var(--accent) / 0.5)
-}
-
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops))
 }
@@ -1962,8 +1948,16 @@ body {
   fill: hsl(var(--primary))
 }
 
+.stroke-muted-foreground {
+  stroke: hsl(var(--muted-foreground))
+}
+
 .stroke-primary {
   stroke: hsl(var(--primary))
+}
+
+.stroke-primary-foreground {
+  stroke: hsl(var(--primary-foreground))
 }
 
 .p-0 {
@@ -1994,14 +1988,6 @@ body {
   padding: 1px
 }
 
-.p-1\.5 {
-  padding: 0.375rem
-}
-
-.p-5 {
-  padding: 1.25rem
-}
-
 .px-1 {
   padding-left: 0.25rem;
   padding-right: 0.25rem
@@ -2030,6 +2016,11 @@ body {
 .px-5 {
   padding-left: 1.25rem;
   padding-right: 1.25rem
+}
+
+.px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem
 }
 
 .px-8 {
@@ -2077,18 +2068,16 @@ body {
   padding-bottom: 1.5rem
 }
 
-.py-5 {
-  padding-top: 1.25rem;
-  padding-bottom: 1.25rem
-}
-
-.px-6 {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem
+.pb-2 {
+  padding-bottom: 0.5rem
 }
 
 .pb-4 {
   padding-bottom: 1rem
+}
+
+.pe-1 {
+  padding-inline-end: 0.25rem
 }
 
 .pe-2 {
@@ -2105,6 +2094,10 @@ body {
 
 .pl-4 {
   padding-left: 1rem
+}
+
+.pl-6 {
+  padding-left: 1.5rem
 }
 
 .pl-8 {
@@ -2149,26 +2142,6 @@ body {
 
 .pt-4 {
   padding-top: 1rem
-}
-
-.pt-10 {
-  padding-top: 2.5rem
-}
-
-.pt-6 {
-  padding-top: 1.5rem
-}
-
-.pt-8 {
-  padding-top: 2rem
-}
-
-.ps-1 {
-  padding-inline-start: 0.25rem
-}
-
-.pe-1 {
-  padding-inline-end: 0.25rem
 }
 
 .text-left {
@@ -2302,14 +2275,6 @@ body {
 
 .text-transparent {
   color: transparent
-}
-
-.text-primary\/50 {
-  color: hsl(var(--primary) / 0.5)
-}
-
-.text-primary\/75 {
-  color: hsl(var(--primary) / 0.75)
 }
 
 .underline-offset-4 {
@@ -2579,6 +2544,10 @@ body {
   --tw-ring-color: hsl(var(--primary))
 }
 
+.hover\:cursor-pointer:hover {
+  cursor: pointer
+}
+
 .hover\:bg-accent:hover {
   background-color: hsl(var(--accent))
 }
@@ -2617,6 +2586,18 @@ body {
 
 .hover\:bg-secondary\/80:hover {
   background-color: hsl(var(--secondary) / 0.8)
+}
+
+.hover\:stroke-foreground:hover {
+  stroke: hsl(var(--foreground))
+}
+
+.hover\:stroke-red-400:hover {
+  stroke: #f87171
+}
+
+.hover\:stroke-yellow-400:hover {
+  stroke: #facc15
 }
 
 .hover\:text-accent-foreground:hover {

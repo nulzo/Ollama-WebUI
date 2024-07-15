@@ -36,7 +36,7 @@ export class Storage {
     return await response.json();
   }
 
-  async getChat(id: number) {
+  async getChat(id: string) {
     const response = await this._client.get(this._fetch, `/chats/${id}/`);
     return await response.json();
   }

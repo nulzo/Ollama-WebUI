@@ -1100,8 +1100,8 @@ body {
   margin-right: auto
 }
 
-.ms-14 {
-  margin-inline-start: 3.5rem
+.ms-12 {
+  margin-inline-start: 3rem
 }
 
 .mt-1 {
@@ -1126,22 +1126,6 @@ body {
 
 .mt-auto {
   margin-top: auto
-}
-
-.ml-8 {
-  margin-left: 2rem
-}
-
-.ml-\[25\%\] {
-  margin-left: 25%
-}
-
-.ml-\[20\%\] {
-  margin-left: 20%
-}
-
-.ms-12 {
-  margin-inline-start: 3rem
 }
 
 .block {
@@ -1397,6 +1381,15 @@ body {
   width: 1px
 }
 
+.w-fit {
+  width: -moz-fit-content;
+  width: fit-content
+}
+
+.w-\[70\%\] {
+  width: 70%
+}
+
 .min-w-0 {
   min-width: 0px
 }
@@ -1424,6 +1417,10 @@ body {
 .max-w-max {
   max-width: -moz-max-content;
   max-width: max-content
+}
+
+.max-w-\[70\%\] {
+  max-width: 70%
 }
 
 .flex-1 {
@@ -1988,10 +1985,6 @@ body {
   padding: 1.5rem
 }
 
-.p-8 {
-  padding: 2rem
-}
-
 .p-\[1px\] {
   padding: 1px
 }
@@ -2084,10 +2077,6 @@ body {
   padding-bottom: 1rem
 }
 
-.pe-1 {
-  padding-inline-end: 0.25rem
-}
-
 .pe-2 {
   padding-inline-end: 0.5rem
 }
@@ -2150,6 +2139,10 @@ body {
 
 .pt-4 {
   padding-top: 1rem
+}
+
+.pe-1 {
+  padding-inline-end: 0.25rem
 }
 
 .text-left {

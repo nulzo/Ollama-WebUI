@@ -23,8 +23,8 @@ const BotMessage: React.FC<IBotMessage> = (
             </div>
           )}
         </div>
-        <div>
-          <div className={`pt-3 pb-4 ${isBot ? 'max-w-[75%] bg-accent/75 rounded-e-2xl rounded-b-2xl' : 'bg-primary/25 rounded-s-2xl rounded-b-2xl'}`}>
+        <div className={`${isBot && 'max-w-[75%]'}`}>
+          <div className={`pt-3 pb-4 ${isBot ? 'bg-accent/75 rounded-e-2xl rounded-b-2xl' : 'bg-primary/25 rounded-s-2xl rounded-b-2xl'}`}>
             <span className={`pb-2 text-sm items-baseline gap-1 font-semibold flex place-items-start pl-6 ${isBot ? 'text-muted-foreground' : 'hidden'}`}>
               {username} <span className='text-xs'>Fri Jul 12 2024</span>
             </span>

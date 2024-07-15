@@ -78,17 +78,17 @@ export function Textbox({ value, setValue, onSubmit }: ITextbox) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-2 focus-within:ring-ring">
+    <div className="ring-inset p-2 relative overflow-visible rounded-lg border bg-background focus-within:ring-2 h-full focus-within:ring-ring">
       <Textarea
         id="chatMessage"
         ref={ref}
         key="chatMessageArea"
-        className="m-0 w-full focus:border-transparent focus-visible:ring-0 resize-none border-0 p-3 shadow-none min-h-[52px] h-[52px] items-center bg-background align-middle"
+        className="focus:border-transparent focus-visible:ring-0 resize-none border-0 shadow-none items-center bg-background h-full align-middle"
         value={value}
         onChange={(event) => handleChange(event)}
         onKeyDown={onKeyPress}
       />
-      <div className="flex items-center p-3 pt-0">
+      <div className="absolute items-center bottom-3 left-3">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -122,6 +122,8 @@ export function Textbox({ value, setValue, onSubmit }: ITextbox) {
             <TooltipContent side="top">Use Microphone</TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        </div>
+        <div className="absolute bottom-3 right-3">
         <Button
           type="submit"
           disabled={value.length === 0 || value.length === 0}

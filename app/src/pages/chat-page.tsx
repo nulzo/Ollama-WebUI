@@ -80,7 +80,8 @@ export function ChatPage() {
     setMessage("");
     setIsTyping(true);
     const response: ChatResponse[] = await ollama.chat(
-      { model: model, messages: newHistory }, { stream: true }
+      { model: model, messages: newHistory },
+      { stream: true }
     );
     await write(response);
   }
@@ -112,52 +113,53 @@ export function ChatPage() {
   }
 
   return (
-    <main className="grid m-5 flex-1 gap-5 overflow-auto md:grid-cols-2 lg:grid-cols-5">
-      <div className="relative hidden md:flex items-start">
-        <div className="w-full space-y-4">
-          <ChatDrawer
-            updateModel={updateModel}
-            createChat={createChat}
-            getChatHistory={getChatHistory}
-            model={model}
-          />
-          <StarBox />
-        </div>
+    <main className="overflow-none max-h-fit grid m-5 flex-1 gap-5 md:grid-cols-2 lg:grid-cols-5 grid-rows-5">
+      <div className="lg:col-span-1 lg:row-span-2 hidden items-start w-full md:flex-col md:flex border border-border rounded-lg">
+        <ChatDrawer
+          updateModel={updateModel}
+          createChat={createChat}
+          getChatHistory={getChatHistory}
+          model={model}
+        />
       </div>
-      <div className="lg:col-span-4">
-        <ScrollArea className="relative flex overflow-auto flex-col-reverse h-full max-h-[75vh] min-h-[50vh] rounded-xl bg-accent/25 border p-4">
-          <div className="mx-4">
-            {messages.length !== 0 && messages.map((message) => (
-                <BotMessage
-                  isBot={message?.role !== "user"}
-                  isTyping={false}
-                  message={message?.content}
-                  username={message?.role === "user" ? message?.role : message?.model}
-                />
-              ))}
-          </div>
-          {isTyping && (
-            <div className="absolute bottom-4 border-primary border-2 bg-primary/10 p-2 rounded-lg left-6">
-              <div className="flex gap-2 items-center">
-                <Origami className="size-5" /> {model} is typing{" "}
-                <PulseLoader
-                  size="3"
-                  speedMultiplier={0.75}
-                  color="#ffffff"
-                  className="stroke-primary-foreground"
-                />
-              </div>
-            </div>
-          )}
-          <div ref={ref} />
-        </ScrollArea>
-        <div className="flex flex-col mt-4">
-          <Textbox
-            value={message}
-            setValue={setMessage}
-            onSubmit={handleSubmit}
-          />
+      <ScrollArea className="row-span-4 col-span-4 relative flex overflow-auto flex-col-reverse rounded-xl bg-accent/25 border p-4">
+        <div className="mx-4">
+          {messages.length !== 0 &&
+            messages.map((message) => (
+              <BotMessage
+                isBot={message?.role !== "user"}
+                isTyping={false}
+                message={message?.content}
+                username={
+                  message?.role === "user" ? message?.role : message?.model
+                }
+              />
+            ))}
         </div>
+        {isTyping && (
+          <div className="absolute bottom-4 border-primary border-2 bg-primary/10 p-2 rounded-lg left-6">
+            <div className="flex gap-2 items-center">
+              <Origami className="size-5" /> {model} is typing{" "}
+              <PulseLoader
+                size="3"
+                speedMultiplier={0.75}
+                color="#ffffff"
+                className="stroke-primary-foreground"
+              />
+            </div>
+          </div>
+        )}
+        <div ref={ref} />
+      </ScrollArea>
+      <div className="row-span-4 col-span-1 border border-border rounded-lg">
+
+      </div>
+      <div className="flex flex-col col-span-4 row-span-2">
+        <Textbox
+          value={message}
+          setValue={setMessage}
+          onSubmit={handleSubmit}
+        />
       </div>
     </main>
   );

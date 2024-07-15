@@ -22,6 +22,7 @@ import { useModels } from "@/hooks/use-models";
 import { useChats } from "@/hooks/use-chats.ts";
 import { OLLAMA_SETTINGS } from "@/settings/ollama";
 import { DATABASE_SETTINGS } from "@/settings/database";
+import { ScrollArea } from "./ui/scroll-area";
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 const storage: Storage = new Storage(DATABASE_SETTINGS);
@@ -44,9 +45,9 @@ export default function ChatDrawer(props) {
   }
 
   return (
-    <div className="flex flex-col h-[75vh] rounded-lg border p-4">
-      <div className="grid grid-cols-5">
-        <div className="flex gap-2 items-center col-span-4">
+    <>
+      <div className="flex p-2 w-full">
+        <div className="flex gap-2 items-center basis-1/2">
           {models?.isLoading && (
             <Skeleton className="items-start w-3/4">
               <div className="items-start h-9 [&_[data-description]]:hidden w-3/4" />
@@ -98,7 +99,7 @@ export default function ChatDrawer(props) {
             </>
           )}
         </div>
-        <div className="col-span-1 flex justify-end justify-items-end">
+        <div className="flex justify-end justify-items-end">
           <Button
             size="icon"
             variant="ghost"
@@ -111,7 +112,7 @@ export default function ChatDrawer(props) {
           </Button>
         </div>
       </div>
-      <div className="space-y-1 mt-4 overflow-y-scroll w-full">
+      <ScrollArea className="space-y-1 overflow-auto h-48 pb-2 flex flex-row">
         {!chats?.isLoading &&
           chats?.data.map((chat: any) => (
             <Button
@@ -122,13 +123,13 @@ export default function ChatDrawer(props) {
               value={chat.uuid}
               size="sm"
               variant="ghost"
-              className="w-full justify-start text-xs truncate"
+              className="w-full justify-start flex text-xs truncate"
               key={`chat-${chat.uuid}`}
             >
               {chat.messages[0]?.content ?? "some message ..."}
             </Button>
           ))}
-      </div>
-    </div>
+      </ScrollArea>
+    </>
   );
 }

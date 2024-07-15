@@ -1,6 +1,6 @@
 import React from 'react';
 import MarkdownRenderer from '../helpers/markdown.tsx';
-import { Origami, ThumbsUp, ThumbsDown, Copy, Sparkle, Sparkles, Heart } from 'lucide-react';
+import { Origami, Copy, Sparkles, Heart } from 'lucide-react';
 import LoadingSpinner from '@/components/loadingSpinner.tsx';
 
 interface IBotMessage {
@@ -25,7 +25,7 @@ const BotMessage: React.FC<IBotMessage> = (
         </div>
         <div>
           <div className={`pt-3 pb-4 ${isBot ? 'max-w-[75%] bg-accent/75 rounded-e-2xl rounded-b-2xl' : 'bg-primary/25 rounded-s-2xl rounded-b-2xl'}`}>
-            <span className={`pb-2 text-sm flex items-baseline gap-1 font-semibold flex place-items-start pl-6 ${isBot ? 'text-muted-foreground' : 'hidden'}`}>
+            <span className={`pb-2 text-sm items-baseline gap-1 font-semibold flex place-items-start pl-6 ${isBot ? 'text-muted-foreground' : 'hidden'}`}>
               {username} <span className='text-xs'>Fri Jul 12 2024</span>
             </span>
             <div className="px-6 flex items-center w-full m-0 border-0">
@@ -39,7 +39,7 @@ const BotMessage: React.FC<IBotMessage> = (
         </div>
       </div>
       {isBot && (
-        <div className='ms-14 mt-1.5 flex gap-2'>
+        <div className='ms-12 mt-1.5 flex gap-2'>
           <Heart className='size-3 stroke-muted-foreground hover:stroke-red-400 hover:cursor-pointer' />
           <Copy className='size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer' />
           <Sparkles className='size-3 stroke-muted-foreground hover:stroke-yellow-400 hover:cursor-pointer' />

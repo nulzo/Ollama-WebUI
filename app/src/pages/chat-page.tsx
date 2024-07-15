@@ -32,6 +32,8 @@ export function ChatPage() {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [rows, setRows] = useState(1);
+  const [history, setHistory] = useState([]);
   let [_, setSearch] = useSearchParams();
   const ref = useRef(null);
 
@@ -70,7 +72,21 @@ export function ChatPage() {
     return messages;
   }
 
+  function handleChange(event) {
+    setMessage(event.target.value);
+    setRows(event.target.value.split('\n').length + 1);
+  }
+
   function onKeyPress(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.keyCode === 38 && history.length > 0) {
+      const  prev = history[history.length - 1];
+      setMessage(prev);
+      event.currentTarget.selectionStart = prev.length;
+    }
+    if (event.keyCode === 13 && event.shiftKey) {
+      setMessage(event.target.value + '\n');
+      event.preventDefault();
+    }
     if (event.key === "Enter") {
       handleSubmit(event as unknown as React.FormEvent<HTMLFormElement>);
     }
@@ -85,6 +101,8 @@ export function ChatPage() {
       role: "user",
       chat: uuid,
     }
+
+    setHistory((prev: any) => [...prev, message]);
 
     await storage.createMessage(mes);
 
@@ -175,10 +193,11 @@ export function ChatPage() {
             <Textarea
               id="chatMessage"
               key="chatMessageArea"
-              className="m-0 w-full focus:border-transparent focus-visible:ring-0 resize-none border-0 p-3 shadow-none h-[52px] min-h-[52px] items-center bg-background align-middle"
+              className="m-0 w-full focus:border-transparent focus-visible:ring-0 resize-none border-0 p-3 shadow-none min-h-[52px] items-center bg-background align-middle"
               value={message}
-              onChange={(event) => setMessage(event.target.value)}
+              onChange={(event) => handleChange(event)}
               onKeyDown={onKeyPress}
+              rows={rows}
             />
             <div className="flex items-center p-3 pt-0">
               <TooltipProvider>

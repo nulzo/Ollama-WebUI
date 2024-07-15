@@ -1084,20 +1084,12 @@ body {
   margin-bottom: 0.5rem
 }
 
-.mb-4 {
-  margin-bottom: 1rem
-}
-
 .ml-1 {
   margin-left: 0.25rem
 }
 
 .ml-auto {
   margin-left: auto
-}
-
-.mr-1 {
-  margin-right: 0.25rem
 }
 
 .mr-2 {
@@ -1134,6 +1126,22 @@ body {
 
 .mt-auto {
   margin-top: auto
+}
+
+.ml-8 {
+  margin-left: 2rem
+}
+
+.ml-\[25\%\] {
+  margin-left: 25%
+}
+
+.ml-\[20\%\] {
+  margin-left: 20%
+}
+
+.ms-12 {
+  margin-inline-start: 3rem
 }
 
 .block {
@@ -1514,10 +1522,6 @@ body {
 
 .list-none {
   list-style-type: none
-}
-
-.grid-cols-4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr))
 }
 
 .grid-cols-5 {
@@ -1982,6 +1986,10 @@ body {
 
 .p-6 {
   padding: 1.5rem
+}
+
+.p-8 {
+  padding: 2rem
 }
 
 .p-\[1px\] {
@@ -3261,10 +3269,6 @@ body {
 
   .sm\:mt-0 {
     margin-top: 0px
-  }
-
-  .sm\:max-w-\[425px\] {
-    max-width: 425px
   }
 
   .sm\:max-w-sm {

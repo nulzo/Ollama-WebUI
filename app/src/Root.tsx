@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 
 export default function Root() {
   return (
-    <div className="grid h-screen w-full pl-[56px]">
+    <div className="grid w-full pl-[53px]">
       <Sidebar />
       <div className="flex flex-col">
         <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">

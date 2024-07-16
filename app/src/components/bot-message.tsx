@@ -2,16 +2,23 @@ import React from 'react';
 import MarkdownRenderer from '../helpers/markdown.tsx';
 import { Origami, Copy, Sparkles, Heart } from 'lucide-react';
 import LoadingSpinner from '@/components/loadingSpinner.tsx';
+import { formatDistanceToNow } from 'date-fns';
 
 interface IBotMessage {
   username: string;
   message: string;
   isBot: boolean;
   isTyping: boolean;
+  time: string;
+}
+
+function calculateAge(timestamp) {
+  const date = new Date(timestamp);
+  return formatDistanceToNow(date) + ' ago';
 }
 
 const BotMessage: React.FC<IBotMessage> = (
-  { username, message, isBot, isTyping }
+  { username, message, isBot, isTyping, time }
 ) => {
   return (
     <div className='py-3'>
@@ -26,7 +33,7 @@ const BotMessage: React.FC<IBotMessage> = (
         <div className={`${isBot && 'max-w-[75%]'}`}>
           <div className={`pt-3 pb-4 ${isBot ? 'bg-accent/75 rounded-e-2xl rounded-b-2xl' : 'bg-primary/25 rounded-s-2xl rounded-b-2xl'}`}>
             <span className={`pb-2 text-sm items-baseline gap-1 font-semibold flex place-items-start pl-6 ${isBot ? 'text-muted-foreground' : 'hidden'}`}>
-              {username} <span className='text-xs'>Fri Jul 12 2024</span>
+              {username} <span className='text-xs font-light'>{time ? calculateAge(time) : "just now"}</span>
             </span>
             <div className="px-6 flex items-center w-full m-0 border-0">
               {isTyping && (message.length <= 1 || !message || message === "<empty string>") ? (

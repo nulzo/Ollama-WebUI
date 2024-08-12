@@ -19,7 +19,7 @@ import {
   subMonths,
 } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { History, Plus } from "lucide-react";
+import { History, Plus, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chat, Ollama } from "@/services/ollama.ts";
 import { ChatResponse } from "@/types/ollama";
@@ -33,7 +33,7 @@ import { useMemo } from "react";
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 const storage: Storage = new Storage(DATABASE_SETTINGS);
 
-export default function ChatDrawer(props) {
+export default function ChatDrawer(props: any) {
   const models = useModels(ollama);
   const chats = useChats(storage);
 
@@ -62,7 +62,7 @@ export default function ChatDrawer(props) {
   const organizeChatsByDate = useMemo(() => {
     if (!chats?.data) return {};
     const groups = {};
-    chats.data.forEach((chat) => {
+    chats.data.forEach((chat: any) => {
       const label = getDateLabel(chat.created_at);
       groups[label] = groups[label] || [];
       groups[label].push(chat);
@@ -138,12 +138,12 @@ export default function ChatDrawer(props) {
           </Button>
         </div>
       </div>
-      <div className="px-2 text-sm font-medium lg:px-4 overflow-y-scroll w-full h-[80vh] max-h-[80vh]">
+      <div className="px-2 text-sm font-medium lg:px-4 overflow-y-scroll w-[100%] h-[80vh] max-h-[80vh]">
         {Object.entries(organizeChatsByDate)
           .reverse()
           .map(([group, groupChats]: any) => (
             <div key={group}>
-              <div className="bg-background sticky top-0 py-2 w-full text-xs font-bold capitalize">
+              <div className="bg-background sticky top-0 py-2 w-[100%] text-xs font-bold capitalize">
                 {group}
               </div>
               {groupChats.reverse().map((chat: Chat) => (
@@ -152,14 +152,19 @@ export default function ChatDrawer(props) {
                   value={chat.uuid}
                   size="sm"
                   variant="ghost"
-                  className="flex items-center justify-start truncate w-full rounded-lg py-0 text-muted-foreground transition-all hover:text-primary"
+                  className="group text-nowrap overflow-hidden truncate flex items-center z-20 pr-6 relative justify-start w-[100%] rounded-lg py-0 text-muted-foreground transition-all hover:text-primary"
                   onClick={(event) => {
                     const target = event.target as HTMLButtonElement;
                     getChatHistory(target.value);
                   }}
                 >
-                  {/* Assuming the first message should still be accessible */}
-                  {chat.messages[0]?.content ?? "Some message..."}
+                  
+                    {chat.messages[0]?.content ?? "Some message..."}
+                  
+                    <Trash 
+                    className="absolute right-2 size-3 invisible text-foreground group-hover:visible opacity-50 hover:stroke-red-400 hover:opacity-100"
+                    onClick={() => {console.log("delete chat: ", chat.uuid)}}
+                    />
                 </Button>
               ))}
             </div>

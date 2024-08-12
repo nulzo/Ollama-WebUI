@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  formatDistanceToNow,
   isToday,
   isThisWeek,
   isThisMonth,
@@ -143,45 +142,34 @@ export default function ChatDrawer(props) {
               createChat();
             }}
           >
-            <History className="size-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            type="submit"
-            onClick={() => {
-              createChat();
-            }}
-          >
             <Plus className="size-4" />
           </Button>
         </div>
       </div>
-      <div className="grid items-start px-2 text-sm font-medium lg:px-4 overflow-y-scroll w-full h-[80vh] max-h-[80vh]">
-        
-      {!chats?.isLoading && 
-        Object.keys(organizeChatsByDate(chats))
-          .reverse()
-          .map((group) => (
-            <>
-              <div className="text-xs font-bold capitalize py-2 w-full bg-background sticky top-0">{group}</div>
-              {organizeChatsByDate(chats)[group].reverse().map((chat) => (
-                <Button
-                  onClick={(event) => {
-                    const target = event.target as HTMLButtonElement;
-                    getChatHistory(target.value);
-                  }}
-                  value={chat.uuid}
-                  size="sm"
-                  variant="ghost"
-                  className="flex items-center justify-start truncate w-full rounded-lg py-2 text-muted-foreground transition-all hover:text-primary"
-                  key={`chat-${chat.uuid}`}
-                >
-                  {chat.messages[0]?.content ?? "some message ..."}
-                </Button>
-              ))}
-            </>
-          ))}
+      <div className="px-2 text-sm font-medium lg:px-4 overflow-y-scroll w-full h-[80vh] max-h-[80vh]">
+        {!chats?.isLoading &&
+          Object.keys(organizeChatsByDate(chats))
+            .reverse()
+            .map((group) => (
+              <>
+                <div className="text-xs font-bold capitalize py-2 w-full bg-background sticky top-0">{group}</div>
+                {organizeChatsByDate(chats)[group].reverse().map((chat) => (
+                  <Button
+                    onClick={(event) => {
+                      const target = event.target as HTMLButtonElement;
+                      getChatHistory(target.value);
+                    }}
+                    value={chat.uuid}
+                    size="sm"
+                    variant="ghost"
+                    className="flex items-center justify-start truncate w-full rounded-lg py-0 text-muted-foreground transition-all hover:text-primary"
+                    key={`chat-${chat.uuid}`}
+                  >
+                    {chat.messages[0]?.content ?? "some message ..."}
+                  </Button>
+                ))}
+              </>
+            ))}
       </div>
     </>
   );

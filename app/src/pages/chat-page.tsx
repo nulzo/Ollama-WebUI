@@ -113,9 +113,9 @@ export function ChatPage() {
   }
 
   return (
-    <main className="grid m-5 flex-1 gap-5 overscroll-none overflow-auto md:grid-cols-2 lg:grid-cols-[min-content_1fr] grid-rows-5 grid-flow-col">
+    <main className="grid m-5 flex-col gap-5 overscroll-none overflow-auto md:grid-cols-2 lg:grid-cols-[min-content_1fr] grid-rows-5 grid-flow-col">
       <div className="lg:col-span-1 hidden md:flex flex-col items-start border rounded-lg row-span-5 w-72 max-w-72">
-        <div className="flex-1">
+        <div className="flex-col w-[100%]">
           <ChatDrawer
             updateModel={updateModel}
             createChat={createChat}

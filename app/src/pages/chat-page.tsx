@@ -13,6 +13,7 @@ import { useSearchParams } from "react-router-dom";
 import { PulseLoader } from "react-spinners";
 import { Textbox } from "@/components/textbox";
 import StarBox from "@/components/star-comment";
+import SettingsModal from "@/components/settings";
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 const storage: Storage = new Storage(DATABASE_SETTINGS);

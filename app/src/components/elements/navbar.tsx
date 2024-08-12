@@ -1,236 +1,179 @@
 import { useTheme } from "../themeProvider.tsx";
+
 import {
-  Bird,
-  Cog,
-  Github,
-  Rabbit,
-  Settings,
-  SunMedium,
-  Turtle,
-} from "lucide-react";
-import { Button } from "@/components/ui/button.tsx";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer.tsx";
-import { Label } from "@/components/ui/label.tsx";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select.tsx";
-import { Input } from "@/components/ui/input.tsx";
-import { Textarea } from "@/components/ui/textarea.tsx";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip.tsx";
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarRadioGroup,
+  MenubarRadioItem,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
+  MenubarTrigger,
+} from "@/components/ui/menubar";
+import SettingsModal from "../settings.tsx";
+import { useState } from "react";
+import { Button } from "../ui/button.tsx";
 
 export default function NavBar() {
   const { theme, setTheme } = useTheme();
-
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [section, setSection] = useState("profile");
   return (
-    <>
-      <div>
-        <h1 className="text-xl font-bold">Ollama WebUI</h1>
-        <h5 className="text-xs leading-none p-0 m-0 font-semibold text-muted-foreground">
-        <span className="font-thin">created by </span><span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-primary inline-block text-transparent bg-clip-text">nulzo</span>
-        </h5>
-      </div>
-      <Drawer>
-        <DrawerTrigger asChild>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Settings className="size-4" />
-                  <span className="sr-only">Settings</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right" sideOffset={5} className="bg-accent">
-                Settings
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </DrawerTrigger>
-        <DrawerContent className="max-h-[80vh]">
-          <DrawerHeader>
-            <DrawerTitle>Configuration</DrawerTitle>
-            <DrawerDescription>
-              Configure the settings for the model and messages.
-            </DrawerDescription>
-          </DrawerHeader>
-          <form className="grid w-full items-start gap-6 overflow-auto p-4 pt-0">
-            <fieldset className="grid gap-6 rounded-lg border p-4">
-              <legend className="-ml-1 px-1 text-sm font-medium">
-                Settings
-              </legend>
-              <div className="grid gap-3">
-                <Label htmlFor="model">Model</Label>
-                <Select>
-                  <SelectTrigger
-                    id="model"
-                    className="items-start [&_[data-description]]:hidden"
+    <div className="flex justify-between w-full">
+      <SettingsModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        currentSection={section}
+      />
+      <Menubar className="border-none">
+        <MenubarMenu>
+          <MenubarTrigger className="font-bold">CringeUI</MenubarTrigger>
+          <MenubarContent>
+            <a href="https://github.com/nulzo/Ollama-WebUI">
+              <MenubarItem>Source Code</MenubarItem>
+            </a>
+            <MenubarItem>Documentation</MenubarItem>
+            <MenubarItem>Credits</MenubarItem>
+            <MenubarSeparator />
+            <span className="text-xs text-muted-foreground flex px-2 py-1">
+              version 0.0.1
+            </span>
+          </MenubarContent>
+        </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger>File</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem>
+              New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem>
+              New Window <MenubarShortcut>⌘N</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem disabled>New Incognito Window</MenubarItem>
+            <MenubarSeparator />
+            <MenubarSub>
+              <MenubarSubTrigger>Share</MenubarSubTrigger>
+              <MenubarSubContent>
+                <MenubarItem>Email link</MenubarItem>
+                <MenubarItem>Messages</MenubarItem>
+                <MenubarItem>Notes</MenubarItem>
+              </MenubarSubContent>
+            </MenubarSub>
+            <MenubarSeparator />
+            <MenubarItem>
+              Print... <MenubarShortcut>⌘P</MenubarShortcut>
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger>Edit</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem>
+              Undo <MenubarShortcut>⌘Z</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem>
+              Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarSub>
+              <MenubarSubTrigger>Find</MenubarSubTrigger>
+              <MenubarSubContent>
+                <MenubarItem>Search the web</MenubarItem>
+                <MenubarSeparator />
+                <MenubarItem>Find...</MenubarItem>
+                <MenubarItem>Find Next</MenubarItem>
+                <MenubarItem>Find Previous</MenubarItem>
+              </MenubarSubContent>
+            </MenubarSub>
+            <MenubarSeparator />
+            <MenubarItem>Cut</MenubarItem>
+            <MenubarItem>Copy</MenubarItem>
+            <MenubarItem>Paste</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger>View</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem>Toggle Fullscreen</MenubarItem>
+            <MenubarItem>Hide Sidebar</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger>Services</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem>Ollama...</MenubarItem>
+            <MenubarItem>OpenAI...</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger>Settings</MenubarTrigger>
+          <MenubarContent>
+            <MenubarSub>
+              <MenubarSubTrigger>Theme</MenubarSubTrigger>
+              <MenubarSubContent>
+                <MenubarRadioGroup value={theme}>
+                  <MenubarRadioItem
+                    value="dark"
+                    onClick={() => setTheme("dark")}
                   >
-                    <SelectValue placeholder="Select a model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="genesis">
-                      <div className="flex items-start gap-3 text-muted-foreground">
-                        <Rabbit className="size-5" />
-                        <div className="grid gap-0.5">
-                          <p>
-                            Neural{" "}
-                            <span className="font-medium text-foreground">
-                              Genesis
-                            </span>
-                          </p>
-                          <p className="text-xs">
-                            Our fastest model for general use cases.
-                          </p>
-                        </div>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="explorer">
-                      <div className="flex items-start gap-3 text-muted-foreground">
-                        <Bird className="size-5" />
-                        <div className="grid gap-0.5">
-                          <p>
-                            Neural{" "}
-                            <span className="font-medium text-foreground">
-                              Explorer
-                            </span>
-                          </p>
-                          <p className="text-xs">
-                            Performance and speed for efficiency.
-                          </p>
-                        </div>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="quantum">
-                      <div className="flex items-start gap-3 text-muted-foreground">
-                        <Turtle className="size-5" />
-                        <div className="grid gap-0.5">
-                          <p>
-                            Neural{" "}
-                            <span className="font-medium text-foreground">
-                              Quantum
-                            </span>
-                          </p>
-                          <p className="text-xs" data-description>
-                            The most powerful model for complex computations.
-                          </p>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="temperature">Temperature</Label>
-                <Input id="temperature" type="number" placeholder="0.4" />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="top-p">Top P</Label>
-                <Input id="top-p" type="number" placeholder="0.7" />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="top-k">Top K</Label>
-                <Input id="top-k" type="number" placeholder="0.0" />
-              </div>
-            </fieldset>
-            <fieldset className="grid gap-6 rounded-lg border p-4">
-              <legend className="-ml-1 px-1 text-sm font-medium">
-                Messages
-              </legend>
-              <div className="grid gap-3">
-                <Label htmlFor="role">Role</Label>
-                <Select defaultValue="system">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="system">System</SelectItem>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="assistant">Assistant</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="content">Content</Label>
-                <Textarea id="content" placeholder="You are a..." />
-              </div>
-            </fieldset>
-          </form>
-        </DrawerContent>
-      </Drawer>
-      <div className="ml-auto flex gap-2 items-center align-middle">
-        <a href="https://github.com/nulzo/Ollama-WebUI">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="ml-auto gap-1.5 text-sm"
-                >
-                  <Github className="size-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent
-                side="bottom"
-                sideOffset={5}
-                className="bg-accent"
-              >
-                Source Code
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                    Dark
+                  </MenubarRadioItem>
+                  <MenubarRadioItem
+                    value="light"
+                    onClick={() => setTheme("light")}
+                  >
+                    Light
+                  </MenubarRadioItem>
+                  <MenubarRadioItem
+                    value="system"
+                    onClick={() => setTheme("system")}
+                  >
+                    System
+                  </MenubarRadioItem>
+                </MenubarRadioGroup>
+                <MenubarSeparator />
+                <MenubarItem>Edit theme...</MenubarItem>
+              </MenubarSubContent>
+            </MenubarSub>
+            <MenubarSub>
+              <MenubarSubTrigger>Profiles</MenubarSubTrigger>
+              <MenubarSubContent>
+                <MenubarItem>Profile 1</MenubarItem>
+                <MenubarItem>Light Mode</MenubarItem>
+                <MenubarSeparator />
+                <MenubarItem>Add Profile...</MenubarItem>
+              </MenubarSubContent>
+            </MenubarSub>
+            <MenubarSeparator />
+            <MenubarItem
+              onClick={() => {
+                setSection("settings");
+                setSettingsOpen(true);
+              }}
+            >
+              Edit settings...
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>
+      <Button
+        variant="outline"
+        className="size-8 mx-4 mt-0.5"
+        size="icon"
+        aria-label="NulzoGithub"
+      >
+        <a href="https://github.com/nulzo/">
+          <img
+            className="rounded-xl"
+            src="https://avatars.githubusercontent.com/u/65730528?v=4"
+            alt="nulzo"
+          />
         </a>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto gap-1.5 text-sm"
-              >
-                <Cog className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={5} className="bg-accent">
-              Settings
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                onClick={() =>
-                  theme === "light" ? setTheme("dark") : setTheme("light")
-                }
-                size="sm"
-                className="ml-auto gap-1.5 text-sm"
-              >
-                <SunMedium className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={5} className="bg-accent">
-              Toggle Theme
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    </>
+      </Button>
+    </div>
   );
 }

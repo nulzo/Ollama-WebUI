@@ -21,13 +21,14 @@ import {
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { History, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Ollama } from "@/services/ollama.ts";
+import { Chat, Ollama } from "@/services/ollama.ts";
 import { ChatResponse } from "@/types/ollama";
 import { Storage } from "@/services/storage";
 import { useModels } from "@/hooks/use-models";
 import { useChats } from "@/hooks/use-chats.ts";
 import { OLLAMA_SETTINGS } from "@/settings/ollama";
 import { DATABASE_SETTINGS } from "@/settings/database";
+import { useMemo } from "react";
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 const storage: Storage = new Storage(DATABASE_SETTINGS);
@@ -49,34 +50,25 @@ export default function ChatDrawer(props) {
     props.getChatHistory(id);
   }
 
-  function getDateLabel(timestamp: string) {
+  const getDateLabel = (timestamp: string) => {
     const date = new Date(timestamp);
-    if (isToday(date)) {
-      return "Today";
-    } else if (isThisWeek(date)) {
-      return "Previous Week";
-    } else if (isThisMonth(date)) {
-      return "This Month";
-    } else if (isBefore(date, subMonths(new Date(), 1))) {
-      return "Last Month";
-    } else {
-      return "Older";
-    }
-  }
+    if (isToday(date)) return "Today";
+    if (isThisWeek(date)) return "Previous Week";
+    if (isThisMonth(date)) return "This Month";
+    if (isBefore(date, subMonths(new Date(), 1))) return "Last Month";
+    return "Older";
+  };
 
-  function organizeChatsByDate(chats) {
+  const organizeChatsByDate = useMemo(() => {
+    if (!chats?.data) return {};
     const groups = {};
-
-    chats?.data.forEach((chat) => {
+    chats.data.forEach((chat) => {
       const label = getDateLabel(chat.created_at);
-      if (!groups[label]) {
-        groups[label] = [];
-      }
+      groups[label] = groups[label] || [];
       groups[label].push(chat);
     });
-    console.log(groups);
     return groups;
-  }
+  }, [chats]);
 
   return (
     <>
@@ -147,29 +139,31 @@ export default function ChatDrawer(props) {
         </div>
       </div>
       <div className="px-2 text-sm font-medium lg:px-4 overflow-y-scroll w-full h-[80vh] max-h-[80vh]">
-        {!chats?.isLoading &&
-          Object.keys(organizeChatsByDate(chats))
-            .reverse()
-            .map((group) => (
-              <>
-                <div className="text-xs font-bold capitalize py-2 w-full bg-background sticky top-0">{group}</div>
-                {organizeChatsByDate(chats)[group].reverse().map((chat) => (
-                  <Button
-                    onClick={(event) => {
-                      const target = event.target as HTMLButtonElement;
-                      getChatHistory(target.value);
-                    }}
-                    value={chat.uuid}
-                    size="sm"
-                    variant="ghost"
-                    className="flex items-center justify-start truncate w-full rounded-lg py-0 text-muted-foreground transition-all hover:text-primary"
-                    key={`chat-${chat.uuid}`}
-                  >
-                    {chat.messages[0]?.content ?? "some message ..."}
-                  </Button>
-                ))}
-              </>
-            ))}
+        {Object.entries(organizeChatsByDate)
+          .reverse()
+          .map(([group, groupChats]: any) => (
+            <div key={group}>
+              <div className="bg-background sticky top-0 py-2 w-full text-xs font-bold capitalize">
+                {group}
+              </div>
+              {groupChats.reverse().map((chat: Chat) => (
+                <Button
+                  key={chat.uuid}
+                  value={chat.uuid}
+                  size="sm"
+                  variant="ghost"
+                  className="flex items-center justify-start truncate w-full rounded-lg py-0 text-muted-foreground transition-all hover:text-primary"
+                  onClick={(event) => {
+                    const target = event.target as HTMLButtonElement;
+                    getChatHistory(target.value);
+                  }}
+                >
+                  {/* Assuming the first message should still be accessible */}
+                  {chat.messages[0]?.content ?? "Some message..."}
+                </Button>
+              ))}
+            </div>
+          ))}
       </div>
     </>
   );

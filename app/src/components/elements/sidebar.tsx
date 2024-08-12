@@ -9,11 +9,11 @@ const Sidebar = () => {
     return (
         <aside className="bg-accent/25 inset-y fixed left-0 z-20 flex h-full flex-col border-r">
             <div className="mt-1 p-2">
-                <Button variant="outline" size="icon" aria-label="Home">
+                <Button variant="outline" size="icon" className="hidden" aria-label="Home">
                     <img className="rounded-xl" src="https://avatars.githubusercontent.com/u/65730528?v=4" alt="nulzo" />
                 </Button>
             </div>
-            <nav className="grid gap-1 p-2">
+            <nav className="grid gap-1 p-2 mt-6">
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>

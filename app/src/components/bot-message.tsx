@@ -1,6 +1,6 @@
 import React from 'react';
 import MarkdownRenderer from '../helpers/markdown.tsx';
-import { Origami, Copy, Sparkles, Heart } from 'lucide-react';
+import { Origami, Copy, Sparkles, Heart, RefreshCw } from 'lucide-react';
 import LoadingSpinner from '@/components/loadingSpinner.tsx';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -50,6 +50,7 @@ const BotMessage: React.FC<IBotMessage> = (
           <Heart className='size-3 stroke-muted-foreground hover:stroke-red-400 hover:cursor-pointer' />
           <Copy className='size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer' />
           <Sparkles className='size-3 stroke-muted-foreground hover:stroke-yellow-400 hover:cursor-pointer' />
+          <RefreshCw className='size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer' />
         </div>
       )}
     </div>

@@ -1040,8 +1040,20 @@ body {
   z-index: 1
 }
 
+.col-span-1 {
+  grid-column: span 1 / span 1
+}
+
+.col-span-3 {
+  grid-column: span 3 / span 3
+}
+
 .col-span-4 {
   grid-column: span 4 / span 4
+}
+
+.col-span-9 {
+  grid-column: span 9 / span 9
 }
 
 .row-span-1 {
@@ -1074,6 +1086,11 @@ body {
   margin-right: 1rem
 }
 
+.mx-8 {
+  margin-left: 2rem;
+  margin-right: 2rem
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto
@@ -1082,6 +1099,16 @@ body {
 .my-1 {
   margin-top: 0.25rem;
   margin-bottom: 0.25rem
+}
+
+.my-2 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem
+}
+
+.mx-10 {
+  margin-left: 2.5rem;
+  margin-right: 2.5rem
 }
 
 .-ml-1 {
@@ -1148,6 +1175,22 @@ body {
   margin-top: auto
 }
 
+.mt-5 {
+  margin-top: 1.25rem
+}
+
+.mt-6 {
+  margin-top: 1.5rem
+}
+
+.mt-0 {
+  margin-top: 0px
+}
+
+.mt-0\.5 {
+  margin-top: 0.125rem
+}
+
 .block {
   display: block
 }
@@ -1198,6 +1241,21 @@ body {
 .size-5 {
   width: 1.25rem;
   height: 1.25rem
+}
+
+.size-1 {
+  width: 0.25rem;
+  height: 0.25rem
+}
+
+.size-7 {
+  width: 1.75rem;
+  height: 1.75rem
+}
+
+.size-8 {
+  width: 2rem;
+  height: 2rem
 }
 
 .h-1 {
@@ -1376,6 +1434,10 @@ body {
   width: 2.25rem
 }
 
+.w-\[100\%\] {
+  width: 100%
+}
+
 .w-\[100px\] {
   width: 100px
 }
@@ -1395,19 +1457,6 @@ body {
 
 .w-px {
   width: 1px
-}
-
-.w-fit {
-  width: -moz-fit-content;
-  width: fit-content
-}
-
-.w-\[250px\] {
-  width: 250px
-}
-
-.w-\[100\%\] {
-  width: 100%
 }
 
 .min-w-0 {
@@ -1551,6 +1600,14 @@ body {
 
 .grid-flow-col {
   grid-auto-flow: column
+}
+
+.grid-cols-10 {
+  grid-template-columns: repeat(10, minmax(0, 1fr))
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr))
 }
 
 .grid-rows-5 {
@@ -1818,6 +1875,10 @@ body {
 
 .border-t {
   border-top-width: 1px
+}
+
+.border-none {
+  border-style: none
 }
 
 .border-border {
@@ -2109,6 +2170,11 @@ body {
   padding-bottom: 1.5rem
 }
 
+.px-10 {
+  padding-left: 2.5rem;
+  padding-right: 2.5rem
+}
+
 .pb-2 {
   padding-bottom: 0.5rem
 }
@@ -2153,6 +2219,10 @@ body {
   padding-right: 0.625rem
 }
 
+.pr-4 {
+  padding-right: 1rem
+}
+
 .pr-6 {
   padding-right: 1.5rem
 }
@@ -2183,6 +2253,10 @@ body {
 
 .text-center {
   text-align: center
+}
+
+.text-right {
+  text-align: right
 }
 
 .align-middle {
@@ -2600,6 +2674,10 @@ body {
 
 .hover\:bg-accent:hover {
   background-color: hsl(var(--accent))
+}
+
+.hover\:bg-background:hover {
+  background-color: hsl(var(--background))
 }
 
 .hover\:bg-destructive\/80:hover {
@@ -3315,6 +3393,10 @@ body {
 
   .sm\:mt-0 {
     margin-top: 0px
+  }
+
+  .sm\:max-w-\[700px\] {
+    max-width: 700px
   }
 
   .sm\:max-w-sm {

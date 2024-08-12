@@ -6,6 +6,7 @@ import {Fetch, FetchConfig} from "@/types/fetch";
 export interface Chat {
     model: string,
     message?: Message | Message[],
+    uuid: string,
     messages: Message[],
     format?: 'json',
     options?: string,

@@ -35,6 +35,7 @@ export interface OllamaOpts {
 export interface Chat {
     model: string
     messages?: Message[]
+    uuid: string,
     stream?: boolean
     format?: string
     keep_alive?: string | number
@@ -43,6 +44,7 @@ export interface Chat {
 
 export interface ChatResponse {
     model: string
+    uuid: string,
     created_at: Date
     message: Message
     done: boolean

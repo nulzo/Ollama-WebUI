@@ -73,7 +73,7 @@ export default function ChatDrawer(props: any) {
 
   return (
     <>
-      <div className="flex p-2 w-full">
+      <div className="flex px-2 py-4 w-full">
         <div className="flex gap-2 items-center basis-3/4">
           {models?.isLoading && (
             <Skeleton className="items-start w-full">
@@ -139,7 +139,7 @@ export default function ChatDrawer(props: any) {
           </Button>
         </div>
       </div>
-      <div className="px-2 text-sm font-medium lg:px-4 overflow-y-scroll w-[100%] h-[85vh] max-h-[85vh]">
+      <div className="px-2 text-sm font-medium lg:ps-4 overflow-y-scroll scrollbar w-[100%] h-[90vh] max-h-[90vh]">
         {Object.entries(organizeChatsByDate)
           .reverse()
           .map(([group, groupChats]: any) => (
@@ -151,7 +151,7 @@ export default function ChatDrawer(props: any) {
                 <button
                   key={chat.uuid}
                   value={chat.uuid}
-                  className="group truncate text-xs my-1 h-12 ps-2 z-20 justify-start w-[100%] rounded-lg text-muted-foreground transition-all whitespace-nowrap text-nowrap duration:200 hover:bg-accent items-center"
+                  className={`group truncate text-xs my-1 h-12 ps-2 z-20 justify-start w-[100%] rounded-lg text-muted-foreground transition-all whitespace-nowrap text-nowrap duration:200 hover:bg-accent items-center ${props.uuid === chat.uuid && 'text-foreground bg-accent'}`}
                   onClick={() => {
                     getChatHistory(chat.uuid);
                   }}
@@ -165,7 +165,7 @@ export default function ChatDrawer(props: any) {
                       <div className="absolute -right-0.5 -bottom-0.5 rounded-full h-2 w-2 bg-green-400" />
                     </div>
                     <div className="flex flex-col">
-                      <div className="font-bold text-sm text-left transition-all group-hover:text-primary truncate">
+                      <div className={`font-bold text-sm text-left transition-all group-hover:text-foreground truncate ${props.uuid === chat.uuid && 'text-foreground'}`}>
                         {chat.model}
                       </div>
                       <div className="font-light text-xs text-left truncate">

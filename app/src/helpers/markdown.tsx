@@ -26,7 +26,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
   const html = markedInstance.parse(markdown);
   return (
     <div
-      className="rounded-xl w-full"
+      className="rounded-xl w-full text-sm"
       ref={containerRef}
       dangerouslySetInnerHTML={{ __html: html }}
     />

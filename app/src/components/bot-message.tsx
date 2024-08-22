@@ -36,9 +36,8 @@ const BotMessage: React.FC<IBotMessage> = (
           )}
         </div>
         <div className={`${isBot && 'max-w-[75%]'}`}>
-          <div className={`pt-3 pb-4 ${isBot ? 'bg-accent/75 rounded-e-2xl rounded-b-2xl' : 'bg-primary/25 rounded-s-2xl rounded-b-2xl'}`}>
-            
-            <div className="px-6 flex items-center w-full m-0 border-0">
+          <div className={`pt-2 pb-3 ${isBot ? 'bg-accent/75 rounded-e-xl rounded-b-xl' : 'bg-primary/25 rounded-s-xl rounded-b-xl'}`}>
+            <div className="px-4 flex items-center w-full m-0 border-0">
               {isTyping && (message.length <= 1 || !message || message === "<empty string>") ? (
                 <LoadingSpinner color="#fb923c" />
               ) : (

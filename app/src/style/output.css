@@ -1276,6 +1276,10 @@ body {
   margin-left: 0.5rem
 }
 
+.ms-2 {
+  margin-inline-start: 0.5rem
+}
+
 .block {
   display: block
 }
@@ -1472,6 +1476,18 @@ body {
   height: 95%
 }
 
+.h-14 {
+  height: 3.5rem
+}
+
+.h-12 {
+  height: 3rem
+}
+
+.h-\[90vh\] {
+  height: 90vh
+}
+
 .max-h-96 {
   max-height: 24rem
 }
@@ -1514,6 +1530,19 @@ body {
 
 .max-h-\[95\%\] {
   max-height: 95%
+}
+
+.max-h-full {
+  max-height: 100%
+}
+
+.max-h-fit {
+  max-height: -moz-fit-content;
+  max-height: fit-content
+}
+
+.max-h-\[100vh\] {
+  max-height: 100vh
 }
 
 .min-h-\[50vh\] {
@@ -1630,6 +1659,34 @@ body {
   width: 200px
 }
 
+.w-24 {
+  width: 6rem
+}
+
+.w-12 {
+  width: 3rem
+}
+
+.w-\[\%100\%\] {
+  width: %100%
+}
+
+.w-20 {
+  width: 5rem
+}
+
+.w-\[75\%\] {
+  width: 75%
+}
+
+.w-\[30\%\] {
+  width: 30%
+}
+
+.w-5 {
+  width: 1.25rem
+}
+
 .min-w-0 {
   min-width: 0px
 }
@@ -1673,6 +1730,10 @@ body {
 
 .max-w-1 {
   max-width: 0.25rem
+}
+
+.max-w-4 {
+  max-width: 1rem
 }
 
 .flex-1 {
@@ -1753,6 +1814,10 @@ body {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite
+}
+
+.animate-none {
+  animation: none
 }
 
 .cursor-default {
@@ -2259,6 +2324,10 @@ body {
   background-color: hsl(var(--accent) / 0.3)
 }
 
+.bg-foreground\/50 {
+  background-color: hsl(var(--foreground) / 0.5)
+}
+
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops))
 }
@@ -2303,6 +2372,14 @@ body {
   stroke: hsl(var(--primary-foreground))
 }
 
+.stroke-foreground {
+  stroke: hsl(var(--foreground))
+}
+
+.stroke-red-500 {
+  stroke: #ef4444
+}
+
 .p-0 {
   padding: 0px
 }
@@ -2329,6 +2406,10 @@ body {
 
 .p-\[1px\] {
   padding: 1px
+}
+
+.p-5 {
+  padding: 1.25rem
 }
 
 .px-1 {
@@ -2521,6 +2602,18 @@ body {
 
 .pb-1 {
   padding-bottom: 0.25rem
+}
+
+.ps-2 {
+  padding-inline-start: 0.5rem
+}
+
+.ps-1 {
+  padding-inline-start: 0.25rem
+}
+
+.pe-4 {
+  padding-inline-end: 1rem
 }
 
 .text-left {
@@ -2816,8 +2909,28 @@ body {
   transition-duration: 300ms
 }
 
+.duration-100 {
+  transition-duration: 100ms
+}
+
+.duration-75 {
+  transition-duration: 75ms
+}
+
+.duration-0 {
+  transition-duration: 0s
+}
+
 .ease-in-out {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1)
+}
+
+.ease-in {
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1)
+}
+
+.ease-out {
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1)
 }
 
 @keyframes enter {
@@ -2864,8 +2977,28 @@ body {
   animation-duration: 300ms
 }
 
+.duration-100 {
+  animation-duration: 100ms
+}
+
+.duration-75 {
+  animation-duration: 75ms
+}
+
+.duration-0 {
+  animation-duration: 0s
+}
+
 .ease-in-out {
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1)
+}
+
+.ease-in {
+  animation-timing-function: cubic-bezier(0.4, 0, 1, 1)
+}
+
+.ease-out {
+  animation-timing-function: cubic-bezier(0, 0, 0.2, 1)
 }
 
 .file\:border-0::file-selector-button {
@@ -3024,6 +3157,14 @@ body {
   stroke: hsl(var(--destructive))
 }
 
+.hover\:stroke-red-500:hover {
+  stroke: #ef4444
+}
+
+.hover\:stroke-primary:hover {
+  stroke: hsl(var(--primary))
+}
+
 .hover\:text-accent-foreground:hover {
   color: hsl(var(--accent-foreground))
 }
@@ -3160,12 +3301,20 @@ body {
   visibility: visible
 }
 
+.group:hover .group-hover\:text-primary {
+  color: hsl(var(--primary))
+}
+
 .group:hover .group-hover\:opacity-100 {
   opacity: 1
 }
 
 .group:hover .group-hover\:opacity-50 {
   opacity: 0.5
+}
+
+.group:hover .group-hover\:opacity-80 {
+  opacity: 0.8
 }
 
 .group.destructive .group-\[\.destructive\]\:border-muted\/40 {
@@ -3828,6 +3977,11 @@ body {
   .lg\:px-4 {
     padding-left: 1rem;
     padding-right: 1rem
+  }
+
+  .lg\:px-1 {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem
   }
 }
 

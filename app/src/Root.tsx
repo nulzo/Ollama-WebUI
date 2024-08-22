@@ -5,7 +5,7 @@ export default function Root() {
   return (
     <div className="grid w-full pl-[53px] h-screen">
       <Sidebar />
-      <div className="flex flex-col h-[95%] max-h-[95%]">
+      <div className="flex flex-col h-screen">
         <Outlet />
       </div>
     </div>

@@ -153,7 +153,7 @@ export function ChatPage() {
   }
 
   return (
-    <main className="grid m-5 flex-col gap-5 overscroll-none overflow-auto md:grid-cols-2 lg:grid-cols-[min-content_1fr] grid-rows-5 grid-flow-col">
+    <main className="grid m-5 flex-col gap-5 overscroll-none overflow-auto md:grid-cols-2 lg:grid-cols-[min-content_1fr] grid-rows-5 grid-flow-col h-screen">
       <div className="lg:col-span-1 hidden md:flex flex-col items-start border rounded-lg row-span-5 w-72 max-w-72">
         <div className="flex-col w-[100%]">
           <ChatDrawer
@@ -227,7 +227,7 @@ export function ChatPage() {
           {isTyping && (
             <div className="absolute bottom-4 border-primary border-2 bg-primary/10 p-2 rounded-lg left-6">
               <div className="flex gap-2 items-center">
-                <Origami className="size-5" /> {model} is typing{" "}
+                <Origami className="size-5" strokeWidth="1" /> {model} is typing{" "}
                 <PulseLoader
                   size="3"
                   speedMultiplier={0.75}

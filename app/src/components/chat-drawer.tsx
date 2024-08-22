@@ -19,7 +19,7 @@ import {
   subMonths,
 } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { History, Plus, SquarePen, Trash } from "lucide-react";
+import { History, Origami, Plus, SquarePen, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chat, Ollama } from "@/services/ollama.ts";
 import { ChatResponse } from "@/types/ollama";
@@ -29,6 +29,7 @@ import { useChats } from "@/hooks/use-chats.ts";
 import { OLLAMA_SETTINGS } from "@/settings/ollama";
 import { DATABASE_SETTINGS } from "@/settings/database";
 import { useMemo } from "react";
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 const storage: Storage = new Storage(DATABASE_SETTINGS);
@@ -138,7 +139,7 @@ export default function ChatDrawer(props: any) {
           </Button>
         </div>
       </div>
-      <div className="px-2 text-sm font-medium lg:px-4 overflow-y-scroll w-[100%] h-[80vh] max-h-[80vh]">
+      <div className="px-2 text-sm font-medium lg:px-4 overflow-y-scroll w-[100%] h-[85vh] max-h-[85vh]">
         {Object.entries(organizeChatsByDate)
           .reverse()
           .map(([group, groupChats]: any) => (
@@ -147,25 +148,35 @@ export default function ChatDrawer(props: any) {
                 {group}
               </div>
               {groupChats.reverse().map((chat: Chat) => (
-                <Button
+                <button
                   key={chat.uuid}
                   value={chat.uuid}
-                  size="default"
-                  variant="ghost"
-                  className="group text-nowrap text-xs overflow-hidden truncate flex items-center z-20 pr-6 relative justify-start w-[100%] rounded-lg py-0 text-muted-foreground transition-all hover:text-primary"
-                  onClick={(event) => {
-                    const target = event.target as HTMLButtonElement;
-                    getChatHistory(target.value);
+                  className="group truncate text-xs my-1 h-12 ps-2 z-20 justify-start w-[100%] rounded-lg text-muted-foreground transition-all whitespace-nowrap text-nowrap duration:200 hover:bg-accent items-center"
+                  onClick={() => {
+                    getChatHistory(chat.uuid);
                   }}
                 >
-                  
-                    {chat.messages[0]?.content ?? "Some message..."}
-                  
-                    <Trash 
-                    className="absolute right-2 size-3 invisible text-foreground group-hover:visible opacity-50 hover:stroke-red-400 hover:opacity-100"
-                    onClick={() => {console.log("delete chat: ", chat.uuid)}}
-                    />
-                </Button>
+                  <div className="flex relative items-start gap-2 w-[100%]">
+                    <div className="relative p-2 bg-foreground/50 rounded-lg">
+                      <Origami
+                        strokeWidth="1"
+                        className="size-4 text-primary-foreground"
+                      />
+                      <div className="absolute -right-0.5 -bottom-0.5 rounded-full h-2 w-2 bg-green-400" />
+                    </div>
+                    <div className="flex flex-col">
+                      <div className="font-bold text-sm text-left transition-all group-hover:text-primary truncate">
+                        {chat.model}
+                      </div>
+                      <div className="font-light text-xs text-left truncate">
+                        {chat.messages[0]?.content ?? "Some message..."}
+                      </div>
+                      <div className="absolute flex items-center bg-accent right-0 h-9 w-8 invisible group-hover:visible group-hover:opacity-100 opacity-0 transition-all ease-in-out duration-200 ps-2">
+                        <DotsHorizontalIcon className="hover:stroke-primary"/>
+                      </div>
+                    </div>
+                  </div>
+                </button>
               ))}
             </div>
           ))}

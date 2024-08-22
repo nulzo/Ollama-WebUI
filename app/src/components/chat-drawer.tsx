@@ -19,7 +19,7 @@ import {
   subMonths,
 } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { History, Plus, Trash } from "lucide-react";
+import { History, Plus, SquarePen, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Chat, Ollama } from "@/services/ollama.ts";
 import { ChatResponse } from "@/types/ollama";
@@ -134,7 +134,7 @@ export default function ChatDrawer(props: any) {
               createChat();
             }}
           >
-            <Plus className="size-4" />
+            <SquarePen className="size-4" />
           </Button>
         </div>
       </div>
@@ -150,9 +150,9 @@ export default function ChatDrawer(props: any) {
                 <Button
                   key={chat.uuid}
                   value={chat.uuid}
-                  size="sm"
+                  size="default"
                   variant="ghost"
-                  className="group text-nowrap overflow-hidden truncate flex items-center z-20 pr-6 relative justify-start w-[100%] rounded-lg py-0 text-muted-foreground transition-all hover:text-primary"
+                  className="group text-nowrap text-xs overflow-hidden truncate flex items-center z-20 pr-6 relative justify-start w-[100%] rounded-lg py-0 text-muted-foreground transition-all hover:text-primary"
                   onClick={(event) => {
                     const target = event.target as HTMLButtonElement;
                     getChatHistory(target.value);

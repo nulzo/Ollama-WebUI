@@ -78,12 +78,12 @@ export function Textbox({ value, setValue, onSubmit }: ITextbox) {
   }
 
   return (
-    <div className="ring-inset p-2 relative overflow-visible rounded-lg border bg-background focus-within:ring-2 h-full w-full focus-within:ring-ring">
+    <div className="ring-inset p-2 relative overflow-visible rounded-lg border border-foreground/25 bg-accent/50 focus-within:ring-2 h-full w-full focus-within:ring-ring">
       <Textarea
         id="chatMessage"
         ref={ref}
         key="chatMessageArea"
-        className="focus:border-transparent focus-visible:ring-0 resize-none border-0 shadow-none items-center bg-background h-full align-middle"
+        className="focus:border-transparent focus-visible:ring-0 resize-none border-0 shadow-none items-center h-full align-middle"
         value={value}
         onChange={(event) => handleChange(event)}
         onKeyDown={onKeyPress}

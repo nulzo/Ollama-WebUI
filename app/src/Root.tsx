@@ -1,15 +1,11 @@
 import Sidebar from "@/components/elements/sidebar.tsx";
-import NavBar from "@/components/elements/navbar.tsx";
 import { Outlet } from "react-router-dom";
 
 export default function Root() {
   return (
-    <div className="grid w-full pl-[53px]">
+    <div className="grid w-full pl-[53px] h-screen">
       <Sidebar />
-      <div className="flex flex-col">
-        <header className="sticky top-0 z-10 flex items-center gap-1 border-b bg-background px-4 py-1">
-          <NavBar />
-        </header>
+      <div className="flex flex-col h-[95%] max-h-[95%]">
         <Outlet />
       </div>
     </div>

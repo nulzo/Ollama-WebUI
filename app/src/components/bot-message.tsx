@@ -22,19 +22,22 @@ const BotMessage: React.FC<IBotMessage> = (
 ) => {
   return (
     <div className='py-3'>
-      <div className={`flex place-items-start ${isBot ? 'justify-start' : 'justify-end'}`}>
-        <div className="pe-1 font-bold flex items-center mb-2">
+        <span className={`text-sm items-baseline gap-1 py-0 my-0 pb-1 leading-none font-semibold flex place-items-start pl-6 ${isBot ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}>
+          { isBot && `${username}`}
+          <span className='text-xs font-light'>{time ? calculateAge(time) : "just now"}</span>
+        </span>
+      <div className={`flex place-items-start ${isBot ? 'justify-start' : 'justify-end ps-[25%]'}`}>
+        <div className="pe-2 font-bold flex items-center mb-2">
           {isBot && (
-            <div className="p-2 bg-accent rounded-lg rounded-tr-none">
-              <Origami strokeWidth="2" className="size-5 text-primary-foreground" />
+            <div className="relative p-2 bg-accent rounded-lg rounded-tr-none">
+              <Origami strokeWidth='1' className="size-5 text-primary-foreground" />
+              <div className='absolute -right-0.5 -bottom-0.5 rounded-full h-2 w-2 bg-green-400'/>
             </div>
           )}
         </div>
         <div className={`${isBot && 'max-w-[75%]'}`}>
           <div className={`pt-3 pb-4 ${isBot ? 'bg-accent/75 rounded-e-2xl rounded-b-2xl' : 'bg-primary/25 rounded-s-2xl rounded-b-2xl'}`}>
-            <span className={`pb-2 text-sm items-baseline gap-1 font-semibold flex place-items-start pl-6 ${isBot ? 'text-muted-foreground' : 'hidden'}`}>
-              {username} <span className='text-xs font-light'>{time ? calculateAge(time) : "just now"}</span>
-            </span>
+            
             <div className="px-6 flex items-center w-full m-0 border-0">
               {isTyping && (message.length <= 1 || !message || message === "<empty string>") ? (
                 <LoadingSpinner color="#fb923c" />

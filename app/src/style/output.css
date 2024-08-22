@@ -1020,6 +1020,50 @@ body {
   top: 100%
 }
 
+.bottom-10 {
+  bottom: 2.5rem
+}
+
+.right-\[-2\] {
+  right: -2
+}
+
+.-right-2 {
+  right: -0.5rem
+}
+
+.-right-1 {
+  right: -0.25rem
+}
+
+.-bottom-1 {
+  bottom: -0.25rem
+}
+
+.-bottom-0 {
+  bottom: -0px
+}
+
+.-bottom-0\.5 {
+  bottom: -0.125rem
+}
+
+.-right-0 {
+  right: -0px
+}
+
+.-right-0\.5 {
+  right: -0.125rem
+}
+
+.left-16 {
+  left: 4rem
+}
+
+.top-16 {
+  top: 4rem
+}
+
 .z-10 {
   z-index: 10
 }
@@ -1088,6 +1132,10 @@ body {
   grid-row: span 5 / span 5
 }
 
+.row-span-7 {
+  grid-row: span 7 / span 7
+}
+
 .m-0 {
   margin: 0px
 }
@@ -1129,6 +1177,11 @@ body {
 .mx-10 {
   margin-left: 2.5rem;
   margin-right: 2.5rem
+}
+
+.my-0 {
+  margin-top: 0px;
+  margin-bottom: 0px
 }
 
 .-ml-1 {
@@ -1217,6 +1270,10 @@ body {
 
 .mr-4 {
   margin-right: 1rem
+}
+
+.ml-2 {
+  margin-left: 0.5rem
 }
 
 .block {
@@ -1382,6 +1439,39 @@ body {
   height: 1px
 }
 
+.h-24 {
+  height: 6rem
+}
+
+.h-screen {
+  height: 100vh
+}
+
+.h-fit {
+  height: -moz-fit-content;
+  height: fit-content
+}
+
+.h-\[95vh\] {
+  height: 95vh
+}
+
+.h-\[100vh\] {
+  height: 100vh
+}
+
+.h-\[100\%\] {
+  height: 100%
+}
+
+.h-\[90\%\] {
+  height: 90%
+}
+
+.h-\[95\%\] {
+  height: 95%
+}
+
 .max-h-96 {
   max-height: 24rem
 }
@@ -1404,6 +1494,26 @@ body {
 
 .max-h-screen {
   max-height: 100vh
+}
+
+.max-h-\[90vh\] {
+  max-height: 90vh
+}
+
+.max-h-\[75vh\] {
+  max-height: 75vh
+}
+
+.max-h-\[100\%\] {
+  max-height: 100%
+}
+
+.max-h-\[90\%\] {
+  max-height: 90%
+}
+
+.max-h-\[95\%\] {
+  max-height: 95%
 }
 
 .min-h-\[50vh\] {
@@ -1514,6 +1624,10 @@ body {
 
 .w-1 {
   width: 0.25rem
+}
+
+.w-\[200px\] {
+  width: 200px
 }
 
 .min-w-0 {
@@ -1685,6 +1799,14 @@ body {
 
 .grid-rows-subgrid {
   grid-template-rows: subgrid
+}
+
+.grid-rows-8 {
+  grid-template-rows: repeat(8, minmax(0, 1fr))
+}
+
+.grid-rows-6 {
+  grid-template-rows: repeat(6, minmax(0, 1fr))
 }
 
 .flex-row {
@@ -1897,6 +2019,10 @@ body {
   border-radius: 0.75rem
 }
 
+.rounded {
+  border-radius: 0.25rem
+}
+
 .rounded-b-2xl {
   border-bottom-right-radius: 1rem;
   border-bottom-left-radius: 1rem
@@ -2005,6 +2131,27 @@ body {
   border-color: transparent
 }
 
+.border-accent {
+  border-color: hsl(var(--accent))
+}
+
+.border-red-500 {
+  --tw-border-opacity: 1;
+  border-color: rgb(239 68 68 / var(--tw-border-opacity))
+}
+
+.border-foreground {
+  border-color: hsl(var(--foreground))
+}
+
+.border-foreground\/50 {
+  border-color: hsl(var(--foreground) / 0.5)
+}
+
+.border-foreground\/25 {
+  border-color: hsl(var(--foreground) / 0.25)
+}
+
 .border-l-transparent {
   border-left-color: transparent
 }
@@ -2102,6 +2249,14 @@ body {
 
 .bg-transparent {
   background-color: transparent
+}
+
+.bg-accent\/50 {
+  background-color: hsl(var(--accent) / 0.5)
+}
+
+.bg-accent\/30 {
+  background-color: hsl(var(--accent) / 0.3)
 }
 
 .bg-gradient-to-r {
@@ -2332,6 +2487,42 @@ body {
   padding-right: 2.5rem
 }
 
+.pe-2 {
+  padding-inline-end: 0.5rem
+}
+
+.ps-10 {
+  padding-inline-start: 2.5rem
+}
+
+.ps-\[10vw\] {
+  padding-inline-start: 10vw
+}
+
+.ps-\[25\%\] {
+  padding-inline-start: 25%
+}
+
+.ps-3 {
+  padding-inline-start: 0.75rem
+}
+
+.ps-4 {
+  padding-inline-start: 1rem
+}
+
+.ps-12 {
+  padding-inline-start: 3rem
+}
+
+.ps-11 {
+  padding-inline-start: 2.75rem
+}
+
+.pb-1 {
+  padding-bottom: 0.25rem
+}
+
 .text-left {
   text-align: left
 }
@@ -2342,6 +2533,10 @@ body {
 
 .text-right {
   text-align: right
+}
+
+.text-end {
+  text-align: end
 }
 
 .align-middle {
@@ -2504,6 +2699,10 @@ body {
 
 .opacity-90 {
   opacity: 0.9
+}
+
+.opacity-100 {
+  opacity: 1
 }
 
 .shadow {
@@ -2805,6 +3004,10 @@ body {
   background-color: hsl(var(--secondary) / 0.8)
 }
 
+.hover\:bg-accent\/40:hover {
+  background-color: hsl(var(--accent) / 0.4)
+}
+
 .hover\:stroke-foreground:hover {
   stroke: hsl(var(--foreground))
 }
@@ -3078,6 +3281,10 @@ body {
   pointer-events: none
 }
 
+.data-\[disabled\=true\]\:pointer-events-none[data-disabled=true] {
+  pointer-events: none
+}
+
 .data-\[panel-group-direction\=vertical\]\:h-px[data-panel-group-direction=vertical] {
   height: 1px
 }
@@ -3199,6 +3406,10 @@ body {
   background-color: hsl(var(--border))
 }
 
+.data-\[selected\=true\]\:bg-accent[data-selected=true] {
+  background-color: hsl(var(--accent))
+}
+
 .data-\[state\=active\]\:text-foreground[data-state=active] {
   color: hsl(var(--foreground))
 }
@@ -3219,7 +3430,15 @@ body {
   color: hsl(var(--muted-foreground))
 }
 
+.data-\[selected\=true\]\:text-accent-foreground[data-selected=true] {
+  color: hsl(var(--accent-foreground))
+}
+
 .data-\[disabled\]\:opacity-50[data-disabled] {
+  opacity: 0.5
+}
+
+.data-\[disabled\=true\]\:opacity-50[data-disabled=true] {
   opacity: 0.5
 }
 

@@ -1370,6 +1370,14 @@ body {
   height: 100vh
 }
 
+.h-24 {
+  height: 6rem
+}
+
+.h-28 {
+  height: 7rem
+}
+
 .max-h-96 {
   max-height: 24rem
 }
@@ -1404,6 +1412,10 @@ body {
 
 .min-h-\[60px\] {
   min-height: 60px
+}
+
+.min-h-screen {
+  min-height: 100vh
 }
 
 .w-10 {
@@ -1528,8 +1540,16 @@ body {
   flex: 1 1 0%
 }
 
+.flex-shrink-0 {
+  flex-shrink: 0
+}
+
 .shrink-0 {
   flex-shrink: 0
+}
+
+.flex-grow {
+  flex-grow: 1
 }
 
 .grow {
@@ -1700,10 +1720,6 @@ body {
 
 .justify-items-end {
   justify-items: end
-}
-
-.justify-items-center {
-  justify-items: center
 }
 
 .gap-0 {
@@ -1978,6 +1994,10 @@ body {
   background-color: hsl(var(--accent))
 }
 
+.bg-accent\/0 {
+  background-color: hsl(var(--accent) / 0)
+}
+
 .bg-accent\/25 {
   background-color: hsl(var(--accent) / 0.25)
 }
@@ -2074,14 +2094,6 @@ body {
   background-color: transparent
 }
 
-.bg-accent\/20 {
-  background-color: hsl(var(--accent) / 0.2)
-}
-
-.bg-accent\/0 {
-  background-color: hsl(var(--accent) / 0)
-}
-
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops))
 }
@@ -2159,6 +2171,11 @@ body {
   padding-right: 0.25rem
 }
 
+.px-16 {
+  padding-left: 4rem;
+  padding-right: 4rem
+}
+
 .px-2 {
   padding-left: 0.5rem;
   padding-right: 0.5rem
@@ -2222,16 +2239,6 @@ body {
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem
-}
-
-.px-24 {
-  padding-left: 6rem;
-  padding-right: 6rem
-}
-
-.px-16 {
-  padding-left: 4rem;
-  padding-right: 4rem
 }
 
 .pb-1 {

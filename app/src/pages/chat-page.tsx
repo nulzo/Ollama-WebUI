@@ -157,8 +157,8 @@ export function ChatPage() {
   }
 
   return (
-    <main className="max-h-screen grid flex-col overscroll-none overflow-auto md:grid-cols-2 lg:grid-cols-[min-content_1fr] grid-rows-10 grid-flow-col h-screen">
-      <div className="max-h-screen lg:col-span-1 bg-accent/25 hidden md:flex flex-col items-start row-span-10 w-72 max-w-72 border-r">
+    <main className="max-h-screen grid overscroll-none min-h-screen h-screen md:grid-cols-2 lg:grid-cols-[min-content_1fr] grid-rows-10">
+      <div className="lg:col-span-1 bg-accent/25 hidden md:flex flex-col items-start row-span-10 w-72 max-w-72 border-r">
         <div className="max-h-screen flex-col w-[100%]">
           <ChatDrawer
             updateModel={updateModel}
@@ -169,8 +169,8 @@ export function ChatPage() {
           />
         </div>
       </div>
-      <div className="max-h-screen flex flex-col row-span-10 w-[100%]">
-        <div className="max-h-screen px-4 gap-3 flex justify-between items-center col-span-4 w-full rounded-b-none bg-accent/25 h-14 border-b">
+      <div className="h-full max-h-screen flex flex-col row-span-10 w-[100%]">
+        <div className="grow-0 px-4 py-0 gap-3 flex justify-between items-center col-span-4 w-full rounded-b-none bg-accent/25 h-14 border-b">
           <div className="flex items-center gap-3 font-semibold text-lg ps-4">
             <LoadModels
               updateModel={updateModel}
@@ -194,8 +194,8 @@ export function ChatPage() {
             </div>
           </div>
         </div>
-        <div className="flex flex-col col-span-4 h-screen max-h-screen bg-background border-r border-b border-border px-4 rounded-t-none">
-          <ScrollArea className="row-span-5 px-16 overflow-y-scroll flex-col-reverse pt-4  max-h-[87vh] h-[87vh]">
+        <div className="grow px-16 flex-col-reverse bg-background border-r border-b overflow-y-scroll h-full border-border rounded-t-none">
+          
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -276,15 +276,15 @@ export function ChatPage() {
               </div>
             )}
             <div ref={ref} />
-          </ScrollArea>
-          <div className="flex w-full h-fit px-4">
+          </div>
+        
+        <div className="grow-0 flex w-full h-14 px-4">
             <Textbox
               value={message}
               setValue={setMessage}
               onSubmit={handleSubmit}
             />
           </div>
-        </div>
       </div>
     </main>
   );

@@ -1373,6 +1373,10 @@ body {
   height: 100vh
 }
 
+.h-\[48px\] {
+  height: 48px
+}
+
 .max-h-96 {
   max-height: 24rem
 }
@@ -1851,6 +1855,10 @@ body {
   border-radius: 0.75rem
 }
 
+.rounded-3xl {
+  border-radius: 1.5rem
+}
+
 .rounded-b-none {
   border-bottom-right-radius: 0px;
   border-bottom-left-radius: 0px
@@ -2093,6 +2101,11 @@ body {
   background-color: transparent
 }
 
+.bg-gray-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 250 251 / var(--tw-bg-opacity))
+}
+
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops))
 }
@@ -2163,6 +2176,14 @@ body {
 
 .p-\[1px\] {
   padding: 1px
+}
+
+.p-1\.5 {
+  padding: 0.375rem
+}
+
+.p-2\.5 {
+  padding: 0.625rem
 }
 
 .px-1 {
@@ -2238,6 +2259,11 @@ body {
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem
+}
+
+.px-1\.5 {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem
 }
 
 .pb-1 {
@@ -3509,6 +3535,11 @@ body {
 
 .dark\:border-destructive:is(.dark *) {
   border-color: hsl(var(--destructive))
+}
+
+.dark\:text-gray-100:is(.dark *) {
+  --tw-text-opacity: 1;
+  color: rgb(243 244 246 / var(--tw-text-opacity))
 }
 
 @media (min-width: 640px) {

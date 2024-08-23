@@ -24,6 +24,8 @@ export function Textbox({ value, setValue, onSubmit }: ITextbox) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
   function handleChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
+    event.target.style.height = '';
+    event.target.style.height = Math.min(event.target.scrollHeight, 200) + 'px';
     setValue(event.target.value);
   }
 
@@ -38,6 +40,8 @@ export function Textbox({ value, setValue, onSubmit }: ITextbox) {
   }
 
   function onKeyPress(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    event.target.style.height = '';
+    event.target.style.height = Math.min(event.target.scrollHeight, 200) + 'px';
     switch (event.key) {
       case "ArrowUp":
         if (history.length > 0 && currentHistoryIndex < history.length - 1) {
@@ -62,6 +66,7 @@ export function Textbox({ value, setValue, onSubmit }: ITextbox) {
         if (event.shiftKey) {
           setValue(value + "\n");
           event.preventDefault();
+          
         } else {
           event.preventDefault();
           handleSubmit(event as unknown as React.FormEvent<HTMLFormElement>);
@@ -78,16 +83,19 @@ export function Textbox({ value, setValue, onSubmit }: ITextbox) {
   }
 
   return (
-    <div className="max-w-6xl px-2.5 md:px-6 mx-auto inset-x-0 ring-inset p-2 relative overflow-visible rounded-lg border border-foreground/25 bg-accent focus-within:ring-2 h-full w-full focus-within:ring-ring">
+    <div className="max-w-6xl px-2.5 md:px-6 mx-auto inset-x-0 ring-inset p-1.5 relative overflow-visible rounded-lg border border-foreground/25 bg-accent focus-within:ring-2 h-full w-full focus-within:ring-ring">
+      
       <Textarea
         id="chatMessage"
         ref={ref}
         key="chatMessageArea"
-        className="focus:border-transparent focus-visible:ring-0 resize-none border-0 shadow-none items-center h-full align-middle"
+        className="focus:border-transparent scrollbar-hidden py-3 focus-visible:ring-0 resize-none border-0 shadow-none items-center h-[48px] align-middle"
         value={value}
+        rows={1}
         onChange={(event) => handleChange(event)}
         onKeyDown={onKeyPress}
       />
+      
       <div className="absolute items-center bottom-3 left-3">
         <TooltipProvider>
           <Tooltip>

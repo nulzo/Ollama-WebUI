@@ -195,7 +195,7 @@ export function ChatPage() {
           </div>
         </div>
         <div className="flex flex-col col-span-4 h-screen max-h-screen bg-background border-r border-b border-border px-4 rounded-t-none">
-          <ScrollArea className="row-span-5 overflow-y-scroll flex-col-reverse pt-4  max-h-[87vh] h-[87vh]">
+          <ScrollArea className="row-span-5 px-16 overflow-y-scroll flex-col-reverse pt-4  max-h-[87vh] h-[87vh]">
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button

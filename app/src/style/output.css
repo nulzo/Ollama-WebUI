@@ -2224,6 +2224,16 @@ body {
   padding-bottom: 1.5rem
 }
 
+.px-24 {
+  padding-left: 6rem;
+  padding-right: 6rem
+}
+
+.px-16 {
+  padding-left: 4rem;
+  padding-right: 4rem
+}
+
 .pb-1 {
   padding-bottom: 0.25rem
 }

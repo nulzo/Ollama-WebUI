@@ -28,6 +28,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
+import {Skeleton} from "@/components/ui/skeleton.tsx";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
+import LoadModels from "@/components/load-models.tsx";
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 const storage: Storage = new Storage(DATABASE_SETTINGS);
@@ -153,9 +157,9 @@ export function ChatPage() {
   }
 
   return (
-    <main className="grid flex-col overscroll-none overflow-auto md:grid-cols-2 lg:grid-cols-[min-content_1fr] grid-rows-10 grid-flow-col h-screen">
-      <div className="lg:col-span-1 hidden md:flex flex-col items-start border rounded-lg row-span-10 w-72 max-w-72">
-        <div className="flex-col w-[100%]">
+    <main className="max-h-screen grid flex-col overscroll-none overflow-auto md:grid-cols-2 lg:grid-cols-[min-content_1fr] grid-rows-10 grid-flow-col h-screen">
+      <div className="max-h-screen lg:col-span-1 bg-accent/25 hidden md:flex flex-col items-start row-span-10 w-72 max-w-72 border-r">
+        <div className="max-h-screen flex-col w-[100%]">
           <ChatDrawer
             updateModel={updateModel}
             createChat={createChat}
@@ -165,14 +169,12 @@ export function ChatPage() {
           />
         </div>
       </div>
-      <div className="grid grid-rows-12 row-span-10 w-[100%]">
-        <div className="px-4 gap-3 flex justify-between items-center col-span-4 w-full rounded-lg rounded-b-none bg-accent/35 row-span-1 border-r border-l border-t border-b">
+      <div className="max-h-screen flex flex-col row-span-10 w-[100%]">
+        <div className="max-h-screen px-4 gap-3 flex justify-between items-center col-span-4 w-full rounded-b-none bg-accent/25 h-14 border-b">
           <div className="flex items-center gap-3 font-semibold text-lg ps-4">
-            <div className="relative p-2 bg-accent rounded-lg">
-              <Origami strokeWidth='1' className="size-5 text-primary-foreground" />
-              <div className='absolute -right-0.5 -bottom-0.5 rounded-full h-2 w-2 bg-green-400'/>
-            </div>
-            {model}
+            <LoadModels
+              updateModel={updateModel}
+            />
           </div>
           <div className="flex items-center gap-1 pe-6">
             <Button
@@ -192,8 +194,8 @@ export function ChatPage() {
             </div>
           </div>
         </div>
-        <div className="col-span-4 grid grid-rows-6 row-span-11 max-h-screen rounded-lg bg-accent/25 border-r border-l border-b border-border px-4 rounded-t-none">
-          <ScrollArea className="relative row-span-5 overflow-y-scroll flex-col-reverse">
+        <div className="flex flex-col col-span-4 h-screen max-h-screen bg-background border-r border-b border-border px-4 rounded-t-none">
+          <ScrollArea className="row-span-5 overflow-y-scroll flex-col-reverse pt-4  max-h-[87vh] h-[87vh]">
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -245,7 +247,7 @@ export function ChatPage() {
                 </Command>
               </PopoverContent>
             </Popover>
-            <div className="mx-4 row-span-4">
+            <div className="mx-4 row-span-4 pb-4">
               {messages.length !== 0 &&
                 messages.map((message) => (
                   <BotMessage
@@ -259,7 +261,6 @@ export function ChatPage() {
                   />
                 ))}
             </div>
-
             {isTyping && (
               <div className="absolute bottom-4 border-primary border-2 bg-primary/10 p-2 rounded-lg left-6">
                 <div className="flex gap-2 items-center">
@@ -276,7 +277,7 @@ export function ChatPage() {
             )}
             <div ref={ref} />
           </ScrollArea>
-          <div className="flex p-4">
+          <div className="flex w-full h-fit px-4">
             <Textbox
               value={message}
               setValue={setMessage}

@@ -5,7 +5,6 @@ import {
   LifeBuoy,
   MessageSquareCode,
   Settings2,
-  SquareUser,
 } from "lucide-react";
 import {
   Tooltip,
@@ -19,7 +18,7 @@ const Sidebar = () => {
   const route = useLocation();
   console.log(route);
   return (
-    <aside className="bg-accent/25 inset-y fixed left-0 z-20 flex h-full flex-col border-r">
+    <aside className="bg-accent/75 inset-y fixed left-0 z-20 flex h-full flex-col border-r">
       <nav className="grid gap-1 p-2 mt-4">
         <TooltipProvider>
           <Tooltip>

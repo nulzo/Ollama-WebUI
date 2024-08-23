@@ -18,8 +18,8 @@ const Sidebar = () => {
   const route = useLocation();
   console.log(route);
   return (
-    <aside className="bg-accent/75 inset-y fixed left-0 z-20 flex h-full flex-col border-r">
-      <nav className="grid gap-1 p-2 mt-4">
+    <aside className="bg-tertiary inset-y flex left-0 z-20 h-full flex-col border-r w-[53px]">
+      <nav className="mt-2 grid gap-1 p-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>

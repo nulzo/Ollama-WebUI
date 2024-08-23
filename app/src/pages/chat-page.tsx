@@ -28,9 +28,20 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-import {Skeleton} from "@/components/ui/skeleton.tsx";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select.tsx";
-import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
+import { Skeleton } from "@/components/ui/skeleton.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select.tsx";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip.tsx";
 import LoadModels from "@/components/load-models.tsx";
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
@@ -157,97 +168,37 @@ export function ChatPage() {
   }
 
   return (
-    <main className="max-h-screen grid overscroll-none min-h-screen h-screen md:grid-cols-2 lg:grid-cols-[min-content_1fr] grid-rows-10">
-      <div className="lg:col-span-1 bg-accent/25 hidden md:flex flex-col items-start row-span-10 w-72 max-w-72 border-r">
-        <div className="max-h-screen flex-col w-[100%]">
-          <ChatDrawer
-            updateModel={updateModel}
-            createChat={createChat}
-            getChatHistory={getChatHistory}
-            uuid={uuid}
-            model={model}
-          />
-        </div>
-      </div>
-      <div className="h-full max-h-screen flex flex-col row-span-10 w-[100%]">
-        <div className="grow-0 px-4 py-0 gap-3 flex justify-between items-center col-span-4 w-full rounded-b-none bg-accent/25 h-14 border-b">
+    <>
+      <ChatDrawer
+        updateModel={updateModel}
+        createChat={createChat}
+        getChatHistory={getChatHistory}
+        uuid={uuid}
+        model={model}
+      />
+      <div className="h-screen max-h-[100dvh] md:max-w-[calc(100%-260px)] w-full max-w-full flex flex-col">
+        <div className="sticky py-2.5 top-0 flex flex-row z-10 grow-0 px-4 gap-3 justify-between items-center col-span-4 w-full rounded-b-none bg-background h-14">
           <div className="flex items-center gap-3 font-semibold text-lg ps-4">
-            <LoadModels
-              updateModel={updateModel}
-            />
+            <LoadModels updateModel={updateModel} />
           </div>
           <div className="flex items-center gap-1 pe-6">
-            <Button
-              size="icon"
-              variant="ghost"
-            >
+            <Button size="icon" variant="ghost">
               <Ellipsis className="size-4" strokeWidth="1.5" />
             </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-            >
+            <Button size="icon" variant="ghost">
               <SlidersHorizontal className="size-4" strokeWidth="1.5" />
             </Button>
             <div className="h-8 hidden flex w-8 rounded-full items-center justify-center bg-red-700">
-              <User className="size-5 stroke-primary-foreground" strokeWidth="1" />
+              <User
+                className="size-5 stroke-primary-foreground"
+                strokeWidth="1"
+              />
             </div>
           </div>
         </div>
-        <div className="grow px-16 flex-col-reverse bg-background border-r border-b overflow-y-scroll h-full border-border rounded-t-none">
-          
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className="w-[200px] justify-between hidden"
-                >
-                  {value
-                    ? frameworks.find((framework) => framework.value === value)
-                        ?.label
-                    : "Select framework..."}
-                  <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0">
-                <Command>
-                  <CommandInput
-                    placeholder="Search framework..."
-                    className="h-9"
-                  />
-                  <CommandList>
-                    <CommandEmpty>No framework found.</CommandEmpty>
-                    <CommandGroup>
-                      {frameworks.map((framework) => (
-                        <CommandItem
-                          key={framework.value}
-                          value={framework.value}
-                          onSelect={(currentValue) => {
-                            setValue(
-                              currentValue === value ? "" : currentValue
-                            );
-                            setOpen(false);
-                          }}
-                        >
-                          {framework.label}
-                          <CheckIcon
-                            className={cn(
-                              "ml-auto h-4 w-4",
-                              value === framework.value
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            <div className="mx-4 row-span-4 pb-4">
+        <div className="flex flex-col flex-auto z-10">
+          <div className="pb-2.5 flex flex-col justify-between w-full flex-auto overflow-auto h-0 max-w-full z-10 scrollbar-hidden">
+            <div className="max-w-5xl mx-auto">
               {messages.length !== 0 &&
                 messages.map((message) => (
                   <BotMessage
@@ -261,31 +212,31 @@ export function ChatPage() {
                   />
                 ))}
             </div>
-            {isTyping && (
-              <div className="absolute bottom-4 border-primary border-2 bg-primary/10 p-2 rounded-lg left-6">
-                <div className="flex gap-2 items-center">
-                  <Origami className="size-5" strokeWidth="1" /> {model} is
-                  typing{" "}
-                  <PulseLoader
-                    size="3"
-                    speedMultiplier={0.75}
-                    color="#ffffff"
-                    className="stroke-primary-foreground"
-                  />
-                </div>
-              </div>
-            )}
-            <div ref={ref} />
           </div>
-        
-        <div className="grow-0 flex w-full h-14 px-4">
+          {isTyping && (
+            <div className="absolute bottom-4 border-primary border-2 bg-primary/10 p-2 rounded-lg left-6">
+              <div className="flex gap-2 items-center">
+                <Origami className="size-5" strokeWidth="1" /> {model} is typing{" "}
+                <PulseLoader
+                  size="3"
+                  speedMultiplier={0.75}
+                  color="#ffffff"
+                  className="stroke-primary-foreground"
+                />
+              </div>
+            </div>
+          )}
+          <div ref={ref} />
+          <div className="mb-5 z-[99]">
+            <div className="-mb-3.5 mx-auto inset-x-0 bg-transparent flex justify-center"></div>
             <Textbox
               value={message}
               setValue={setMessage}
               onSubmit={handleSubmit}
             />
           </div>
+        </div>
       </div>
-    </main>
+    </>
   );
 }

@@ -3,11 +3,9 @@ import { Outlet } from "react-router-dom";
 
 export default function Root() {
   return (
-    <div className="grid w-full pl-[53px] h-screen">
+    <div className="h-screen max-h-[100dvh] overflow-auto flex flex-row">
       <Sidebar />
-      <div className="flex flex-col h-screen">
-        <Outlet />
-      </div>
+      <Outlet />
     </div>
   );
 }

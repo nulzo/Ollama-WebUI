@@ -233,6 +233,7 @@ export function ChatPage() {
               value={message}
               setValue={setMessage}
               onSubmit={handleSubmit}
+              model={model}
             />
           </div>
         </div>

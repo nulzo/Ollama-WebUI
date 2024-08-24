@@ -718,9 +718,9 @@ video {
   --foreground: 0 0% 98%;
   --primary: 300 80% 75%;
   --primary-foreground: 0 0% 98%;
-  --secondary: 0 0% 6.9%;
+  --secondary: 0 0% 7.9%;
   --secondary-foreground: 0 0% 98%;
-  --tertiary: 0 0% 9.9%;
+  --tertiary: 0 0% 12.9%;
   --tertiary-foreground: 0 0% 98%;
   --muted: 0 0% 14.9%;
   --muted-foreground: 0 0% 63.9%;
@@ -954,6 +954,10 @@ body {
 
 .bottom-3 {
   bottom: 0.75rem
+}
+
+.bottom-3\.5 {
+  bottom: 0.875rem
 }
 
 .bottom-4 {
@@ -1341,6 +1345,10 @@ body {
   height: 1px
 }
 
+.h-\[48px\] {
+  height: 48px
+}
+
 .h-\[85vh\] {
   height: 85vh
 }
@@ -1371,10 +1379,6 @@ body {
 
 .h-screen {
   height: 100vh
-}
-
-.h-\[48px\] {
-  height: 48px
 }
 
 .max-h-96 {
@@ -1855,10 +1859,6 @@ body {
   border-radius: 0.75rem
 }
 
-.rounded-3xl {
-  border-radius: 1.5rem
-}
-
 .rounded-b-none {
   border-bottom-right-radius: 0px;
   border-bottom-left-radius: 0px
@@ -1874,11 +1874,6 @@ body {
   border-end-end-radius: 0.75rem
 }
 
-.rounded-r-2xl {
-  border-top-right-radius: 1rem;
-  border-bottom-right-radius: 1rem
-}
-
 .rounded-s-xl {
   border-start-start-radius: 0.75rem;
   border-end-start-radius: 0.75rem
@@ -1887,6 +1882,11 @@ body {
 .rounded-t-\[10px\] {
   border-top-left-radius: 10px;
   border-top-right-radius: 10px
+}
+
+.rounded-l-none {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px
 }
 
 .rounded-tl-sm {
@@ -1928,6 +1928,14 @@ body {
 
 .border-t {
   border-top-width: 1px
+}
+
+.border-l-2 {
+  border-left-width: r
+}
+
+.border-l-4 {
+  border-left-width: -
 }
 
 .border-none {
@@ -1995,10 +2003,6 @@ body {
 
 .bg-accent\/0 {
   background-color: hsl(var(--accent) / 0)
-}
-
-.bg-accent\/20 {
-  background-color: hsl(var(--accent) / 0.2)
 }
 
 .bg-accent\/25 {
@@ -2101,11 +2105,6 @@ body {
   background-color: transparent
 }
 
-.bg-gray-50 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(249 250 251 / var(--tw-bg-opacity))
-}
-
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops))
 }
@@ -2158,6 +2157,10 @@ body {
   padding: 0.25rem
 }
 
+.p-1\.5 {
+  padding: 0.375rem
+}
+
 .p-2 {
   padding: 0.5rem
 }
@@ -2176,14 +2179,6 @@ body {
 
 .p-\[1px\] {
   padding: 1px
-}
-
-.p-1\.5 {
-  padding: 0.375rem
-}
-
-.p-2\.5 {
-  padding: 0.625rem
 }
 
 .px-1 {
@@ -2259,11 +2254,6 @@ body {
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem
-}
-
-.px-1\.5 {
-  padding-left: 0.375rem;
-  padding-right: 0.375rem
 }
 
 .pb-1 {
@@ -3537,11 +3527,6 @@ body {
   border-color: hsl(var(--destructive))
 }
 
-.dark\:text-gray-100:is(.dark *) {
-  --tw-text-opacity: 1;
-  color: rgb(243 244 246 / var(--tw-text-opacity))
-}
-
 @media (min-width: 640px) {
   .sm\:bottom-0 {
     bottom: 0px
@@ -3655,9 +3640,9 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr))
   }
 
-  .md\:px-6 {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem
+  .md\:px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem
   }
 }
 

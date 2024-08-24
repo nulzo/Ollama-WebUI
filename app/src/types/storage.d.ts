@@ -11,7 +11,13 @@ export interface CreateChat {
     name?: string
 }
 
-export interface Settings {
+export interface User {
     name: string
     color?: string
+}
+
+export interface Settings {
+    ollama_ip: string,
+    ollama_port: number,
+    ollama_default_model: string,
 }

@@ -1,195 +1,63 @@
-import BotMessage from "@/components/bot-message";
-import {Origami, SlidersHorizontal, User} from "lucide-react";
-import {Ollama} from "@/services/ollama.ts";
-import React, {useEffect, useRef, useState} from "react";
-import {ChatResponse, Message} from "@/types/ollama";
-import {Storage} from "@/services/storage";
-import {OLLAMA_SETTINGS} from "@/settings/ollama";
-import {DATABASE_SETTINGS} from "@/settings/database";
-import {v4 as uuidv4} from "uuid";
+import { useEffect, useRef } from "react";
 import ChatDrawer from "@/components/chat-drawer";
-import {useSearchParams} from "react-router-dom";
-import {PulseLoader} from "react-spinners";
-import {Textbox} from "@/components/textbox";
-import {Button} from "@/components/ui/button"
-import LoadModels from "@/components/load-models.tsx";
-import SettingsModal from "@/components/settings-modal.tsx";
-
-const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
-const storage: Storage = new Storage(DATABASE_SETTINGS);
-
+import { Textbox } from "@/components/textbox";
+import { useChat } from "@/hooks/use-chat";
+import { Header } from "@/components/header";
+import { ChatArea } from "@/components/chat-area";
 
 export function ChatPage() {
-    const [model, setModel] = useState("llama3:latest");
-    const [uuid, setUuid] = useState("");
-    const [message, setMessage] = useState("");
-    const [isTyping, setIsTyping] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([]);
-    let [_, setSearch] = useSearchParams();
+  const {
+    model,
+    uuid,
+    message,
+    isTyping,
+    messages,
+    loading,
+    setModel,
+    setMessage,
+    handleSubmit,
+    createChat,
+    getChatHistory,
+  } = useChat();
 
+  const ref = useRef<HTMLDivElement>(null);
 
-    const ref = useRef<HTMLDivElement>(null);
+  const scrollToBottom = () => {
+    ref.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-    const scrollToBottom = () => {
-        ref.current?.scrollIntoView({behavior: "smooth"});
-    };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+  function updateModel(param: any) {
+    setModel(param);
+  }
 
-    async function write(response: ChatResponse[]): Promise<Message[]> {
-        let curr: string = "";
-        for await (const part of response) {
-            curr += part.message.content;
-        }
-        setIsTyping(false);
-        setMessages((prevMessages) => [
-            ...prevMessages,
-            {
-                role: "assistant",
-                content: curr,
-                chat: uuid,
-                model: model,
-            },
-        ]);
-
-        await storage.createMessage({
-            model: model,
-            content: curr,
-            role: "assistant",
-            chat: uuid,
-        });
-
-        return messages;
-    }
-
-    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-
-        const mes: Message = {
-            model: model,
-            content: message,
-            role: "user",
-            chat: uuid,
-        };
-
-        await storage.createMessage(mes);
-
-        const newHistory: Message[] = [...messages, mes];
-
-        setMessages(newHistory);
-
-        setMessage("");
-        setIsTyping(true);
-        const response: ChatResponse[] = await ollama.chat(
-            {model: model, messages: newHistory},
-            {stream: true}
-        );
-        await write(response);
-    }
-
-    function updateModel(param: any) {
-        setModel(param);
-    }
-
-    async function createChat() {
-        const chat_uuid = uuidv4();
-        setUuid(chat_uuid);
-        setSearch("");
-        setMessages((_) => []);
-
-        await storage.createChat({uuid: chat_uuid, model: model});
-    }
-
-    async function getChatHistory(id: string) {
-        const response = await storage.getChat(id);
-        setUuid(response?.uuid);
-        setSearch(`c=${response?.uuid}`);
-        const messages: Message[] = response?.messages;
-        setMessages([]);
-        let msgs: Message[] = [];
-        messages.forEach((message: Message) => {
-            msgs.push(message);
-        });
-        setMessages(msgs);
-    }
-
-    return (
-        <>
-            <ChatDrawer
-                updateModel={updateModel}
-                createChat={createChat}
-                getChatHistory={getChatHistory}
-                uuid={uuid}
-                model={model}
+  return (
+    <>
+      <ChatDrawer
+        updateModel={updateModel}
+        createChat={createChat}
+        getChatHistory={getChatHistory}
+        uuid={uuid}
+        model={model}
+      />
+      <div className="h-screen max-h-[100dvh] md:max-w-[calc(100%-260px)] w-full max-w-full flex flex-col">
+        <Header model={model} setModel={setModel} />
+        <div className="relative flex flex-col flex-auto z-10">
+          <ChatArea messages={messages} isTyping={isTyping} model={model} ref={ref} />
+          <div className="mb-5 z-[99]">
+            <div className="-mb-3.5 mx-auto inset-x-0 bg-transparent flex justify-center"></div>
+            <Textbox
+              value={message}
+              setValue={setMessage}
+              onSubmit={handleSubmit}
+              model={model}
             />
-            <div className="h-screen max-h-[100dvh] md:max-w-[calc(100%-260px)] w-full max-w-full flex flex-col">
-                <div
-                    className="sticky py-2.5 top-0 flex flex-row z-10 grow-0 px-4 gap-3 justify-between items-center col-span-4 w-full rounded-b-none bg-background h-14">
-                    <div className="flex items-center gap-3 font-semibold text-lg ps-4">
-                        <LoadModels
-                            updateModel={updateModel}
-                            currentModel={model}
-                        />
-                    </div>
-                    <div className="flex items-center gap-1 pe-6">
-                        <SettingsModal />
-                        <Button size="icon" variant="ghost">
-                            <SlidersHorizontal className="size-4" strokeWidth="1.5"/>
-                        </Button>
-                        <div className="h-8 hidden flex w-8 rounded-full items-center justify-center bg-red-700">
-                            <User
-                                className="size-5 stroke-primary-foreground"
-                                strokeWidth="1"
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div className="relative flex flex-col flex-auto z-10">
-                    <div
-                        className="pb-10 flex flex-col justify-between w-full flex-auto overflow-auto h-0 max-w-full z-10 scrollbar-hidden">
-                        <div className="max-w-5xl mx-auto">
-                            {messages.length !== 0 &&
-                                messages.map((message) => (
-                                    <BotMessage
-                                        isBot={message?.role !== "user"}
-                                        isTyping={false}
-                                        message={message?.content}
-                                        time={message?.time}
-                                        username={
-                                            message?.role === "user" ? message?.role : message?.model
-                                        }
-                                    />
-                                ))}
-                        </div>
-                        <div ref={ref}/>
-                        {isTyping && (
-                            <div
-                                className="absolute bottom-32 border-primary border-2 bg-primary/10 p-2 rounded-lg left-14">
-                                <div className="flex gap-2 items-center">
-                                    <Origami className="size-5" strokeWidth="1"/> {model} is typing{" "}
-                                    <PulseLoader
-                                        size="3"
-                                        speedMultiplier={0.75}
-                                        color="#ffffff"
-                                        className="stroke-primary-foreground"
-                                    />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <div className="mb-5 z-[99]">
-                        <div className="-mb-3.5 mx-auto inset-x-0 bg-transparent flex justify-center"></div>
-                        <Textbox
-                            value={message}
-                            setValue={setMessage}
-                            onSubmit={handleSubmit}
-                            model={model}
-                        />
-                    </div>
-                </div>
-            </div>
-        </>
-    );
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }

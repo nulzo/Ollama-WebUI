@@ -28,7 +28,7 @@ const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 export default function LoadModels(props: any) {
     const models = useModels(ollama);
     const [open, setOpen] = useState(false)
-    const [value, setValue] = useState("")
+    const [value, setValue] = useState(props.currentModel ?? "")
 
     function updateModel(elem: string) {
         props.updateModel(elem);
@@ -36,14 +36,13 @@ export default function LoadModels(props: any) {
 
     return(
         <>
-
-            {models?.isLoading && (
+            {models?.isLoading && !props.hideStatus && (
                 <span className="size-2 rounded-full bg-primary-400 border border-primary-200 animate-pulse"/>
             )}
-            {models?.isError && (
+            {models?.isError && !props.hideStatus && (
                 <span className="size-2 rounded-full bg-red-400 border border-red-200"/>
             )}
-            {models?.isSuccess && (
+            {models?.isSuccess && !props.hideStatus && (
                 <>
                     <TooltipProvider>
                         <Tooltip>

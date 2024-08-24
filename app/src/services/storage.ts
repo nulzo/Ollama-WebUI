@@ -1,6 +1,6 @@
 import { FetchWrapper } from "@/services/fetch.ts";
 import { Fetch, FetchConfig } from "@/types/fetch";
-import { CreateChat, CreateMessage } from "@/types/storage";
+import {CreateChat, CreateMessage, Settings} from "@/types/storage";
 
 
 export class Storage {
@@ -43,6 +43,16 @@ export class Storage {
 
   async getUser() {
     const response = await this._client.get(this._fetch, '/settings/');
+    return await response.json();
+  }
+
+  async getSettings() {
+    const response = await this._client.get(this._fetch, '/settings/');
+    return await response.json();
+  }
+
+  async setSettings(settings: any) {
+    const response = await this._client.put(this._fetch, '/settings/1/', settings);
     return await response.json();
   }
 }

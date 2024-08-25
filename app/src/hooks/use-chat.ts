@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Ollama } from '@/services/ollama';
 import { OLLAMA_SETTINGS } from '@/settings/ollama';
-import { ChatResponse, Message } from '@/types/ollama';
+import { ChatResponse, Message } from '@/types/providers/ollama';
 import { DATABASE_SETTINGS } from "@/settings/database";
 import { v4 as uuidv4 } from "uuid";
 import { Storage } from "@/services/storage";
-import { settingsService } from '@/services/client';
+import { settingsService } from '@/services/storage/client.ts';
 
 const ollama = new Ollama(OLLAMA_SETTINGS);
 const storage = new Storage(DATABASE_SETTINGS);

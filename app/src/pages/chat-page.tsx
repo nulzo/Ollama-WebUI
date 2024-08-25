@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
-import ChatDrawer from "@/components/chat-drawer";
-import { Textbox } from "@/components/textbox";
+import ChatDrawer from "@/components/chat/display/chat-drawer.tsx";
+import { Textbox } from "@/components/chat/textbox/textbox.tsx";
 import { useChat } from "@/hooks/use-chat";
-import { Header } from "@/components/header";
-import { ChatArea } from "@/components/chat-area";
-import { useLocation } from 'react-router-dom';
+import { Header } from "@/components/chat/display/header.tsx";
+import { ChatArea } from "@/components/chat/display/chat-area.tsx";
 import { useSearchParams } from 'react-router-dom'
 
 export function ChatPage() {

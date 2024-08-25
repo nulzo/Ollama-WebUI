@@ -8,8 +8,8 @@ export interface Message {
 }
 
 export interface OllamaConfig {
-    endpoint: string,
-    port: number,
+    endpoint: string
+    port: number
     host: string
 }
 

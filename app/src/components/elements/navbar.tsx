@@ -1,4 +1,4 @@
-import { useTheme } from "../themeProvider.tsx";
+import { useTheme } from "../theme-provider.tsx";
 
 import {
   Menubar,
@@ -14,7 +14,7 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import SettingsModal from "../settings.tsx";
+import SettingsModal from "../modals/settings.tsx";
 import { useState } from "react";
 import { Button } from "../ui/button.tsx";
 

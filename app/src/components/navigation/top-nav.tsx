@@ -1,4 +1,4 @@
-import { useTheme } from "../themeProvider.tsx";
+import { useTheme } from "../theme-provider.tsx";
 import {
   Bird,
   Cog,

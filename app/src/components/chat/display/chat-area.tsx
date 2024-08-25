@@ -1,15 +1,15 @@
 import { forwardRef } from "react";
-import BotMessage from "./bot-message";
-import { Message } from "@/types/ollama";
+import Message from "../messages/message.tsx";
+import { Message as Msg } from "@/types/providers/ollama";
 import { PulseLoader } from "react-spinners";
 import { Origami } from "lucide-react";
 
-export const ChatArea = forwardRef<HTMLDivElement, { messages: Message[], model: string, isTyping: boolean }>(({ messages, model, isTyping }, ref) => (
+export const ChatArea = forwardRef<HTMLDivElement, { messages: Msg[], model: string, isTyping: boolean }>(({ messages, model, isTyping }, ref) => (
     <div className="pb-10 flex flex-col justify-between w-full flex-auto overflow-auto h-0 max-w-full z-10 scrollbar-hidden">
       <div className="max-w-5xl mx-auto">
         {messages.length !== 0 &&
           messages.map((message) => (
-            <BotMessage
+            <Message
               isBot={message?.role !== "user"}
               isTyping={false}
               message={message?.content}

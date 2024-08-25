@@ -10,19 +10,19 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-  } from "@/components/ui/select";
+  } from "@/components/ui/select.tsx";
   
   import { Skeleton } from "@/components/ui/skeleton.tsx";
   import { Plus } from "lucide-react";
-  import { Button } from "@/components/ui/button";
+  import { Button } from "@/components/ui/button.tsx";
   import { Ollama } from "@/services/ollama.ts";
-  import { ChatResponse } from "@/types/ollama";
-  import { Storage } from "@/services/storage";
-  import { useModels } from "@/hooks/use-models";
+  import { ChatResponse } from "@/types/providers/ollama";
+  import { Storage } from "@/services/storage.ts";
+  import { useModels } from "@/hooks/use-models.ts";
   import { useChats } from "@/hooks/use-chats.ts";
-  import { OLLAMA_SETTINGS } from "@/settings/ollama";
-  import { DATABASE_SETTINGS } from "@/settings/database";
-  import { ScrollArea } from "./ui/scroll-area";
+  import { OLLAMA_SETTINGS } from "@/settings/ollama.ts";
+  import { DATABASE_SETTINGS } from "@/settings/database.ts";
+  import { ScrollArea } from "../ui/scroll-area.tsx";
   
   const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
   const storage: Storage = new Storage(DATABASE_SETTINGS);

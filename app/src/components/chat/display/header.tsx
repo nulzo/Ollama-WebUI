@@ -1,7 +1,7 @@
 import { SlidersHorizontal } from "lucide-react";
-import LoadModels from "./load-models";
-import SettingsModal from "./settings-modal";
-import { Button } from "./ui/button";
+import LoadModels from "../../dropdowns/load-models.tsx";
+import SettingsModal from "../../modals/settings-modal.tsx";
+import { Button } from "../../ui/button.tsx";
 
 export function Header({ model, setModel }: {model: string, setModel: (x: string) => void}) {
   return (

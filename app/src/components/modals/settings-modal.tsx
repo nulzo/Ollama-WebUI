@@ -28,7 +28,7 @@ import {useState} from "react";
 import {Ollama} from "@/services/ollama.ts";
 import {OLLAMA_SETTINGS} from "@/settings/ollama.ts";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover.tsx";
-import {ChatResponse} from "@/types/ollama";
+import {ChatResponse} from "@/types/providers/ollama";
 import {CaretSortIcon, CheckIcon} from "@radix-ui/react-icons";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command.tsx";
 import {cn} from "@/lib/utils.ts";

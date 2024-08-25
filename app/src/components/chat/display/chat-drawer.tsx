@@ -6,11 +6,11 @@ import {
   subMonths,
 } from "date-fns";
 import { PanelRightOpen, SquarePen } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 import { Chat } from "@/services/ollama.ts";
-import { Storage } from "@/services/storage";
+import { Storage } from "@/services/storage.ts";
 import { useChats } from "@/hooks/use-chats.ts";
-import { DATABASE_SETTINGS } from "@/settings/database";
+import { DATABASE_SETTINGS } from "@/settings/database.ts";
 import { useMemo } from "react";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 

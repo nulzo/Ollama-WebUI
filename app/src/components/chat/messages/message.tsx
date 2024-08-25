@@ -1,10 +1,10 @@
 import React from 'react';
-import MarkdownRenderer from '../helpers/markdown.tsx';
+import MarkdownRenderer from '../../../helpers/markdown.tsx';
 import { Origami, Copy, Sparkles, Heart, RefreshCw } from 'lucide-react';
 import LoadingSpinner from '@/components/loadingSpinner.tsx';
 import { formatDistanceToNow } from 'date-fns';
 
-interface IBotMessage {
+interface IMessage {
   username: string;
   message: string;
   isBot: boolean;
@@ -17,7 +17,7 @@ function calculateAge(timestamp) {
   return formatDistanceToNow(date) + ' ago';
 }
 
-const BotMessage: React.FC<IBotMessage> = (
+const Message: React.FC<IMessage> = (
   { username, message, isBot, isTyping, time }
 ) => {
   return (
@@ -59,4 +59,4 @@ const BotMessage: React.FC<IBotMessage> = (
   );
 };
 
-export default BotMessage;
+export default Message;

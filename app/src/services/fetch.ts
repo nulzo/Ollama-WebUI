@@ -60,4 +60,9 @@ export class FetchWrapper {
         const url: string = `${this._params.host}:${this._params.port}${this._params.endpoint}${endpoint}`;
         return await this.process(fetch, url, {...opts, method: 'GET'});
     }
+
+    async delete(fetch: Fetch, endpoint: string, options?: Record<string, unknown> | undefined | any): Promise<Response> {
+        const url: string = `${this._params.host}:${this._params.port}${this._params.endpoint}${endpoint}`;
+        return await this.process(fetch, url, { method: 'DELETE', ...options });
+    }
 }

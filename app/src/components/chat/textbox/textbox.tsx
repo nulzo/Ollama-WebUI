@@ -1,4 +1,4 @@
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/ui/textarea.tsx";
 import React, { useState, useRef } from "react";
 import {
   Tooltip,
@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip.tsx";
 import { Mic, Paperclip, Send, Image } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.tsx";
 
 export interface ITextbox {
   value: string;

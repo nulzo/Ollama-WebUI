@@ -1,13 +1,13 @@
 import {Skeleton} from "@/components/ui/skeleton.tsx";
-import {ChatResponse} from "@/types/ollama";
+import {ChatResponse} from "@/types/providers/ollama";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {Ollama} from "@/services/ollama.ts";
 import {OLLAMA_SETTINGS} from "@/settings/ollama.ts";
 import {useModels} from "@/hooks/use-models.ts";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons"
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils.ts"
+import { Button } from "@/components/ui/button.tsx"
 import {
     Command,
     CommandEmpty,
@@ -15,12 +15,12 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-} from "@/components/ui/command"
+} from "@/components/ui/command.tsx"
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover.tsx"
 import {useState} from "react";
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);

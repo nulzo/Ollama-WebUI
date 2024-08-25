@@ -26,6 +26,7 @@ export default function ChatDrawer(props: any) {
 
   async function getChatHistory(id: string) {
     props.getChatHistory(id);
+    props.updateURL(`c=${id}`);
   }
 
   const getDateLabel = (timestamp: string) => {

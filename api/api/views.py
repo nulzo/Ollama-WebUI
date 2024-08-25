@@ -5,6 +5,8 @@ from api.models.message import Message
 from api.serializers.message import MessageSerializer
 from api.serializers.user import UserSerializer
 from api.serializers.chat import ChatSerializer
+from api.serializers.settings import SettingsSerializer
+from api.models.settings import Settings
 
 
 class ChatList(generics.ListCreateAPIView):
@@ -42,3 +44,13 @@ class UserSettingsList(generics.ListCreateAPIView):
 class UserSettingsDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserSettings.objects.all()
     serializer_class = UserSerializer
+
+
+class SettingsList(generics.ListCreateAPIView):
+    queryset = Settings.objects.all()
+    serializer_class = SettingsSerializer
+
+
+class SettingsDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Settings.objects.all()
+    serializer_class = SettingsSerializer

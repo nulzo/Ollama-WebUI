@@ -960,8 +960,8 @@ body {
   bottom: 0.875rem
 }
 
-.bottom-4 {
-  bottom: 1rem
+.bottom-32 {
+  bottom: 8rem
 }
 
 .left-0 {
@@ -976,16 +976,16 @@ body {
   left: 50%
 }
 
+.left-14 {
+  left: 3.5rem
+}
+
 .left-2 {
   left: 0.5rem
 }
 
 .left-3 {
   left: 0.75rem
-}
-
-.left-6 {
-  left: 1.5rem
 }
 
 .left-\[50\%\] {
@@ -1042,14 +1042,6 @@ body {
 
 .top-full {
   top: 100%
-}
-
-.bottom-32 {
-  bottom: 8rem
-}
-
-.left-14 {
-  left: 3.5rem
 }
 
 .z-10 {
@@ -1534,12 +1526,12 @@ body {
   min-width: var(--radix-select-trigger-width)
 }
 
-.max-w-5xl {
-  max-width: 64rem
+.max-w-4xl {
+  max-width: 56rem
 }
 
-.max-w-6xl {
-  max-width: 72rem
+.max-w-5xl {
+  max-width: 64rem
 }
 
 .max-w-\[75\%\] {
@@ -1561,6 +1553,10 @@ body {
 
 .max-w-sm {
   max-width: 24rem
+}
+
+.max-w-3xl {
+  max-width: 48rem
 }
 
 .flex-1 {
@@ -1902,11 +1898,6 @@ body {
   border-top-right-radius: 10px
 }
 
-.rounded-l-none {
-  border-top-left-radius: 0px;
-  border-bottom-left-radius: 0px
-}
-
 .rounded-tl-sm {
   border-top-left-radius: calc(var(--radius) - 4px)
 }
@@ -1946,14 +1937,6 @@ body {
 
 .border-t {
   border-top-width: 1px
-}
-
-.border-l-2 {
-  border-left-width: r
-}
-
-.border-l-4 {
-  border-left-width: -
 }
 
 .border-none {
@@ -2104,11 +2087,6 @@ body {
 .bg-red-400 {
   --tw-bg-opacity: 1;
   background-color: rgb(248 113 113 / var(--tw-bg-opacity))
-}
-
-.bg-red-700 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(185 28 28 / var(--tw-bg-opacity))
 }
 
 .bg-secondary {
@@ -2278,12 +2256,12 @@ body {
   padding-bottom: 0.25rem
 }
 
-.pb-2 {
-  padding-bottom: 0.5rem
+.pb-10 {
+  padding-bottom: 2.5rem
 }
 
-.pb-2\.5 {
-  padding-bottom: 0.625rem
+.pb-2 {
+  padding-bottom: 0.5rem
 }
 
 .pb-3 {
@@ -2372,10 +2350,6 @@ body {
 
 .pt-4 {
   padding-top: 1rem
-}
-
-.pb-10 {
-  padding-bottom: 2.5rem
 }
 
 .text-left {
@@ -3566,16 +3540,16 @@ body {
     margin-top: 0px
   }
 
+  .sm\:max-w-\[425px\] {
+    max-width: 425px
+  }
+
   .sm\:max-w-\[700px\] {
     max-width: 700px
   }
 
   .sm\:max-w-sm {
     max-width: 24rem
-  }
-
-  .sm\:max-w-\[425px\] {
-    max-width: 425px
   }
 
   .sm\:flex-row {

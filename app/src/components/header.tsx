@@ -10,7 +10,7 @@ export function Header({ model, setModel }: {model: string, setModel: (x: string
         <LoadModels updateModel={setModel} currentModel={model} />
       </div>
       <div className="flex items-center gap-1 pe-6">
-        <SettingsModal />
+        <SettingsModal currentModel={model} updateModel={setModel} />
         <Button size="icon" variant="ghost">
           <SlidersHorizontal className="size-4" strokeWidth="1.5" />
         </Button>

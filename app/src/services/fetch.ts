@@ -41,7 +41,7 @@ export class FetchWrapper {
         return response;
     }
 
-    async put (fetch: Fetch, endpoint: string, data?: Record<string, unknown> | BodyInit, options?: { signal: AbortSignal } | undefined): Promise<Response> {
+    async put (fetch: Fetch, endpoint: string, data?: Record<string, unknown> | BodyInit | any, options?: { signal: AbortSignal } | undefined): Promise<Response> {
         const url: string = `${this._params.host}:${this._params.port}${this._params.endpoint}${endpoint}`;
         const isRecord = (input: Record<string, unknown> | BodyInit | undefined): input is Record<string, unknown> | BodyInit | undefined => {
             return input !== null && typeof input === 'object' && !Array.isArray(input)

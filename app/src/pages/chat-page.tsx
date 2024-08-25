@@ -4,6 +4,8 @@ import { Textbox } from "@/components/textbox";
 import { useChat } from "@/hooks/use-chat";
 import { Header } from "@/components/header";
 import { ChatArea } from "@/components/chat-area";
+import { useLocation } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom'
 
 export function ChatPage() {
   const {
@@ -12,13 +14,14 @@ export function ChatPage() {
     message,
     isTyping,
     messages,
-    loading,
     setModel,
     setMessage,
     handleSubmit,
     createChat,
     getChatHistory,
   } = useChat();
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const ref = useRef<HTMLDivElement>(null);
 
@@ -30,9 +33,16 @@ export function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  function updateModel(param: any) {
+  function updateModel(param: string) {
     setModel(param);
   }
+
+  useEffect(() => {
+    const search: string | null = searchParams.get("c");
+    if(search) {
+      getChatHistory(search);
+    }
+  }, []);
 
   return (
     <>
@@ -42,6 +52,7 @@ export function ChatPage() {
         getChatHistory={getChatHistory}
         uuid={uuid}
         model={model}
+        updateURL={setSearchParams}
       />
       <div className="h-screen max-h-[100dvh] md:max-w-[calc(100%-260px)] w-full max-w-full flex flex-col">
         <Header model={model} setModel={setModel} />

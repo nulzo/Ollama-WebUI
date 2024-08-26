@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Ollama } from "@/services/ollama";
+import { Ollama } from "@/services/provider/ollama/ollama.ts";
 
 export function useModels(ollama: Ollama) {
   const data = useQuery({

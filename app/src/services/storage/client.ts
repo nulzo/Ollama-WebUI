@@ -1,16 +1,17 @@
-import { api_version, database_endpoint, database_port } from '@/const/utils.ts';
+import { DATABASE_API_VERSION, DATABASE_ENDPOINT, DATABASE_PORT } from '@/const/database.ts';
 import { FetchWrapper } from '@/services/fetch.ts';
-import { SettingsService } from '@/services/settings.ts';
+import { SettingsService } from '@/services/storage/settings.ts';
 import { FetchConfig, Fetch } from '@/types/fetch';
 import {UserService} from "@/services/storage/user.ts";
 import {ChatService} from "@/services/storage/chat.ts";
 import {MessageService} from "@/services/storage/message.ts";
 
 const fetchConfig: FetchConfig = {
-    host: database_endpoint,
-    port: database_port,
-    endpoint: `/api/${api_version}`
+    host: DATABASE_ENDPOINT,
+    port: DATABASE_PORT,
+    endpoint: `/api/${DATABASE_API_VERSION}`
 };
+
 const fetcher: Fetch = fetch;
 const fetchWrapper: FetchWrapper = new FetchWrapper(fetchConfig);
 

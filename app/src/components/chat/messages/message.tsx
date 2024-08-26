@@ -1,5 +1,5 @@
 import React from 'react';
-import MarkdownRenderer from '../../../helpers/markdown.tsx';
+import MarkdownRenderer from '../../markdown/markdown.tsx';
 import { Origami, Copy, Sparkles, Heart, RefreshCw } from 'lucide-react';
 import LoadingSpinner from '@/components/loadingSpinner.tsx';
 import { formatDistanceToNow } from 'date-fns';
@@ -29,7 +29,7 @@ const Message: React.FC<IMessage> = (
       <div className={`flex place-items-start ${isBot ? 'justify-start' : 'justify-end ps-[25%]'}`}>
         <div className="pe-2 font-bold flex items-center mb-2">
           {isBot && (
-            <div className="relative p-2 bg-accent rounded-lg rounded-tr-none">
+            <div className="relative p-2 bg-primary rounded-lg rounded-tr-none">
               <Origami strokeWidth='1' className="size-5 text-primary-foreground" />
               <div className='absolute -right-0.5 -bottom-0.5 rounded-full h-2 w-2 bg-green-400'/>
             </div>

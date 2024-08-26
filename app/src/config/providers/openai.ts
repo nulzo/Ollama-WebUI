@@ -1,4 +1,4 @@
-const OpenAI = {
+export const DEFAULT_OPENAI_MODELS = {
     chatModels: [
         {
             description: 'Currently points to gpt-4o-mini-2024-07-18',
@@ -162,5 +162,3 @@ const OpenAI = {
     modelList: { showModelFetcher: true },
     name: 'OpenAI',
 };
-
-export default OpenAI;

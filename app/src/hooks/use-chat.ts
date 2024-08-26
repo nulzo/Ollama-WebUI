@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Ollama } from '@/services/ollama';
+import { Ollama } from '@/services/provider/ollama/ollama.ts';
 import { OLLAMA_SETTINGS } from '@/settings/ollama';
 import { ChatResponse, Message } from '@/types/providers/ollama';
 import { DATABASE_SETTINGS } from "@/settings/database";

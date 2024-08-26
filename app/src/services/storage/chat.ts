@@ -1,6 +1,6 @@
 import { FetchWrapper } from "@/services/fetch.ts";
 import { Fetch } from "@/types/fetch";
-import {Chat} from "@/types/providers/ollama";
+import {Chat} from "@/types/chat";
 
 
 export class IChatService {
@@ -24,6 +24,11 @@ export class ChatService extends IChatService {
 
     async fetchChat(_chat: Chat) {
         const response = await this._client.get(this._fetch, '/chats/', { _chat });
+        return await response.json();
+    }
+
+    async fetchChats() {
+        const response = await this._client.get(this._fetch, '/chats/');
         return await response.json();
     }
 

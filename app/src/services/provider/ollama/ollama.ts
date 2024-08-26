@@ -100,7 +100,8 @@ export class Ollama {
 
     async list() {
         // List all available models
-        return await this.retrieve("tags");
+        const response = await this._client.get(this._fetch, "tags");
+        return await response.json();
     }
 
     async create(data: Create, opts: any) {

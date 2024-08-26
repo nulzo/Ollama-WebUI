@@ -3,16 +3,25 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Ollama } from "@/services/provider/ollama/ollama.ts";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { OLLAMA_SETTINGS } from "@/settings/ollama";
 import { Textarea } from "@/components/ui/textarea";
+import { useGetModels } from "@/features/models/hooks";
+import {Spinner} from "@/components/ui/spinner.tsx";
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 
 export function ModelsRoute() {
-    const models = useQuery({ queryKey: ["models"], queryFn: ollama.list });
-    const [modelInfo, setModelInfo] = useState({});
+    const [modelInfo, setModelInfo] = useState<any>({});
+    const models = useGetModels();
+    if (models.isLoading) {
+        return (
+            <div className="flex h-48 w-full items-center justify-center">
+                <Spinner size="lg" />
+            </div>
+        );
+    }
+
 
     const onClick = async (event: any) => {
         const selectedModel = event.target.id;

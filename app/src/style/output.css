@@ -2819,28 +2819,12 @@ body{
   background: #ffffff00;
 }
 
-.selection\:bg-primary\/25 *::-moz-selection{
-  background-color: hsl(var(--primary) / 0.25)
-}
-
-.selection\:bg-primary\/25 *::selection{
-  background-color: hsl(var(--primary) / 0.25)
-}
-
 .selection\:bg-primary\/50 *::-moz-selection{
   background-color: hsl(var(--primary) / 0.5)
 }
 
 .selection\:bg-primary\/50 *::selection{
   background-color: hsl(var(--primary) / 0.5)
-}
-
-.selection\:bg-primary\/25::-moz-selection{
-  background-color: hsl(var(--primary) / 0.25)
-}
-
-.selection\:bg-primary\/25::selection{
-  background-color: hsl(var(--primary) / 0.25)
 }
 
 .selection\:bg-primary\/50::-moz-selection{

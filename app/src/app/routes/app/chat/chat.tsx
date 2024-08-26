@@ -1,31 +1,22 @@
 import { useEffect, useRef } from "react";
 import ChatDrawer from "@/components/display/chat-drawer.tsx";
-import { Textbox } from "@/components/chat/textbox/textbox.tsx";
+import { Textbox } from "@/features/textbox/components/textbox";
 import { useChat } from "@/hooks/use-chat";
 import { Header } from "@/components/display/header.tsx";
 import { ChatArea } from "@/components/display/chat-area.tsx";
 import { useSearchParams } from 'react-router-dom'
-import {useModel} from "@/features/model-select/hooks/use-model.ts";
+import {useModel} from "@/features/models/hooks/use-model.ts";
 import {useChatManagement} from "@/features/chat/hooks/use-chat.ts";
 import {useMessage} from "@/features/message/hooks/use-message.ts";
 
 
 export function ChatRoute() {
-    const { model, loading, setModel } = useModel();
+    const { model, is_loading, setModel } = useModel();
     const { uuid, setUuid, createChat, getChatHistory } = useChatManagement(model);
     const { messages, message, isTyping, setMessages, setMessage, setIsTyping, write } = useMessage(model, uuid);
 
     const {
-        model,
-        uuid,
-        message,
-        isTyping,
-        messages,
-        setModel,
-        setMessage,
         handleSubmit,
-        createChat,
-        getChatHistory,
     } = useChat();
 
     const [searchParams, setSearchParams] = useSearchParams();

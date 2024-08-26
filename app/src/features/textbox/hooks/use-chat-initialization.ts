@@ -3,7 +3,8 @@ import {settingsService} from "@/services/storage/client.ts";
 
 const useChatInitialization = () => {
     const [model, setModel] = useState<string>('');
-    const [uuid, setUuid] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [uuid, _] = useState('');
 
     useEffect(() => {
         const fetchModel = async () => {

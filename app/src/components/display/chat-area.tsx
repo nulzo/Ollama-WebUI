@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import Message from "../chat/messages/message.tsx";
+import Message from "@/features/message/components/message";
 import { Message as Msg } from "@/types/providers/ollama";
 import { PulseLoader } from "react-spinners";
 import { Origami } from "lucide-react";

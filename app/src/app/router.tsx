@@ -1,14 +1,14 @@
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import {
-    LoaderFunctionArgs,
     RouterProvider,
     createBrowserRouter,
 } from 'react-router-dom';
 import {AppRoot} from "@/app/routes/app/root.tsx";
 
 
-export const createAppRouter = (queryClient: QueryClient) =>
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const createAppRouter = (_queryClient: QueryClient) =>
     createBrowserRouter([
         {
             path: '/',
@@ -61,8 +61,8 @@ export const createAppRouter = (queryClient: QueryClient) =>
                 {
                     path: '',
                     lazy: async () => {
-                        const { ChatPage } = await import('@/routes/chat-page');
-                        return { Component: ChatPage };
+                        const { ChatRoute } = await import('@/app/routes/app/chat');
+                        return { Component: ChatRoute };
                     },
                 },
             ],

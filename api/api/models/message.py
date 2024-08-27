@@ -5,7 +5,7 @@ from api.models.conversation import Conversation
 class Message(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     content = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     model = models.CharField(max_length=100, blank=True, null=True)
     role = models.CharField(max_length=25, blank=False, null=False)
     is_liked = models.BooleanField(default=False)

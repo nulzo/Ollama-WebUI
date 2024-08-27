@@ -3,7 +3,7 @@ export interface Chat {
     created_by?: string,
     is_pinned?: boolean,
     is_hidden?: boolean,
-    created_at?: string,
+    timestamp?: string,
     updated_at?: string,
     name?: string
 }

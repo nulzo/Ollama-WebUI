@@ -1,5 +1,5 @@
 export interface Message {
-    chat: string
+    conversation?: string
     role: 'user' | 'assistant'
     model: string
     time?: string

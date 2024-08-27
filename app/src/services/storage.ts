@@ -25,9 +25,9 @@ export class Storage {
   }
 
   async createChat(chat: CreateChat) {
-    const response = await this._client.post('/conversations/', {
+    const response = await this._client.post('/conversations/', JSON.stringify({
       model: chat.model, uuid: chat.uuid
-    });
+    }));
     return await response.json();
   }
 

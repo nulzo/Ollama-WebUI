@@ -50,7 +50,7 @@ export default function ChatDrawer(props: any) {
     if (!chats?.data) return {};
     const groups = {};
     chats.data.forEach((chat: any) => {
-      const label = getDateLabel(chat.created_at);
+      const label = getDateLabel(chat.timestamp);
       groups[label] = groups[label] || [];
       groups[label].push(chat);
     });

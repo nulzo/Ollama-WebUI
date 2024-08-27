@@ -5,7 +5,7 @@ import { ChatResponse, Message } from '@/types/providers/ollama';
 import { DATABASE_SETTINGS } from "@/settings/database";
 import { v4 as uuidv4 } from "uuid";
 import { Storage } from "@/services/storage";
-import { settingsService } from '@/services/storage/client.ts';
+import { settingsService, conversationService, messageService } from '@/services/storage/client.ts';
 
 const ollama = new Ollama(OLLAMA_SETTINGS);
 const storage = new Storage(DATABASE_SETTINGS);
@@ -60,8 +60,8 @@ export function useChat() {
             return;
         }
 
-        const newMessage: Message = { model, content: message, role: "user", chat: uuid };
-        await storage.createMessage(newMessage);
+        const newMessage: Message = { model, content: message, role: "user", conversation: uuid };
+        await messageService.createMessage(newMessage);
 
         const newHistory = [...messages, newMessage];
         setMessages(newHistory);
@@ -75,7 +75,7 @@ export function useChat() {
         const newUuid = uuidv4();
         setUuid(newUuid);
         setMessages([]);
-        await storage.createChat({ uuid: newUuid, model });
+        await conversationService.createConversation({ uuid: newUuid, model: model, created_by: "Nolan" });
     }, [model]);
 
     const getChatHistory = useCallback(async (id: string) => {

@@ -6,6 +6,7 @@ import {UserService} from "@/services/storage/user.ts";
 import {ChatService} from "@/services/storage/chat.ts";
 import {MessageService} from "@/services/storage/message.ts";
 import {HttpClientConfig} from "@/types/http.ts";
+import {ConversationService} from "@/features/conversation/api/conversation.ts";
 
 const fetchConfig: HttpClientConfig = {
     host: DATABASE_ENDPOINT,
@@ -21,4 +22,6 @@ const userService = new UserService(fetchWrapper, fetcher);
 const chatService = new ChatService(fetchWrapper);
 const messageService = new MessageService(fetchWrapper, fetcher);
 
-export { settingsService, userService, chatService, messageService };
+const conversationService = new ConversationService(fetchWrapper);
+
+export { settingsService, userService, chatService, messageService, conversationService };

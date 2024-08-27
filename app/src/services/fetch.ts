@@ -59,7 +59,11 @@ export class FetchWrapper implements HttpClient {
     }
 
     async post(endpoint: string, data?: BodyInit, options?: HttpRequestOptions): Promise<Response> {
-        return this.process('POST', endpoint, { ...options, body: data });
+        const isRecord = (input: Record<string, unknown> | BodyInit | undefined): input is Record<string, unknown> | BodyInit | undefined => {
+            return input !== null && typeof input === 'object' && !Array.isArray(input)
+        };
+        const cleanData: BodyInit | undefined = isRecord(data) ? JSON.stringify(data) : data
+        return this.process('POST', endpoint, { ...options, body: cleanData });
     }
 
     async put(endpoint: string, data?: BodyInit, options?: HttpRequestOptions): Promise<Response> {

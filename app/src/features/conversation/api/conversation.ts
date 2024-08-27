@@ -29,6 +29,11 @@ export class ConversationService extends IConversationService {
         return await response.json();
     }
 
+    async createConversation(conversation: Conversation) {
+        const response = await this._client.post('/conversations/', JSON.stringify(conversation));
+        return await response.json();
+    }
+
     async storeConversation(conversation: Conversation) {
         const response = await this._client.put('/conversations/', JSON.stringify(conversation));
         return await response.json();

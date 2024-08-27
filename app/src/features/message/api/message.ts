@@ -19,18 +19,23 @@ export class MessageService extends IMessageService {
         this._client = fetchWrapper;
     }
 
+    async fetchMessages() {
+        const response = await this._client.get('/messages/');
+        return await response.json();
+    }
+
     async fetchMessage(_message: Message) {
-        const response = await this._client.get('/conversations/', {body: JSON.stringify(_message)});
+        const response = await this._client.get(`/messages/${_message.chat}`);
         return await response.json();
     }
 
     async storeMessage(_message: Message) {
-        const response = await this._client.put('/conversations/', { _message });
+        const response = await this._client.put('/messages/', JSON.stringify(_message));
         return await response.json();
     }
 
     async removeMessage(_message: Message) {
-        const response = await this._client.delete('/conversations/', { _message });
+        const response = await this._client.delete(`/messages/${_message.chat}`);
         return await response.json();
     }
 }

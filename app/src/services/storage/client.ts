@@ -5,8 +5,9 @@ import { FetchConfig, Fetch } from '@/types/fetch';
 import {UserService} from "@/services/storage/user.ts";
 import {ChatService} from "@/services/storage/chat.ts";
 import {MessageService} from "@/services/storage/message.ts";
+import {HttpClientConfig} from "@/types/http.ts";
 
-const fetchConfig: FetchConfig = {
+const fetchConfig: HttpClientConfig = {
     host: DATABASE_ENDPOINT,
     port: DATABASE_PORT,
     endpoint: `/api/${DATABASE_API_VERSION}`
@@ -15,9 +16,9 @@ const fetchConfig: FetchConfig = {
 const fetcher: Fetch = fetch;
 const fetchWrapper: FetchWrapper = new FetchWrapper(fetchConfig);
 
-const settingsService = new SettingsService(fetchWrapper, fetcher);
+const settingsService = new SettingsService(fetchWrapper);
 const userService = new UserService(fetchWrapper, fetcher);
-const chatService = new ChatService(fetchWrapper, fetcher);
+const chatService = new ChatService(fetchWrapper);
 const messageService = new MessageService(fetchWrapper, fetcher);
 
 export { settingsService, userService, chatService, messageService };

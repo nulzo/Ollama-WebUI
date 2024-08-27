@@ -1,22 +1,22 @@
 from rest_framework import generics
 from api.models.user import UserSettings
-from api.models.chat import Chat
+from api.models.conversation import Conversation
 from api.models.message import Message
 from api.serializers.message import MessageSerializer
 from api.serializers.user import UserSerializer
-from api.serializers.chat import ChatSerializer
+from api.serializers.conversation import ConversationSerializer
 from api.serializers.settings import SettingsSerializer
 from api.models.settings import Settings
 
 
-class ChatList(generics.ListCreateAPIView):
-    queryset = Chat.objects.all()
-    serializer_class = ChatSerializer
+class ConversationList(generics.ListCreateAPIView):
+    queryset = Conversation.objects.all()
+    serializer_class = ConversationSerializer
 
 
-class ChatDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Chat.objects.all()
-    serializer_class = ChatSerializer
+class ConversationDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Conversation.objects.all()
+    serializer_class = ConversationSerializer
 
 
 class MessageList(generics.ListCreateAPIView):

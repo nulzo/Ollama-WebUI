@@ -10,21 +10,19 @@ export class ISettingsService {
 
 export class SettingsService extends ISettingsService {
     private _client: FetchWrapper;
-    private readonly _fetch: Fetch;
     
-    constructor(fetchWrapper: FetchWrapper, fetch: Fetch) {
+    constructor(fetchWrapper: FetchWrapper) {
       super();
       this._client = fetchWrapper;
-      this._fetch = fetch;
     }
   
     async fetchSettings() {
-      const response = await this._client.get(this._fetch, '/chats/');
+      const response = await this._client.get('/conversations/');
       return await response.json();
     }
 
     async updateSettings(_settings: Settings) {
-        const response = await this._client.put(this._fetch, '/chats/', _settings);
+        const response = await this._client.put('/conversations/', _settings);
         return await response.json();
       }
   }

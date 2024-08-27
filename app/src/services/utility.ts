@@ -1,6 +1,7 @@
 import {ErrorResponse} from "@/types/utility";
+import {useNotifications} from "@/components/notification/notification-store.ts";
 
-class ResponseError extends Error {
+export class ResponseError extends Error {
     constructor(public error: string, public status_code: number) {
         super(error);
         this.name = 'ResponseError';
@@ -11,9 +12,16 @@ class ResponseError extends Error {
 export const isValid = async (response: Response): Promise<void> => {
     if (!response.ok) {
         let message: string = `Error ${response.status}: ${response.statusText}`;
+        useNotifications.getState().addNotification({
+            type: 'error',
+            title: 'Error',
+            message,
+        });
         if (response.headers.get('content-type')?.includes('application/json')) {
             message = (await response.json() as ErrorResponse)?.error || message;
-        } else { message = await response.text() || message; }
+        } else {
+            message = await response.text() || message;
+        }
         throw new ResponseError(message, response.status);
     }
 }

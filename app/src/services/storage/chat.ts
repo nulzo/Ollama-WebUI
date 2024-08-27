@@ -14,31 +14,29 @@ export class IChatService {
 
 export class ChatService extends IChatService {
     private _client: FetchWrapper;
-    private readonly _fetch: Fetch;
 
-    constructor(fetchWrapper: FetchWrapper, fetch: Fetch) {
+    constructor(fetchWrapper: FetchWrapper) {
         super();
         this._client = fetchWrapper;
-        this._fetch = fetch;
     }
 
     async fetchChat(_chat: Chat) {
-        const response = await this._client.get(this._fetch, '/chats/', { _chat });
+        const response = await this._client.get(`/conversations/${_chat.uuid}`);
         return await response.json();
     }
 
     async fetchChats() {
-        const response = await this._client.get(this._fetch, '/chats/');
+        const response = await this._client.get('/conversations/');
         return await response.json();
     }
 
     async storeChat(_chat: Chat) {
-        const response = await this._client.put(this._fetch, '/chats/', { _chat });
+        const response = await this._client.put('/conversations/', { _chat });
         return await response.json();
     }
 
     async removeChat(_chat: Chat) {
-        const response = await this._client.delete(this._fetch, '/chats/', { _chat });
+        const response = await this._client.delete('/conversations/', { _chat });
         return await response.json();
     }
 }

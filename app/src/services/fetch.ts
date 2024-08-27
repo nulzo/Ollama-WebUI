@@ -1,68 +1,72 @@
-import {isValid} from "@/services/utility.ts";
-import {Fetch, FetchConfig} from "@/types/fetch";
+import {ResponseError} from "@/services/utility.ts";
+import { HttpClient, HttpClientConfig, HttpRequestOptions, HttpMethod } from "@/types/http";
+import {useNotifications} from "@/components/notification/notification-store.ts";
+import {ErrorResponse} from "@/types/utility";
 
 interface DefaultHeaders {
     'Content-Type'?: string;
     'Accept'?: string;
 }
 
-export class FetchWrapper {
-    private _params: FetchConfig;
-    protected defaultHeaders: Headers | DefaultHeaders;
+export class FetchWrapper implements HttpClient {
+    private readonly config: HttpClientConfig;
+    private readonly defaultHeaders: Headers | DefaultHeaders;
 
-    constructor(params: FetchConfig) {
-        this._params = params;
+    constructor(config: HttpClientConfig) {
+        this.config = config;
         this.defaultHeaders = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
     }
 
-    process (fetch: Fetch, endpoint: string, opts: RequestInit = {}): Promise<Response> {
-        opts.headers = {
+    private buildUrl(endpoint: string): string {
+        return `${this.config.host}:${this.config.port}${this.config.endpoint}${endpoint}`;
+    }
+
+    private async process(method: HttpMethod, endpoint: string, options: HttpRequestOptions = {}): Promise<Response> {
+        const headers = {
             ...this.defaultHeaders,
-            ...opts.headers,
+            ...options.headers,
         };
-        return fetch(endpoint, opts);
-    }
 
-    async post (fetch: Fetch, endpoint: string, data?: Record<string, unknown> | BodyInit, options?: { signal: AbortSignal } | undefined): Promise<Response> {
-        const url: string = `${this._params.host}:${this._params.port}${this._params.endpoint}${endpoint}`;
-        const isRecord = (input: Record<string, unknown> | BodyInit | undefined): input is Record<string, unknown> | BodyInit | undefined => {
-            return input !== null && typeof input === 'object' && !Array.isArray(input)
-        };
-        const cleanData: BodyInit | undefined = isRecord(data) ? JSON.stringify(data) : data
-        const response: Response =  await this.process(fetch, url, {
-            method: 'POST',
-            body: cleanData,
-            signal: options?.signal,
+        const response = await fetch(this.buildUrl(endpoint), {
+            ...options,
+            method,
+            headers,
         });
-        await isValid(response);
+
+        if (!response.ok) {
+            let message: string = `Error ${response.status}: ${response.statusText}`;
+            useNotifications.getState().addNotification({
+                type: 'error',
+                title: 'Error',
+                message,
+            });
+            if (response.headers.get('content-type')?.includes('application/json')) {
+                message = (await response.json() as ErrorResponse)?.error || message;
+            } else {
+                message = await response.text() || message;
+            }
+            throw new ResponseError(message, response.status);
+        }
+
         return response;
     }
 
-    async put (fetch: Fetch, endpoint: string, data?: Record<string, unknown> | BodyInit | any, options?: { signal: AbortSignal } | undefined): Promise<Response> {
-        const url: string = `${this._params.host}:${this._params.port}${this._params.endpoint}${endpoint}`;
-        const isRecord = (input: Record<string, unknown> | BodyInit | undefined): input is Record<string, unknown> | BodyInit | undefined => {
-            return input !== null && typeof input === 'object' && !Array.isArray(input)
-        };
-        const cleanData: BodyInit | undefined = isRecord(data) ? JSON.stringify(data) : data
-        const response: Response =  await this.process(fetch, url, {
-            method: 'PUT',
-            body: cleanData,
-            signal: options?.signal,
-        });
-        await isValid(response);
-        return response;
+    async get(endpoint: string, options?: HttpRequestOptions): Promise<Response> {
+        return this.process('GET', endpoint, options);
     }
 
-    async get (fetch: Fetch, endpoint: string, opts?: Record<string, unknown>): Promise<Response> {
-        const url: string = `${this._params.host}:${this._params.port}${this._params.endpoint}${endpoint}`;
-        return await this.process(fetch, url, {...opts, method: 'GET'});
+    async post(endpoint: string, data?: BodyInit, options?: HttpRequestOptions): Promise<Response> {
+        return this.process('POST', endpoint, { ...options, body: data });
     }
 
-    async delete(fetch: Fetch, endpoint: string, options?: Record<string, unknown> | undefined | any): Promise<Response> {
-        const url: string = `${this._params.host}:${this._params.port}${this._params.endpoint}${endpoint}`;
-        return await this.process(fetch, url, { method: 'DELETE', ...options });
+    async put(endpoint: string, data?: BodyInit, options?: HttpRequestOptions): Promise<Response> {
+        return this.process('PUT', endpoint, { ...options, body: data });
+    }
+
+    async delete(endpoint: string, options?: HttpRequestOptions): Promise<Response> {
+        return this.process('DELETE', endpoint, options);
     }
 }

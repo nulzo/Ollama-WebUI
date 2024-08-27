@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from api.models.chat import Chat
+from api.models.conversation import Conversation
 from api.serializers.message import MessageSerializer
 
 
-class ChatSerializer(serializers.ModelSerializer):
+class ConversationSerializer(serializers.ModelSerializer):
     messages = MessageSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Chat
+        model = Conversation
         fields = "__all__"

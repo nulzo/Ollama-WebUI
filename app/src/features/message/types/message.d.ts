@@ -1,7 +1,9 @@
 export interface Message {
-    username: string;
-    message: string;
-    isBot: boolean;
-    isTyping: boolean;
-    time: string;
+    id:? string;
+    chat?: string;
+    username?: string;
+    message?: string;
+    isBot?: boolean;
+    isTyping?: boolean;
+    time?: string;
 }

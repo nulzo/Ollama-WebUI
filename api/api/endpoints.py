@@ -1,9 +1,9 @@
-from api.views import ChatList, ChatDetail, MessageList, SettingsList, SettingsDetail, MessageDetail, UserSettingsList, UserSettingsDetail
+from api.views import ConversationList, ConversationDetail, MessageList, SettingsList, SettingsDetail, MessageDetail, UserSettingsList, UserSettingsDetail
 from django.urls import path
 
 urlpatterns = [
-    path('chats/', ChatList.as_view(), name='chat-list'),
-    path('chats/<str:pk>/', ChatDetail.as_view(), name='chat-detail'),
+    path('conversations/', ConversationList.as_view(), name='conversation-list'),
+    path('conversations/<str:pk>/', ConversationDetail.as_view(), name='conversation-detail'),
     path('messages/', MessageList.as_view(), name='message-list'),
     path('messages/<int:pk>/', MessageDetail.as_view(), name='message-detail'),
     path('user/', UserSettingsList.as_view(), name='user-list'),

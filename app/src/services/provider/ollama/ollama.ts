@@ -2,6 +2,7 @@ import {streamJSON} from "@/services/utility.ts";
 import {FetchWrapper} from "@/services/fetch.ts";
 import {Message} from "@/types/providers/ollama";
 import {Fetch, FetchConfig} from "@/types/fetch";
+import {HttpClientConfig} from "@/types/http.ts";
 
 export interface Chat {
     model: string,
@@ -49,17 +50,15 @@ export interface Pull {
 
 export class Ollama {
     private _client: FetchWrapper;
-    private readonly _settings: FetchConfig;
-    private readonly _fetch: Fetch;
+    private readonly _settings: HttpClientConfig;
 
     constructor(settings: FetchConfig) {
         this._settings = settings;
         this._client = new FetchWrapper(this._settings);
-        this._fetch = fetch;
     }
 
     protected async stream(endpoint: string, data: any, opts: { stream?: boolean } & Record<string, any>): Promise<AsyncGenerator<unknown, any, unknown>> {
-        const response = await this._client.post(this._fetch, endpoint, data);
+        const response = await this._client.post(endpoint, data);
         opts.stream = opts.stream ?? false;
         if (!response.body) { throw new Error('Missing body'); }
         const iterator = streamJSON<any>(response.body);
@@ -78,7 +77,7 @@ export class Ollama {
     }
 
     protected async retrieve(endpoint: string): Promise<any> {
-        const response = await this._client.get(this._fetch, endpoint);
+        const response = await this._client.get(endpoint);
         return await response.json();
     }
 
@@ -100,7 +99,7 @@ export class Ollama {
 
     async list() {
         // List all available models
-        const response = await this._client.get(this._fetch, "tags");
+        const response = await this._client.get("tags");
         return await response.json();
     }
 

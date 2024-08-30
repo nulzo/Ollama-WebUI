@@ -9,9 +9,7 @@ import {
 import {Button} from "@/components/ui/button.tsx";
 import {Ellipsis} from "lucide-react";
 import {Input} from "@/components/ui/input.tsx";
-import {useSettings} from "@/hooks/use-settings.ts";
-import {Storage} from "@/services/storage.ts";
-import {DATABASE_SETTINGS} from "@/settings/database.ts";
+
 import {
     Form,
     FormControl,
@@ -32,18 +30,18 @@ import {ChatResponse} from "@/types/providers/ollama";
 import {CaretSortIcon, CheckIcon} from "@radix-ui/react-icons";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command.tsx";
 import {cn} from "@/lib/utils.ts";
+import { useGetSettings } from "@/features/settings/hooks/use-settings";
 
 const formSchema = z.object({
     ollama_ip: z.string(),
     ollama_default_model: z.string(),
 })
 
-const storage: Storage = new Storage(DATABASE_SETTINGS);
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 
 
 export default function SettingsModal({currentModel, updateModel}) {
-    const settings = useSettings(storage);
+    const settings = useGetSettings();
     const models = useModels(ollama);
     const [open, setOpen] = useState(false)
     const [value, setValue] = useState(currentModel ?? "")
@@ -66,7 +64,6 @@ export default function SettingsModal({currentModel, updateModel}) {
             ollama_ip: values.ollama_ip,
             ollama_default_model: values.ollama_default_model
         }
-        storage.setSettings(setting);
     }
 
     return (

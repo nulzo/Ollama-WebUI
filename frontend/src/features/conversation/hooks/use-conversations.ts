@@ -1,12 +1,12 @@
 import {queryOptions, useQuery} from '@tanstack/react-query';
-import { chatService } from '@/services/storage/client';
+import { conversationService } from '@/services/storage/client';
 
 
 export const getConversations = () => {
     return queryOptions({
         queryKey: ['conversations'],
         queryFn: () => {
-            return chatService.fetchChats();
+            return conversationService.fetchConversations();
         },
     });
 };

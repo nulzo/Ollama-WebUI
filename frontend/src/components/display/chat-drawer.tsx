@@ -8,24 +8,20 @@ import {
 import {PanelRightOpen, Pen, Pin, SquarePen, Trash} from "lucide-react";
 import { Button } from "@/components/ui/button.tsx";
 import { Chat } from "@/services/provider/ollama/ollama.ts";
-import { Storage } from "@/services/storage.ts";
-import { useChats } from "@/hooks/use-chats.ts";
-import { DATABASE_SETTINGS } from "@/settings/database.ts";
 import { useMemo } from "react";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup, DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "../ui/dropdown-menu";
+import { useConversations } from "@/hooks/use-conversations";
 
-const storage: Storage = new Storage(DATABASE_SETTINGS);
 
 export default function ChatDrawer(props: any) {
-  const chats = useChats(storage);
+  const chats = useConversations();
 
   async function createChat() {
     props.createChat();

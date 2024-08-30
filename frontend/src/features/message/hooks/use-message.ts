@@ -1,12 +1,10 @@
 import { useState, useCallback } from 'react';
-import { Storage } from "@/services/storage";
-import { DATABASE_SETTINGS } from "@/settings/database";
-import { Message } from '@/types/providers/ollama';
+import { messageService } from '@/services/storage/client';
+import { CreateMessageInput } from './use-create-message';
 
-const storage = new Storage(DATABASE_SETTINGS);
 
 export function useMessage(model: string, uuid: string) {
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<CreateMessageInput[]>([]);
     const [isTyping, setIsTyping] = useState(false);
     const [message, setMessage] = useState("");
 
@@ -16,9 +14,9 @@ export function useMessage(model: string, uuid: string) {
             curr += part.message.content;
         }
         setIsTyping(false);
-        const newMessage: Message = { role: "assistant", content: curr, chat: uuid, model };
+        const newMessage: CreateMessageInput = { role: "assistant", content: curr, conversation: uuid, model };
         setMessages((prevMessages) => [...prevMessages, newMessage]);
-        await storage.createMessage(newMessage);
+        await messageService.createMessage(newMessage);
     }, [uuid, model]);
 
     return {

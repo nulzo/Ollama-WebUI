@@ -1,18 +1,17 @@
 import {queryOptions, useQuery} from '@tanstack/react-query';
 import { conversationService } from '@/services/storage/client';
 
-
-export const getConversations = () => {
+export const getMessages = (id: string) => {
     return queryOptions({
-        queryKey: ['conversations'],
+        queryKey: ['messages'],
         queryFn: () => {
-            return conversationService.fetchConversations();
+            return conversationService.fetchConversation(id);
         },
     });
 };
 
-export const useConversations = () => {
+export const useGetMessages = (id: string) => {
     return useQuery({
-        ...getConversations(),
+        ...getMessages(id),
     });
 };

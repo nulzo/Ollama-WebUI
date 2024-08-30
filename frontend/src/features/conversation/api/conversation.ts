@@ -4,7 +4,7 @@ import {Conversation} from "@/features/conversation/types/conversation";
 
 export class IConversationService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    fetchConversation(_conversation: Conversation) { throw new Error('Not implemented'); }
+    fetchConversation(id: string) { throw new Error('Not implemented'); }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     storeConversation(_conversation: Conversation) { throw new Error('Not implemented'); }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -19,8 +19,8 @@ export class ConversationService extends IConversationService {
         this._client = fetchWrapper;
     }
 
-    async fetchConversation(conversation: Conversation) {
-        const response = await this._client.get(`/conversations/${conversation}`);
+    async fetchConversation(id: string) {
+        const response = await this._client.get(`/conversations/${id}`);
         return await response.json();
     }
 

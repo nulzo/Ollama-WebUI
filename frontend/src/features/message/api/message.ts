@@ -1,21 +1,12 @@
 import { FetchWrapper } from "@/services/fetch.ts";
 import {Message} from "@/types/providers/ollama";
+import { CreateMessageInput } from "../hooks/use-create-message";
 
 
-export class IMessageService {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    fetchUser(_message: Message) { throw new Error('Not implemented'); }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    storeUser(_message: Message) { throw new Error('Not implemented'); }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    removeUser(_message: Message) { throw new Error('Not Implemented'); }
-}
-
-export class MessageService extends IMessageService {
+export class MessageService {
     private _client: FetchWrapper;
 
     constructor(fetchWrapper: FetchWrapper) {
-        super();
         this._client = fetchWrapper;
     }
 
@@ -25,7 +16,7 @@ export class MessageService extends IMessageService {
     }
 
     async fetchMessage(_message: Message) {
-        const response = await this._client.get(`/messages/${_message.chat}`);
+        const response = await this._client.get(`/messages/${_message.conversation}`);
         return await response.json();
     }
 
@@ -35,7 +26,12 @@ export class MessageService extends IMessageService {
     }
 
     async removeMessage(_message: Message) {
-        const response = await this._client.delete(`/messages/${_message.chat}`);
+        const response = await this._client.delete(`/messages/${_message.conversation}`);
+        return await response.json();
+    }
+
+    async createMessage(_message: CreateMessageInput) {
+        const response = await this._client.delete(`/messages/${_message.conversation}`);
         return await response.json();
     }
 }

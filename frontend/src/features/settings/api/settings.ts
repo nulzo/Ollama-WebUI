@@ -1,18 +1,10 @@
 import { FetchWrapper } from "@/services/fetch.ts";
-import { Fetch } from "@/types/fetch";
 import { Settings } from "@/types/storage";
 
-export class ISettingsService {
-    fetchSettings() { throw new Error('Not implemented'); }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    updateSettings(_settings: Settings) { throw new Error('Not implemented'); }
-}
-
-export class SettingsService extends ISettingsService {
+export class SettingsService {
     private _client: FetchWrapper;
     
     constructor(fetchWrapper: FetchWrapper) {
-      super();
       this._client = fetchWrapper;
     }
   
@@ -22,7 +14,7 @@ export class SettingsService extends ISettingsService {
     }
 
     async updateSettings(_settings: Settings) {
-        const response = await this._client.put('/conversations/', _settings);
+        const response = await this._client.put('/conversations/', JSON.stringify(_settings));
         return await response.json();
       }
   }

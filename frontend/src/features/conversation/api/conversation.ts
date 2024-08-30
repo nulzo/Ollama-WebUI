@@ -2,25 +2,15 @@ import { FetchWrapper } from "@/services/fetch.ts";
 import {Conversation} from "@/features/conversation/types/conversation";
 
 
-export class IConversationService {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    fetchConversation(id: string) { throw new Error('Not implemented'); }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    storeConversation(_conversation: Conversation) { throw new Error('Not implemented'); }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    removeConversation(_conversation: Conversation) { throw new Error('Not Implemented'); }
-}
-
-export class ConversationService extends IConversationService {
+export class ConversationService {
     private _client: FetchWrapper;
 
     constructor(fetchWrapper: FetchWrapper) {
-        super();
         this._client = fetchWrapper;
     }
 
-    async fetchConversation(id: string) {
-        const response = await this._client.get(`/conversations/${id}`);
+    async fetchConversation(conversation_id: string) {
+        const response = await this._client.get(`/conversations/${conversation_id}/`);
         return await response.json();
     }
 

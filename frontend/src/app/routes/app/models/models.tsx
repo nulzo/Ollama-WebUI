@@ -8,11 +8,14 @@ import { OLLAMA_SETTINGS } from "@/settings/ollama";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetModels } from "@/features/models/hooks";
 import {Spinner} from "@/components/ui/spinner.tsx";
+import { useModelStore } from "@/features/models/store/model-store";
+import { ModelSelect } from "@/features/models/components/model-select";
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 
 export function ModelsRoute() {
     const [modelInfo, setModelInfo] = useState<any>({});
+    const selectedModel = useModelStore((state) => state.selectedModel);
     const models = useGetModels();
     if (models.isLoading) {
         return (
@@ -54,6 +57,7 @@ export function ModelsRoute() {
                     </div>
                 </div>
             </div>
+            <ModelSelect />
             <div className="lg:col-span-4">
                 <ScrollArea className="relative flex h-full max-h-[85vh] min-h-[50vh] flex-col rounded-xl bg-accent/25 border p-4">
                     <div className="mx-4">

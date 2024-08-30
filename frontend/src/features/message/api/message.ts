@@ -31,7 +31,7 @@ export class MessageService {
     }
 
     async createMessage(_message: CreateMessageInput) {
-        const response = await this._client.delete(`/messages/${_message.conversation}`);
+        const response = await this._client.post(`/messages/`, JSON.stringify(_message));
         return await response.json();
     }
 }

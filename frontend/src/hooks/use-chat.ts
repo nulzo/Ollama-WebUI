@@ -4,7 +4,6 @@ import { OLLAMA_SETTINGS } from '@/settings/ollama';
 import { ChatResponse, Message } from '@/types/providers/ollama';
 import { v4 as uuidv4 } from "uuid";
 import { settingsService, conversationService, messageService } from '@/services/storage/client.ts';
-import { useCreateComment, useCreateMessage } from '@/features/message/hooks/use-create-message';
 
 const ollama = new Ollama(OLLAMA_SETTINGS);
 
@@ -17,7 +16,6 @@ export function useChat() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const ref = useRef<HTMLDivElement>(null);
-    // const createChatMessage = useCreateMessage();
 
     useEffect(() => {
         const fetchModel = async () => {
@@ -50,7 +48,7 @@ export function useChat() {
                 model
             }
         ]);
-        await storage.createMessage({ model, content: curr, role: "assistant", chat: uuid });
+        await messageService.createMessage({ model, content: curr, role: "assistant", conversation: uuid });
     }, [uuid, model]);
 
     const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
@@ -79,7 +77,7 @@ export function useChat() {
     }, [model]);
 
     const getChatHistory = useCallback(async (id: string) => {
-        const response = await storage.getChat(id);
+        const response = await conversationService.fetchConversation(id);
         if (response) {
             setUuid(response.uuid);
             setMessages(response.messages || []);

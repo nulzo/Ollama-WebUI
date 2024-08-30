@@ -15,7 +15,7 @@ const Message: React.FC<MessageType> = (
     { username, message, isBot, isTyping, time }
 ) => {
     return (
-        <div className='py-3'>
+        <div className='py-2'>
         <span className={`text-sm items-baseline gap-1 py-0 my-0 pb-1 leading-none font-semibold flex place-items-start pl-6 ${isBot ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}>
           { isBot && `${username}`}
             <span className='text-xs font-light'>{time ? calculateAge(time) : "just now"}</span>

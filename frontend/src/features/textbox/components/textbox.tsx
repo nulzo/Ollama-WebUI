@@ -75,7 +75,7 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
     }
 
     return (
-        <div className="max-w-sm lg:max-w-6xl px-2.5 md:px-4 mx-auto inset-x-0 ring-inset p-1.5 relative overflow-visible rounded-xl border border-foreground/25 bg-accent focus-within:ring-2 h-full w-full focus-within:ring-ring">
+        <div className="max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl px-2.5 md:px-4 mx-auto inset-x-0 ring-inset p-1.5 relative overflow-visible rounded-xl border border-foreground/25 bg-accent focus-within:ring-2 h-full w-full focus-within:ring-ring">
             <Textarea
                 id="chatMessage"
                 ref={ref}

@@ -59,7 +59,7 @@ export default function ChatDrawer(props: any) {
 
   return (
     <>
-      <div className="h-screen max-h-[100dvh] min-h-screen select-none md:relative w-[260px] text-foreground text-sm transition fixed top-0 left-0 bg-secondary border-r">
+      <div className="h-screen max-h-[100dvh] min-h-screen hidden md:block select-none md:relative w-[260px] text-foreground text-sm transition fixed top-0 left-0 bg-secondary border-r">
         <div className="flex px-2 py-2 w-full">
           <div className="flex justify-between items-center w-full gap-2 px-2">
             <Button

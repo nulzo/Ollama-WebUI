@@ -1,0 +1,30 @@
+# Development tests aren't needed in the container
+**/tests
+# Documentation has no reason to be in the container
+**/docs 
+
+# Node should be built from scratch inside the container
+# See https://stackoverflow.com/a/67431349 for the reason why
+node_modules
+node_modules/*
+**/node_modules
+/node_modules
+
+# Poetry specific dependencies
+# We want poetry to be run on each build;
+# and not be pulled in from the builders directory
+poetry.lock
+
+# No need to send this to the container
+env.dist
+
+# Don't want to send the env variables to the container
+# .env
+# Dont need to send the database
+.db
+
+# We don't need to send linting config files to the container
+.eslintrc.cjs
+
+# No reason to send a gitignore to the container
+.gitignore

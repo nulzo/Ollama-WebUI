@@ -67,7 +67,7 @@ RUN poetry install
 
 # Send the contents of the main backend directory to the container so that
 # it follows the same directory structure as the project
-COPY base ./base
+COPY settings ./settings
 
 # Copy the core of the root backend into the container 
 # (Look at the .dockerignore file to see what does not get sent over)

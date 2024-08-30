@@ -1,1 +1,1 @@
-python3 manage.py runserver
+poetry run python manage.py runserver

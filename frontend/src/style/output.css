@@ -962,8 +962,8 @@ body{
   bottom: 0.875rem
 }
 
-.bottom-32{
-  bottom: 8rem
+.bottom-4{
+  bottom: 1rem
 }
 
 .left-0{
@@ -978,16 +978,8 @@ body{
   left: 50%
 }
 
-.left-14{
-  left: 3.5rem
-}
-
 .left-2{
   left: 0.5rem
-}
-
-.left-3{
-  left: 0.75rem
 }
 
 .left-\[50\%\]{
@@ -1064,6 +1056,10 @@ body{
 
 .z-20{
   z-index: 20
+}
+
+.z-30{
+  z-index: 30
 }
 
 .z-50{
@@ -1541,6 +1537,11 @@ body{
   width: 53px
 }
 
+.w-fit{
+  width: -moz-fit-content;
+  width: fit-content
+}
+
 .w-full{
   width: 100%
 }
@@ -1574,8 +1575,8 @@ body{
   min-width: var(--radix-select-trigger-width)
 }
 
-.max-w-5xl{
-  max-width: 64rem
+.max-w-4xl{
+  max-width: 56rem
 }
 
 .max-w-\[75\%\]{
@@ -2299,10 +2300,6 @@ body{
   padding-bottom: 0.25rem
 }
 
-.pb-10{
-  padding-bottom: 2.5rem
-}
-
 .pb-2{
   padding-bottom: 0.5rem
 }
@@ -2313,6 +2310,10 @@ body{
 
 .pb-4{
   padding-bottom: 1rem
+}
+
+.pb-8{
+  padding-bottom: 2rem
 }
 
 .pe-2{
@@ -3783,6 +3784,10 @@ body{
     position: relative
   }
 
+  .md\:block{
+    display: block
+  }
+
   .md\:flex{
     display: flex
   }
@@ -3803,6 +3808,10 @@ body{
     max-width: calc(100% - 260px)
   }
 
+  .md\:max-w-lg{
+    max-width: 32rem
+  }
+
   .md\:grid-cols-2{
     grid-template-columns: repeat(2, minmax(0, 1fr))
   }
@@ -3811,6 +3820,11 @@ body{
     padding-left: 1rem;
     padding-right: 1rem
   }
+
+  .md\:px-6{
+    padding-left: 1.5rem;
+    padding-right: 1.5rem
+  }
 }
 
 @media (min-width: 1024px){
@@ -3818,8 +3832,8 @@ body{
     grid-column: span 4 / span 4
   }
 
-  .lg\:max-w-6xl{
-    max-width: 72rem
+  .lg\:max-w-2xl{
+    max-width: 42rem
   }
 
   .lg\:grid-cols-5{
@@ -3833,6 +3847,18 @@ body{
 
   .lg\:ps-4{
     padding-inline-start: 1rem
+  }
+}
+
+@media (min-width: 1280px){
+  .xl\:max-w-4xl{
+    max-width: 56rem
+  }
+}
+
+@media (min-width: 1536px){
+  .\32xl\:max-w-6xl{
+    max-width: 72rem
   }
 }
 

@@ -17,15 +17,28 @@ services:
     container_name: frontend
     build:
       context: ./frontend  # Build the frontend service using the Dockerfile in the ./frontend directory
+      args:
+        - OLLAMA_URL=${OLLAMA_URL}
+        - OLLAMA_PORT=${OLLAMA_PORT}
+        - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
+        - DATABASE_URL=${DATABASE_URL}
+        - DATABASE_PORT=${DATABASE_PORT}
+        - DATABASE_VERSION=${DATABASE_VERSION}
+    environment:
+      - OLLAMA_URL=${OLLAMA_URL}
+      - OLLAMA_PORT=${OLLAMA_PORT}
+      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
+      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_VERSION=${DATABASE_VERSION}
+      - CHOKIDAR_USEPOLLING=true  # Enable polling for file changes in Chokidar
+      - WATCHPACK_POLLING=true  # Enable polling for file changes in Watchpack
     depends_on:
       - backend  # Ensure that the backend service is started before the frontend service
     restart: always  # Restart the frontend service always (even if it exits normally)
     ports:
       - 4200:4200  # Map port 4200 on the host to port 4200 on the container
     tty: true  # Allocate a pseudo-TTY for the frontend service
-    environment:
-      - CHOKIDAR_USEPOLLING=true  # Enable polling for file changes in Chokidar
-      - WATCHPACK_POLLING=true  # Enable polling for file changes in Watchpack
     volumes:
       # Mount specific directories and files to the container
       - ./frontend/src/:/home/frontend/src  # Mount the local ./frontend/src directory to /home/frontend/src in the container

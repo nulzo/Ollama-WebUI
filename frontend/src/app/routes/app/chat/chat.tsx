@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import ChatDrawer from "@/components/display/chat-drawer.tsx";
 import { Textbox } from "@/features/textbox/components/textbox";
 import { useChat } from "@/hooks/use-chat";
@@ -7,6 +7,7 @@ import { ChatArea } from "@/components/display/chat-area.tsx";
 import { useSearchParams } from 'react-router-dom'
 import { Origami } from "lucide-react";
 import { PulseLoader } from "react-spinners";
+import useScrollToEnd from "@/hooks/use-scroll-to-end";
 
 
 export function ChatRoute() {
@@ -25,15 +26,7 @@ export function ChatRoute() {
 
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const ref = useRef<HTMLDivElement>(null);
-
-    const scrollToBottom = () => {
-        ref.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+    const ref = useScrollToEnd();
 
     function updateModel(param: string) {
         setModel(param);
@@ -61,9 +54,6 @@ export function ChatRoute() {
                 <div className="relative flex flex-col flex-auto z-10">
                     <ChatArea messages={messages} isTyping={true} model={model} ref={ref} />
                     <div className="mb-5 z-[99]">
-                        {/* {isTyping && ( */}
-
-                        {/* )} */}
                         <div className="-mb-3.5 mx-auto inset-x-0 bg-transparent flex justify-center">
                             <div className="mx-auto flex flex-col max-w-4xl justify-center px-2.5 md:px-6 w-full">
                                 <div className="relative flex justify-center">

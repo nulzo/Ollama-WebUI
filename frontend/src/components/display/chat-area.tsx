@@ -1,8 +1,6 @@
 import { forwardRef } from "react";
 import Message from "@/features/message/components/message";
 import { Message as Msg } from "@/types/providers/ollama";
-import { PulseLoader } from "react-spinners";
-import { Origami } from "lucide-react";
 
 export const ChatArea = forwardRef<HTMLDivElement, { messages: Msg[], model: string, isTyping: boolean }>(({ messages, model, isTyping }, ref) => (
   <div className="relative pb-8 flex flex-col justify-between w-[100%] flex-auto overflow-auto h-0 max-w-full z-10 scrollbar-hidden">

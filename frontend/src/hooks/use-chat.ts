@@ -2,13 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Ollama } from '@/services/provider/ollama/ollama.ts';
 import { OLLAMA_SETTINGS } from '@/settings/ollama';
 import { ChatResponse, Message } from '@/types/providers/ollama';
-import { DATABASE_SETTINGS } from "@/settings/database";
 import { v4 as uuidv4 } from "uuid";
-import { Storage } from "@/services/storage";
 import { settingsService, conversationService, messageService } from '@/services/storage/client.ts';
+import { useCreateComment, useCreateMessage } from '@/features/message/hooks/use-create-message';
 
 const ollama = new Ollama(OLLAMA_SETTINGS);
-const storage = new Storage(DATABASE_SETTINGS);
+
 
 export function useChat() {
     const [model, setModel] = useState<string>("");
@@ -18,6 +17,7 @@ export function useChat() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [loading, setLoading] = useState(true);
     const ref = useRef<HTMLDivElement>(null);
+    // const createChatMessage = useCreateMessage();
 
     useEffect(() => {
         const fetchModel = async () => {

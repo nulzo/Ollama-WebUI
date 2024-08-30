@@ -21,4 +21,4 @@ jobs:
         node-version: 20
 
     - name: Install dependencies
-      run: cd app && npm install
+      run: cd frontend && npm install

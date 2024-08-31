@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 
-const useScrollToEnd = (deps) => {
+const useScrollToEnd = (messages) => {
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         ref.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [...deps]);
+    }, [messages]);
 
     return ref;
 };

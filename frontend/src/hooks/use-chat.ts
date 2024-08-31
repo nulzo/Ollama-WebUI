@@ -77,7 +77,7 @@ export function useChat() {
             setUuid(response.uuid);
             setMessages(response.messages || []);
         }
-    }, []);
+    }, [history]);
 
     return {
         model,

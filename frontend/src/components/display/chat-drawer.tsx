@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger
 } from "../ui/dropdown-menu";
 import { useConversations } from "@/hooks/use-conversations";
+import { nanoid } from 'nanoid'
 
 
 export default function ChatDrawer(props: any) {
@@ -84,13 +85,13 @@ export default function ChatDrawer(props: any) {
             .reverse()
             .map(([group, groupChats]: any) => (
               <div key={group}>
-                <div className="sticky top-0 py-2 w-[100%] text-xs font-semibold text-muted-foreground capitalize">
+                <div className="sticky top-0 py-2 w-[100%] text-xs font-semibold text-muted-foreground capitalize" key={nanoid()}>
                   {group}
                 </div>
                 {groupChats.reverse().map((chat: Chat) => (
-                    <div className="w-full pr-2 relative group">
+                    <div className="w-full pr-2 relative group" key={nanoid()}>
                       <button
-                          key={chat.uuid}
+                          key={nanoid()}
                           value={chat.uuid}
                           className={`truncate w-full flex justify-between rounded-lg px-3 py-2 hover:bg-accent ${
                               props.uuid === chat.uuid && "text-foreground bg-accent"
@@ -99,29 +100,29 @@ export default function ChatDrawer(props: any) {
                             getChatHistory(chat.uuid);
                           }}
                       >
-                        <div className="flex self-center flex-1 w-full">
-                          <div className="text-left self-center overflow-hidden w-full h-[20px]">
+                        <div className="flex self-center flex-1 w-full" key={nanoid()}>
+                          <div className="text-left self-center overflow-hidden w-full h-[20px]" key={nanoid()}>
                             {chat.messages[0]?.content ?? "Some message..."}
                           </div>
                         </div>
-                        <div
+                        <div key={nanoid()}
                             className={`${props.uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}>
-                          <div className="flex self-center space-x-1">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                          <div className="flex self-center space-x-1" key={nanoid()}>
+                            <DropdownMenu key={nanoid()}>
+                              <DropdownMenuTrigger asChild key={nanoid()}>
                                 <DotsHorizontalIcon className="hover:stroke-primary self-center transition"/>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent className="w-[150px]">
-                                <DropdownMenuGroup>
-                                  <DropdownMenuItem className="gap-2 items-center">
+                              <DropdownMenuContent key={nanoid()} className="w-[150px]">
+                                <DropdownMenuGroup key={nanoid()}>
+                                  <DropdownMenuItem className="gap-2 items-center" key={nanoid()}>
                                     <Pin className="size-3" /> Pin
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="gap-2 items-center">
+                                  <DropdownMenuItem className="gap-2 items-center" key={nanoid()}>
                                     <Pen className="size-3" /> Rename
                                   </DropdownMenuItem>
                                 </DropdownMenuGroup>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="flex gap-2 items-center group">
+                                <DropdownMenuItem className="flex gap-2 items-center group" key={nanoid()}>
                                   <Trash className="size-3.5 group-hover:stroke-red-500" />
                                   <span className="group-hover:text-red-500">Delete</span>
                                 </DropdownMenuItem>

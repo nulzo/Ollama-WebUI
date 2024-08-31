@@ -26,6 +26,8 @@ export function ChatRoute() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const searchParamString = searchParams.get("c");
+
   const ref = useScrollToEnd(messages);
 
   function updateModel(param: string) {
@@ -33,11 +35,10 @@ export function ChatRoute() {
   }
 
   useEffect(() => {
-    const search: string | null = searchParams.get("c");
-    if (search) {
-      getChatHistory(search);
+    if (searchParamString) {
+      getChatHistory(searchParamString);
     }
-  }, []);
+  }, [searchParamString, getChatHistory]);
 
   const { model, setModel } = useModelStore(state => ({
     model: state.model,

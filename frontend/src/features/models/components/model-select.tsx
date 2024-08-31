@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useModelStore } from "../store/model-store";
-import {ChatResponse} from "@/types/providers/ollama";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons"
 
 import { cn } from "@/lib/utils.ts"
@@ -18,30 +17,31 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover.tsx"
+import { useGetModels } from "../hooks";
+import { Spinner } from "@/components/ui/spinner";
+import { OllamaModel } from "@/types/models";
 
 export const ModelSelect = () => {
-    const { models, selectedModel, loading, error, fetchModels, setSelectedModel } = useModelStore();
     const [open, setOpen] = useState(false);
-    const [value, setValue] = useState<string>(selectedModel ? selectedModel.id : "");
+    const models = useGetModels();
 
-    console.log(models);
+    const { setModel, model } = useModelStore(state => ({
+        setModel: state.setModel,
+        model: state.model
+    }));
 
-    useEffect(() => {
-        fetchModels();
-    }, [fetchModels]);
+    if (models.isLoading) {
+        return (
+            <div className="flex h-48 w-full items-center justify-center">
+                <Spinner size="lg" />
+            </div>
+        );
+    }
 
-    useEffect(() => {
-        if (selectedModel && selectedModel.id !== value) {
-            setValue(selectedModel.id);
-        }
-    }, [selectedModel, value]);
-
-    const handleSelect = (model: string) => {
-        const selected = models.find(m => m.id === model);
-        setValue(selected?.id || "");
-        setSelectedModel(selected || null);
-        setOpen(false);
-    };
+    const handleModelSelect = (model: OllamaModel) => {
+        console.log(model)
+        setModel(model);
+    }
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -52,8 +52,8 @@ export const ModelSelect = () => {
                     aria-expanded={open}
                     className="w-[150px] justify-between border-0 bg-accent/0 font-semibold"
                 >
-                    {value
-                        ? models?.data?.models?.find((model: ChatResponse) => model.model === value)?.model
+                    {model
+                        ? models?.data?.models?.find((m: OllamaModel) => m.name === model.name)?.name
                         : "Select model..."}
                     <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -64,17 +64,17 @@ export const ModelSelect = () => {
                     <CommandList>
                         <CommandEmpty>No model found.</CommandEmpty>
                         <CommandGroup>
-                        {models.map((model) => (
+                        {models?.data?.models?.map((m: OllamaModel) => (
                             <CommandItem
-                                key={model.id}
-                                value={model.id}
-                                onSelect={() => handleSelect(model.id)}
+                                key={m.name}
+                                value={m.name}
+                                onSelect={() => handleModelSelect(m)}
                             >
-                                {model.model}
+                                {m.name}
                                 <CheckIcon
                                     className={cn(
                                         "ml-auto h-4 w-4",
-                                        value === model.id ? "opacity-100" : "opacity-0"
+                                        model?.name === m.name ? "opacity-100" : "opacity-0"
                                     )}
                                 />
                             </CommandItem>

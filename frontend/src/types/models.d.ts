@@ -4,10 +4,18 @@ export interface Model {
     enabled?: boolean;
     files?: boolean;
     functionCall?: boolean;
-    id: string;
+    id?: string;
     maxOutput?: number;
     tokens?: number;
     vision?: boolean;
+}
+
+export interface OllamaModel {
+    name:string;
+    model: string;
+    modified_at: string;
+    size: string;
+    digest: string;
 }
 
 export interface Parameters {

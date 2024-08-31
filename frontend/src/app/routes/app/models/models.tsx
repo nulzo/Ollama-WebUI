@@ -15,8 +15,12 @@ const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 
 export function ModelsRoute() {
     const [modelInfo, setModelInfo] = useState<any>({});
-    const selectedModel = useModelStore((state) => state.selectedModel);
+    const { setModel } = useModelStore(state => ({
+        setModel: state.setModel,
+    }));
+
     const models = useGetModels();
+
     if (models.isLoading) {
         return (
             <div className="flex h-48 w-full items-center justify-center">
@@ -25,12 +29,11 @@ export function ModelsRoute() {
         );
     }
 
-
     const onClick = async (event: any) => {
         const selectedModel = event.target.id;
         const response = await ollama.show({name: selectedModel}, {stream: false});
+        setModel(selectedModel);
         setModelInfo({...response, model: selectedModel});
-        console.log(modelInfo)
     }
 
     return (
@@ -57,7 +60,6 @@ export function ModelsRoute() {
                     </div>
                 </div>
             </div>
-            <ModelSelect />
             <div className="lg:col-span-4">
                 <ScrollArea className="relative flex h-full max-h-[85vh] min-h-[50vh] flex-col rounded-xl bg-accent/25 border p-4">
                     <div className="mx-4">

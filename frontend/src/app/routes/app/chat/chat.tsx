@@ -3,29 +3,26 @@ import ChatDrawer from "@/components/display/chat-drawer.tsx";
 import { Textbox } from "@/features/textbox/components/textbox";
 import { useChat } from "@/hooks/use-chat";
 import { Header } from "@/components/display/header.tsx";
-import { ChatArea } from "@/components/display/chat-area.tsx";
 import { useSearchParams } from "react-router-dom";
 import { Origami } from "lucide-react";
 import { PulseLoader } from "react-spinners";
 import useScrollToEnd from "@/hooks/use-scroll-to-end";
 import { ConversationArea } from "@/features/conversation/components/conversation-area";
 import Message from "@/features/message/components/message";
-// import { useConversations } from "@/features/conversation/hooks/use-conversations";
+import { useModelStore } from "@/features/models/store/model-store";
+import { useCreateMessage } from "@/features/message/hooks/use-create-message";
 
 export function ChatRoute() {
   const {
-    model,
     uuid,
     message,
     isTyping,
     messages,
-    setModel,
     setMessage,
     handleSubmit,
     createChat,
     getChatHistory,
   } = useChat();
-  // const conversation = useConversations();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -42,6 +39,11 @@ export function ChatRoute() {
     }
   }, []);
 
+  const { model, setModel } = useModelStore(state => ({
+    model: state.model,
+    setModel: state.setModel,
+  }));
+
   return (
     <>
       <ChatDrawer
@@ -49,11 +51,10 @@ export function ChatRoute() {
         createChat={createChat}
         getChatHistory={getChatHistory}
         uuid={uuid}
-        model={model}
         updateURL={setSearchParams}
       />
       <div className="h-screen max-h-[100dvh] md:max-w-[calc(100%-260px)] w-full max-w-full flex flex-col">
-        <Header model={model} setModel={setModel} />
+        <Header />
         <div className="relative flex flex-col flex-auto z-10">
           <ConversationArea>
             <>
@@ -81,7 +82,7 @@ export function ChatRoute() {
                     {isTyping && (
                       <div className="mx-auto z-50 bg-primary/10 p-2 rounded-lg left-0">
                         <div className="flex gap-2 items-center">
-                          <Origami className="size-5" strokeWidth="1" /> {model}{" "}
+                          <Origami className="size-5" strokeWidth="1" /> {model?.model}{" "}
                           is typing{" "}
                           <PulseLoader
                             size="3"
@@ -101,7 +102,7 @@ export function ChatRoute() {
               value={message}
               setValue={setMessage}
               onSubmit={handleSubmit}
-              model={model}
+              model={model?.name || ""}
             />
           </div>
         </div>

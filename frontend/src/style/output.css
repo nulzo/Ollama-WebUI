@@ -473,7 +473,7 @@ video {
 .dark {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
-  --primary: 240 100% 75%;
+  --primary: 220 100% 75%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 7.9%;
   --secondary-foreground: 0 0% 98%;
@@ -1010,10 +1010,6 @@ body{
   display: block;
 }
 
-.inline{
-  display: inline;
-}
-
 .flex{
   display: flex;
 }
@@ -1490,6 +1486,10 @@ body{
 
 .list-none{
   list-style-type: none;
+}
+
+.list-decimal{
+  list-style-type: decimal;
 }
 
 .grid-cols-10{
@@ -2201,6 +2201,10 @@ body{
 
 .pt-4{
   padding-top: 1rem;
+}
+
+.pl-3{
+  padding-left: 0.75rem;
 }
 
 .text-left{

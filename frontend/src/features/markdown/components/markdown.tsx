@@ -6,6 +6,7 @@ import { useTokens } from "../hooks/use-tokens";
 import { MarkdownRendererProps } from "../types/markdown";
 import he from 'he';
 
+
 const renderTokens = (tokens: any): React.ReactNode[] => {
   return tokens.map((token: any, index: number) => {
     switch (token.type) {
@@ -25,6 +26,10 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
         return <p key={index}>{renderTokens(token.tokens)}</p>;
       case 'text':
         return <span key={index}>{he.decode(token.text)}</span>;
+      case 'list':
+        return <ol key={index} className="list-decimal pl-5">{renderTokens(token.items)}</ol>;
+      case 'list_item':
+        return <li key={index}>{renderTokens(token.tokens)}</li>
       default:
         return null;
     }

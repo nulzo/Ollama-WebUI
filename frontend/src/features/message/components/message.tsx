@@ -1,5 +1,5 @@
 import React from 'react';
-import MarkdownRenderer from '@/components/markdown/markdown';
+import MarkdownRenderer from '@/features/markdown/components/markdown';
 import { Origami, Copy, Sparkles, Heart, RefreshCw } from 'lucide-react';
 import LoadingSpinner from '@/components/loadingSpinner.tsx';
 import { formatDistanceToNow } from 'date-fns';
@@ -30,7 +30,7 @@ const Message: React.FC<MessageType> = (
                     )}
                 </div>
                 <div className={`${isBot && 'max-w-[75%]'}`}>
-                    <div className={`pt-2 pb-3 ${isBot ? 'bg-accent/75 rounded-e-xl rounded-b-xl' : 'bg-primary/25 rounded-s-xl rounded-b-xl'}`}>
+                    <div className={`pt-3 pb-4 px-1 ${isBot ? 'bg-accent/75 rounded-e-xl rounded-b-xl' : 'bg-primary/25 rounded-s-xl rounded-b-xl'}`}>
                         <div className="px-4 flex items-center w-full m-0 border-0">
                             {isTyping && (message.length <= 1 || !message || message === "<empty string>") ? (
                                 <LoadingSpinner color="#fb923c" />

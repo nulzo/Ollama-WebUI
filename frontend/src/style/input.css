@@ -1,5 +1,5 @@
-@import url('highlight.js/styles/atom-one-dark.css') screen and (prefers-color-scheme: dark);
-@import url('highlight.js/styles/github.css') screen and (prefers-color-scheme: light);
+/* @import url('highlight.js/styles/github.css'); */
+/* @import url('highlight.js/styles/github.css') screen and (prefers-color-scheme: light); */
 @import url('https://fonts.googleapis.com/css2?family=Baskervville+SC&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 @tailwind base;
@@ -45,13 +45,13 @@
     }
 
     .hljs {
-        margin-top: 0.5rem !important;
+        /* margin-top: 0.5rem !important; */
         margin-bottom: 2rem !important;
         border-radius: 8px;
         overflow: hidden;
         border: dashed 1px var(--border);
-        font-size: small;
-        background: hsl(var(--accent)) !important;
+        /* font-size: small; */
+        /* background: hsl(var(--accent)) !important; */
     }
 }
 

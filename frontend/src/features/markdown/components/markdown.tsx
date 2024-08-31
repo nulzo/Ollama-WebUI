@@ -4,6 +4,7 @@ import CodeBlock from "@/features/markdown/components/code-block";
 import InlineCodeBlock from "@/features/markdown/components/inline-code";
 import { useTokens } from "../hooks/use-tokens";
 import { MarkdownRendererProps } from "../types/markdown";
+import he from 'he';
 
 const renderTokens = (tokens: any): React.ReactNode[] => {
   return tokens.map((token: any, index: number) => {
@@ -23,7 +24,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'paragraph':
         return <p key={index}>{renderTokens(token.tokens)}</p>;
       case 'text':
-        return <span key={index}>{token.text}</span>;
+        return <span key={index}>{he.decode(token.text)}</span>;
       default:
         return null;
     }

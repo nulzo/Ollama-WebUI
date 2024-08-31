@@ -24,7 +24,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code }) => {
         </span>
         <CodeCopyButton onClick={handleCopy} copied={copied} />
       </div>
-      <pre className="pb-4 px-4 py-3 bg-secondary rounded-t-none">
+      <pre className="pb-4 px-4 py-3 bg-secondary rounded-t-none overflow-x-scroll">
         <code
           className="mt-0 mb-3"
           dangerouslySetInnerHTML={{ __html: highlightedCode }}

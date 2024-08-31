@@ -56,6 +56,7 @@
     "dayjs": "^1.11.13",
     "dexie": "^4.0.4",
     "embla-carousel-react": "^8.0.2",
+    "he": "^1.2.0",
     "highlight.js": "^11.9.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.376.0",

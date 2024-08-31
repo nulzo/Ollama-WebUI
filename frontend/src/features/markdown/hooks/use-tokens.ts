@@ -16,6 +16,11 @@ const markedInstance = new Marked(
     })
 );
 
+markedInstance.setOptions({
+    breaks: true,
+    gfm: true,
+});
+
 export function useTokens(markdown: string) {
     return useMemo(() => {
         return markedInstance.lexer(markdown);

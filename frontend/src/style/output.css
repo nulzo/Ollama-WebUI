@@ -473,7 +473,7 @@ video {
 .dark {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
-  --primary: 260 100% 75%;
+  --primary: 240 100% 75%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 7.9%;
   --secondary-foreground: 0 0% 98%;
@@ -492,7 +492,6 @@ video {
   /* margin-top: 0.5rem !important; */
   margin-bottom: 2rem !important;
   border-radius: 8px;
-  overflow: hidden;
   border: dashed 1px var(--border);
   /* font-size: small; */
   /* background: hsl(var(--accent)) !important; */
@@ -1009,6 +1008,10 @@ body{
 
 .block{
   display: block;
+}
+
+.inline{
+  display: inline;
 }
 
 .flex{
@@ -1664,6 +1667,10 @@ body{
   overflow-x: hidden;
 }
 
+.overflow-x-scroll{
+  overflow-x: scroll;
+}
+
 .overflow-y-scroll{
   overflow-y: scroll;
 }
@@ -2104,10 +2111,6 @@ body{
   padding-bottom: 0.5rem;
 }
 
-.pb-3{
-  padding-bottom: 0.75rem;
-}
-
 .pb-4{
   padding-bottom: 1rem;
 }
@@ -2192,32 +2195,12 @@ body{
   padding-top: 0.25rem;
 }
 
-.pt-2{
-  padding-top: 0.5rem;
+.pt-3{
+  padding-top: 0.75rem;
 }
 
 .pt-4{
   padding-top: 1rem;
-}
-
-.pb-10{
-  padding-bottom: 2.5rem;
-}
-
-.pe-24{
-  padding-inline-end: 6rem;
-}
-
-.pt-24{
-  padding-top: 6rem;
-}
-
-.pb-5{
-  padding-bottom: 1.25rem;
-}
-
-.pt-3{
-  padding-top: 0.75rem;
 }
 
 .text-left{

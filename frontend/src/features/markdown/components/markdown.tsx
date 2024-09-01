@@ -5,20 +5,26 @@ import InlineCodeBlock from "@/features/markdown/components/inline-code";
 import { useTokens } from "../hooks/use-tokens";
 import { MarkdownRendererProps } from "../types/markdown";
 import he from 'he';
+import KatexRenderer from "./katex";
+
+export const revertSanitizedResponseContent = (content: string) => {
+	return content.replaceAll('&lt;', '<').replaceAll('&gt;', '>');
+};
 
 
 const renderTokens = (tokens: any): React.ReactNode[] => {
   return tokens.map((token: any, index: number) => {
-    console.log(token.type)
     switch (token.type) {
       case 'break':
         return <br key={index} />;
       case 'hr':
         return <hr key={index} />;
       case 'blockquote':
-        return <blockquote key={index}>{renderTokens(token.tokens)}</blockquote>;
-      case 'space':
-        return <br key={index} />;
+        return (
+        <blockquote key={index} className="mt-6 border-l-2 pl-6 italic">
+          {renderTokens(token.tokens)}
+        </blockquote>
+      );
       case 'strong':
         return <strong key={index}>{renderTokens(token.tokens)}</strong>;
       case 'code':
@@ -30,28 +36,47 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'link':
         return <a href={token?.href ?? ''} key={index} title={token.title}>{token.text}</a>
       case 'heading':
-        return React.createElement(
-          `h${token.depth}`,
-          { key: index },
-          renderTokens(token.tokens || [token])
-        );
+        if (token?.depth === 1) {
+          return <h1 key={index} className="scroll-m-20 text-4xl font-bold tracking-tight">{renderTokens(token.tokens || [token])}</h1>
+        }
+        else if (token?.depth === 2) {
+          return <h2 key={index} className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">{renderTokens(token.tokens || [token])}</h2>
+        }
+        else if (token?.depth === 3) {
+          return <h3 key={index} className="scroll-m-20 text-2xl font-semibold tracking-tight">{renderTokens(token.tokens || [token])}</h3>
+        }
+        else if (token?.depth === 4) {
+          return <h4 key={index} className="scroll-m-20 text-lg font-semibold tracking-tight">{renderTokens(token.tokens || [token])}</h4>
+          }
+        else if (token?.depth === 5) {
+          return <h5 key={index} className="scroll-m-20 text-md font-semibold tracking-tight">{renderTokens(token.tokens || [token])}</h5>
+        }
+        else {
+          return <h6 key={index} className="scroll-m-20 font-semibold tracking-tight">{renderTokens(token.tokens || [token])}</h6>
+        }
       case 'paragraph':
-        return <p key={index}>{renderTokens(token.tokens)}</p>;
+        return <p key={index} className="leading-7 [&:not(:first-child)]:mt-6">{renderTokens(token.tokens)}</p>;
       case 'text':
         return <span key={index}>{he.decode(token.text)}</span>;
       case 'list':
-        return <ol key={index} className="list-decimal pl-5">{renderTokens(token.items)}</ol>;
+        return token.ordered ? (
+          <ol key={index} className="my-6 ml-6 list-decimal [&>li]:mt-2">{renderTokens(token.items)}</ol>
+        ) : (
+          <ul key={index} className="my-6 ml-6 list-disc [&>li]:mt-2">{renderTokens(token.items)}</ul>
+        );
       case 'list_item':
         return <li key={index}>{renderTokens(token.tokens)}</li>
       case 'table':
         return (
-          <table>
-            <thead>
-              <tr>
+          <div className="rounded-xl">
+          <table className="w-[100%] min-w-2xl ">
+            <thead className="">
+            <tr className="m-0 border-t p-0 even:bg-muted">
                 {token.header.map((header, headerIdx) => (
                   <th
                     key={index}
                     style={{ textAlign: token.align[headerIdx] || '' }}
+                    className="border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right"
                   >
                     {renderTokens(header.tokens)}
                   </th>
@@ -60,11 +85,12 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
             </thead>
             <tbody>
               {token.rows.map((row, rowIdx) => (
-                <tr key={`$key-${index}-row-${rowIdx}`}>
+                <tr key={`$key-${index}-row-${rowIdx}`} className="m-0 border-t p-0 even:bg-muted">
                   {(row ?? []).map((cell, cellIdx) => (
                     <td
                       key={`${index}-row-${rowIdx}-${cellIdx}`}
                       style={{ textAlign: token.align[cellIdx] || '' }}
+                      className="border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right"
                     >
                       {renderTokens(cell.tokens)}
                     </td>
@@ -73,7 +99,22 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
               ))}
             </tbody>
           </table>
-        )
+          </div>
+        );
+      case 'html':
+        return <div key={index} dangerouslySetInnerHTML={{ __html: token.raw }} />;
+      case "blockKatex":
+        return <KatexRenderer 
+          content={revertSanitizedResponseContent(token.text)}
+				  displayMode={token?.displayMode ?? false}
+        />
+      case "inlineKatex":
+        return <KatexRenderer 
+          content={revertSanitizedResponseContent(token.text)}
+          displayMode={token?.displayMode ?? false}
+        />
+      case "space":
+        return <div className="my-0.5" key={index} />
       default:
         return null;
     }
@@ -84,7 +125,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
   const tokens = useTokens(markdown);
 
   return (
-    <div className="rounded-xl overflow-x-scroll max-w-sm min-w-sm md:max-w-lg md:min-w-lg lg:max-w-2xl lg:min-w-2xl xl:max-w-4xl xl:min-w-4xl mx-auto">
+    <div className="markdown-prose markdown overflow-x-scroll max-w-sm min-w-sm md:max-w-lg md:min-w-lg lg:max-w-2xl lg:min-w-2xl xl:max-w-4xl xl:min-w-4xl mx-auto">
       {renderTokens(tokens)}
     </div>
   );

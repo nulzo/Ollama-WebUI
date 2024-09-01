@@ -5,7 +5,7 @@ module.exports = {
     './routes/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx,html}',
   ],
   prefix: "",
   theme: {
@@ -19,6 +19,7 @@ module.exports = {
     extend: {
       fontFamily: {
         'poppins': ['Poppins'],
+        'archivo': ['Archivo', 'sans'],
         'sans': ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI',
           'Roboto', 'Ubuntu', 'Cantarell', 'Noto Sans', 'sans-serif', 'Helvetica Neue', 'Arial',
           'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji']

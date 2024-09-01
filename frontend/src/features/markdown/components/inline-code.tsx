@@ -7,7 +7,7 @@ interface InlineCodeBlockProps {
 const InlineCodeBlock: React.FC<InlineCodeBlockProps> = ({ code }) => {
   return (
     <code
-      className="text-sm font-semibold bg-primary/10 py-0.5 px-1.5 mx-0.5 rounded-md text-purple-300"
+      className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-primary text-sm font-bold"
       dangerouslySetInnerHTML={{ __html: code }}
     />
   );

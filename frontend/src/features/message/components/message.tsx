@@ -30,7 +30,7 @@ const Message: React.FC<MessageType> = (
                     )}
                 </div>
                 <div className={`${isBot && 'max-w-[75%]'}`}>
-                    <div className={` pb-4 px-1 ${isBot ? ' rounded-e-xl rounded-b-xl' : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl'}`}>
+                    <div className={` pb-4 px-1 ${isBot ? ' rounded-e-xl rounded-b-xl' : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'}`}>
                         <div className="flex items-center w-full m-0 border-0">
                             {isTyping && (message.length <= 1 || !message || message === "<empty string>") ? (
                                 <LoadingSpinner color="#fb923c" />

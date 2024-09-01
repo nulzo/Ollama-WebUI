@@ -54,14 +54,16 @@ export function ChatRoute() {
         uuid={uuid}
         updateURL={setSearchParams}
       />
-      <div className="h-screen max-h-[100dvh] md:max-w-[calc(100%-260px)] w-full max-w-full flex flex-col">
+      
+    
+      <div className="bg-[radial-gradient(at_30.8%_65.1%,_hsla(263,_100%,_50%,_10%)_0px,_transparent_10%),radial-gradient(at_61.7%_33.0%,_hsla(293,_100%,_50%,_05%)_0px,_transparent_50%),radial-gradient(at_78.3%_69.2%,_hsla(250,_100%,_50%,_20%)_0px,_transparent_50%),radial-gradient(at_7525.0%_1588.8%,_#001830_0px,_transparent_50%)] w-full max-w-full flex flex-col">
         <Header />
         <div className="relative flex flex-col flex-auto z-10">
           <ConversationArea>
             <>
               {messages.length !== 0 &&
                 messages.map((message) => (
-                  <Message 
+                  <Message
                     key={message.id}
                     isBot={message?.role !== "user"}
                     isTyping={false}
@@ -72,7 +74,7 @@ export function ChatRoute() {
                     }
                   />
                 ))}
-                <div ref={ref} />
+              <div ref={ref} />
             </>
           </ConversationArea>
           <div className="mb-5 z-[99]">

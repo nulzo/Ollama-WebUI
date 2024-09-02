@@ -1,5 +1,3 @@
-import React from "react";
-import "highlight.js/styles/tokyo-night-dark.css";
 import CodeBlock from "@/features/markdown/components/code-block";
 import InlineCodeBlock from "@/features/markdown/components/inline-code";
 import { useTokens } from "../hooks/use-tokens";
@@ -7,8 +5,8 @@ import { MarkdownRendererProps } from "../types/markdown";
 import he from 'he';
 import KatexRenderer from "./katex";
 
-export const revertSanitizedResponseContent = (content: string) => {
-	return content.replaceAll('&lt;', '<').replaceAll('&gt;', '>');
+const revertSanitizedResponseContent = (content: string) => {
+	return content.replace('&lt;', '<').replace('&gt;', '>');
 };
 
 
@@ -72,7 +70,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           <table className="w-[100%] min-w-2xl ">
             <thead className="">
             <tr className="m-0 border-t p-0 even:bg-muted">
-                {token.header.map((header, headerIdx) => (
+                {token.header.map((header: any, headerIdx: any) => (
                   <th
                     key={index}
                     style={{ textAlign: token.align[headerIdx] || '' }}
@@ -84,9 +82,9 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
               </tr>
             </thead>
             <tbody>
-              {token.rows.map((row, rowIdx) => (
-                <tr key={`$key-${index}-row-${rowIdx}`} className="m-0 border-t p-0 even:bg-muted">
-                  {(row ?? []).map((cell, cellIdx) => (
+              {token.rows.map((row: any, rowIdx: any) => (
+                <tr key={`$key-${index}-row-${rowIdx}`} className="m-0 border-t p-0 even:bg-muted/50 backdrop-blur">
+                  {(row ?? []).map((cell: any, cellIdx: any) => (
                     <td
                       key={`${index}-row-${rowIdx}-${cellIdx}`}
                       style={{ textAlign: token.align[cellIdx] || '' }}
@@ -106,7 +104,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case "blockKatex":
         return <KatexRenderer 
           content={revertSanitizedResponseContent(token.text)}
-				  displayMode={token?.displayMode ?? false}
+          displayMode={token?.displayMode ?? false}
         />
       case "inlineKatex":
         return <KatexRenderer 

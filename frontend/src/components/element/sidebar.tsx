@@ -13,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip.tsx";
 import { Link, useLocation } from "react-router-dom";
+import { SettingsModal } from "@/features/settings/components/settings-modal";
 
 const Sidebar = () => {
   const route = useLocation();
@@ -130,14 +131,7 @@ const Sidebar = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="mt-auto rounded-lg"
-                aria-label="Account"
-              >
-                <Settings2 className="size-5" />
-              </Button>
+              <SettingsModal />
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={5} className="bg-accent">
               User Settings

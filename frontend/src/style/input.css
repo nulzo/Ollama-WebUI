@@ -14,7 +14,7 @@
     --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
-    --tertiary: 0 0% 9.9%;
+    --tertiary: 0 0% 92.9%;
     --tertiary-foreground: 0 0% 98%;
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
@@ -50,11 +50,9 @@
     margin-bottom: 2rem !important;
     border-radius: 8px;
     border: dashed 1px var(--border);
-    /* font-size: small; */
-    /* background: hsl(var(--accent)) !important; */
   }
 
-  /* pre {
+  pre {
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', ui-sans-serif, system-ui, 'Segoe UI',
         Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif, 'Helvetica Neue', Arial,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
@@ -62,7 +60,7 @@
   
     pre {
       white-space: pre-wrap;
-    } */
+    }
 }
 
 @layer base {

@@ -462,7 +462,7 @@ video {
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 96.1%;
   --secondary-foreground: 0 0% 9%;
-  --tertiary: 0 0% 9.9%;
+  --tertiary: 0 0% 92.9%;
   --tertiary-foreground: 0 0% 98%;
   --muted: 0 0% 96.1%;
   --muted-foreground: 0 0% 45.1%;
@@ -498,19 +498,14 @@ video {
   margin-bottom: 2rem !important;
   border-radius: 8px;
   border: dashed 1px var(--border);
-  /* font-size: small; */
-  /* background: hsl(var(--accent)) !important; */
 }
 
-/* pre {
-      font-family: -apple-system, BlinkMacSystemFont, 'Inter', ui-sans-serif, system-ui, 'Segoe UI',
+pre {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', ui-sans-serif, system-ui, 'Segoe UI',
         Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif, 'Helvetica Neue', Arial,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    }
-  
-    pre {
-      white-space: pre-wrap;
-    } */
+  white-space: pre-wrap;
+}
 
 * {
   border-color: hsl(var(--border));
@@ -1777,10 +1772,6 @@ body {
   border-top-left-radius: calc(var(--radius) - 4px);
 }
 
-.rounded-tr-none {
-  border-top-right-radius: 0px;
-}
-
 .border {
   border-width: 1px;
 }
@@ -1956,6 +1947,10 @@ body {
   background-color: hsl(var(--secondary));
 }
 
+.bg-secondary\/50 {
+  background-color: hsl(var(--secondary) / 0.5);
+}
+
 .bg-tertiary {
   background-color: hsl(var(--tertiary));
 }
@@ -1969,116 +1964,12 @@ body {
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
 }
 
-.bg-secondary\/50 {
-  background-color: hsl(var(--secondary) / 0.5);
+.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_10\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _05\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _hsla\(250\2c _100\%\2c _50\%\2c _20\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
+  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 10%),radial-gradient(at 61.7% 33.0%, hsla(293, 100%, 50%, 05%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, hsla(250, 100%, 50%, 20%) 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
 }
 
 .bg-gradient-to-l {
   background-image: linear-gradient(to left, var(--tw-gradient-stops));
-}
-
-.bg-\[_radial-gradient\(at_37\%_88\%\2c _rgb\(23\2c _23\2c _23\)_0\2c _transparent_65\%\)\2c _radial-gradient\(at_73\%_83\%\2c _rgb\(55\2c _65\2c _81\)_0\2c _transparent_89\%\)\2c _radial-gradient\(at_59\%_83\%\2c _rgb\(153\2c _246\2c _228\)_0\2c _transparent_26\%\)\2c _radial-gradient\(at_2\%_8\%\2c _rgb\(207\2c _250\2c _254\)_0\2c _transparent_66\%\)\2c _radial-gradient\(at_71\%_15\%\2c _rgb\(91\2c _33\2c _182\)_0\2c _transparent_48\%\)\2c _radial-gradient\(at_12\%_63\%\2c _rgb\(255\2c _251\2c _235\)_0\2c _transparent_43\%\)\] {
-  background-image: radial-gradient(at 37% 88%, rgb(23, 23, 23) 0, transparent 65%), radial-gradient(at 73% 83%, rgb(55, 65, 81) 0, transparent 89%), radial-gradient(at 59% 83%, rgb(153, 246, 228) 0, transparent 26%), radial-gradient(at 2% 8%, rgb(207, 250, 254) 0, transparent 66%), radial-gradient(at 71% 15%, rgb(91, 33, 182) 0, transparent 48%), radial-gradient(at 12% 63%, rgb(255, 251, 235) 0, transparent 43%);
-}
-
-.bg-\[radial-gradient\(at_37\%_88\%\2c _rgb\(23\2c _23\2c _23\)_0\2c _transparent_65\%\)\2c _radial-gradient\(at_73\%_83\%\2c _rgb\(55\2c _65\2c _81\)_0\2c _transparent_89\%\)\2c _radial-gradient\(at_59\%_83\%\2c _rgb\(153\2c _246\2c _228\)_0\2c _transparent_26\%\)\2c _radial-gradient\(at_2\%_8\%\2c _rgb\(207\2c _250\2c _254\)_0\2c _transparent_66\%\)\2c _radial-gradient\(at_71\%_15\%\2c _rgb\(91\2c _33\2c _182\)_0\2c _transparent_48\%\)\2c _radial-gradient\(at_12\%_63\%\2c _rgb\(255\2c _251\2c _235\)_0\2c _transparent_43\%\)\] {
-  background-image: radial-gradient(at 37% 88%, rgb(23, 23, 23) 0, transparent 65%), radial-gradient(at 73% 83%, rgb(55, 65, 81) 0, transparent 89%), radial-gradient(at 59% 83%, rgb(153, 246, 228) 0, transparent 26%), radial-gradient(at 2% 8%, rgb(207, 250, 254) 0, transparent 66%), radial-gradient(at 71% 15%, rgb(91, 33, 182) 0, transparent 48%), radial-gradient(at 12% 63%, rgb(255, 251, 235) 0, transparent 43%);
-}
-
-.bg-\[radial-gradient\(at_37\%_88\%\2c _rgb\(23\2c _23\2c _23\)_0\2c _transparent_65\%\)\2c _radial-gradient\(at_73\%_83\%\2c _rgb\(55\2c _65\2c _81\)_0\2c _transparent_89\%\)\2c _radial-gradient\(at_59\%_83\%\2c _rgb\(153\2c _246\2c _228\)_0\2c _transparent_26\%\)\2c _radial-gradient\(at_2\%_8\%\2c _rgb\(207\2c _250\2c _254\)_0\2c _transparent_66\%\)\2c _radial-gradient\(at_71\%_15\%\2c _rgb\(91\2c _33\2c _182\)_0\2c _transparent_48\%\)\2c _radial-gradient\(at_12\%_63\%\2c _rgb\(255\2c _251\2c _235\)_0\2c _transparent_43\%\)\;\] {
-  background-image: radial-gradient(at 37% 88%, rgb(23, 23, 23) 0, transparent 65%), radial-gradient(at 73% 83%, rgb(55, 65, 81) 0, transparent 89%), radial-gradient(at 59% 83%, rgb(153, 246, 228) 0, transparent 26%), radial-gradient(at 2% 8%, rgb(207, 250, 254) 0, transparent 66%), radial-gradient(at 71% 15%, rgb(91, 33, 182) 0, transparent 48%), radial-gradient(at 12% 63%, rgb(255, 251, 235) 0, transparent 43%);;
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsl\(263\2c _100\%\2c _50\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _\#593d87_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsl(263, 100%, 50%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, #593d87 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _0\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _\#593d87_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 0%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, #593d87 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _\#593d87_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, #593d87 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _\#593d87_0px\2c _transparent_10\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, #593d87 0px, transparent 10%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _\#593d87_0px\2c _transparent_10\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_10\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, #593d87 0px, transparent 10%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 10%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _\#593d87_0px\2c _transparent_10\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_10\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_10\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, #593d87 0px, transparent 10%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 10%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 10%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _\#593d87_0px\2c _transparent_10\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_100\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_10\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, #593d87 0px, transparent 10%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 100%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 10%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _\#593d87_0px\2c _transparent_100\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_100\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_10\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, #593d87 0px, transparent 100%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 100%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 10%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_100\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_100\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_10\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(263, 100%, 50%,10%) 0px, transparent 100%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 100%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 10%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(163\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_100\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_100\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_10\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(163, 100%, 50%,10%) 0px, transparent 100%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 100%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 10%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(163\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_100\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_10\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(163, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 100%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 10%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(163\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(163, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(163\2c _100\%\2c _50\%\2c 10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(163, 100%, 50%,10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(193\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(193, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _\#00005c_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(293, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, #00005c 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(293, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, hsla(293, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _hsla\(200\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(293, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, hsla(200, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _hsla\(220\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(293, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, hsla(220, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _hsla\(250\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(293, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, hsla(250, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _hsla\(250\2c _100\%\2c _50\%\2c _100\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(293, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, hsla(250, 100%, 50%, 100%) 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _hsla\(250\2c _100\%\2c _50\%\2c _20\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(293, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, hsla(250, 100%, 50%, 20%) 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _05\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _hsla\(250\2c _100\%\2c _50\%\2c _20\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 50%),radial-gradient(at 61.7% 33.0%, hsla(293, 100%, 50%, 05%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, hsla(250, 100%, 50%, 20%) 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
-}
-
-.bg-\[radial-gradient\(at_30\.8\%_65\.1\%\2c _hsla\(263\2c _100\%\2c _50\%\2c _10\%\)_0px\2c _transparent_10\%\)\2c radial-gradient\(at_61\.7\%_33\.0\%\2c _hsla\(293\2c _100\%\2c _50\%\2c _05\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_78\.3\%_69\.2\%\2c _hsla\(250\2c _100\%\2c _50\%\2c _20\%\)_0px\2c _transparent_50\%\)\2c radial-gradient\(at_7525\.0\%_1588\.8\%\2c _\#001830_0px\2c _transparent_50\%\)\] {
-  background-image: radial-gradient(at 30.8% 65.1%, hsla(263, 100%, 50%, 10%) 0px, transparent 10%),radial-gradient(at 61.7% 33.0%, hsla(293, 100%, 50%, 05%) 0px, transparent 50%),radial-gradient(at 78.3% 69.2%, hsla(250, 100%, 50%, 20%) 0px, transparent 50%),radial-gradient(at 7525.0% 1588.8%, #001830 0px, transparent 50%);
 }
 
 .from-accent {
@@ -2342,6 +2233,10 @@ body {
   padding-top: 1rem;
 }
 
+.pe-2\.5 {
+  padding-inline-end: 0.625rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -2404,6 +2299,10 @@ body {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+
+.text-\[10px\] {
+  font-size: 10px;
 }
 
 .font-bold {
@@ -2559,6 +2458,10 @@ body {
 .text-yellow-500 {
   --tw-text-opacity: 1;
   color: rgb(234 179 8 / var(--tw-text-opacity));
+}
+
+.text-muted-foreground\/50 {
+  color: hsl(var(--muted-foreground) / 0.5);
 }
 
 .underline-offset-4 {
@@ -2973,6 +2876,10 @@ body {
 
 .even\:bg-muted:nth-child(even) {
   background-color: hsl(var(--muted));
+}
+
+.even\:bg-muted\/50:nth-child(even) {
+  background-color: hsl(var(--muted) / 0.5);
 }
 
 .focus-within\:relative:focus-within {
@@ -3875,10 +3782,6 @@ body {
 
   .md\:max-w-\[420px\] {
     max-width: 420px;
-  }
-
-  .md\:max-w-\[calc\(100\%-260px\)\] {
-    max-width: calc(100% - 260px);
   }
 
   .md\:max-w-lg {

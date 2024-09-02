@@ -29,6 +29,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, lang }) => {
         <code
           className="mt-0 mb-3"
           dangerouslySetInnerHTML={{ __html: highlightedCode }}
+          id="code-block"
         />
       </pre>
     </div>

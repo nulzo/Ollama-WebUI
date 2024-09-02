@@ -2,9 +2,12 @@ export interface Message {
     conversation?: string
     role: 'user' | 'assistant'
     model: string
-    time?: string
-    content: string
-    images?: Uint8Array[] | string[]
+    time?: string;
+    created_at?: string;
+    content: string;
+    images?: Uint8Array[] | string[];
+    id?: string;
+
 }
 
 export interface OllamaConfig {

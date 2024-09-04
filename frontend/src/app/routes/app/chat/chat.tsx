@@ -47,7 +47,8 @@ export function ChatRoute() {
         uuid={uuid}
         updateURL={setSearchParams}
       />
-      <div className="transition bg-[radial-gradient(at_30.8%_65.1%,_hsla(263,_100%,_50%,_10%)_0px,_transparent_10%),radial-gradient(at_61.7%_33.0%,_hsla(293,_100%,_50%,_05%)_0px,_transparent_50%),radial-gradient(at_78.3%_69.2%,_hsla(250,_100%,_50%,_20%)_0px,_transparent_50%),radial-gradient(at_7525.0%_1588.8%,_#001830_0px,_transparent_50%)] w-full max-w-full flex flex-col">
+      {/*<div className="-z-10 absolute blur-2xl w-screen h-screen bg-[radial-gradient(at_56%_42%,_hsla(240,100%,70%,0.2)_0px,_transparent_50%),_radial-gradient(at_62%_61%,_hsla(302,65%,63%,0.1)_0px,_transparent_50%)]"/>*/}
+      <div className="transition w-full max-w-full flex flex-col">
         <ConversationAreaHeader />
         <div className="transition relative flex flex-col flex-auto z-10">
           <ConversationArea>
@@ -73,7 +74,7 @@ export function ChatRoute() {
                 <div className="relative flex justify-center">
                   <div className="absolute bottom-4 left-0 right-0 flex justify-center z-30 pointer-events-none">
                     {isTyping && (
-                      <div className="mx-auto z-50 bg-primary/10 p-2 rounded-lg left-0">
+                      <div className="mx-auto z-50 bg-primary/10 backdrop-blur p-2 rounded-lg left-0">
                         <div className="flex gap-2 items-center">
                           <Origami className="size-5" strokeWidth="1" /> {model?.model}{" "}
                           is typing{" "}

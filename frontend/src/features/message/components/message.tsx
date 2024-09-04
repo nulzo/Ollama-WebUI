@@ -1,9 +1,10 @@
 import React from 'react';
 import MarkdownRenderer from '@/features/markdown/components/markdown';
-import {Copy, Sparkles, Heart, RefreshCw} from 'lucide-react';
+import {Sparkles, Heart, RefreshCw} from 'lucide-react';
 import {Message as MessageType} from '@/features/message/types/message';
 import {BotIcon} from "@/features/message/components/bot-icon";
 import {formatDate} from "@/utils/format.ts";
+import {CopyButton} from "@/features/message/components/copy-message.tsx";
 
 
 const Message: React.FC<MessageType> = (
@@ -34,7 +35,7 @@ const Message: React.FC<MessageType> = (
             {isBot && (
                 <div className='ms-12 flex gap-2'>
                     <Heart className='size-3 stroke-muted-foreground hover:stroke-red-400 hover:cursor-pointer'/>
-                    <Copy className='size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer'/>
+                    <CopyButton content={message?.trim() ?? ''} />
                     <Sparkles className='size-3 stroke-muted-foreground hover:stroke-yellow-400 hover:cursor-pointer'/>
                     <RefreshCw className='size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer'/>
                 </div>

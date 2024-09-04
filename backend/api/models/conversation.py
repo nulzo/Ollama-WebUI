@@ -8,7 +8,7 @@ class Conversation(models.Model):
     is_pinned = models.BooleanField(default=False)
     is_hidden = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
-    model = models.CharField(max_length=150)
+    model = models.CharField(max_length=150, blank=True, null=True)
     uuid = models.CharField(max_length=100, blank=False, null=False, unique=True, primary_key=True)
     name = models.CharField(blank=True, null=True, default='', max_length=150)
 

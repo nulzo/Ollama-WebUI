@@ -8,7 +8,7 @@ import {
   import {PanelRightOpen, Pen, Pin, SquarePen, Trash} from "lucide-react";
   import { Button } from "@/components/ui/button.tsx";
   import { Chat } from "@/services/provider/ollama/ollama.ts";
-  import { useMemo } from "react";
+  import {useMemo, useState} from "react";
   import { DotsHorizontalIcon } from "@radix-ui/react-icons";
   import {
     DropdownMenu,
@@ -22,8 +22,10 @@ import {
   
   export default function ConversationHistory(props: any) {
     const chats = useConversations();
+    const {isExpanded, setExpanded} = useState(true);
   
-    async function createChat() {
+    function createChat() {
+      props.updateURL("");
       props.createChat();
       chats?.refetch();
     }
@@ -55,7 +57,7 @@ import {
   
     return (
       <>
-        <div className="h-screen max-h-[100dvh] min-h-screen hidden md:block select-none md:relative w-[260px] text-foreground text-sm transition fixed top-0 left-0 bg-secondary border-r">
+        <div className="h-screen max-h-[100dvh] min-h-screen hidden md:block select-none md:relative w-[260px] text-foreground text-sm fixed top-0 left-0 bg-secondary border-r">
           <div className="flex px-2 py-2 w-full">
             <div className="flex justify-between items-center w-full gap-2 px-2">
               <Button
@@ -64,7 +66,7 @@ import {
                 type="submit"
                 className="font-bold"
               >
-                <PanelRightOpen className="size-4" />
+                <PanelRightOpen className="size-4" onClick={(prev: any) => setExpanded(!)} />
               </Button>
               <Button
                 size="icon"

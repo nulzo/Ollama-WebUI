@@ -5,7 +5,6 @@ const CodeCopyButton = ({ onClick, copied }: {onClick: any, copied: boolean}) =>
       className="hover:text-foreground flex items-center text-muted-foreground gap-0.5 text-xs absolute top-1 right-4 rounded px-2 py-1 cursor-pointer transition"
       aria-label="Copy to clipboard"
     >
-        
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"

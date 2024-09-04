@@ -68,8 +68,8 @@ export function useChat() {
         const newUuid = uuidv4();
         setUuid(newUuid);
         setMessages([]);
-        await conversationService.createConversation({ uuid: newUuid, model: model.model, created_by: "Nolan" });
-    }, [model]);
+        await conversationService.createConversation({ uuid: newUuid, created_by: "Nolan" });
+    }, []);
     
     const getChatHistory = useCallback(async (id: string) => {
         const response = await conversationService.fetchConversation(id);

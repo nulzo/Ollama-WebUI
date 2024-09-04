@@ -4,7 +4,6 @@ import {
   Bot,
   LifeBuoy,
   MessageSquareCode,
-  Settings2,
 } from "lucide-react";
 import {
   Tooltip,
@@ -17,7 +16,6 @@ import { SettingsModal } from "@/features/settings/components/settings-modal";
 
 const Sidebar = () => {
   const route = useLocation();
-  console.log(route);
   return (
     <aside className="bg-tertiary inset-y flex left-0 z-20 h-full flex-col border-r w-[53px]">
       <nav className="mt-2 grid gap-1 p-2">

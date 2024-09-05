@@ -6,7 +6,7 @@ import { BotIcon } from '@/features/message/components/bot-icon';
 import { formatDate } from '@/utils/format.ts';
 import { CopyButton } from '@/features/message/components/copy-message.tsx';
 
-const Message: React.FC<MessageType> = ({ username, message, isBot, time, id }) => {
+const Message: React.FC<MessageType> = ({ username, message, isBot, time }) => {
   const formattedDate = formatDate(time);
   return (
     <div className="py-3">

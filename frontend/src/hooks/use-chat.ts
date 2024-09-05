@@ -91,16 +91,13 @@ export function useChat() {
     });
   }, []);
 
-  const getChatHistory = useCallback(
-    async (id: string) => {
-      const response = await conversationService.fetchConversation(id);
-      if (response) {
-        setUuid(response.uuid);
-        setMessages(response.messages || []);
-      }
-    },
-    [history]
-  );
+  const getChatHistory = useCallback(async (id: string) => {
+    const response = await conversationService.fetchConversation(id);
+    if (response) {
+      setUuid(response.uuid);
+      setMessages(response.messages || []);
+    }
+  }, []);
 
   return {
     model,

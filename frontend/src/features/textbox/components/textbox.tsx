@@ -1,5 +1,4 @@
 import { Textarea } from '@/components/ui/textarea.tsx';
-import React, { useState, useRef } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 
@@ -10,50 +9,13 @@ export interface ITextbox {
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 
-const DEFAULT_IDX: number = -1;
-
 export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
-  const [history, setHistory] = useState<string[]>([]);
-  const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(DEFAULT_IDX);
-  const ref = useRef<HTMLTextAreaElement>(null);
-
   function handleChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
-    event.target.style.height = '';
-    event.target.style.height = Math.min(event.target.scrollHeight, 200) + 'px';
     setValue(event.target.value);
   }
 
-  function setCaretToEnd() {
-    const element = ref.current;
-    if (element) {
-      const valueLength = element.value.length;
-      element.selectionStart = valueLength;
-      element.selectionEnd = valueLength;
-      element.focus();
-    }
-  }
-
-  function onKeyPress(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+  function onKeyPress(event: any) {
     switch (event.key) {
-      // case "ArrowUp":
-      //     if (history.length > 0 && currentHistoryIndex < history.length - 1) {
-      //         const newIndex = currentHistoryIndex + 1;
-      //         setCurrentHistoryIndex(newIndex);
-      //         setValue(history[history.length - newIndex - 1]);
-      //         setTimeout(setCaretToEnd, 0);
-      //     }
-      //     break;
-      // case "ArrowDown":
-      //     if (history.length > 0 && currentHistoryIndex > 0) {
-      //         const newIndex = currentHistoryIndex - 1;
-      //         setCurrentHistoryIndex(newIndex);
-      //         setValue(history[history.length - newIndex - 1]);
-      //         setTimeout(setCaretToEnd, 0);
-      //     } else if (currentHistoryIndex === 0) {
-      //         setCurrentHistoryIndex(DEFAULT_IDX);
-      //         setValue("");
-      //     }
-      //     break;
       case 'Enter':
         if (event.shiftKey) {
           event.target.style.height = '';
@@ -63,8 +25,6 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
         } else {
           event.preventDefault();
           handleSubmit(event as unknown as React.FormEvent<HTMLFormElement>);
-          setHistory(prevHistory => [...prevHistory, value]);
-          setCurrentHistoryIndex(DEFAULT_IDX);
         }
         break;
     }

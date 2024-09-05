@@ -1,13 +1,5 @@
 import { isToday, isThisWeek, isThisMonth, isBefore, subMonths } from 'date-fns';
-import {
-  PanelLeftClose,
-  PanelRightClose,
-  PanelRightOpen,
-  Pen,
-  Pin,
-  SquarePen,
-  Trash,
-} from 'lucide-react';
+import { PanelRightClose, PanelRightOpen, Pen, Pin, SquarePen, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 import { Chat } from '@/services/provider/ollama/ollama.ts';
 import { useMemo, useState } from 'react';
@@ -65,7 +57,7 @@ export default function ConversationHistory(props: any) {
           variant="ghost"
           type="submit"
           className="font-bold"
-          onClick={(prev: any) => setExpanded(!isExpanded)}
+          onClick={() => setExpanded(!isExpanded)}
         >
           <PanelRightClose className="size-4" />
         </Button>
@@ -84,7 +76,7 @@ export default function ConversationHistory(props: any) {
               variant="ghost"
               type="submit"
               className="font-bold"
-              onClick={(prev: any) => setExpanded(!isExpanded)}
+              onClick={() => setExpanded(!isExpanded)}
             >
               <PanelRightOpen className="size-4" />
             </Button>

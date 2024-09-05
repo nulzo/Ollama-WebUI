@@ -115,11 +115,11 @@ function inlineKatex(options, renderer) {
   };
 }
 
-function blockKatex(options, renderer) {
+function blockKatex(renderer) {
   return {
     name: 'blockKatex',
     level: 'block',
-    tokenizer(src, tokens) {
+    tokenizer(src, _tokens) {
       const match = src.match(blockRule);
 
       if (match) {

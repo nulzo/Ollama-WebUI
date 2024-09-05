@@ -1,7 +1,7 @@
 import { streamJSON } from '@/services/utility.ts';
 import { FetchWrapper } from '@/services/fetch.ts';
 import { Message } from '@/types/providers/ollama';
-import { Fetch, FetchConfig } from '@/types/fetch';
+import { FetchConfig } from '@/types/fetch';
 import { HttpClientConfig } from '@/types/http.ts';
 
 export interface Chat {

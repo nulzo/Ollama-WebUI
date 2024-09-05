@@ -146,8 +146,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           </div>
         );
       case 'html':
-        const sanitizedContent = DOMPurify.sanitize(token.text);
-        return <div key={index}>{sanitizedContent}</div>;
+        return <div key={index}>{DOMPurify.sanitize(token.text)}</div>;
       case 'blockKatex':
         return (
           <KatexRenderer

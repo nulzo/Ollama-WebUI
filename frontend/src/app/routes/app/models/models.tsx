@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useGetModels } from '@/features/models/hooks';
 import { Spinner } from '@/components/ui/spinner.tsx';
 import { useModelStore } from '@/features/models/store/model-store';
-import { ModelSelect } from '@/features/models/components/model-select';
+
 
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 

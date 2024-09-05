@@ -36,25 +36,25 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
 
     function onKeyPress(event: React.KeyboardEvent<HTMLTextAreaElement>) {
         switch (event.key) {
-            case "ArrowUp":
-                if (history.length > 0 && currentHistoryIndex < history.length - 1) {
-                    const newIndex = currentHistoryIndex + 1;
-                    setCurrentHistoryIndex(newIndex);
-                    setValue(history[history.length - newIndex - 1]);
-                    setTimeout(setCaretToEnd, 0);
-                }
-                break;
-            case "ArrowDown":
-                if (history.length > 0 && currentHistoryIndex > 0) {
-                    const newIndex = currentHistoryIndex - 1;
-                    setCurrentHistoryIndex(newIndex);
-                    setValue(history[history.length - newIndex - 1]);
-                    setTimeout(setCaretToEnd, 0);
-                } else if (currentHistoryIndex === 0) {
-                    setCurrentHistoryIndex(DEFAULT_IDX);
-                    setValue("");
-                }
-                break;
+            // case "ArrowUp":
+            //     if (history.length > 0 && currentHistoryIndex < history.length - 1) {
+            //         const newIndex = currentHistoryIndex + 1;
+            //         setCurrentHistoryIndex(newIndex);
+            //         setValue(history[history.length - newIndex - 1]);
+            //         setTimeout(setCaretToEnd, 0);
+            //     }
+            //     break;
+            // case "ArrowDown":
+            //     if (history.length > 0 && currentHistoryIndex > 0) {
+            //         const newIndex = currentHistoryIndex - 1;
+            //         setCurrentHistoryIndex(newIndex);
+            //         setValue(history[history.length - newIndex - 1]);
+            //         setTimeout(setCaretToEnd, 0);
+            //     } else if (currentHistoryIndex === 0) {
+            //         setCurrentHistoryIndex(DEFAULT_IDX);
+            //         setValue("");
+            //     }
+            //     break;
             case "Enter":
                 if (event.shiftKey) {
                     event.target.style.height = "";

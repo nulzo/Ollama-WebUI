@@ -57,6 +57,8 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
                 break;
             case "Enter":
                 if (event.shiftKey) {
+                    event.target.style.height = "";
+                    event.target.style.height = Math.min(event.target.scrollHeight, 200) + "px";
                     setValue(value + "\n");
                     event.preventDefault();
                 } else {
@@ -75,19 +77,18 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
     }
 
     return (
-        <div className="max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl px-2.5 md:px-4 mx-auto inset-x-0 ring-inset p-1.5 relative overflow-visible rounded-xl border border-foreground/25 bg-accent focus-within:ring-2 h-full w-full focus-within:ring-ring">
+        <div className="max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl px-2.5 md:px-4 mx-auto inset-x-0 ring-inset p-2 relative overflow-clip rounded-xl border border-foreground/25 bg-accent focus-within:ring-2 h-full w-full focus-within:ring-ring">
             <Textarea
                 id="chatMessage"
-                ref={ref}
                 key="chatMessageArea"
-                className="focus:border-transparent scrollbar-hidden py-3 focus-visible:ring-0 resize-none border-0 shadow-none items-center h-[48px] align-middle"
+                className="focus:border-transparent pt-2 pb-3 scrollbar-hidden focus-visible:ring-0 resize-none border-0 shadow-none items-center align-middle"
                 value={value}
                 rows={1}
                 onChange={(event) => handleChange(event)}
                 onKeyDown={onKeyPress}
                 placeholder="Send a message"
             />
-            <div className="absolute bottom-3.5 right-3">
+            <div className="absolute bottom-2 right-3">
                 <Button
                     type="submit"
                     disabled={value.length === 0 || !model}

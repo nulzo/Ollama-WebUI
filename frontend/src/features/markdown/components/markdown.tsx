@@ -4,6 +4,7 @@ import { useTokens } from "../hooks/use-tokens";
 import { MarkdownRendererProps } from "../types/markdown";
 import he from 'he';
 import KatexRenderer from "./katex";
+import DOMPurify from 'dompurify';
 
 const revertSanitizedResponseContent = (content: string) => {
 	return content.replace('&lt;', '<').replace('&gt;', '>');
@@ -100,7 +101,8 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           </div>
         );
       case 'html':
-        return <div key={index} dangerouslySetInnerHTML={{ __html: token.raw }} />;
+        const sanitizedContent = DOMPurify.sanitize(token.text);
+        return <div key={index}>{sanitizedContent}</div>;
       case "blockKatex":
         return <KatexRenderer 
           content={revertSanitizedResponseContent(token.text)}

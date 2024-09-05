@@ -1,6 +1,6 @@
 export interface ErrorResponse {
-    error?: string;
-    message?: string;
-    code?: number;
-    errors?: any[];
+  error?: string;
+  message?: string;
+  code?: number;
+  errors?: any[];
 }

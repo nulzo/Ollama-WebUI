@@ -1,15 +1,15 @@
-import { useEffect } from "react";
-import { Textbox } from "@/features/textbox/components/textbox";
-import { useChat } from "@/hooks/use-chat";
-import { useSearchParams } from "react-router-dom";
-import { Origami } from "lucide-react";
-import { PulseLoader } from "react-spinners";
-import useScrollToEnd from "@/hooks/use-scroll-to-end";
-import { ConversationArea } from "@/features/conversation/components/conversation-area";
-import Message from "@/features/message/components/message";
-import { useModelStore } from "@/features/models/store/model-store";
-import ConversationHistory from "@/features/conversation/components/conversation-history.tsx";
-import {ConversationAreaHeader} from "@/features/conversation/components/conversation-area-header.tsx";
+import { useEffect } from 'react';
+import { Textbox } from '@/features/textbox/components/textbox';
+import { useChat } from '@/hooks/use-chat';
+import { useSearchParams } from 'react-router-dom';
+import { Origami } from 'lucide-react';
+import { PulseLoader } from 'react-spinners';
+import useScrollToEnd from '@/hooks/use-scroll-to-end';
+import { ConversationArea } from '@/features/conversation/components/conversation-area';
+import Message from '@/features/message/components/message';
+import { useModelStore } from '@/features/models/store/model-store';
+import ConversationHistory from '@/features/conversation/components/conversation-history.tsx';
+import { ConversationAreaHeader } from '@/features/conversation/components/conversation-area-header.tsx';
 
 export function ChatRoute() {
   const {
@@ -25,7 +25,7 @@ export function ChatRoute() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const searchParamString = searchParams.get("c");
+  const searchParamString = searchParams.get('c');
 
   const ref = useScrollToEnd(messages);
 
@@ -35,8 +35,8 @@ export function ChatRoute() {
     }
   }, [searchParamString, getChatHistory]);
 
-  const { model} = useModelStore(state => ({
-    model: state.model
+  const { model } = useModelStore(state => ({
+    model: state.model,
   }));
 
   return (
@@ -57,12 +57,14 @@ export function ChatRoute() {
                 messages.map((message, index) => (
                   <Message
                     key={`message-${message.id}-${index}`}
-                    id={message?.id ?? ""}
-                    isBot={message?.role !== "user"}
+                    id={message?.id ?? ''}
+                    isBot={message?.role !== 'user'}
                     isTyping={false}
                     message={message?.content}
                     time={message.created_at}
-                    username={message?.role === "user" ? message?.role : message?.model}
+                    username={
+                      message?.role === 'user' ? message?.role : message?.model
+                    }
                   />
                 ))}
               <div ref={ref} />
@@ -76,8 +78,8 @@ export function ChatRoute() {
                     {isTyping && (
                       <div className="mx-auto z-50 bg-primary/10 backdrop-blur p-2 rounded-lg left-0">
                         <div className="flex gap-2 items-center">
-                          <Origami className="size-5" strokeWidth="1" /> {model?.model}{" "}
-                          is typing{" "}
+                          <Origami className="size-5" strokeWidth="1" />{' '}
+                          {model?.model} is typing{' '}
                           <PulseLoader
                             size="3"
                             speedMultiplier={0.75}
@@ -96,7 +98,7 @@ export function ChatRoute() {
               value={message}
               setValue={setMessage}
               onSubmit={handleSubmit}
-              model={model?.name || ""}
+              model={model?.name || ''}
             />
           </div>
         </div>

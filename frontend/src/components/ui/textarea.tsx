@@ -52,7 +52,10 @@ type AutosizeTextAreaProps = {
   minHeight?: number;
 } & React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-export const Textarea = React.forwardRef<AutosizeTextAreaRef, AutosizeTextAreaProps>(
+export const Textarea = React.forwardRef<
+  AutosizeTextAreaRef,
+  AutosizeTextAreaProps
+>(
   (
     {
       maxHeight = 200,
@@ -62,7 +65,7 @@ export const Textarea = React.forwardRef<AutosizeTextAreaRef, AutosizeTextAreaPr
       value,
       ...props
     }: AutosizeTextAreaProps,
-    ref: React.Ref<AutosizeTextAreaRef>,
+    ref: React.Ref<AutosizeTextAreaRef>
   ) => {
     const textAreaRef = React.useRef<HTMLTextAreaElement | null>(null);
     const [triggerAutoSize, setTriggerAutoSize] = React.useState('');
@@ -92,15 +95,15 @@ export const Textarea = React.forwardRef<AutosizeTextAreaRef, AutosizeTextAreaPr
         ref={textAreaRef}
         className={cn(
           'flex w-full rounded-md border border-input bg-accent px-1 mr-1 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-none focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50',
-          className,
+          className
         )}
-        onChange={(e) => {
+        onChange={e => {
           setTriggerAutoSize(e.target.value);
           onChange?.(e);
         }}
       />
     );
-  },
+  }
 );
 
 Textarea.displayName = 'Textarea';

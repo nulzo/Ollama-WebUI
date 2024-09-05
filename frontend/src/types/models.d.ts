@@ -1,34 +1,34 @@
 export interface Model {
-    description?: string;
-    displayName?: string;
-    enabled?: boolean;
-    files?: boolean;
-    functionCall?: boolean;
-    id?: string;
-    maxOutput?: number;
-    tokens?: number;
-    vision?: boolean;
+  description?: string;
+  displayName?: string;
+  enabled?: boolean;
+  files?: boolean;
+  functionCall?: boolean;
+  id?: string;
+  maxOutput?: number;
+  tokens?: number;
+  vision?: boolean;
 }
 
 export interface OllamaModel {
-    name:string;
-    model: string;
-    modified_at: string;
-    size: string;
-    digest: string;
+  name: string;
+  model: string;
+  modified_at: string;
+  size: string;
+  digest: string;
 }
 
 export interface Parameters {
-    frequency_penalty?: number;
-    max_tokens?: number;
-    presence_penalty?: number;
-    temperature?: number;
-    top_p?: number;
+  frequency_penalty?: number;
+  max_tokens?: number;
+  presence_penalty?: number;
+  temperature?: number;
+  top_p?: number;
 }
 
 export type Role = 'user' | 'system' | 'assistant' | 'tool';
 
 export interface LLMMessage {
-    content: string;
-    role: LLMRoleType;
+  content: string;
+  role: LLMRoleType;
 }

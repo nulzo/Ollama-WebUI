@@ -1,1 +1,1 @@
-export * from "@/app/routes/app/chat/chat";
+export * from '@/app/routes/app/chat/chat';

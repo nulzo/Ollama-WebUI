@@ -1,3 +1,3 @@
 export interface MarkdownRendererProps {
-    markdown: string;
+  markdown: string;
 }

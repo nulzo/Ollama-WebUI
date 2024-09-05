@@ -4,28 +4,36 @@ import {
   isThisMonth,
   isBefore,
   subMonths,
-} from "date-fns";
-import { PanelLeftClose, PanelRightClose, PanelRightOpen, Pen, Pin, SquarePen, Trash } from "lucide-react";
-import { Button } from "@/components/ui/button.tsx";
-import { Chat } from "@/services/provider/ollama/ollama.ts";
-import { useMemo, useState } from "react";
-import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+} from 'date-fns';
+import {
+  PanelLeftClose,
+  PanelRightClose,
+  PanelRightOpen,
+  Pen,
+  Pin,
+  SquarePen,
+  Trash,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button.tsx';
+import { Chat } from '@/services/provider/ollama/ollama.ts';
+import { useMemo, useState } from 'react';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup, DropdownMenuItem,
+  DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { useConversations } from "@/hooks/use-conversations";
-
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useConversations } from '@/hooks/use-conversations';
 
 export default function ConversationHistory(props: any) {
   const chats = useConversations();
   const [isExpanded, setExpanded] = useState<boolean>(true);
 
   function createChat() {
-    props.updateURL("");
+    props.updateURL('');
     props.createChat();
     chats?.refetch();
   }
@@ -37,11 +45,11 @@ export default function ConversationHistory(props: any) {
 
   const getDateLabel = (timestamp: string) => {
     const date = new Date(timestamp);
-    if (isToday(date)) return "Today";
-    if (isThisWeek(date)) return "Previous Week";
-    if (isThisMonth(date)) return "This Month";
-    if (isBefore(date, subMonths(new Date(), 1))) return "Last Month";
-    return "Older";
+    if (isToday(date)) return 'Today';
+    if (isThisWeek(date)) return 'Previous Week';
+    if (isThisMonth(date)) return 'This Month';
+    if (isBefore(date, subMonths(new Date(), 1))) return 'Last Month';
+    return 'Older';
   };
 
   const organizeChatsByDate = useMemo(() => {
@@ -57,22 +65,24 @@ export default function ConversationHistory(props: any) {
 
   if (!isExpanded) {
     return (
-        <div className=" transition-transform h-screen flex justify-between w-fit gap-2 px-4 py-2">
-          <Button
-            size="icon"
-            variant="ghost"
-            type="submit"
-            className="font-bold"
-            onClick={(prev: any) => setExpanded(!isExpanded)}
-          >
-            <PanelRightClose className="size-4" />
-          </Button>
-        </div>
-    )
+      <div className=" transition-transform h-screen flex justify-between w-fit gap-2 px-4 py-2">
+        <Button
+          size="icon"
+          variant="ghost"
+          type="submit"
+          className="font-bold"
+          onClick={(prev: any) => setExpanded(!isExpanded)}
+        >
+          <PanelRightClose className="size-4" />
+        </Button>
+      </div>
+    );
   }
   return (
     <>
-      <div className={`transition-transform h-screen max-h-[100dvh] min-h-screen select-none md:relative w-[260px] text-foreground text-sm fixed top-0 left-0 bg-secondary border-r ${!isExpanded && 'hidden'}`}>
+      <div
+        className={`transition-transform h-screen max-h-[100dvh] min-h-screen select-none md:relative w-[260px] text-foreground text-sm fixed top-0 left-0 bg-secondary border-r ${!isExpanded && 'hidden'}`}
+      >
         <div className="flex px-2 py-2 w-full">
           <div className="flex justify-between items-center w-full gap-2 px-2">
             <Button
@@ -110,19 +120,21 @@ export default function ConversationHistory(props: any) {
                     <button
                       key={chat.uuid}
                       value={chat.uuid}
-                      className={`truncate w-full flex justify-between rounded-lg px-3 py-2 hover:bg-accent ${props.uuid === chat.uuid && "text-foreground bg-accent"
-                        }`}
+                      className={`truncate w-full flex justify-between rounded-lg px-3 py-2 hover:bg-accent ${
+                        props.uuid === chat.uuid && 'text-foreground bg-accent'
+                      }`}
                       onClick={() => {
                         getChatHistory(chat.uuid);
                       }}
                     >
                       <div className="flex self-center flex-1 w-full">
                         <div className="text-left self-center overflow-hidden w-full h-[20px]">
-                          {chat.messages[0]?.content ?? "Some message..."}
+                          {chat.messages[0]?.content ?? 'Some message...'}
                         </div>
                       </div>
                       <div
-                        className={`${props.uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}>
+                        className={`${props.uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}
+                      >
                         <div className="flex self-center space-x-1">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -140,7 +152,9 @@ export default function ConversationHistory(props: any) {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem className="flex gap-2 items-center group">
                                 <Trash className="size-3.5 group-hover:stroke-red-500" />
-                                <span className="group-hover:text-red-500">Delete</span>
+                                <span className="group-hover:text-red-500">
+                                  Delete
+                                </span>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

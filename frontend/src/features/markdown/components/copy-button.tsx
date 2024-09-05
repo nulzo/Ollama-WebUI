@@ -1,4 +1,10 @@
-const CodeCopyButton = ({ onClick, copied }: {onClick: any, copied: boolean}) => {
+const CodeCopyButton = ({
+  onClick,
+  copied,
+}: {
+  onClick: any;
+  copied: boolean;
+}) => {
   return (
     <button
       onClick={onClick}
@@ -28,7 +34,7 @@ const CodeCopyButton = ({ onClick, copied }: {onClick: any, copied: boolean}) =>
           </>
         )}
       </svg>
-      {copied? 'Copied' : 'Copy'}
+      {copied ? 'Copied' : 'Copy'}
     </button>
   );
 };

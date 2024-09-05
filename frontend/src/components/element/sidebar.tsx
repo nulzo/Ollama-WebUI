@@ -1,18 +1,13 @@
-import { Button } from "@/components/ui/button.tsx";
-import {
-  ArrowUpDown,
-  Bot,
-  LifeBuoy,
-  MessageSquareCode,
-} from "lucide-react";
+import { Button } from '@/components/ui/button.tsx';
+import { ArrowUpDown, Bot, LifeBuoy, MessageSquareCode } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip.tsx";
-import { Link, useLocation } from "react-router-dom";
-import { SettingsModal } from "@/features/settings/components/settings-modal";
+} from '@/components/ui/tooltip.tsx';
+import { Link, useLocation } from 'react-router-dom';
+import { SettingsModal } from '@/features/settings/components/settings-modal';
 
 const Sidebar = () => {
   const route = useLocation();
@@ -53,7 +48,7 @@ const Sidebar = () => {
                   variant="ghost"
                   size="icon"
                   className={`rounded-lg ${
-                    route.pathname === "/" ? "bg-muted" : ""
+                    route.pathname === '/' ? 'bg-muted' : ''
                   }`}
                   aria-label="Chat"
                   id="chat"
@@ -77,7 +72,7 @@ const Sidebar = () => {
                   variant="ghost"
                   size="icon"
                   className={`rounded-lg ${
-                    route.pathname === "/models" ? "bg-muted" : ""
+                    route.pathname === '/models' ? 'bg-muted' : ''
                   }`}
                   aria-label="Models"
                 >

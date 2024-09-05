@@ -1,5 +1,6 @@
 import { Info, CircleAlert, CircleX, CircleCheck, X } from 'lucide-react';
 import { Button } from '../ui/button';
+import { useEffect } from 'react';
 
 const icons = {
   info: <Info className="size-4 text-blue-500" aria-hidden="true" />,
@@ -9,11 +10,11 @@ const icons = {
 };
 
 const borders = {
-  info: "border border-blue-400",
-  success: "border border-green-500",
-  warning: "border border-yellow-500",
-  error: "border border-red-500"
-}
+  info: 'border border-blue-400',
+  success: 'border border-green-500',
+  warning: 'border border-yellow-500',
+  error: 'border border-red-500',
+};
 
 export type NotificationProps = {
   notification: {
@@ -29,9 +30,17 @@ export const Notification = ({
   notification: { id, type, title, message },
   onDismiss,
 }: NotificationProps) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onDismiss(id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [id, onDismiss]);
   return (
-    <div className="flex w-full flex-col items-center space-y-4 sm:items-end transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full">
-      <div className={`${borders[type]} pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-background/50 backdrop-blur`}>
+    <div className="flex animate w-full flex-col items-center space-y-4 sm:items-end">
+      <div
+        className={`${borders[type]} pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-background/50 backdrop-blur transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full`}
+      >
         <div className="p-4 relative" role="alert" aria-label={title}>
           <div className="flex items-start">
             <div className="shrink-0">{icons[type]}</div>

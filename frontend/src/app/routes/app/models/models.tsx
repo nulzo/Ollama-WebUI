@@ -17,7 +17,6 @@ import { useGetModels } from '@/features/models/hooks';
 import { Spinner } from '@/components/ui/spinner.tsx';
 import { useModelStore } from '@/features/models/store/model-store';
 
-
 const ollama: Ollama = new Ollama(OLLAMA_SETTINGS);
 
 export function ModelsRoute() {

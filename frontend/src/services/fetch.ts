@@ -1,10 +1,5 @@
 import { ResponseError } from '@/services/utility.ts';
-import {
-  HttpClient,
-  HttpClientConfig,
-  HttpRequestOptions,
-  HttpMethod,
-} from '@/types/http';
+import { HttpClient, HttpClientConfig, HttpRequestOptions, HttpMethod } from '@/types/http';
 import { useNotifications } from '@/components/notification/notification-store.ts';
 import { ErrorResponse } from '@/types/utility';
 
@@ -67,36 +62,21 @@ export class FetchWrapper implements HttpClient {
     return this.process('GET', endpoint, options);
   }
 
-  async post(
-    endpoint: string,
-    data?: BodyInit,
-    options?: HttpRequestOptions
-  ): Promise<Response> {
+  async post(endpoint: string, data?: BodyInit, options?: HttpRequestOptions): Promise<Response> {
     const isRecord = (
       input: Record<string, unknown> | BodyInit | undefined
     ): input is Record<string, unknown> | BodyInit | undefined => {
-      return (
-        input !== null && typeof input === 'object' && !Array.isArray(input)
-      );
+      return input !== null && typeof input === 'object' && !Array.isArray(input);
     };
-    const cleanData: BodyInit | undefined = isRecord(data)
-      ? JSON.stringify(data)
-      : data;
+    const cleanData: BodyInit | undefined = isRecord(data) ? JSON.stringify(data) : data;
     return this.process('POST', endpoint, { ...options, body: cleanData });
   }
 
-  async put(
-    endpoint: string,
-    data?: BodyInit,
-    options?: HttpRequestOptions
-  ): Promise<Response> {
+  async put(endpoint: string, data?: BodyInit, options?: HttpRequestOptions): Promise<Response> {
     return this.process('PUT', endpoint, { ...options, body: data });
   }
 
-  async delete(
-    endpoint: string,
-    options?: HttpRequestOptions
-  ): Promise<Response> {
+  async delete(endpoint: string, options?: HttpRequestOptions): Promise<Response> {
     return this.process('DELETE', endpoint, options);
   }
 }

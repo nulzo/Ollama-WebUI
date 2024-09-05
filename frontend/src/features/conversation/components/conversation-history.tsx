@@ -1,10 +1,4 @@
-import {
-  isToday,
-  isThisWeek,
-  isThisMonth,
-  isBefore,
-  subMonths,
-} from 'date-fns';
+import { isToday, isThisWeek, isThisMonth, isBefore, subMonths } from 'date-fns';
 import {
   PanelLeftClose,
   PanelRightClose,
@@ -152,9 +146,7 @@ export default function ConversationHistory(props: any) {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem className="flex gap-2 items-center group">
                                 <Trash className="size-3.5 group-hover:stroke-red-500" />
-                                <span className="group-hover:text-red-500">
-                                  Delete
-                                </span>
+                                <span className="group-hover:text-red-500">Delete</span>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

@@ -14,17 +14,12 @@ const useMermaid = (code: string) => {
         const decodedCode = he.decode(code);
         mermaid.initialize({
           startOnLoad: true,
-          theme: document.documentElement.classList.contains('dark')
-            ? 'dark'
-            : 'default',
+          theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
           securityLevel: 'loose',
           suppressErrorRendering: true,
         });
 
-        const { svg } = await mermaid.render(
-          `mermaid-${uuidv4()}`,
-          decodedCode
-        );
+        const { svg } = await mermaid.render(`mermaid-${uuidv4()}`, decodedCode);
         setMermaidHtml(svg);
         setError(null); // Clear any previous errors
       } catch (err: any | unknown) {

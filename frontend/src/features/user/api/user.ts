@@ -14,10 +14,7 @@ export class UserService {
   }
 
   async storeUser(_user: User) {
-    const response = await this._client.put(
-      `/conversations/${_user.id}`,
-      JSON.stringify(_user)
-    );
+    const response = await this._client.put(`/conversations/${_user.id}`, JSON.stringify(_user));
     return await response.json();
   }
 

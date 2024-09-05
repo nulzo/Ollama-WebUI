@@ -29,8 +29,7 @@ export const DEFAULT_OPENAI_MODELS = {
       vision: true,
     },
     {
-      description:
-        'Dynamic model continuously updated to the current version of GPT-4o in ChatGPT',
+      description: 'Dynamic model continuously updated to the current version of GPT-4o in ChatGPT',
       displayName: 'ChatGPT-4o',
       enabled: true,
       functionCall: true,

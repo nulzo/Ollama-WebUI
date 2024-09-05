@@ -26,9 +26,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'strong':
         return <strong key={index}>{renderTokens(token.tokens)}</strong>;
       case 'code':
-        return (
-          <CodeBlock key={index} code={token.text} lang={token?.lang ?? ''} />
-        );
+        return <CodeBlock key={index} code={token.text} lang={token?.lang ?? ''} />;
       case 'codespan':
         return <InlineCodeBlock key={index} code={token.text} />;
       case 'em':
@@ -78,19 +76,13 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           );
         } else if (token?.depth === 5) {
           return (
-            <h5
-              key={index}
-              className="scroll-m-20 text-md font-semibold tracking-tight"
-            >
+            <h5 key={index} className="scroll-m-20 text-md font-semibold tracking-tight">
               {renderTokens(token.tokens || [token])}
             </h5>
           );
         } else {
           return (
-            <h6
-              key={index}
-              className="scroll-m-20 font-semibold tracking-tight"
-            >
+            <h6 key={index} className="scroll-m-20 font-semibold tracking-tight">
               {renderTokens(token.tokens || [token])}
             </h6>
           );

@@ -14,10 +14,7 @@ export class SettingsService {
   }
 
   async updateSettings(_settings: Settings) {
-    const response = await this._client.put(
-      '/conversations/',
-      JSON.stringify(_settings)
-    );
+    const response = await this._client.put('/conversations/', JSON.stringify(_settings));
     return await response.json();
   }
 }

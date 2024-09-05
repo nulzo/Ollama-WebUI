@@ -12,9 +12,7 @@ const createEnv = () => {
     APP_MOCK_API_PORT: z.string().optional().default('8080'),
   });
 
-  const envVars = Object.entries(import.meta.env).reduce<
-    Record<string, string>
-  >((acc, curr) => {
+  const envVars = Object.entries(import.meta.env).reduce<Record<string, string>>((acc, curr) => {
     const [key, value] = curr;
     if (key.startsWith('VITE_APP_')) {
       acc[key.replace('VITE_APP_', '')] = value;

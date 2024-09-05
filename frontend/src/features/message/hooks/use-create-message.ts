@@ -17,11 +17,7 @@ export const createMessageSchema = z.object({
 
 export type CreateMessageInput = z.infer<typeof createMessageSchema>;
 
-export const createMessage = ({
-  data,
-}: {
-  data: CreateMessageInput;
-}): Promise<Comment> => {
+export const createMessage = ({ data }: { data: CreateMessageInput }): Promise<Comment> => {
   return messageService.createMessage(data);
 };
 
@@ -30,10 +26,7 @@ type UseCreateCommentOptions = {
   mutationConfig?: MutationConfig<typeof createMessage>;
 };
 
-export const useCreateMessage = ({
-  mutationConfig,
-  conversation,
-}: UseCreateCommentOptions) => {
+export const useCreateMessage = ({ mutationConfig, conversation }: UseCreateCommentOptions) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};

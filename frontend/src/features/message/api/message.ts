@@ -15,32 +15,22 @@ export class MessageService {
   }
 
   async fetchMessage(_message: Message) {
-    const response = await this._client.get(
-      `/messages/${_message.conversation}`
-    );
+    const response = await this._client.get(`/messages/${_message.conversation}`);
     return await response.json();
   }
 
   async storeMessage(_message: Message) {
-    const response = await this._client.put(
-      '/messages/',
-      JSON.stringify(_message)
-    );
+    const response = await this._client.put('/messages/', JSON.stringify(_message));
     return await response.json();
   }
 
   async removeMessage(_message: Message) {
-    const response = await this._client.delete(
-      `/messages/${_message.conversation}`
-    );
+    const response = await this._client.delete(`/messages/${_message.conversation}`);
     return await response.json();
   }
 
   async createMessage(_message: CreateMessageInput) {
-    const response = await this._client.post(
-      `/messages/`,
-      JSON.stringify(_message)
-    );
+    const response = await this._client.post(`/messages/`, JSON.stringify(_message));
     return await response.json();
   }
 }

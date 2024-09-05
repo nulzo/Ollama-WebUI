@@ -62,9 +62,7 @@ export function ChatRoute() {
                     isTyping={false}
                     message={message?.content}
                     time={message.created_at}
-                    username={
-                      message?.role === 'user' ? message?.role : message?.model
-                    }
+                    username={message?.role === 'user' ? message?.role : message?.model}
                   />
                 ))}
               <div ref={ref} />
@@ -78,8 +76,7 @@ export function ChatRoute() {
                     {isTyping && (
                       <div className="mx-auto z-50 bg-primary/10 backdrop-blur p-2 rounded-lg left-0">
                         <div className="flex gap-2 items-center">
-                          <Origami className="size-5" strokeWidth="1" />{' '}
-                          {model?.model} is typing{' '}
+                          <Origami className="size-5" strokeWidth="1" /> {model?.model} is typing{' '}
                           <PulseLoader
                             size="3"
                             speedMultiplier={0.75}

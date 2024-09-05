@@ -45,9 +45,7 @@ export async function* streamJSON<T = unknown>(
       yield JSON.parse(part);
     }
   }
-  for (const part of buffer
-    .split('\n')
-    .filter((p: string): boolean => p !== '')) {
+  for (const part of buffer.split('\n').filter((p: string): boolean => p !== '')) {
     yield JSON.parse(part);
   }
 }

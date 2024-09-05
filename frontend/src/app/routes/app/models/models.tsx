@@ -38,10 +38,7 @@ export function ModelsRoute() {
 
   const onClick = async (event: any) => {
     const selectedModel = event.target.id;
-    const response = await ollama.show(
-      { name: selectedModel },
-      { stream: false }
-    );
+    const response = await ollama.show({ name: selectedModel }, { stream: false });
     setModel(selectedModel);
     setModelInfo({ ...response, model: selectedModel });
   };
@@ -77,12 +74,8 @@ export function ModelsRoute() {
             {modelInfo && modelInfo?.model && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="uppercase">
-                    {modelInfo?.model || ''}
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    {modelInfo?.license || ''}
-                  </CardDescription>
+                  <CardTitle className="uppercase">{modelInfo?.model || ''}</CardTitle>
+                  <CardDescription className="text-xs">{modelInfo?.license || ''}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div>
@@ -90,10 +83,7 @@ export function ModelsRoute() {
                     <div className="text-xs leading-3 mb-1 font-normal text-muted-foreground">
                       Model template (usually provided by the model creator).
                     </div>
-                    <Textarea
-                      className="resize-none"
-                      value={modelInfo?.template || ''}
-                    />
+                    <Textarea className="resize-none" value={modelInfo?.template || ''} />
                   </div>
                   <div>
                     <Label>System</Label>
@@ -109,8 +99,8 @@ export function ModelsRoute() {
                   <div>
                     <Label>Parameters</Label>
                     <div className="text-xs leading-3 mb-1 font-normal text-muted-foreground">
-                      Additional parameters required by the model (usually stop
-                      conditions, temperature, top_k, etc.).
+                      Additional parameters required by the model (usually stop conditions,
+                      temperature, top_k, etc.).
                     </div>
                     <Textarea
                       className="resize-none"

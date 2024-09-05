@@ -17,21 +17,14 @@ export function SettingsModal() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="mt-auto rounded-lg"
-          aria-label="Account"
-        >
+        <Button variant="ghost" size="icon" className="mt-auto rounded-lg" aria-label="Account">
           <Settings2 className="size-5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
-          <DialogDescription>
-            Make changes to your profile here.
-          </DialogDescription>
+          <DialogDescription>Make changes to your profile here.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">

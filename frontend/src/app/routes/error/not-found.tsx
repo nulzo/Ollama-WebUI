@@ -12,8 +12,8 @@ export const NotFoundRoute = () => {
         </h1>
         <div className="mt-2 text-xl leading-7 text-primary">Ermmmm...</div>
         <div className="mt-6 text-base leading-7 text-muted-foreground">
-          The requested page doesn't exist - sorry about that. Have you
-          considered typing in the correct URL? #skillissue
+          The requested page doesn't exist - sorry about that. Have you considered typing in the
+          correct URL? #skillissue
         </div>
         <div className="mt-10 flex items-center justify-center gap-x-6">
           <Link to="/" replace>

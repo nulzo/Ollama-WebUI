@@ -12,11 +12,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command.tsx';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover.tsx';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover.tsx';
 import { useGetModels } from '../hooks';
 import { Spinner } from '@/components/ui/spinner';
 import { OllamaModel } from '@/types/models';
@@ -53,9 +49,7 @@ export const ModelSelect = () => {
           className="w-[150px] justify-between border-0 bg-accent/0 font-semibold"
         >
           {model
-            ? models?.data?.models?.find(
-                (m: OllamaModel) => m.name === model.name
-              )?.name
+            ? models?.data?.models?.find((m: OllamaModel) => m.name === model.name)?.name
             : 'Select model...'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -67,11 +61,7 @@ export const ModelSelect = () => {
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
               {models?.data?.models?.map((m: OllamaModel) => (
-                <CommandItem
-                  key={m.name}
-                  value={m.name}
-                  onSelect={() => handleModelSelect(m)}
-                >
+                <CommandItem key={m.name} value={m.name} onSelect={() => handleModelSelect(m)}>
                   {m.name}
                   <CheckIcon
                     className={cn(

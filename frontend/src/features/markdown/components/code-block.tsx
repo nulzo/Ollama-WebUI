@@ -32,10 +32,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, lang }) => {
         {isMermaid ? (
           <MermaidComponent code={code} />
         ) : (
-          <code
-            className="mt-0 mb-3"
-            dangerouslySetInnerHTML={{ __html: highlightedCode }}
-          />
+          <code className="mt-0 mb-3" dangerouslySetInnerHTML={{ __html: highlightedCode }} />
         )}
       </pre>
     </div>

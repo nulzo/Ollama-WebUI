@@ -47,9 +47,7 @@ const Sidebar = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`rounded-lg ${
-                    route.pathname === '/' ? 'bg-muted' : ''
-                  }`}
+                  className={`rounded-lg ${route.pathname === '/' ? 'bg-muted' : ''}`}
                   aria-label="Chat"
                   id="chat"
                   key="chat"
@@ -71,9 +69,7 @@ const Sidebar = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`rounded-lg ${
-                    route.pathname === '/models' ? 'bg-muted' : ''
-                  }`}
+                  className={`rounded-lg ${route.pathname === '/models' ? 'bg-muted' : ''}`}
                   aria-label="Models"
                 >
                   <Bot className="size-5" />
@@ -88,12 +84,7 @@ const Sidebar = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-lg"
-                aria-label="Models"
-              >
+              <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Models">
                 <ArrowUpDown className="size-4" />
               </Button>
             </TooltipTrigger>
@@ -107,12 +98,7 @@ const Sidebar = () => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="mt-auto rounded-lg"
-                aria-label="Help"
-              >
+              <Button variant="ghost" size="icon" className="mt-auto rounded-lg" aria-label="Help">
                 <LifeBuoy className="size-5" />
               </Button>
             </TooltipTrigger>

@@ -52,9 +52,7 @@ export const registerInputSchema = z
 
 export type RegisterInput = z.infer<typeof registerInputSchema>;
 
-const registerWithEmailAndPassword = (
-  data: RegisterInput
-): Promise<AuthResponse> => {
+const registerWithEmailAndPassword = (data: RegisterInput): Promise<AuthResponse> => {
   return api.post('/auth/register', data);
 };
 
@@ -71,8 +69,7 @@ const authConfig = {
   logoutFn: logout,
 };
 
-export const { useUser, useLogin, useLogout, useRegister, AuthLoader } =
-  configureAuth(authConfig);
+export const { useUser, useLogin, useLogout, useRegister, AuthLoader } = configureAuth(authConfig);
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = useUser();
@@ -80,10 +77,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user.data) {
     return (
-      <Navigate
-        to={`/auth/login?redirectTo=${encodeURIComponent(location.pathname)}`}
-        replace
-      />
+      <Navigate to={`/auth/login?redirectTo=${encodeURIComponent(location.pathname)}`} replace />
     );
   }
 

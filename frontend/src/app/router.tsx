@@ -64,9 +64,7 @@ export const createAppRouter = (_queryClient: QueryClient) =>
     {
       path: '*',
       lazy: async () => {
-        const { NotFoundRoute } = await import(
-          '@/app/routes/error/not-found.tsx'
-        );
+        const { NotFoundRoute } = await import('@/app/routes/error/not-found.tsx');
         return { Component: NotFoundRoute };
       },
     },

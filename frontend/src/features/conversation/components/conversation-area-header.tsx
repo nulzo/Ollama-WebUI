@@ -17,9 +17,7 @@ export function ConversationAreaHeader() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() =>
-            theme === 'light' ? setTheme('dark') : setTheme('light')
-          }
+          onClick={() => (theme === 'light' ? setTheme('dark') : setTheme('light'))}
         >
           {theme === 'dark' ? (
             <MoonIcon className="size-4" strokeWidth="1.5" />

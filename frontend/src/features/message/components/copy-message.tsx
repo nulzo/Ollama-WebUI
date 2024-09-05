@@ -7,9 +7,7 @@ interface CopyButtonProps {
   content: string;
 }
 
-export const CopyButton: React.FC<{ content: string }> = ({
-  content,
-}: CopyButtonProps) => {
+export const CopyButton: React.FC<{ content: string }> = ({ content }: CopyButtonProps) => {
   const { copy } = useClipboard();
   const { showConfetti, ref } = useConfetti();
 
@@ -31,10 +29,7 @@ export const CopyButton: React.FC<{ content: string }> = ({
         className="size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer"
         onClick={handleClick}
       />
-      <div
-        ref={ref}
-        className="absolute top-0 left-0 w-48 h-48 pointer-events-none"
-      ></div>
+      <div ref={ref} className="absolute top-0 left-0 w-48 h-48 pointer-events-none"></div>
     </div>
   );
 };

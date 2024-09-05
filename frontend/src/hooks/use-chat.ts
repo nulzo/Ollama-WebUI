@@ -3,11 +3,7 @@ import { Ollama } from '@/services/provider/ollama/ollama.ts';
 import { OLLAMA_SETTINGS } from '@/settings/ollama';
 import { ChatResponse, Message } from '@/types/providers/ollama';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  settingsService,
-  conversationService,
-  messageService,
-} from '@/services/storage/client.ts';
+import { settingsService, conversationService, messageService } from '@/services/storage/client.ts';
 import { useModelStore } from '@/features/models/store/model-store';
 
 const ollama = new Ollama(OLLAMA_SETTINGS);

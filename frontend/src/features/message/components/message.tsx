@@ -6,13 +6,7 @@ import { BotIcon } from '@/features/message/components/bot-icon';
 import { formatDate } from '@/utils/format.ts';
 import { CopyButton } from '@/features/message/components/copy-message.tsx';
 
-const Message: React.FC<MessageType> = ({
-  username,
-  message,
-  isBot,
-  time,
-  id,
-}) => {
+const Message: React.FC<MessageType> = ({ username, message, isBot, time, id }) => {
   const formattedDate = formatDate(time);
   return (
     <div className="py-3">
@@ -24,12 +18,8 @@ const Message: React.FC<MessageType> = ({
           {formattedDate ?? ''}
         </span>
       </span>
-      <div
-        className={`flex place-items-start ${isBot ? 'justify-start' : 'justify-end ps-[25%]'}`}
-      >
-        <div className="pe-2 font-bold flex items-center mb-2">
-          {isBot && <BotIcon />}
-        </div>
+      <div className={`flex place-items-start ${isBot ? 'justify-start' : 'justify-end ps-[25%]'}`}>
+        <div className="pe-2 font-bold flex items-center mb-2">{isBot && <BotIcon />}</div>
         <div className={`${isBot && 'max-w-[75%]'}`}>
           <div
             className={`pb-2 px-1 ${isBot ? ' rounded-e-xl rounded-b-xl' : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'}`}

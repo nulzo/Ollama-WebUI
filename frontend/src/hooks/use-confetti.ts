@@ -28,10 +28,7 @@ const generateColors = () => {
   return COLORS[idx];
 };
 
-const createParticleElements = (
-  container: HTMLDivElement,
-  particles: Particle[]
-) => {
+const createParticleElements = (container: HTMLDivElement, particles: Particle[]) => {
   particles.forEach((particle: Particle) => {
     const particleElement = document.createElement('div');
     particleElement.className = 'confetti explode absolute overflow-hidden';
@@ -78,12 +75,7 @@ export const useConfetti = () => {
   const ref = useRef<HTMLCanvasElement | null>(null);
 
   const createParticles = useCallback(
-    (
-      centerX: number,
-      centerY: number,
-      offsetLeft: number,
-      offsetTop: number
-    ) => {
+    (centerX: number, centerY: number, offsetLeft: number, offsetTop: number) => {
       const particles = [];
       for (let i = 0; i < 100; i++) {
         const angle = Math.random() * (2 * Math.PI);

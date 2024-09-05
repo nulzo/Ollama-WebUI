@@ -19,8 +19,8 @@ const DELIMITER_LIST = [
 // const inlineRule = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1(?=[\s?!\.,:？！。，：]|$)/;
 // const blockRule = /^(\${1,2})\n((?:\\[^]|[^\\])+?)\n\1(?:\n|$)/;
 
-let inlinePatterns = [];
-let blockPatterns = [];
+const inlinePatterns = [];
+const blockPatterns = [];
 
 function escapeRegex(string) {
   return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -41,15 +41,10 @@ function generateRegexRules(delimiters) {
 
     // Block pattern - Starts and ends with the delimiter on new lines. Example:
     // $$\ncontent here\n$$
-    blockPatterns.push(
-      `${escapedLeft}\n((?:\\\\[^]|[^\\\\])+?)\n${escapedRight}`
-    );
+    blockPatterns.push(`${escapedLeft}\n((?:\\\\[^]|[^\\\\])+?)\n${escapedRight}`);
   });
 
-  const inlineRule = new RegExp(
-    `^(${inlinePatterns.join('|')})(?=[\\s?!.,:？！。，：]|$)`,
-    'u'
-  );
+  const inlineRule = new RegExp(`^(${inlinePatterns.join('|')})(?=[\\s?!.,:？！。，：]|$)`, 'u');
   const blockRule = new RegExp(`^(${blockPatterns.join('|')})(?:\n|$)`, 'u');
 
   return { inlineRule, blockRule };

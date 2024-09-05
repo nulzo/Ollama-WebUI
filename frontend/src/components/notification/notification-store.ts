@@ -18,15 +18,10 @@ export const useNotifications = create<NotificationsStore>(set => ({
   notifications: [],
   addNotification: notification =>
     set(state => ({
-      notifications: [
-        ...state.notifications,
-        { id: nanoid(), ...notification },
-      ],
+      notifications: [...state.notifications, { id: nanoid(), ...notification }],
     })),
   dismissNotification: id =>
     set(state => ({
-      notifications: state.notifications.filter(
-        notification => notification.id !== id
-      ),
+      notifications: state.notifications.filter(notification => notification.id !== id),
     })),
 }));

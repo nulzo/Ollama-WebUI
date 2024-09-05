@@ -52,10 +52,7 @@ type AutosizeTextAreaProps = {
   minHeight?: number;
 } & React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-export const Textarea = React.forwardRef<
-  AutosizeTextAreaRef,
-  AutosizeTextAreaProps
->(
+export const Textarea = React.forwardRef<AutosizeTextAreaRef, AutosizeTextAreaProps>(
   (
     {
       maxHeight = 200,

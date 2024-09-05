@@ -14,8 +14,7 @@ const DEFAULT_IDX: number = -1;
 
 export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
   const [history, setHistory] = useState<string[]>([]);
-  const [currentHistoryIndex, setCurrentHistoryIndex] =
-    useState<number>(DEFAULT_IDX);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(DEFAULT_IDX);
   const ref = useRef<HTMLTextAreaElement>(null);
 
   function handleChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -58,8 +57,7 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
       case 'Enter':
         if (event.shiftKey) {
           event.target.style.height = '';
-          event.target.style.height =
-            Math.min(event.target.scrollHeight, 200) + 'px';
+          event.target.style.height = Math.min(event.target.scrollHeight, 200) + 'px';
           setValue(value + '\n');
           event.preventDefault();
         } else {

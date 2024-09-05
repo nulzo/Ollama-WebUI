@@ -1,10 +1,4 @@
-const CodeCopyButton = ({
-  onClick,
-  copied,
-}: {
-  onClick: any;
-  copied: boolean;
-}) => {
+const CodeCopyButton = ({ onClick, copied }: { onClick: any; copied: boolean }) => {
   return (
     <button
       onClick={onClick}

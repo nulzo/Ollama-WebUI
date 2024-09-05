@@ -9,9 +9,7 @@ export class ConversationService {
   }
 
   async fetchConversation(conversation_id: string) {
-    const response = await this._client.get(
-      `/conversations/${conversation_id}/`
-    );
+    const response = await this._client.get(`/conversations/${conversation_id}/`);
     return await response.json();
   }
 
@@ -21,25 +19,17 @@ export class ConversationService {
   }
 
   async createConversation(conversation: Conversation) {
-    const response = await this._client.post(
-      '/conversations/',
-      JSON.stringify(conversation)
-    );
+    const response = await this._client.post('/conversations/', JSON.stringify(conversation));
     return await response.json();
   }
 
   async storeConversation(conversation: Conversation) {
-    const response = await this._client.put(
-      '/conversations/',
-      JSON.stringify(conversation)
-    );
+    const response = await this._client.put('/conversations/', JSON.stringify(conversation));
     return await response.json();
   }
 
   async removeConversation(conversation: Conversation) {
-    const response = await this._client.delete(
-      `/conversations/${conversation.uuid}`
-    );
+    const response = await this._client.delete(`/conversations/${conversation.uuid}`);
     return await response.json();
   }
 }

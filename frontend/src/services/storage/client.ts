@@ -1,8 +1,4 @@
-import {
-  DATABASE_API_VERSION,
-  DATABASE_ENDPOINT,
-  DATABASE_PORT,
-} from '@/const/database.ts';
+import { DATABASE_API_VERSION, DATABASE_ENDPOINT, DATABASE_PORT } from '@/const/database.ts';
 import { FetchWrapper } from '@/services/fetch.ts';
 import { SettingsService } from '@/features/settings/api/settings';
 import { UserService } from '@/features/user/api/user';

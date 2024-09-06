@@ -30,7 +30,6 @@ export const Notification = ({
   notification: { id, type, title, message },
   onDismiss,
 }: NotificationProps) => {
-
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
@@ -47,10 +46,10 @@ export const Notification = ({
       <div
         className={`${!isExiting ? 'animate-toast-in' : 'animate-toast-out'} ${borders[type]} pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-background/50 backdrop-blur transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full`}
       >
-        <div className="p-4 relative" role="alert" aria-label={title}>
+        <div className="py-2 px-3 relative" role="alert" aria-label={title}>
           <div className="flex items-start">
-            <div className="shrink-0">{icons[type]}</div>
-            <div className="ml-3 w-0 flex-1 pt-0.5">
+            <div className="shrink-0 pt-1">{icons[type]}</div>
+            <div className="ml-3 w-0 flex-1">
               <p className="text-sm font-semibold [&+div]:text-xs">{title}</p>
               <p className="text-sm opacity-90">{message}</p>
             </div>

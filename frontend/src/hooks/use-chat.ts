@@ -10,11 +10,11 @@ const ollama = new Ollama(OLLAMA_SETTINGS);
 
 export function useChat() {
   const { model, setModel } = useModelStore();
-  const [uuid, setUuid] = useState('');
-  const [message, setMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const [uuid, setUuid] = useState<string>(uuidv4());
+  const [message, setMessage] = useState<string>('');
+  const [isTyping, setIsTyping] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchModel = async () => {
@@ -25,6 +25,24 @@ export function useChat() {
     };
     fetchModel();
   }, [setModel]);
+
+  // const write = useCallback(
+  //     async (response: ChatResponse[]) => {
+  //         const combinedMessages = response.reduce((acc, part) => acc + part.message.content, '');
+  //         setIsTyping(false);
+  //
+  //         const newAssistantMessage: Message = {
+  //             role: 'assistant',
+  //             content: combinedMessages,
+  //             conversation: uuid,
+  //             model: model?.model ?? 'unknown',
+  //         };
+  //
+  //         setMessages(prevMessages => [...prevMessages, newAssistantMessage]);
+  //         await messageService.createMessage(newAssistantMessage);
+  //     },
+  //     [uuid, model]
+  // );
 
   const write = useCallback(
     async (response: ChatResponse[]): Promise<void> => {
@@ -39,11 +57,11 @@ export function useChat() {
           role: 'assistant',
           content: curr,
           chat: uuid,
-          model: model?.model,
+          model: model?.model ?? 'assistant',
         },
       ]);
       await messageService.createMessage({
-        model: model?.model,
+        model: model?.model ?? 'assistant',
         content: curr,
         role: 'assistant',
         conversation: uuid,
@@ -92,10 +110,10 @@ export function useChat() {
   }, []);
 
   const getChatHistory = useCallback(async (id: string) => {
-    const response = await conversationService.fetchConversation(id);
-    if (response) {
-      setUuid(response.uuid);
-      setMessages(response.messages || []);
+    const history = await conversationService.fetchConversation(id);
+    if (history) {
+      setUuid(history.uuid);
+      setMessages(history.messages || []);
     }
   }, []);
 

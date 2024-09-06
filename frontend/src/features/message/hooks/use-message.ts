@@ -1,38 +1,29 @@
-import { useState, useCallback } from 'react';
-import { messageService } from '@/services/storage/client';
-import { CreateMessageInput } from './use-create-message';
+import { useState, useEffect, useCallback } from 'react';
+import { Message } from '@/types/providers/ollama'; // Adjust the import to your actual path
+import { fetchMessages, sendMessage } from './api';
+import { useModelStore } from '@/features/models/store/model-store.ts'; // Assuming these functions are implemented
 
-export function useMessage(model: string, uuid: string) {
-  const [messages, setMessages] = useState<CreateMessageInput[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [message, setMessage] = useState('');
+export const useChatMessages = (conversationId: string) => {
+  const { model, setModel } = useModelStore();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const write = useCallback(
-    async (response): Promise<void> => {
-      let curr = '';
-      for await (const part of response) {
-        curr += part.message.content;
-      }
-      setIsTyping(false);
-      const newMessage: CreateMessageInput = {
-        role: 'assistant',
-        content: curr,
-        conversation: uuid,
-        model,
-      };
-      setMessages(prevMessages => [...prevMessages, newMessage]);
-      await messageService.createMessage(newMessage);
-    },
-    [uuid, model]
-  );
+  const loadMessages = useCallback(async () => {
+    try {
+      const fetchedMessages = await fetchMessages(conversationId);
+      setMessages(fetchedMessages);
+    } catch (err) {
+      setError('Failed to fetch messages');
+    }
+  }, [conversationId]);
 
-  return {
-    messages,
-    message,
-    isTyping,
-    setMessages,
-    setMessage,
-    setIsTyping,
-    write,
-  };
-}
+  const addMessage = useCallback((message: Message) => {
+    setMessages(prevMessages => [...prevMessages, message]);
+  }, []);
+
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
+
+  return { messages, error, addMessage };
+};

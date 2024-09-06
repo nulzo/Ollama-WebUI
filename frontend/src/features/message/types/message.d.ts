@@ -1,6 +1,6 @@
 export interface Message {
   id: ?string;
-  chat?: string;
+  conversation?: string;
   username?: string;
   message?: string;
   isBot?: boolean;

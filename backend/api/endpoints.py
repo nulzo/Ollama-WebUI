@@ -1,6 +1,7 @@
 from api.views import AssistantViewSet, ConversationList, ConversationDetail, MessageList, SettingsList, SettingsDetail, MessageDetail, UserSettingsList, UserSettingsDetail
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from api.view.message import MessageView
 
 router = DefaultRouter()
 
@@ -16,5 +17,6 @@ urlpatterns = [
     path('user/<int:pk>/', UserSettingsDetail.as_view(), name='user-detail'),
     path('settings/', SettingsList.as_view(), name='settings-list'),
     path('settings/<int:pk>/', SettingsDetail.as_view(), name='settings-detail'),
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('chat/ollama/', MessageView.as_view(), name="chat")
 ]

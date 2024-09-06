@@ -1,6 +1,6 @@
 <div style="width: 100%;" align="center">
   <a href="https://github.com/nulzo/ollama-webui">
-    <img src="docs/images/cringelogomedium.svg" style="width: 50%;" alt="">
+    <img src="docs/images/cringelogomedium.svg" style="width: 40%;" alt="">
   </a>
 </div>
 

@@ -27,10 +27,14 @@
             font-weight: bold;
             font-size: 5rem;
             text-align: center;
-            background: #3750CF;
-            background: linear-gradient(to right, #3750CF 0%, #AC39CF 100%);
+            background: #949ECF;
+            background: linear-gradient(to right, #949ECF 0%, #C69ACF 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            <!-- background: #3750CF;
+            background: linear-gradient(to right, #3750CF 0%, #AC39CF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; -->
           }
 
           .small {

@@ -1,5 +1,11 @@
-from api.views import ConversationList, ConversationDetail, MessageList, SettingsList, SettingsDetail, MessageDetail, UserSettingsList, UserSettingsDetail
-from django.urls import path
+from api.views import AssistantViewSet, ConversationList, ConversationDetail, MessageList, SettingsList, SettingsDetail, MessageDetail, UserSettingsList, UserSettingsDetail
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+
+router.register(r'assistant', AssistantViewSet)
+
 
 urlpatterns = [
     path('conversations/', ConversationList.as_view(), name='conversation-list'),
@@ -10,4 +16,5 @@ urlpatterns = [
     path('user/<int:pk>/', UserSettingsDetail.as_view(), name='user-detail'),
     path('settings/', SettingsList.as_view(), name='settings-list'),
     path('settings/<int:pk>/', SettingsDetail.as_view(), name='settings-detail'),
+    path('', include(router.urls))
 ]

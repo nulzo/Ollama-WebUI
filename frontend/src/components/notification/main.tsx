@@ -30,7 +30,6 @@ export const Notification = ({
   notification: { id, type, title, message },
   onDismiss,
 }: NotificationProps) => {
-
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {

@@ -7,6 +7,14 @@ from api.serializers.user import UserSerializer
 from api.serializers.conversation import ConversationSerializer
 from api.serializers.settings import SettingsSerializer
 from api.models.settings import Settings
+from api.models.assistant import Assistant
+from api.serializers.assistant import AssistantSerializer
+from rest_framework import viewsets
+
+
+class AssistantViewSet(viewsets.ModelViewSet):
+    queryset = Assistant.objects.all()
+    serializer_class = AssistantSerializer
 
 
 class ConversationList(generics.ListCreateAPIView):

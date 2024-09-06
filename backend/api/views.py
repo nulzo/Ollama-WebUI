@@ -1,5 +1,5 @@
 from rest_framework import generics
-from api.models.user import UserSettings
+from api.models.user import CustomUser
 from api.models.conversation import Conversation
 from api.models.message import Message
 from api.serializers.message import MessageSerializer
@@ -37,12 +37,12 @@ class MessageDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class UserSettingsList(generics.ListCreateAPIView):
-    queryset = UserSettings.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
 
 class UserSettingsDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = UserSettings.objects.all()
+    queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
 

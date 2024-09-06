@@ -1,10 +1,6 @@
-/* @import url('highlight.js/styles/github.css'); */
-
-/* @import url('highlight.js/styles/github.css') screen and (prefers-color-scheme: light); */
-
-/* @import url('https://fonts.googleapis.com/css2?family=Baskervville+SC&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap'); */
-
-/* ! tailwindcss v3.4.3 | MIT License | https://tailwindcss.com */
+/*
+! tailwindcss v3.4.3 | MIT License | https://tailwindcss.com
+*/
 
 /*
 1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
@@ -453,11 +449,11 @@ video {
 :root {
   --background: 0 0% 98%;
   --foreground: 0 0% 3.9%;
-  --primary: 260 100% 70%;
+  --primary: 200 50% 20%;
   --primary-foreground: 0 0% 98%;
-  --secondary: 0 0% 96.1%;
+  --secondary: 0 0% 95.1%;
   --secondary-foreground: 0 0% 9%;
-  --tertiary: 0 0% 92.9%;
+  --tertiary: 0 0% 90%;
   --tertiary-foreground: 0 0% 98%;
   --muted: 0 0% 96.1%;
   --muted-foreground: 0 0% 45.1%;
@@ -768,8 +764,8 @@ body {
   bottom: 0px;
 }
 
-.bottom-2 {
-  bottom: 0.5rem;
+.bottom-3 {
+  bottom: 0.75rem;
 }
 
 .bottom-4 {
@@ -971,10 +967,6 @@ body {
   margin-bottom: 0.75rem;
 }
 
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
 .mb-5 {
   margin-bottom: 1.25rem;
 }
@@ -1025,6 +1017,10 @@ body {
 
 .mt-10 {
   margin-top: 2.5rem;
+}
+
+.mt-16 {
+  margin-top: 4rem;
 }
 
 .mt-2 {
@@ -1103,9 +1099,9 @@ body {
   height: 1.25rem;
 }
 
-.size-7 {
-  width: 1.75rem;
-  height: 1.75rem;
+.size-8 {
+  width: 2rem;
+  height: 2rem;
 }
 
 .size-full {
@@ -1187,6 +1183,10 @@ body {
 
 .h-\[20px\] {
   height: 20px;
+}
+
+.h-\[58px\] {
+  height: 58px;
 }
 
 .h-\[85vh\] {
@@ -1337,6 +1337,10 @@ body {
   width: 1px;
 }
 
+.w-\[200px\] {
+  width: 200px;
+}
+
 .w-\[250px\] {
   width: 250px;
 }
@@ -1347,6 +1351,10 @@ body {
 
 .w-\[53px\] {
   width: 53px;
+}
+
+.w-\[90\%\] {
+  width: 90%;
 }
 
 .w-fit {
@@ -1442,6 +1450,12 @@ body {
 
 .border-collapse {
   border-collapse: collapse;
+}
+
+.border-spacing-2 {
+  --tw-border-spacing-x: 0.5rem;
+  --tw-border-spacing-y: 0.5rem;
+  border-spacing: var(--tw-border-spacing-x) var(--tw-border-spacing-y);
 }
 
 .-translate-x-1\/2 {
@@ -1660,6 +1674,10 @@ body {
   gap: 1rem;
 }
 
+.gap-6 {
+  gap: 1.5rem;
+}
+
 .gap-x-6 {
   -moz-column-gap: 1.5rem;
        column-gap: 1.5rem;
@@ -1713,10 +1731,6 @@ body {
   overflow: hidden;
 }
 
-.overflow-clip {
-  overflow: clip;
-}
-
 .overflow-y-auto {
   overflow-y: auto;
 }
@@ -1749,6 +1763,10 @@ body {
 
 .rounded {
   border-radius: 0.25rem;
+}
+
+.rounded-2xl {
+  border-radius: 1rem;
 }
 
 .rounded-\[inherit\] {
@@ -1859,8 +1877,8 @@ body {
   border-color: hsl(var(--destructive) / 0.5);
 }
 
-.border-foreground\/25 {
-  border-color: hsl(var(--foreground) / 0.25);
+.border-foreground\/20 {
+  border-color: hsl(var(--foreground) / 0.2);
 }
 
 .border-green-500 {
@@ -2164,10 +2182,6 @@ body {
   padding-bottom: 0.5rem;
 }
 
-.pb-3 {
-  padding-bottom: 0.75rem;
-}
-
 .pb-4 {
   padding-bottom: 1rem;
 }
@@ -2190,6 +2204,10 @@ body {
 
 .pl-2\.5 {
   padding-left: 0.625rem;
+}
+
+.pl-3 {
+  padding-left: 0.75rem;
 }
 
 .pl-4 {
@@ -2246,10 +2264,6 @@ body {
 
 .pt-1 {
   padding-top: 0.25rem;
-}
-
-.pt-2 {
-  padding-top: 0.5rem;
 }
 
 .pt-3 {
@@ -2545,10 +2559,6 @@ body {
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 
-.ring-inset {
-  --tw-ring-inset: inset;
-}
-
 .ring-ring {
   --tw-ring-color: hsl(var(--primary));
 }
@@ -2727,14 +2737,18 @@ body {
   z-index: 20;
 }
 
+.focus-within\:border-primary:focus-within {
+  border-color: hsl(var(--primary));
+}
+
 .focus-within\:ring-2:focus-within {
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
   --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 
-.focus-within\:ring-ring:focus-within {
-  --tw-ring-color: hsl(var(--primary));
+.focus-within\:ring-ring\/50:focus-within {
+  --tw-ring-color: hsl(var(--primary) / 0.5);
 }
 
 .hover\:cursor-pointer:hover {
@@ -3385,6 +3399,10 @@ body {
     display: flex;
   }
 
+  .md\:w-\[93\%\] {
+    width: 93%;
+  }
+
   .md\:w-\[var\(--radix-navigation-menu-viewport-width\)\] {
     width: var(--radix-navigation-menu-viewport-width);
   }
@@ -3421,6 +3439,10 @@ body {
     grid-column: span 4 / span 4;
   }
 
+  .lg\:w-\[94\%\] {
+    width: 94%;
+  }
+
   .lg\:max-w-2xl {
     max-width: 42rem;
   }
@@ -3445,12 +3467,28 @@ body {
 }
 
 @media (min-width: 1280px) {
+  .xl\:w-\[95\%\] {
+    width: 95%;
+  }
+
+  .xl\:max-w-3xl {
+    max-width: 48rem;
+  }
+
   .xl\:max-w-4xl {
     max-width: 56rem;
   }
 }
 
 @media (min-width: 1536px) {
+  .\32xl\:w-\[96\%\] {
+    width: 96%;
+  }
+
+  .\32xl\:max-w-5xl {
+    max-width: 64rem;
+  }
+
   .\32xl\:max-w-6xl {
     max-width: 72rem;
   }

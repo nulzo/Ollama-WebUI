@@ -1,10 +1,14 @@
-# nulzo's Epic Ollama Web Interface
+<div style="width: 100%;" align="center">
+  <a href="https://github.com/nulzo/ollama-webui">
+    <img src="docs/images/cringelogomedium.svg" style="width: 40%;" alt="">
+  </a>
+</div>
 
-*todo*
-> With great power comes greater epicness
-> @nulzo
-
-## Screenshots
+<div style="width: 100%;" align="center">
+  <a href="https://github.com/nulzo/ollama-webui">
+    <img src="docs/images/cringetext.svg" style="width: 100%;" alt="">
+  </a>
+</div>
 
 ![main-page](docs/images/main-page.png)
 

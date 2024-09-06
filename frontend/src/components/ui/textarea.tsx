@@ -52,7 +52,7 @@ export const Textarea = React.forwardRef<AutosizeTextAreaRef, AutosizeTextAreaPr
   (
     {
       maxHeight = 200,
-      minHeight = 42,
+      minHeight = 48,
       className,
       onChange,
       value,

@@ -8,12 +8,13 @@ import {
 } from '@/components/ui/tooltip.tsx';
 import { Link, useLocation } from 'react-router-dom';
 import { SettingsModal } from '@/features/settings/components/settings-modal';
+import logo from '@/assets/cringelogomedium.svg';
 
 const Sidebar = () => {
   const route = useLocation();
   return (
     <aside className="bg-tertiary inset-y flex left-0 z-20 h-full flex-col border-r w-[53px]">
-      <nav className="mt-2 grid gap-1 p-2">
+      <nav className="mt-1 grid gap-1 p-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -21,16 +22,12 @@ const Sidebar = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`rounded-lg mb-4`}
+                  className={`rounded-lg mb-3`}
                   aria-label="Chat"
                   id="chat"
                   key="chat"
                 >
-                  <img
-                    className="rounded-xl size-7"
-                    src="https://avatars.githubusercontent.com/u/65730528?v=4"
-                    alt="nulzo"
-                  />
+                  <img className="rounded size-8" src={logo} alt="nulzo" />
                 </Button>
               </Link>
             </TooltipTrigger>

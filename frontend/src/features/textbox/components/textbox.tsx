@@ -36,18 +36,18 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
   }
 
   return (
-    <div className="max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl px-2.5 md:px-4 mx-auto inset-x-0 ring-inset p-2 relative overflow-clip rounded-xl border border-foreground/25 bg-accent focus-within:ring-2 h-full w-full focus-within:ring-ring">
+    <div className="max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-3xl 2xl:max-w-5xl px-2.5 md:px-4 mx-auto inset-x-0 ring-inset p-2 relative overflow-clip rounded-2xl border border-foreground/25 bg-accent focus-within:ring-2 w-full h-[58px] focus-within:ring-ring">
       <Textarea
         id="chatMessage"
         key="chatMessageArea"
-        className="focus:border-transparent pt-2 pb-3 scrollbar-hidden focus-visible:ring-0 resize-none border-0 shadow-none items-center align-middle"
+        className="focus:border-transparent py-2.5 pl-4 scrollbar-hidden focus-visible:ring-0 resize-none border-0 shadow-none items-center align-middle"
         value={value}
         rows={1}
         onChange={event => handleChange(event)}
         onKeyDown={onKeyPress}
-        placeholder="Send a message"
+        placeholder="Message CringeGPT"
       />
-      <div className="absolute bottom-2 right-3">
+      <div className="absolute bottom-3 right-3">
         <Button
           type="submit"
           disabled={value.length === 0 || !model}
@@ -57,7 +57,7 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
         >
           <Send className="size-3" />
           {model}
-          <span className="sr-only">Send Message</span>
+          <span className="sr-only">Message CringeGPT</span>
         </Button>
       </div>
     </div>

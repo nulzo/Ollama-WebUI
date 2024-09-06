@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from api.models.user import UserSettings
+from api.models.user import CustomUser
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = UserSettings
+        model = CustomUser
         fields = "__all__"

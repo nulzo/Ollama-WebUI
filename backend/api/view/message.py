@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from services.message.message_service import MessageService
+from api.serializers.message import MessageSerializer
 
 
 class MessageView(APIView):
@@ -21,4 +22,5 @@ class MessageView(APIView):
 
     def get(self, request):
         messages = self.message_service.message_repository.get_all_messages()
-        return Response([str(value) for value in messages])
+        serialized_messages = MessageSerializer(messages, many=True)
+        return Response(serialized_messages.data, status=status.HTTP_200_OK)

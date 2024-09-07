@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class MessageSerializer(serializers.ModelSerializer):
     liked_by = LikedMessageSerializer(many=True, read_only=True)
-    sender = serializers.IntegerField(write_only=True)
+    # sender = serializers.IntegerField()
 
     class Meta:
         model = Message

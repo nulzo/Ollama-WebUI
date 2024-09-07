@@ -29,6 +29,7 @@ pytest = "^8.2.0"
 pylint = "^3.1.0"
 pillow = "^10.4.0"
 ollama = "^0.3.2"
+rich = "^13.8.0"
 
 [tool.black]
 line-length = 100

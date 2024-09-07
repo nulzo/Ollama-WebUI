@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from api.models.pinned_messages import PinnedMessage
+from api.models.messages.pinned_messages import PinnedMessage
 
 
 class PinnedMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PinnedMessage
-        fields = '__all__'
+        fields = "__all__"

@@ -1,13 +1,13 @@
 from rest_framework import generics
-from api.models.user import CustomUser
-from api.models.conversation import Conversation
-from api.models.message import Message
+from api.models.users.user import CustomUser
+from api.models.conversation.conversation import Conversation
+from api.models.messages.message import Message
 from api.serializers.message import MessageSerializer
 from api.serializers.user import UserSerializer
 from api.serializers.conversation import ConversationSerializer
 from api.serializers.settings import SettingsSerializer
-from api.models.settings import Settings
-from api.models.assistant import Assistant
+from api.models.settings.settings import Settings
+from api.models.assistant.assistant import Assistant
 from api.serializers.assistant import AssistantSerializer
 from rest_framework import viewsets
 
@@ -33,7 +33,7 @@ class MessageList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Message.objects.all()
-        chat_uuid = self.request.query_params.get('chat', None)
+        chat_uuid = self.request.query_params.get("chat", None)
         if chat_uuid is not None:
             queryset = queryset.filter(chat__uuid=chat_uuid)
         return queryset

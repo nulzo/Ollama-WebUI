@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models.conversation import Conversation
+from api.models.conversation.conversation import Conversation
 from api.serializers.message import MessageSerializer
 
 

@@ -1,5 +1,5 @@
 from django.db import models
-from api.models.user import CustomUser
+from api.models.users.user import CustomUser
 
 
 class Settings(models.Model):

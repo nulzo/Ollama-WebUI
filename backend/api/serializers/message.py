@@ -1,17 +1,38 @@
 from rest_framework import serializers
-from api.models.message import Message
+from api.models.messages.message import Message
 from api.serializers.liked_messages import LikedMessageSerializer
-from django.contrib.contenttypes.models import ContentType
+from api.models.sender.sender import Sender
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MessageSerializer(serializers.ModelSerializer):
     liked_by = LikedMessageSerializer(many=True, read_only=True)
-    sender_type = serializers.SerializerMethodField()
+    sender = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Message
-        fields = '__all__'
+        fields = "__all__"
 
-    def get_sender_type(self, obj):
-        return ContentType.objects.get_for_id(obj.content_type_id).model
+    def validate_sender(self, sender_id):
+        try:
+            return Sender.objects.get(pk=sender_id)
+        except Sender.DoesNotExist as exception:
+            logger.debug(f"{exception}.. Attempting to create a new sender.")
+            raise serializers.ValidationError("Sender does not exist")
+        
+    def get_message_content(self):
+        return self.validated_data.get("content")
     
+    def get_conversation(self):
+        return self.validated_data.get("conversation")
+    
+    def get_meta_user(self):
+        return self.validated_data.get("meta_user")
+    
+    def get_meta_model(self):
+        return self.validated_data.get("meta_model")
+    
+    def get_sender(self):
+        return self.validated_data.get("sender")

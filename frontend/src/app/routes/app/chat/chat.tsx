@@ -59,7 +59,7 @@ export function ChatRoute() {
       <div className="transition w-full max-w-full flex flex-col">
         <ConversationAreaHeader />
         <div className="transition relative flex flex-col flex-auto z-10">
-          <div className="w-full h-full flex mt-24 flex-col items-center justify-center">
+          {/* <div className="w-full h-full flex mt-24 flex-col items-center justify-center">
             <div>
               <svg
                 version="1.0"
@@ -114,7 +114,7 @@ export function ChatRoute() {
                 </CardHeader>
               </Card>
             </div>
-          </div>
+          </div> */}
 
           <ConversationArea>
             <>
@@ -127,13 +127,16 @@ export function ChatRoute() {
                     isTyping={false}
                     message={message?.content}
                     time={message.created_at}
-                    username={message?.role === 'user' ? message?.role : message?.model}
+                    // username={message?.role === 'user' ? message?.role : message?.model}
+                    username={message?.sender?.assistant?.name}
                   />
                 ))}
+                
               <div ref={ref} />
             </>
           </ConversationArea>
-          <div className="mb-5 z-[99]">
+          
+          <div className="mb-5 z-[99]">{console.log(messages)}
             <div className="-mb-3.5 mx-auto inset-x-0 bg-transparent flex justify-center">
               <div className="mx-auto flex flex-col max-w-4xl justify-center px-2.5 md:px-6 w-full">
                 <div className="relative flex justify-center">

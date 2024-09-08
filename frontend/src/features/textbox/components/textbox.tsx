@@ -1,5 +1,5 @@
 import { Textarea } from '@/components/ui/textarea.tsx';
-import { Send } from 'lucide-react';
+import { Command, CornerDownLeft, CornerLeftDown, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 
 export interface ITextbox {
@@ -55,7 +55,12 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
           size="sm"
           className="ml-auto gap-1.5 text-primary-foreground"
         >
-          <Send className="size-3" />
+          Send
+            <kbd className="px-1 gap-1 rounded inline-flex justify-center items-center py-1 font-mono text-sm">
+              <Command className='size-2.5' />
+              <CornerDownLeft className='size-2.5' />
+            </kbd>
+          {/* <Send className="size-3" /> */}
           <span className="sr-only">Message CringeGPT</span>
         </Button>
       </div>

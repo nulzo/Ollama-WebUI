@@ -474,8 +474,8 @@ video {
 .dark {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
-  --primary: 190 10% 75%;
-  --primary-foreground: 0 0% 98%;
+  --primary: 216 12.2% 83.9%;
+  --primary-foreground: 0 0% 8%;
   --secondary: 0 0% 7.9%;
   --secondary-foreground: 0 0% 98%;
   --tertiary: 0 0% 12.9%;
@@ -1077,6 +1077,16 @@ body {
 
 .aspect-square {
   aspect-ratio: 1 / 1;
+}
+
+.size-2 {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.size-2\.5 {
+  width: 0.625rem;
+  height: 0.625rem;
 }
 
 .size-3 {

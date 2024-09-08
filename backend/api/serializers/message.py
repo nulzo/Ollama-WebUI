@@ -2,6 +2,7 @@ from rest_framework import serializers
 from api.models.messages.message import Message
 from api.serializers.liked_messages import LikedMessageSerializer
 from api.models.sender.sender import Sender
+from api.serializers.sender import SenderSerializer
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class MessageSerializer(serializers.ModelSerializer):
     liked_by = LikedMessageSerializer(many=True, read_only=True)
-    # sender = serializers.IntegerField()
+    sender = SenderSerializer()
 
     class Meta:
         model = Message

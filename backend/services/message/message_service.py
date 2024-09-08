@@ -17,7 +17,6 @@ class MessageService:
     def get_message(self, message_id):
         return self.message_repository.get_message_by_id(message_id)
     
-    
     def list_messages(self):
         return self.message_repository.get_all_messages()
     

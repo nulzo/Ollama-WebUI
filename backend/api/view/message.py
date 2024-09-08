@@ -3,6 +3,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from services.message.message_service import MessageService
 from api.serializers.message import MessageSerializer
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MessageView(APIView):
@@ -12,6 +15,8 @@ class MessageView(APIView):
         self.message_service = MessageService()
 
     def post(self, request, *args, **kwargs):
+
+        logger.info(request.data)
         response = self.message_service.handle_user_message(request.data)
 
         if "errors" in response:

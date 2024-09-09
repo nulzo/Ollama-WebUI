@@ -14,11 +14,7 @@ export function ConversationAreaHeader() {
         <Button size="icon" variant="ghost">
           <SlidersHorizontal className="size-4" strokeWidth="1.5" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => (theme === 'light' ? setTheme('dark') : setTheme('light'))}
-        >
+        <Button variant="ghost" size="icon" onClick={() => (theme === 'light' ? setTheme('dark') : setTheme('light'))}>
           {theme === 'dark' ? (
             <MoonIcon className="size-4" strokeWidth="1.5" />
           ) : (

@@ -8,9 +8,7 @@ export const markedInstance = new Marked(
   markedHighlight({
     langPrefix: 'hljs language-',
     highlight(code, lang) {
-      const result = lang
-        ? hljs.highlight(code, { language: lang }).value
-        : hljs.highlightAuto(code).value;
+      const result = lang ? hljs.highlight(code, { language: lang }).value : hljs.highlightAuto(code).value;
       return result;
     },
   })

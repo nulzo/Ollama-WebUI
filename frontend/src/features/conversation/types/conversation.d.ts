@@ -1,10 +1,9 @@
 export interface Conversation {
-  uuid?: string;
-  created_by?: string;
+  created_at?: Date;
   is_pinned?: boolean;
   is_hidden?: boolean;
-  timestamp?: string;
-  updated_at?: string;
-  name?: string;
-  model?: string;
+  updated_at?: Date;
+  uuid: string;
+  name?: string | null;
+  userId: number | string | null;
 }

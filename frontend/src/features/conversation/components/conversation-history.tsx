@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useConversations } from '@/hooks/use-conversations';
+import { useConversations } from '@/features/conversation/api/get-conversations';
 
 export default function ConversationHistory(props: any) {
   const chats = useConversations();

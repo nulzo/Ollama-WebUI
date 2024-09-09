@@ -29,9 +29,7 @@ export const isValid = async (response: Response): Promise<void> => {
   }
 };
 
-export async function* streamJSON<T = unknown>(
-  iterator: ReadableStream<Uint8Array>
-): AsyncGenerator<T> {
+export async function* streamJSON<T = unknown>(iterator: ReadableStream<Uint8Array>): AsyncGenerator<T> {
   const decoder: TextDecoder = new TextDecoder('utf-8');
   let buffer: string = '';
   const reader: ReadableStreamDefaultReader<Uint8Array> = iterator.getReader();

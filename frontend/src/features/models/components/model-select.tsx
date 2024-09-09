@@ -13,18 +13,21 @@ import {
   CommandList,
 } from '@/components/ui/command.tsx';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover.tsx';
-import { useGetModels } from '../hooks';
 import { Spinner } from '@/components/ui/spinner';
 import { OllamaModel } from '@/types/models';
+import { useModels } from '@/features/models/api/get-models.ts';
+import { OllamaModelData } from '@/features/models/types/models';
 
 export const ModelSelect = () => {
   const [open, setOpen] = useState(false);
-  const models = useGetModels();
+  const models = useModels({});
 
   const { setModel, model } = useModelStore(state => ({
     setModel: state.setModel,
     model: state.model,
   }));
+
+  console.log(models);
 
   if (models.isLoading) {
     return (
@@ -35,7 +38,6 @@ export const ModelSelect = () => {
   }
 
   const handleModelSelect = (model: OllamaModel) => {
-    console.log(model);
     setModel(model);
   };
 
@@ -48,9 +50,7 @@ export const ModelSelect = () => {
           aria-expanded={open}
           className="w-[150px] justify-between border-0 bg-accent/0 font-semibold"
         >
-          {model
-            ? models?.data?.models?.find((m: OllamaModel) => m.name === model.name)?.name
-            : 'Select model...'}
+          {model ? models?.data?.models?.find((m: OllamaModelData) => m.name === model.name)?.name : 'Select model...'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -63,12 +63,7 @@ export const ModelSelect = () => {
               {models?.data?.models?.map((m: OllamaModel) => (
                 <CommandItem key={m.name} value={m.name} onSelect={() => handleModelSelect(m)}>
                   {m.name}
-                  <CheckIcon
-                    className={cn(
-                      'ml-auto h-4 w-4',
-                      model?.name === m.name ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
+                  <CheckIcon className={cn('ml-auto h-4 w-4', model?.name === m.name ? 'opacity-100' : 'opacity-0')} />
                 </CommandItem>
               ))}
             </CommandGroup>

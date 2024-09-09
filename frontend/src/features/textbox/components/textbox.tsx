@@ -1,16 +1,17 @@
 import { Textarea } from '@/components/ui/textarea.tsx';
-import { Command, CornerDownLeft, CornerLeftDown, Send } from 'lucide-react';
+import { Command, CornerDownLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
+import { ChangeEvent, FormEvent } from 'react';
 
 export interface ITextbox {
   value: string;
   model: string;
   setValue: (value: string) => void;
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: () => void;
 }
 
 export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
-  function handleChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
+  function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {
     setValue(event.target.value);
   }
 
@@ -24,15 +25,15 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
           event.preventDefault();
         } else {
           event.preventDefault();
-          handleSubmit(event as unknown as React.FormEvent<HTMLFormElement>);
+          handleSubmit(event as unknown as FormEvent<HTMLFormElement>);
         }
         break;
     }
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onSubmit(event);
+    onSubmit();
   }
 
   return (
@@ -51,16 +52,15 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
         <Button
           type="submit"
           disabled={value.length === 0 || !model}
-          onClick={(event: React.FormEvent<any>) => handleSubmit(event)}
+          onClick={(event: FormEvent<any>) => handleSubmit(event)}
           size="sm"
           className="ml-auto gap-1.5 text-primary-foreground"
         >
           Send
-            <kbd className="px-1 gap-1 rounded inline-flex justify-center items-center py-1 font-mono text-sm">
-              <Command className='size-2.5' />
-              <CornerDownLeft className='size-2.5' />
-            </kbd>
-          {/* <Send className="size-3" /> */}
+          <kbd className="px-1 gap-1 rounded inline-flex justify-center items-center py-1 font-mono text-sm">
+            <Command className="size-2.5" />
+            <CornerDownLeft className="size-2.5" />
+          </kbd>
           <span className="sr-only">Message CringeGPT</span>
         </Button>
       </div>

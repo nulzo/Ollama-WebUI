@@ -29,7 +29,7 @@ export const CopyButton: React.FC<{ content: string }> = ({ content }: CopyButto
         className="size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer"
         onClick={handleClick}
       />
-      <div ref={ref} className="absolute top-0 left-0 w-48 h-48 pointer-events-none"></div>
+      <div ref={ref} className="absolute top-0 left-0 overflow-hidden h-12 w-12 pointer-events-none z-[1000]"></div>
     </div>
   );
 };

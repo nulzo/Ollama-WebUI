@@ -24,11 +24,7 @@ export class FetchWrapper implements HttpClient {
     return `${this.config.host}:${this.config.port}${this.config.endpoint}${endpoint}`;
   }
 
-  private async process(
-    method: HttpMethod,
-    endpoint: string,
-    options: HttpRequestOptions = {}
-  ): Promise<Response> {
+  private async process(method: HttpMethod, endpoint: string, options: HttpRequestOptions = {}): Promise<Response> {
     const headers = {
       ...this.defaultHeaders,
       ...options.headers,

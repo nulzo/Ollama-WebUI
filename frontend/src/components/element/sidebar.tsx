@@ -1,11 +1,6 @@
 import { Button } from '@/components/ui/button.tsx';
 import { ArrowUpDown, Bot, LifeBuoy, MessageSquareCode } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip.tsx';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { Link, useLocation } from 'react-router-dom';
 import { SettingsModal } from '@/features/settings/components/settings-modal';
 import logo from '@/assets/cringelogomedium.svg';

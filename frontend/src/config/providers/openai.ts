@@ -112,8 +112,7 @@ export const DEFAULT_OPENAI_MODELS = {
       tokens: 32_768,
     },
     {
-      description:
-        'GPT 3.5 Turbo，适用于各种文本生成和理解任务，Currently points to gpt-3.5-turbo-0125',
+      description: 'GPT 3.5 Turbo，适用于各种文本生成和理解任务，Currently points to gpt-3.5-turbo-0125',
       displayName: 'GPT-3.5 Turbo',
       functionCall: true,
       id: 'gpt-3.5-turbo',

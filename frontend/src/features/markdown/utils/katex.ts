@@ -35,9 +35,7 @@ function generateRegexRules(delimiters) {
 
     // Inline pattern - Capture group $1, token content, followed by end delimiter and normal punctuation marks.
     // Example: $text$
-    inlinePatterns.push(
-      `${escapedLeft}((?:\\\\.|[^\\\\\\n])*?(?:\\\\.|[^\\\\\\n${escapedRight}]))${escapedRight}`
-    );
+    inlinePatterns.push(`${escapedLeft}((?:\\\\.|[^\\\\\\n])*?(?:\\\\.|[^\\\\\\n${escapedRight}]))${escapedRight}`);
 
     // Block pattern - Starts and ends with the delimiter on new lines. Example:
     // $$\ncontent here\n$$

@@ -3,14 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Ollama } from '@/services/provider/ollama/ollama.ts';
 import { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { OLLAMA_SETTINGS } from '@/settings/ollama';
 import { Textarea } from '@/components/ui/textarea';
 import { useGetModels } from '@/features/models/hooks';
@@ -89,23 +82,14 @@ export function ModelsRoute() {
                     <div className="text-xs leading-3 mb-1 font-normal text-muted-foreground">
                       The System Prompt that the model should conform to.
                     </div>
-                    <Textarea
-                      className="resize-none"
-                      value={modelInfo?.system || ''}
-                      placeholder="System Prompt"
-                    />
+                    <Textarea className="resize-none" value={modelInfo?.system || ''} placeholder="System Prompt" />
                   </div>
                   <div>
                     <Label>Parameters</Label>
                     <div className="text-xs leading-3 mb-1 font-normal text-muted-foreground">
-                      Additional parameters required by the model (usually stop conditions,
-                      temperature, top_k, etc.).
+                      Additional parameters required by the model (usually stop conditions, temperature, top_k, etc.).
                     </div>
-                    <Textarea
-                      className="resize-none"
-                      value={modelInfo?.parameters || ''}
-                      placeholder="Parameters"
-                    />
+                    <Textarea className="resize-none" value={modelInfo?.parameters || ''} placeholder="Parameters" />
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-end items-end gap-3">

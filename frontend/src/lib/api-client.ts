@@ -2,10 +2,12 @@ import Axios, { InternalAxiosRequestConfig } from 'axios';
 
 import { useNotifications } from '@/components/notification/notification-store';
 import { env } from '@/config/env';
+import urlJoin from 'url-join';
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (config.headers) {
     config.headers.Accept = 'application/json';
+    config.headers['Content-Type'] = 'application/json';
   }
 
   config.withCredentials = true;
@@ -13,11 +15,18 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
 }
 
 export const api = Axios.create({
-  baseURL: env.API_URL,
+  baseURL: urlJoin(env.BACKEND_API_URL, env.BACKEND_API_VERSION),
   withCredentials: true,
 });
 
-api.interceptors.request.use(authRequestInterceptor);
+api.interceptors.request.use(authRequestInterceptor, error => {
+  useNotifications.getState().addNotification({
+    type: 'error',
+    title: 'Network Error',
+    message: 'There was an error in the request.',
+  });
+  return Promise.reject(error);
+});
 api.interceptors.response.use(
   response => {
     return response.data;

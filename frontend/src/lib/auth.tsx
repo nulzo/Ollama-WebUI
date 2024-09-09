@@ -76,9 +76,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   if (!user.data) {
-    return (
-      <Navigate to={`/auth/login?redirectTo=${encodeURIComponent(location.pathname)}`} replace />
-    );
+    return <Navigate to={`/auth/login?redirectTo=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
   return children;

@@ -12,26 +12,30 @@ import { useMessages } from '@/features/message/api/get-messages.ts';
 import { ConversationDefault } from '@/features/conversation/components/conversation-default.tsx';
 import useScrollToEnd from '@/hooks/use-scroll-to-end.ts';
 import { useCreateMessage } from '@/features/message/api/create-message.ts';
-import { useNotifications } from '@/components/notification/notification-store';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function ChatRoute() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
-  const { uuid, message, isTyping, setMessage, handleSubmit, createChat, getChatHistory } =
-    useChat();
+  const queryClient = useQueryClient();
+  const { uuid, message, isTyping, setMessage, createChat, getChatHistory } = useChat();
 
   const create_message = useCreateMessage({
     conversation_id: searchParamString ?? '',
     mutationConfig: {
       onSuccess: () => {
-        useNotifications.getState().addNotification({
-          type: 'success',
-          title: 'Chatted with model',
-          message,
+        // useNotifications.getState().addNotification({
+        //   type: 'success',
+        //   title: 'Chatted with model',
+        //   message,
+        // });
+        queryClient.invalidateQueries({
+          queryKey: ['messages', { conversation_id: searchParamString }],
         });
       },
     },
   });
+
   const messages = useMessages({
     conversation_id: searchParamString ?? '',
   });
@@ -52,7 +56,7 @@ export function ChatRoute() {
     });
   };
 
-  const ref = useScrollToEnd(messages.data);
+  const ref = useScrollToEnd(messages);
 
   return (
     <>

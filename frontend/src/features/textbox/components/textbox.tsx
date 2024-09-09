@@ -33,6 +33,9 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setValue('');
+    event.target.style.height = '';
+    event.target.style.height = Math.min(event.target.scrollHeight, 200) + 'px';
     onSubmit();
   }
 

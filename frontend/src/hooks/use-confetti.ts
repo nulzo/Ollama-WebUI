@@ -74,27 +74,30 @@ export const useConfetti = () => {
   const [isActive, setIsActive] = useState(false);
   const ref = useRef<HTMLCanvasElement | null>(null);
 
-  const createParticles = useCallback((centerX: number, centerY: number, offsetLeft: number, offsetTop: number) => {
-    const particles = [];
-    for (let i = 0; i < 100; i++) {
-      const angle = Math.random() * (2 * Math.PI);
-      const r = Math.random() * 50; // Adjust range for broader spread
-      const dx = Math.cos(angle) * r;
-      const dy = Math.sin(angle) * r;
-      const size = Math.random() * 0.95 + 2;
-      const color = generateColors();
-      particles.push({
-        x: centerX + offsetLeft,
-        y: centerY + offsetTop,
-        size,
-        dx,
-        dy,
-        opacity: 1,
-        color,
-      });
-    }
-    return particles;
-  }, []);
+  const createParticles = useCallback(
+    (centerX: number, centerY: number, offsetLeft: number, offsetTop: number) => {
+      const particles = [];
+      for (let i = 0; i < 100; i++) {
+        const angle = Math.random() * (2 * Math.PI);
+        const r = Math.random() * 50; // Adjust range for broader spread
+        const dx = Math.cos(angle) * r;
+        const dy = Math.sin(angle) * r;
+        const size = Math.random() * 0.95 + 2;
+        const color = generateColors();
+        particles.push({
+          x: centerX + offsetLeft,
+          y: centerY + offsetTop,
+          size,
+          dx,
+          dy,
+          opacity: 1,
+          color,
+        });
+      }
+      return particles;
+    },
+    []
+  );
 
   const showConfetti = useCallback(
     (centerX: number, centerY: number, offsetX: number, offsetY: number) => {

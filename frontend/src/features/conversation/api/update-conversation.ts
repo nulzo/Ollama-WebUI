@@ -31,7 +31,9 @@ type UseUpdateConversationOptions = {
   mutationConfig?: MutationConfig<typeof updateConversation>;
 };
 
-export const useConversationDiscussion = ({ mutationConfig }: UseUpdateConversationOptions = {}) => {
+export const useConversationDiscussion = ({
+  mutationConfig,
+}: UseUpdateConversationOptions = {}) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};

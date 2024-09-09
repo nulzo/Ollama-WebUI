@@ -4,7 +4,11 @@ import { api } from '@/lib/api-client';
 import { QueryConfig } from '@/lib/query';
 import { Conversation } from '@/features/conversation/types/conversation';
 
-export const getConversation = ({ conversationID }: { conversationID: string }): Promise<{ data: Conversation }> => {
+export const getConversation = ({
+  conversationID,
+}: {
+  conversationID: string;
+}): Promise<{ data: Conversation }> => {
   return api.get(`/conversations/${conversationID}`);
 };
 

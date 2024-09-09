@@ -20,7 +20,11 @@ export const createConversationSchema = z.object({
 
 export type CreateDiscussionInput = z.infer<typeof createDiscussionInputSchema>;
 
-export const createDiscussion = ({ data }: { data: CreateDiscussionInput }): Promise<Conversation> => {
+export const createDiscussion = ({
+  data,
+}: {
+  data: CreateDiscussionInput;
+}): Promise<Conversation> => {
   return api.post(`/conversations/`, data);
 };
 

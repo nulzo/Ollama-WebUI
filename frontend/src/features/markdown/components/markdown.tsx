@@ -126,7 +126,10 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
               </thead>
               <tbody>
                 {token.rows.map((row: any, rowIdx: any) => (
-                  <tr key={`$key-${index}-row-${rowIdx}`} className="m-0 border-t p-0 even:bg-muted/50 backdrop-blur">
+                  <tr
+                    key={`$key-${index}-row-${rowIdx}`}
+                    className="m-0 border-t p-0 even:bg-muted/50 backdrop-blur"
+                  >
                     {(row ?? []).map((cell: any, cellIdx: any) => (
                       <td
                         key={`${index}-row-${rowIdx}-${cellIdx}`}

@@ -50,7 +50,9 @@ export const ModelSelect = () => {
           aria-expanded={open}
           className="w-[150px] justify-between border-0 bg-accent/0 font-semibold"
         >
-          {model ? models?.data?.models?.find((m: OllamaModelData) => m.name === model.name)?.name : 'Select model...'}
+          {model
+            ? models?.data?.models?.find((m: OllamaModelData) => m.name === model.name)?.name
+            : 'Select model...'}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -63,7 +65,12 @@ export const ModelSelect = () => {
               {models?.data?.models?.map((m: OllamaModel) => (
                 <CommandItem key={m.name} value={m.name} onSelect={() => handleModelSelect(m)}>
                   {m.name}
-                  <CheckIcon className={cn('ml-auto h-4 w-4', model?.name === m.name ? 'opacity-100' : 'opacity-0')} />
+                  <CheckIcon
+                    className={cn(
+                      'ml-auto h-4 w-4',
+                      model?.name === m.name ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -14,7 +14,9 @@ const Message: React.FC<MessageType> = ({ username, message, isBot, time }) => {
         className={`text-sm items-baseline gap-1 py-0 my-0 pb-1 leading-none font-semibold flex place-items-start pl-6 ${isBot ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}
       >
         {isBot && `${username}`}
-        <span className="text-[10px] font-base text-muted-foreground/50">{formattedDate ?? ''}</span>
+        <span className="text-[10px] font-base text-muted-foreground/50">
+          {formattedDate ?? ''}
+        </span>
       </span>
       <div className={`flex place-items-start ${isBot ? 'justify-start' : 'justify-end ps-[25%]'}`}>
         <div className="pe-2 font-bold flex items-center mb-2">{isBot && <BotIcon />}</div>

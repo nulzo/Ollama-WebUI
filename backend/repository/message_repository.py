@@ -11,14 +11,13 @@ class MessageRepository:
     def get_messages_by_conversation(self, conversation_id):
         return Message.objects.filter(conversation_id=conversation_id)
 
-    def create_message(self, conversation, role, content, sender=None, meta_user=None, meta_model=None):
+    def create_message(self, conversation, role, content, model=None, user=None):
         return Message.objects.create(
             conversation=conversation,
             role=role,
             content=content,
-            sender=sender,
-            meta_user=meta_user,
-            meta_model=meta_model
+            model=model,
+            user=user
         )
 
     def update_message(self, message, **kwargs):

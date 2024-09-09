@@ -33,9 +33,10 @@ class MessageList(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Message.objects.all()
-        chat_uuid = self.request.query_params.get("chat", None)
+        chat_uuid = self.request.query_params.get("c", None)
+        print(chat_uuid)
         if chat_uuid is not None:
-            queryset = queryset.filter(chat__uuid=chat_uuid)
+            queryset = queryset.filter(conversation_id=chat_uuid)
         return queryset
 
 

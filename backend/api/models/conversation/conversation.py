@@ -9,7 +9,7 @@ class Conversation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     uuid = models.CharField(max_length=100, blank=False, null=False, unique=True, primary_key=True)
     name = models.CharField(blank=True, null=True, default="", max_length=150)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="conversations")
+    user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name="conversations")
 
     def __str__(self) -> str:
         return str(f"({self.created_at.date()}) {self.name}")

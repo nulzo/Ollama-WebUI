@@ -15,15 +15,13 @@ class MessageView(APIView):
         self.message_service = MessageService()
 
     def post(self, request, *args, **kwargs):
-
-        logger.info(request.data)
         response = self.message_service.handle_user_message(request.data)
 
         if "errors" in response:
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         if not response['done']:
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        return Response(response, status=status.HTTP_200_OK)
 
     def get(self, request):
         messages = self.message_service.message_repository.get_all_messages()

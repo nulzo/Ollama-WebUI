@@ -1,5 +1,4 @@
 from django.db import models
-from api.models.sender.sender import Sender
 
 
 class Assistant(models.Model):
@@ -11,12 +10,6 @@ class Assistant(models.Model):
     default_temperature = models.FloatField(default=0.7)
     default_max_tokens = models.IntegerField(default=150)
     created_at = models.DateTimeField(auto_now_add=True)
-    sender = models.OneToOneField(Sender, on_delete=models.CASCADE, blank=True, null=True, related_name="assistant")
 
     def __str__(self):
         return self.display_name
-    
-    def save(self, *args, **kwargs):
-        if not self.sender:
-            self.sender = Sender.objects.create()
-        super().save(*args, **kwargs)

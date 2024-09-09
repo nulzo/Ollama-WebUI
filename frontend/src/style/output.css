@@ -449,7 +449,7 @@ video {
 :root {
   --background: 0 0% 98%;
   --foreground: 0 0% 3.9%;
-  --primary: 200 50% 20%;
+  --primary: 243.7 34.5% 55.4%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 95.1%;
   --secondary-foreground: 0 0% 9%;
@@ -474,8 +474,8 @@ video {
 .dark {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
-  --primary: 216 12.2% 83.9%;
-  --primary-foreground: 0 0% 8%;
+  --primary: 234.5 59.5% 73.9%;
+  --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 7.9%;
   --secondary-foreground: 0 0% 98%;
   --tertiary: 0 0% 12.9%;
@@ -2569,6 +2569,10 @@ body {
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 
+.ring-primary\/50 {
+  --tw-ring-color: hsl(var(--primary) / 0.5);
+}
+
 .ring-ring {
   --tw-ring-color: hsl(var(--primary));
 }
@@ -2751,14 +2755,10 @@ body {
   border-color: hsl(var(--primary));
 }
 
-.focus-within\:ring-2:focus-within {
+.focus-within\:ring-1:focus-within {
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-}
-
-.focus-within\:ring-ring\/50:focus-within {
-  --tw-ring-color: hsl(var(--primary) / 0.5);
 }
 
 .hover\:cursor-pointer:hover {

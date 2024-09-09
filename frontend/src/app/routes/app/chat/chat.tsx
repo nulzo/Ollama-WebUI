@@ -80,7 +80,7 @@ export function ChatRoute() {
               <ConversationDefault />
             )}
           </ConversationArea>
-          <div className="pb-6 pt-4 z-[99]">
+          <div className="pb-6 pt-4 z-[99] transition">
             <div className="-mb-3.5 mx-auto inset-x-0 bg-transparent flex justify-center">
               <div className="mx-auto flex flex-col max-w-4xl justify-center px-2.5 md:px-6 w-full">
                 <div className=" flex justify-center">

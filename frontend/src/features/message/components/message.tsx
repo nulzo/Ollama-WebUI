@@ -22,7 +22,7 @@ const Message: React.FC<MessageType> = ({ username, message, isBot, time }) => {
         <div className="pe-2 font-bold flex items-center mb-2">{isBot && <BotIcon />}</div>
         <div className={`${isBot && 'max-w-[75%]'}`}>
           <div
-            className={`pb-2 px-1 ${isBot ? ' rounded-e-xl rounded-b-xl' : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'}`}
+            className={`px-1 ${isBot ? ' rounded-e-xl rounded-b-xl' : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'}`}
           >
             <div className="flex items-center w-full m-0 border-0">
               <MarkdownRenderer markdown={message?.trim() ?? 'ERROR'} />

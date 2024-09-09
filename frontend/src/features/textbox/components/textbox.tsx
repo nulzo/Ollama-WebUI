@@ -40,7 +40,7 @@ export function Textbox({ value, setValue, onSubmit, model }: ITextbox) {
   }
 
   return (
-    <div className="z-10 max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-3xl 2xl:max-w-5xl px-2.5 md:px-4 mx-auto inset-x-0 border-spacing-2 p-2 relative overflow-hidden rounded-2xl border border-foreground/20 bg-accent focus-within:border-primary focus-within:ring-2 w-full h-[58px] focus-within:ring-ring/50">
+    <div className="z-10 max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-3xl 2xl:max-w-5xl px-2.5 md:px-4 mx-auto inset-x-0 border-spacing-2 p-2 relative overflow-hidden ring-primary/50 rounded-2xl border border-foreground/20 bg-accent focus-within:border-primary focus-within:ring-1 w-full h-[58px]">
       <Textarea
         id="chatMessage"
         key="chatMessageArea"

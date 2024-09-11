@@ -24,11 +24,6 @@ export function ChatRoute() {
     conversation_id: searchParamString ?? '',
     mutationConfig: {
       onSuccess: () => {
-        // useNotifications.getState().addNotification({
-        //   type: 'success',
-        //   title: 'Chatted with model',
-        //   message,
-        // });
         queryClient.invalidateQueries({
           queryKey: ['messages', { conversation_id: searchParamString }],
         });
@@ -80,7 +75,7 @@ export function ChatRoute() {
               <ConversationDefault />
             )}
           </ConversationArea>
-          <div className="pb-6 pt-4 z-[99] transition">
+          <div className="pb-4 pt-4 z-[99] transition">
             <div className="-mb-3.5 mx-auto inset-x-0 bg-transparent flex justify-center">
               <div className="mx-auto flex flex-col max-w-4xl justify-center px-2.5 md:px-6 w-full">
                 <div className=" flex justify-center">

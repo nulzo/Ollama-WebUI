@@ -7,7 +7,7 @@ import Sidebar from '@/components/element/sidebar.tsx';
 export const AppRoot = () => {
   const location = useLocation();
   return (
-    <div className="font-inter selection:bg-primary/50 h-screen max-h-[100dvh] overflow-auto flex flex-row">
+    <div className="text-foreground bg-background theme-default font-inter selection:bg-primary/50 h-screen max-h-[100dvh] overflow-auto flex flex-row">
       <Suspense
         fallback={
           <div className="flex size-full items-center justify-center">

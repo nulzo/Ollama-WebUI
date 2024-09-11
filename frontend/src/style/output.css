@@ -447,21 +447,23 @@ video {
 }
 
 :root {
-  --background: 0 0% 98%;
+  --background: 0 0% 100%;
   --foreground: 0 0% 3.9%;
-  --primary: 243.7 34.5% 55.4%;
+  --primary: 240 5.9% 10%;
   --primary-foreground: 0 0% 98%;
   --secondary: 0 0% 95.1%;
   --secondary-foreground: 0 0% 9%;
   --tertiary: 0 0% 90%;
   --tertiary-foreground: 0 0% 98%;
-  --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 45.1%;
-  --accent: 0 0% 96.1%;
-  --accent-foreground: 0 0% 9%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 89.8%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 5.9% 10%;
   --radius: 0.5rem;
   --border-width: 5rem;
   *::-webkit-scrollbar-thumb {
@@ -471,7 +473,27 @@ video {
   }
 }
 
-.dark {
+.dark .theme-default {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%;
+  --secondary: 0 0% 7.9%;
+  --secondary-foreground: 0 0% 98%;
+  --tertiary: 0 0% 12.9%;
+  --tertiary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
+}
+
+.dark .theme-purple {
   --background: 0 0% 3.9%;
   --foreground: 0 0% 98%;
   --primary: 234.5 59.5% 73.9%;
@@ -1359,8 +1381,8 @@ body {
   width: 250px;
 }
 
-.w-\[260px\] {
-  width: 260px;
+.w-\[265px\] {
+  width: 265px;
 }
 
 .w-\[53px\] {
@@ -1399,6 +1421,10 @@ body {
 
 .min-w-\[12rem\] {
   min-width: 12rem;
+}
+
+.min-w-\[265px\] {
+  min-width: 265px;
 }
 
 .min-w-\[8rem\] {
@@ -2200,10 +2226,6 @@ body {
   padding-bottom: 1rem;
 }
 
-.pb-6 {
-  padding-bottom: 1.5rem;
-}
-
 .pe-2 {
   padding-inline-end: 0.5rem;
 }
@@ -2494,6 +2516,10 @@ body {
   text-underline-offset: 4px;
 }
 
+.accent-foreground {
+  accent-color: hsl(var(--foreground));
+}
+
 .opacity-0 {
   opacity: 0;
 }
@@ -2555,6 +2581,12 @@ body {
 
 .outline {
   outline-style: solid;
+}
+
+.ring {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 
 .ring-0 {

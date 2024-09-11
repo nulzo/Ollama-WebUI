@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, RefObject } from 'react';
 
-const useScrollToEnd = messages => {
+const useScrollToEnd = (messages: unknown[]): RefObject<HTMLDivElement> => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

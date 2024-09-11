@@ -11,16 +11,16 @@ type ConfigStore = Config & {
   updateConfig: (newConfig: Partial<Config>) => void;
 };
 
-const createConfigStore: StateCreator<ConfigStore> = (set) => ({
+const createConfigStore: StateCreator<ConfigStore> = set => ({
   theme: 'zinc',
-  updateConfig: (newConfig) => set((state) => ({ ...state, ...newConfig })),
+  updateConfig: newConfig => set(state => ({ ...state, ...newConfig })),
 });
 
 const useConfigStore = create(
   persist(createConfigStore, {
     name: 'config',
     getStorage: () => localStorage,
-    partialize: (state) => ({ theme: state.theme }),
+    partialize: state => ({ theme: state.theme }),
   })
 );
 

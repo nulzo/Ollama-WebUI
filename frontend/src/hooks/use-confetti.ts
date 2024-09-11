@@ -23,12 +23,12 @@ const COLORS = [
   '#FFFFFF', // White
 ];
 
-const generateColors = () => {
+const generateColors = (): string => {
   const idx = Math.floor(Math.random() * COLORS.length);
   return COLORS[idx];
 };
 
-const createParticleElements = (container: HTMLDivElement, particles: Particle[]) => {
+const createParticleElements = (container: HTMLDivElement, particles: Particle[]): void => {
   particles.forEach((particle: Particle) => {
     const particleElement = document.createElement('div');
     particleElement.className = 'confetti explode absolute overflow-hidden';
@@ -63,23 +63,26 @@ const createParticleElements = (container: HTMLDivElement, particles: Particle[]
       }
     );
 
-    // Remove particle element after animation
     animation.onfinish = () => {
       container.removeChild(particleElement);
     };
   });
 };
 
-export const useConfetti = () => {
+export const useConfetti = (): {
+  showConfetti: (centerX: number, centerY: number, offsetX: number, offsetY: number) => void;
+  isActive: boolean;
+  ref: React.RefObject<HTMLDivElement>;
+} => {
   const [isActive, setIsActive] = useState(false);
-  const ref = useRef<HTMLCanvasElement | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
 
   const createParticles = useCallback(
-    (centerX: number, centerY: number, offsetLeft: number, offsetTop: number) => {
-      const particles = [];
+    (centerX: number, centerY: number, offsetLeft: number, offsetTop: number): Particle[] => {
+      const particles: Particle[] = [];
       for (let i = 0; i < 100; i++) {
         const angle = Math.random() * (2 * Math.PI);
-        const r = Math.random() * 50; // Adjust range for broader spread
+        const r = Math.random() * 50;
         const dx = Math.cos(angle) * r;
         const dy = Math.sin(angle) * r;
         const size = Math.random() * 0.95 + 2;
@@ -100,7 +103,7 @@ export const useConfetti = () => {
   );
 
   const showConfetti = useCallback(
-    (centerX: number, centerY: number, offsetX: number, offsetY: number) => {
+    (centerX: number, centerY: number, offsetX: number, offsetY: number): void => {
       const confettiContainer = ref.current;
       if (!confettiContainer) return;
       const particles = createParticles(centerX, centerY, offsetX, offsetY);
@@ -108,7 +111,7 @@ export const useConfetti = () => {
       setIsActive(true);
       setTimeout(() => {
         setIsActive(false);
-      }, 1500); // Match the animation duration for cleanup
+      }, 1500);
     },
     [createParticles]
   );

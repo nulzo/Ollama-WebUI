@@ -26,24 +26,6 @@ export function useChat() {
     fetchModel();
   }, [setModel]);
 
-  // const write = useCallback(
-  //     async (response: ChatResponse[]) => {
-  //         const combinedMessages = response.reduce((acc, part) => acc + part.message.content, '');
-  //         setIsTyping(false);
-  //
-  //         const newAssistantMessage: Message = {
-  //             role: 'assistant',
-  //             content: combinedMessages,
-  //             conversation: uuid,
-  //             model: model?.model ?? 'unknown',
-  //         };
-  //
-  //         setMessages(prevMessages => [...prevMessages, newAssistantMessage]);
-  //         await messageService.createMessage(newAssistantMessage);
-  //     },
-  //     [uuid, model]
-  // );
-
   const write = useCallback(
     async (response: ChatResponse[]): Promise<void> => {
       let curr = '';

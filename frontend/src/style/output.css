@@ -2801,6 +2801,10 @@ body {
   background-color: hsl(var(--accent));
 }
 
+.hover\:bg-destructive:hover {
+  background-color: hsl(var(--destructive));
+}
+
 .hover\:bg-destructive\/80:hover {
   background-color: hsl(var(--destructive) / 0.8);
 }
@@ -2897,6 +2901,14 @@ body {
   background-color: hsl(var(--primary));
 }
 
+.focus\:bg-destructive:focus {
+  background-color: hsl(var(--destructive));
+}
+
+.focus\:bg-secondary:focus {
+  background-color: hsl(var(--secondary));
+}
+
 .focus\:text-accent-foreground:focus {
   color: hsl(var(--accent-foreground));
 }
@@ -2989,13 +3001,16 @@ body {
   opacity: 0.5;
 }
 
-.group:hover .group-hover\:stroke-red-500 {
-  stroke: #ef4444;
+.group:hover .group-hover\:bg-destructive {
+  background-color: hsl(var(--destructive));
 }
 
-.group:hover .group-hover\:text-red-500 {
-  --tw-text-opacity: 1;
-  color: rgb(239 68 68 / var(--tw-text-opacity));
+.group:hover .group-hover\:stroke-destructive-foreground {
+  stroke: hsl(var(--destructive-foreground));
+}
+
+.group:hover .group-hover\:text-destructive-foreground {
+  color: hsl(var(--destructive-foreground));
 }
 
 .group:hover .group-hover\:opacity-100 {

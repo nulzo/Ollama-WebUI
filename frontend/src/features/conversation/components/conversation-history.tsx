@@ -102,7 +102,7 @@ export default function ConversationHistory(props: any) {
                   {group}
                 </div>
                 {groupChats.reverse().map((chat: Chat) => (
-                  <div className="w-full pr-2 relative group">
+                  <div className="w-full relative group">
                     <button
                       key={chat.uuid}
                       value={chat.uuid}
@@ -110,7 +110,7 @@ export default function ConversationHistory(props: any) {
                         props.uuid === chat.uuid && 'text-foreground bg-accent'
                       }`}
                       onClick={() => {
-                        getChatHistory(chat.uuid);
+                        getChatHistory(chat.uuid || '');
                       }}
                     >
                       <div className="flex self-center flex-1 w-full">
@@ -136,9 +136,9 @@ export default function ConversationHistory(props: any) {
                                 </DropdownMenuItem>
                               </DropdownMenuGroup>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="flex gap-2 items-center group">
-                                <Trash className="size-3.5 group-hover:stroke-red-500" />
-                                <span className="group-hover:text-red-500">Delete</span>
+                              <DropdownMenuItem className="flex gap-2 items-center group focus:bg-destructive">
+                                <Trash className="size-3.5 group-hover:stroke-destructive-foreground text-destructive" />
+                                <span className="group-hover:text-destructive-foreground text-destructive">Delete</span>
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

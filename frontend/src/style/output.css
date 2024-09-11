@@ -473,7 +473,7 @@ video {
   }
 }
 
-.dark .theme-default {
+.dark {
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
   --primary: 0 0% 98%;
@@ -486,11 +486,16 @@ video {
   --muted-foreground: 240 5% 64.9%;
   --accent: 240 3.7% 15.9%;
   --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
+  --destructive: 349.7 89.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
   --ring: 240 4.9% 83.9%;
+  *::-webkit-scrollbar-thumb {
+    background-color: #cccccc !important;
+    border-radius: 14px;
+    border: 3px solid var(--primary);
+  }
 }
 
 .dark .theme-purple {
@@ -2801,10 +2806,6 @@ body {
   background-color: hsl(var(--accent));
 }
 
-.hover\:bg-destructive:hover {
-  background-color: hsl(var(--destructive));
-}
-
 .hover\:bg-destructive\/80:hover {
   background-color: hsl(var(--destructive) / 0.8);
 }
@@ -2897,16 +2898,12 @@ body {
   background-color: hsl(var(--accent));
 }
 
-.focus\:bg-primary:focus {
-  background-color: hsl(var(--primary));
-}
-
 .focus\:bg-destructive:focus {
   background-color: hsl(var(--destructive));
 }
 
-.focus\:bg-secondary:focus {
-  background-color: hsl(var(--secondary));
+.focus\:bg-primary:focus {
+  background-color: hsl(var(--primary));
 }
 
 .focus\:text-accent-foreground:focus {
@@ -2999,10 +2996,6 @@ body {
 
 .disabled\:opacity-50:disabled {
   opacity: 0.5;
-}
-
-.group:hover .group-hover\:bg-destructive {
-  background-color: hsl(var(--destructive));
 }
 
 .group:hover .group-hover\:stroke-destructive-foreground {
@@ -3245,10 +3238,6 @@ body {
 
 .data-\[state\=open\]\:bg-accent\/50[data-state=open] {
   background-color: hsl(var(--accent) / 0.5);
-}
-
-.data-\[state\=open\]\:bg-background[data-state=open] {
-  background-color: hsl(var(--background));
 }
 
 .data-\[state\=open\]\:bg-secondary[data-state=open] {

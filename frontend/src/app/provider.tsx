@@ -23,7 +23,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
   );
 
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="dark" defaultColor="default" storageKeyColor="vite-ui-color" storageKeyTheme="vite-ui-theme">
       <React.Suspense
         fallback={
           <div className="flex h-screen w-screen items-center justify-center">

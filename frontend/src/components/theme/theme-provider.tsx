@@ -1,3 +1,4 @@
+import { colorThemes } from '@/config/themes';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'dark' | 'light' | 'system';
@@ -56,28 +57,27 @@ export function ThemeProvider({
   }, [theme]);
 
   useEffect(() => {
-    const root = window.document.getElementById("root") ?? window.document.documentElement;
+    const root = document.documentElement;
+    const colorConfig = colorThemes[color] || colorThemes.default;
+    const themeConfig = theme === 'dark' ? colorConfig.dark : colorConfig.light;
 
-    // Remove all existing color theme classes
+    // Remove existing CSS variables for current theme
+    Object.keys(colorThemes.default.light).forEach(key => {
+      root.style.removeProperty(`--${key}`);
+    });
+
+    // Apply new CSS variables for the new theme
+    Object.entries(themeConfig).forEach(([key, value]) => {
+      root.style.setProperty(`--${key}`, value);
+    });
+
+    // Remove all color classes
     const colorClasses = Array.from(root.classList).filter(c => c.startsWith('theme-'));
     colorClasses.forEach(c => root.classList.remove(c));
 
-    // Add the new color theme class
+    // Add new color class
     root.classList.add(`theme-${color}`);
-
-  }, [color]);
-
-  useEffect(() => {
-    // Set initial class on mount or if default values change
-    const root = window.document.documentElement;
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.add(systemTheme);
-    } else {
-      root.classList.add(theme);
-    }
-    root.classList.add(`theme-${color}`);
-  }, []);
+  }, [color, theme]);
 
   const value = {
     theme,

@@ -51,12 +51,12 @@ export default function ConversationHistory(props: any) {
 
   if (!isExpanded) {
     return (
-      <div className={`mt-1 transform transition-transform duration-300 h-screen flex justify-between w-fit gap-2 px-4 py-2`}>
+      <div className={`p-1 transform transition-transform duration-300 h-screen flex justify-between w-fit gap-2 px-4 py-2`}>
         <Button
           size="icon"
           variant="ghost"
           type="submit"
-          className="font-bold"
+          className="font-bold mt-1"
           onClick={() => setExpanded(!isExpanded)}
         >
           <PanelRightClose className="size-4" />
@@ -65,9 +65,9 @@ export default function ConversationHistory(props: any) {
     );
   }
   return (
-    <div className=''>
+    <>
       <div
-        className={`max-h-[100dvh] min-h-screen select-none ease-in-out transform transition-all duration-500  md:relative w-[250px] text-foreground text-sm fixed top-0 left-0 bg-secondary border-r ${isExpanded ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`max-h-[100dvh] min-h-screen select-none ease-in-out transform transition-transform duration-500 md:relative w-[260px] text-foreground text-sm fixed top-0 left-0 bg-secondary border-r ${isExpanded ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="flex px-2 py-2 w-full ">
           <div className="flex pt-1 justify-between items-center w-full gap-2 px-2">
@@ -151,6 +151,6 @@ export default function ConversationHistory(props: any) {
             ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }

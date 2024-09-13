@@ -1523,6 +1523,10 @@ body {
   width: 100vw;
 }
 
+.w-\[260px\] {
+  width: 260px;
+}
+
 .min-w-0 {
   min-width: 0px;
 }

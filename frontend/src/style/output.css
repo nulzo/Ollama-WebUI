@@ -1493,6 +1493,10 @@ body {
   width: 250px;
 }
 
+.w-\[260px\] {
+  width: 260px;
+}
+
 .w-\[53px\] {
   width: 53px;
 }
@@ -1521,10 +1525,6 @@ body {
 
 .w-screen {
   width: 100vw;
-}
-
-.w-\[260px\] {
-  width: 260px;
 }
 
 .min-w-0 {
@@ -2428,10 +2428,6 @@ body {
   padding-top: 1rem;
 }
 
-.pt-2 {
-  padding-top: 0.5rem;
-}
-
 .text-left {
   text-align: left;
 }
@@ -2845,26 +2841,12 @@ body {
   --tw-enter-translate-y: initial;
 }
 
-.animate-out {
-  animation-name: exit;
-  animation-duration: 150ms;
-  --tw-exit-opacity: initial;
-  --tw-exit-scale: initial;
-  --tw-exit-rotate: initial;
-  --tw-exit-translate-x: initial;
-  --tw-exit-translate-y: initial;
-}
-
 .fade-in-0 {
   --tw-enter-opacity: 0;
 }
 
 .zoom-in-95 {
   --tw-enter-scale: .95;
-}
-
-.slide-in-from-left {
-  --tw-enter-translate-x: -100%;
 }
 
 .duration-1000 {
@@ -3928,10 +3910,6 @@ body {
     width: 95%;
   }
 
-  .xl\:max-w-3xl {
-    max-width: 48rem;
-  }
-
   .xl\:max-w-4xl {
     max-width: 56rem;
   }
@@ -3940,10 +3918,6 @@ body {
 @media (min-width: 1536px) {
   .\32xl\:w-\[96\%\] {
     width: 96%;
-  }
-
-  .\32xl\:max-w-5xl {
-    max-width: 64rem;
   }
 
   .\32xl\:max-w-6xl {

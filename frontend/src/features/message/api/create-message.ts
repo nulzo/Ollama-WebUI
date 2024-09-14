@@ -30,16 +30,27 @@ type UseCreateMessageOptions = {
 export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateMessageOptions) => {
   const queryClient = useQueryClient();
 
-  const { onSuccess, ...restConfig } = mutationConfig || {};
-
   return useMutation({
-    onSuccess: (...args) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getMessageQueryOptions(conversation_id).queryKey,
       });
-      onSuccess?.(...args);
     },
-    ...restConfig,
+    onMutate: async (newMessage) => {
+      await queryClient.cancelQueries({ queryKey: ['messages', { conversation_id }]});
+      const previousMessages = queryClient.getQueryData(['messages', { conversation_id }]);
+      queryClient.setQueryData(['messages', { conversation_id }], (oldMessages) => [
+        ...oldMessages,
+        { ...newMessage.data, id: String(Date.now()) } // temporary id for the optimistic message
+      ]);
+    },
+    onError: (err, newMessage, context) => {
+      queryClient.setQueryData(['messages', { conversation_id }], context.previousMessages);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id }] });
+    },
+    ...mutationConfig,
     mutationFn: createMessage,
   });
 };

@@ -2,6 +2,7 @@ import { Spinner } from '@/components/ui/spinner';
 
 import { useMessages } from '@/features/message/api/get-messages';
 import Message from '@/features/message/components/message.tsx';
+import { useMutationState } from '@tanstack/react-query';
 
 type CommentsListProps = {
   conversation_id: string;
@@ -9,6 +10,11 @@ type CommentsListProps = {
 
 export const MessagesList = ({ conversation_id }: CommentsListProps) => {
   const messageQuery = useMessages({ conversation_id });
+
+  const { data: pendingMessages } = useMutationState({
+    filters: { mutationKey: ['messages', { conversation_id }], status: 'loading' },
+    select: (mutation) => mutation.state.variables.data,
+  });
 
   if (messageQuery.isLoading) {
     return (
@@ -18,9 +24,10 @@ export const MessagesList = ({ conversation_id }: CommentsListProps) => {
     );
   }
 
-  const messages = messageQuery?.data;
-
-  if (!messages) return null;
+  const messages = [
+    ...(messageQuery?.data || []),
+    ...(Array.isArray(pendingMessages) ? pendingMessages : []),
+  ];
 
   return (
     <div>
@@ -36,6 +43,7 @@ export const MessagesList = ({ conversation_id }: CommentsListProps) => {
             username={message?.role === 'user' ? message?.role : (message?.model ?? 'assistant')}
           />
         ))}
+        {messageQuery.isPending && <li style={{ opacity: 0.5 }}>{messageQuery.data}</li>}
     </div>
   );
 };

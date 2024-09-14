@@ -45,13 +45,13 @@ export function ChatRoute() {
         conversation: searchParamString ?? '',
         role: 'user',
         content: message,
-        model: 'llama3',
+        model: model.name,
         user: 'deez',
       },
     });
   };
 
-  const ref = useScrollToEnd(messages);
+  const ref = useScrollToEnd(messages.data);
 
   return (
     <>

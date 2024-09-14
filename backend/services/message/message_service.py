@@ -1,6 +1,7 @@
 from repository.message_repository import MessageRepository
 from services.ollama.ollama import OllamaService
 from api.serializers.message import MessageSerializer
+from api.models.conversation.conversation import Conversation
 
 
 class MessageService:
@@ -32,11 +33,16 @@ class MessageService:
         serializer = MessageSerializer(data=serializer_data)
 
         if serializer.is_valid():
-            messages = serializer.validated_data.get("content")
+            message = serializer.validated_data.get("content")
             conversation = serializer.validated_data.get("conversation")
             user_id = serializer.validated_data.get("user")
             model_id = serializer.validated_data.get("model")
 
+            if not model_id:
+                return serializer.errors
+            
+            messages = self.message_repository.get_messages_by_conversation(conversation)
+    
             message_content = self.ollama_service.create_message_context("user", messages)
 
             self.message_repository.create_message(
@@ -47,7 +53,7 @@ class MessageService:
                 user=user_id
             )
 
-            response = self.ollama_service.chat(model="llama3", messages=message_content)
+            response = self.ollama_service.chat(model=model_id.name, messages=message_content)
 
             if response["done"]:
                 bot_response_content = response["message"]["content"]

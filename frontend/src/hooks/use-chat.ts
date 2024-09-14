@@ -5,6 +5,7 @@ import { ChatResponse, Message } from '@/types/providers/ollama';
 import { v4 as uuidv4 } from 'uuid';
 import { settingsService, conversationService, messageService } from '@/services/storage/client.ts';
 import { useModelStore } from '@/features/models/store/model-store';
+import { useCreateConversation } from '@/features/conversation/api/create-conversation';
 
 const ollama = new Ollama(OLLAMA_SETTINGS);
 
@@ -15,6 +16,7 @@ export function useChat() {
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const createConversation = useCreateConversation();
 
   useEffect(() => {
     const fetchModel = async () => {
@@ -85,10 +87,11 @@ export function useChat() {
     const newUuid = uuidv4();
     setUuid(newUuid);
     setMessages([]);
-    await conversationService.createConversation({
+    createConversation.mutate({
+      data: {
       uuid: newUuid,
-      created_by: 'Nolan',
-    });
+      user: 1,
+    }})
   }, []);
 
   const getChatHistory = useCallback(async (id: string) => {

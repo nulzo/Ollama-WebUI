@@ -7,32 +7,27 @@ import { Conversation } from '@/features/conversation/types/conversation';
 
 import { getConversationsQueryOptions } from '@/features/conversation/api/get-conversations';
 
-export const createDiscussionInputSchema = z.object({
-  title: z.string().min(1, 'Required'),
-  body: z.string().min(1, 'Required'),
-});
-
-export const createConversationSchema = z.object({
+export const createConversationInputSchema = z.object({
   uuid: z.string().min(1, 'UUID is required and must be unique'),
   name: z.string().max(150).nullable().optional(),
-  userId: z.number(),
+  user: z.number(),
 });
 
-export type CreateDiscussionInput = z.infer<typeof createDiscussionInputSchema>;
+export type CreateConversationInput = z.infer<typeof createConversationInputSchema>;
 
-export const createDiscussion = ({
+export const createConversation = ({
   data,
 }: {
-  data: CreateDiscussionInput;
+  data: CreateConversationInput;
 }): Promise<Conversation> => {
   return api.post(`/conversations/`, data);
 };
 
-type UseCreateDiscussionOptions = {
-  mutationConfig?: MutationConfig<typeof createDiscussion>;
+type UseCreateConversationOptions = {
+  mutationConfig?: MutationConfig<typeof createConversation>;
 };
 
-export const useCreateDiscussion = ({ mutationConfig }: UseCreateDiscussionOptions = {}) => {
+export const useCreateConversation = ({ mutationConfig }: UseCreateConversationOptions = {}) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};
@@ -45,6 +40,6 @@ export const useCreateDiscussion = ({ mutationConfig }: UseCreateDiscussionOptio
       onSuccess?.(...args);
     },
     ...restConfig,
-    mutationFn: createDiscussion,
+    mutationFn: createConversation,
   });
 };

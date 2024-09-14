@@ -27,7 +27,11 @@ class AssistantField(serializers.RelatedField):
         try:
             return Assistant.objects.get(name=data)
         except Assistant.DoesNotExist:
-            raise serializers.ValidationError("Assistant does not exist")
+            # create new assistant
+            assistant = Assistant(
+                name = data
+            ).save()
+            return assistant
 
 
 class MessageSerializer(serializers.ModelSerializer):

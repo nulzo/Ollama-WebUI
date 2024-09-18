@@ -33,7 +33,7 @@ class MessageService:
         serializer = MessageSerializer(data=serializer_data)
 
         if serializer.is_valid():
-            message = serializer.validated_data.get("content")
+            messages = serializer.validated_data.get("content")
             conversation = serializer.validated_data.get("conversation")
             user_id = serializer.validated_data.get("user")
             model_id = serializer.validated_data.get("model")
@@ -41,7 +41,7 @@ class MessageService:
             if not model_id:
                 return serializer.errors
             
-            messages = self.message_repository.get_messages_by_conversation(conversation)
+            # messages = self.message_repository.get_messages_by_conversation(conversation)
     
             message_content = self.ollama_service.create_message_context("user", messages)
 

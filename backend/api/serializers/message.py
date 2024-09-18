@@ -28,9 +28,9 @@ class AssistantField(serializers.RelatedField):
             return Assistant.objects.get(name=data)
         except Assistant.DoesNotExist:
             # create new assistant
-            assistant = Assistant(
+            assistant = Assistant.objects.create(
                 name = data
-            ).save()
+            )
             return assistant
 
 

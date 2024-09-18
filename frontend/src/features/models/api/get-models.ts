@@ -16,6 +16,8 @@ export const getModelsQueryOptions = () => {
   return queryOptions({
     queryKey: ['models'],
     queryFn: () => getModels(),
+    staleTime: 60 * 1000 * 5,
+    refetchInterval: 60 * 1000 * 5,
   });
 };
 

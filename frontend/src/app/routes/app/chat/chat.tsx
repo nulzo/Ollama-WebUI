@@ -58,7 +58,7 @@ export function ChatRoute() {
       <ConversationHistory
         createChat={createChat}
         getChatHistory={getChatHistory}
-        uuid={uuid}
+        uuid={searchParamString ?? uuid ?? ''}
         updateURL={setSearchParams}
         messages={messages}
       />

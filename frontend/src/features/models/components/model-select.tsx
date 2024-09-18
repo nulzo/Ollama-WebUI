@@ -27,8 +27,6 @@ export const ModelSelect = () => {
     model: state.model,
   }));
 
-  console.log(models);
-
   if (models.isLoading) {
     return (
       <div className="flex h-48 w-full items-center justify-center">

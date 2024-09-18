@@ -1369,6 +1369,10 @@ body {
   height: 100vh;
 }
 
+.h-6 {
+  height: 1.5rem;
+}
+
 .max-h-96 {
   max-height: 24rem;
 }
@@ -2336,6 +2340,11 @@ body {
   padding-bottom: 0.2rem;
 }
 
+.px-5 {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+
 .pb-1 {
   padding-bottom: 0.25rem;
 }
@@ -3027,6 +3036,10 @@ body {
 
 .hover\:bg-secondary\/80:hover {
   background-color: hsl(var(--secondary) / 0.8);
+}
+
+.hover\:bg-tertiary:hover {
+  background-color: hsl(var(--tertiary));
 }
 
 .hover\:stroke-foreground:hover {

@@ -62,6 +62,13 @@ export const createAppRouter = (_queryClient: QueryClient) =>
       ],
     },
     {
+      path: 'login',
+      lazy: async () => {
+        const { LoginRoute } = await import('@/app/routes/auth/login');
+        return { Component: LoginRoute };
+      },
+    },
+    {
       path: '*',
       lazy: async () => {
         const { NotFoundRoute } = await import('@/app/routes/error/not-found.tsx');

@@ -54,6 +54,7 @@ export function ChatRoute() {
 
   const ref = useScrollToEnd(messages.data);
 
+  // erm what the sigma
   // useEffect(()  => {
   //   console.log("GERE", !!messages?.data)
   //   if(messages?.data && searchParamString !== '') {

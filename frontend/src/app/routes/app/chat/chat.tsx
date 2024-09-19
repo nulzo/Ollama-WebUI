@@ -13,12 +13,13 @@ import { ConversationDefault } from '@/features/conversation/components/conversa
 import useScrollToEnd from '@/hooks/use-scroll-to-end.ts';
 import { useCreateMessage } from '@/features/message/api/create-message.ts';
 import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 export function ChatRoute() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
   const queryClient = useQueryClient();
-  const { uuid, message, isTyping, setMessage, createChat, getChatHistory } = useChat();
+  const { uuid, message, isTyping, setMessage, createChat } = useChat();
 
   const create_message = useCreateMessage({
     conversation_id: searchParamString ?? '',
@@ -53,11 +54,17 @@ export function ChatRoute() {
 
   const ref = useScrollToEnd(messages.data);
 
+  // useEffect(()  => {
+  //   console.log("GERE", !!messages?.data)
+  //   if(messages?.data && searchParamString !== '') {
+      
+  //   }
+  // }, [messages])
+
   return (
     <>
       <ConversationHistory
         createChat={createChat}
-        getChatHistory={getChatHistory}
         uuid={searchParamString ?? uuid ?? ''}
         updateURL={setSearchParams}
         messages={messages}

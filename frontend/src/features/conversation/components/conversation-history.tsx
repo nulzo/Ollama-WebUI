@@ -1,24 +1,15 @@
 import { isToday, isThisWeek, isThisMonth, isBefore, subMonths } from 'date-fns';
-import { PanelRightClose, PanelRightOpen, Pen, Pin, SquarePen, Trash } from 'lucide-react';
+import { PanelRightClose, PanelRightOpen, SquarePen } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 import { Chat } from '@/services/provider/ollama/ollama.ts';
 import { useMemo, useState } from 'react';
-import { DotsHorizontalIcon } from '@radix-ui/react-icons';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useConversations } from '@/features/conversation/api/get-conversations';
-import { useCreateConversation } from '../api/create-conversation';
+import { ConversationOptionsDropdown } from './conversation-options-dropdown';
 
 export default function ConversationHistory(props: any) {
   const chats = useConversations();
   const [isExpanded, setExpanded] = useState<boolean>(true);
-
+  
   function createChat() {
     props.updateURL('');
     props.createChat();
@@ -26,7 +17,9 @@ export default function ConversationHistory(props: any) {
   }
 
   async function getChatHistory(id: string) {
-    props.getChatHistory(id);
+    if (!chats?.data) {
+      console.log('No conversations found');
+    }
     props.updateURL(`c=${id}`);
   }
 
@@ -119,33 +112,11 @@ export default function ConversationHistory(props: any) {
                           {chat.messages[0]?.content ?? 'Some message...'}
                         </div>
                       </div>
-                      <div
-                        className={`${props.uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}
-                      >
-                        <div className="flex self-center space-x-1">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <DotsHorizontalIcon className="hover:stroke-primary self-center transition" />
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-[150px]">
-                              <DropdownMenuGroup>
-                                <DropdownMenuItem className="gap-2 items-center">
-                                  <Pin className="size-3" /> Pin
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="gap-2 items-center">
-                                  <Pen className="size-3" /> Rename
-                                </DropdownMenuItem>
-                              </DropdownMenuGroup>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="flex gap-2 items-center group focus:bg-destructive">
-                                <Trash className="size-3.5 group-hover:stroke-destructive-foreground text-destructive" />
-                                <span className="group-hover:text-destructive-foreground text-destructive">Delete</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
+                      
                     </button>
+                    <div className={`${props.uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}>
+                      <ConversationOptionsDropdown conversationID={chat.uuid ?? ''} />
+                    </div>
                   </div>
                 ))}
               </div>

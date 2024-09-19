@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { settingsService, conversationService, messageService } from '@/services/storage/client.ts';
 import { useModelStore } from '@/features/models/store/model-store';
 import { useCreateConversation } from '@/features/conversation/api/create-conversation';
+import { useConversation } from '@/features/conversation/api/get-conversation';
 
 const ollama = new Ollama(OLLAMA_SETTINGS);
 
@@ -17,6 +18,7 @@ export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const createConversation = useCreateConversation();
+  const conversation = useConversation({ conversationID: uuid });
 
   useEffect(() => {
     const fetchModel = async () => {
@@ -94,13 +96,17 @@ export function useChat() {
     }})
   }, []);
 
-  const getChatHistory = useCallback(async (id: string) => {
-    const history = await conversationService.fetchConversation(id);
-    if (history) {
-      setUuid(history.uuid);
-      setMessages(history.messages || []);
-    }
-  }, []);
+  // const getChatHistory = useCallback(async (id: string) => {
+  //   const history = conversation.data;
+  //   console.log('getChatHistory', history);
+  //   if (history) {
+  //     setUuid(history.uuid);
+  //     setMessages(history.messages || []);
+  //   }
+  //   if (!history) {
+  //     setUuid('');
+  //   }
+  // }, []);
 
   return {
     model,
@@ -113,6 +119,6 @@ export function useChat() {
     setMessage,
     handleSubmit,
     createChat,
-    getChatHistory,
+    // getChatHistory,
   };
 }

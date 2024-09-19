@@ -77,7 +77,7 @@ export function ThemeProvider({
 
     // Add new color class
     root.classList.add(`theme-${color}`);
-  }, [color]);
+  }, [color, theme]);
 
   const value = {
     theme,

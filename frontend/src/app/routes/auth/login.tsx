@@ -9,10 +9,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 
@@ -47,7 +45,7 @@ export const LoginRoute = () => {
   }
 
   return (
-    <main className="text-foreground bg-background font-inter selection:bg-primary/50 h-screen max-h-[100dvh] overflow-auto flex flex-row flex flex-col h-screen min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
+    <main className="text-foreground bg-background font-inter selection:bg-primary/50 max-h-[100dvh] overflow-auto flex flex-row flex-col h-screen min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
       <img src={logo} className="size-24" />
       <p className="font-semibold text-4xl">CringeGPT™</p>
       <p className="text-muted-foreground">An Open Source Software provided by CringeAI</p>

@@ -9,11 +9,11 @@ export const deleteConversation = ({ conversationID }: { conversationID: string 
   return api.delete(`/conversations/${conversationID}`);
 };
 
-type UseDeleteDiscussionOptions = {
+type UseDeleteConversationOptions = {
   mutationConfig?: MutationConfig<typeof deleteConversation>;
 };
 
-export const useDeleteDiscussion = ({ mutationConfig }: UseDeleteDiscussionOptions = {}) => {
+export const useDeleteConversation = ({ mutationConfig }: UseDeleteConversationOptions = {}) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};

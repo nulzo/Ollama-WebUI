@@ -9,7 +9,7 @@ export const getConversation = ({
 }: {
   conversationID: string;
 }): Promise<{ data: Conversation }> => {
-  return api.get(`/conversations/${conversationID}`);
+  return api.get(`/conversations?=${conversationID}`);
 };
 
 export const getConversationQueryOptions = (conversationID: string) => {
@@ -28,5 +28,6 @@ export const useConversation = ({ conversationID, queryConfig }: UseConversation
   return useQuery({
     ...getConversationQueryOptions(conversationID),
     ...queryConfig,
+    enabled: !!conversationID,
   });
 };

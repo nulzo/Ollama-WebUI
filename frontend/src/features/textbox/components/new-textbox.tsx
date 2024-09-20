@@ -73,7 +73,7 @@ export default function DynamicTextarea({
 
   return (
     <TooltipProvider>
-      <div className="-mb-0.5 mx-auto inset-x-0 bg-transparent flex justify-center">
+      <div className="-mb-0.5 mx-auto inset-x-0 bg-background/50 flex justify-center">
         <div className="flex flex-col max-w-6xl px-2.5 md:px-6 w-full">
           <div className="relative">
             <div className="absolute -top-12 left-0 right-0 justify-center z-30 pointer-events-none hidden">
@@ -96,8 +96,8 @@ export default function DynamicTextarea({
           <div className="w-full relative"> </div>
         </div>
       </div>
-      <div className="w-full max-w-3xl mx-auto bg-background/50 backdrop-blur-lg">
-        <div className="relative bg-background/50 backdrop-blur-lg rounded-lg shadow-sm border border-input z-10 max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl inset-x-0 border-spacing-2 overflow-hidden ring-primary/50 focus-within:border-primary focus-within:ring-1 w-full">
+      <div className="w-full mx-auto bg-transparent max-w-6xl inset-x-0 border-spacing-2 overflow-hidden px-[75px]">
+        <div className="mx-auto relative rounded-lg shadow-sm border border-input z-10 max-w-6xl inset-x-0 border-spacing-2 overflow-hidden ring-primary/50 focus-within:border-primary focus-within:ring-1 w-full">
           <textarea
             ref={textareaRef}
             value={text}
@@ -105,8 +105,8 @@ export default function DynamicTextarea({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             rows={1}
-            className="w-full resize-none bg-transparent px-4 py-3 text-sm focus:outline-none focus:ring-0 focus:ring-none rounded-lg"
-            style={{ minHeight: '44px', maxHeight: '250px' }}
+            className=" placeholder:text-muted-foreground text-foreground w-full resize-none bg-transparent px-4 py-3 text-sm focus:outline-none focus:ring-0 focus:ring-none rounded-lg"
+            style={{ minHeight: '44px', maxHeight: '200px' }}
           />
           <div className="absolute bottom-2 right-2 flex items-center space-x-2">
             <span className="text-xs text-muted-foreground">

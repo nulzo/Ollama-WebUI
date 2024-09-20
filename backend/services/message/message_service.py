@@ -40,10 +40,6 @@ class MessageService:
 
             if not model_id:
                 return serializer.errors
-            
-            # messages = self.message_repository.get_messages_by_conversation(conversation)
-    
-            message_content = self.ollama_service.create_message_context("user", messages)
 
             self.message_repository.create_message(
                 conversation=conversation,
@@ -52,8 +48,17 @@ class MessageService:
                 model=model_id,
                 user=user_id
             )
+            
+            all_messages = conversation.messages.all().order_by('created_at')
+            
+            flattened_messages = [
+                {"role": message.role, "content": message.content}
+                for message in all_messages
+            ]
 
-            response = self.ollama_service.chat(model=model_id.name, messages=message_content)
+            print(flattened_messages)
+
+            response = self.ollama_service.chat(model=model_id.name, messages=flattened_messages)
 
             if response["done"]:
                 bot_response_content = response["message"]["content"]

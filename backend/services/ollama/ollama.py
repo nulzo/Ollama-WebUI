@@ -7,14 +7,10 @@ class OllamaService:
         self._client = Client(host="http://192.168.0.25:11434")
 
     def create_message_context(self, role: str, messages: Union[List, str]):
-        # message_context = []
-        # for message in messages:
-        #     message_context.append({"role": message.role, "content": message.content})
-        # return message_context
         return [{"role": role, "content": messages}]
 
     def chat(self, model: str, messages: Dict[Any, Any]):
-        return self._client.chat(model, messages, stream=False)
+        return self._client.chat(model=model, messages=messages, stream=False)
 
     def get_all_models(self):
         return self._client.list()

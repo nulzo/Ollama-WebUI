@@ -17,6 +17,9 @@ import { Spinner } from '@/components/ui/spinner';
 import { OllamaModel } from '@/types/models';
 import { useModels } from '@/features/models/api/get-models.ts';
 import { OllamaModelData } from '@/features/models/types/models';
+import { DiamondPlus, Heart } from 'lucide-react';
+import { Tooltip } from '@radix-ui/react-tooltip';
+import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const ModelSelect = () => {
   const [open, setOpen] = useState(false);
@@ -40,41 +43,61 @@ export const ModelSelect = () => {
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-[150px] justify-between border-0 bg-accent/0 font-semibold"
-        >
-          {model
-            ? models?.data?.models?.find((m: OllamaModelData) => m.name === model.name)?.name
-            : 'Select model...'}
-          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[250px] p-0">
-        <Command>
-          <CommandInput placeholder="Search model..." className="h-9" />
-          <CommandList>
-            <CommandEmpty>No model found.</CommandEmpty>
-            <CommandGroup>
-              {models?.data?.models?.map((m: OllamaModel) => (
-                <CommandItem key={m.name} value={m.name} onSelect={() => handleModelSelect(m)}>
-                  {m.name}
-                  <CheckIcon
-                    className={cn(
-                      'ml-auto h-4 w-4',
-                      model?.name === m.name ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <div className='relative flex items-center'>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-fit max-w-sm justify-between border-0 bg-accent/0 font-semibold"
+          >
+            {model
+              ? models?.data?.models?.find((m: OllamaModelData) => m.name === model.name)?.name
+              : 'Select model...'}
+            <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-fit max-w-sm p-0">
+          <Command>
+            <CommandInput placeholder="Search model..." className="h-9" />
+            <CommandList>
+              <CommandEmpty>No model found.</CommandEmpty>
+              <CommandGroup>
+                {models?.data?.models?.map((m: OllamaModel) => (
+                  <CommandItem key={m.name} value={m.name} onSelect={() => handleModelSelect(m)}>
+                    {m.name}
+                    <CheckIcon
+                      className={cn(
+                        'ml-auto h-4 w-4',
+                        model?.name === m.name ? 'opacity-100' : 'opacity-0'
+                      )}
+                    />
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+      {model && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                className='text-xs font-normal text-muted-foreground'
+                variant="link"
+                size="icon"
+              ><DiamondPlus className="size-4" /></Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={5} className="bg-accent">
+              Set as default model
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+
+    </div>
+
   );
 };

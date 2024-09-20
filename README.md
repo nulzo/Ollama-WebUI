@@ -10,10 +10,8 @@
   </a>
 </div>
 
-![main-page](docs/images/main-page.png)
+![main-page](docs/images/example1.png)
 
-*Yes, it supports syntax highlighting!*
-![main-page-code](docs/images/main-page-code.png)
+![main-page-code](docs/images/example3.png)
 
-*Yes, it supports latex code*
-![main-page-code](docs/images/main-page-latex.png)
+![main-page-code](docs/images/example4.png)

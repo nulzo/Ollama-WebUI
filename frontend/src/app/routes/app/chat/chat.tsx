@@ -14,6 +14,7 @@ import useScrollToEnd from '@/hooks/use-scroll-to-end.ts';
 import { useCreateMessage } from '@/features/message/api/create-message.ts';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import AutoResizeTextarea from '@/features/textbox/components/new-textbox';
 
 export function ChatRoute() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -41,26 +42,20 @@ export function ChatRoute() {
   }));
 
   const submit = () => {
-    create_message.mutate({
-      data: {
-        conversation: searchParamString ?? '',
-        role: 'user',
-        content: message,
-        model: model.name,
-        user: 'deez',
-      },
-    });
+    if(message.trim()) {
+      create_message.mutate({
+        data: {
+          conversation: searchParamString ?? '',
+          role: 'user',
+          content: message,
+          model: model.name,
+          user: 'deez',
+        },
+      });
+    }
   };
 
   const ref = useScrollToEnd(messages.data);
-
-  // erm what the sigma
-  // useEffect(()  => {
-  //   console.log("GERE", !!messages?.data)
-  //   if(messages?.data && searchParamString !== '') {
-      
-  //   }
-  // }, [messages])
 
   return (
     <>
@@ -105,9 +100,9 @@ export function ChatRoute() {
                 </div>
               </div>
             </div>
-            <Textbox
-              value={message}
-              setValue={setMessage}
+            <AutoResizeTextarea
+              text={message}
+              setText={setMessage}
               onSubmit={submit}
               model={model?.name || ''}
             />

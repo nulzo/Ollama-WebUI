@@ -1,22 +1,26 @@
 import { Spinner } from '@/components/ui/spinner';
-
 import { useMessages } from '@/features/message/api/get-messages';
-import Message from '@/features/message/components/message.tsx';
+import Message from '@/features/message/components/message';
 import { useMutationState } from '@tanstack/react-query';
+import { useModelStore } from '@/features/models/store/model-store';
+import { TypingIndicator } from './typing-indicator';
 
-type CommentsListProps = {
+interface MessagesListProps {
   conversation_id: string;
-};
+}
 
-export const MessagesList = ({ conversation_id }: CommentsListProps) => {
-  const messageQuery = useMessages({ conversation_id });
+export const MessagesList = ({ conversation_id }: MessagesListProps) => {
+  const { data: messagesResponse, isLoading } = useMessages({ conversation_id });
+  const { model } = useModelStore(state => ({ model: state.model }));
 
-  const { data: pendingMessages } = useMutationState({
-    filters: { mutationKey: ['messages', { conversation_id }], status: 'loading' },
-    select: (mutation) => mutation.state.variables.data,
+  const pendingMessages = useMutationState({
+    filters: { mutationKey: ['createMessage', conversation_id], status: 'pending' },
+    select: (mutation) => mutation.state.variables?.data,
   });
 
-  if (messageQuery.isLoading) {
+  const isTyping = pendingMessages?.length > 0;
+
+  if (isLoading) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />
@@ -24,26 +28,35 @@ export const MessagesList = ({ conversation_id }: CommentsListProps) => {
     );
   }
 
-  const messages = [
-    ...(messageQuery?.data || []),
-    ...(Array.isArray(pendingMessages) ? pendingMessages : []),
+  const confirmedMessages: any[] = Array.isArray(messagesResponse) ? messagesResponse : [];
+
+
+  const allMessages = [
+    ...confirmedMessages,
+    ...pendingMessages.filter(pendingMsg => 
+      pendingMsg.role === 'user' && 
+      !confirmedMessages.some(confirmedMsg => 
+        confirmedMsg.content === pendingMsg.content && 
+        confirmedMsg.role === pendingMsg.role
+      )
+    ),
   ];
 
   return (
-    <div>
-      {messages.length !== 0 &&
-        messages.map((message, index) => (
-          <Message
-            key={`message-${message.id}-${index}`}
-            id={message?.id ?? ''}
-            isBot={message?.role !== 'user'}
-            isTyping={false}
-            message={message?.content}
-            time={message.created_at}
-            username={message?.role === 'user' ? message?.role : (message?.model ?? 'assistant')}
-          />
-        ))}
-        {messageQuery.isPending && <li style={{ opacity: 0.5 }}>{messageQuery.data}</li>}
+    <div className="flex flex-col space-y-4">
+      {allMessages.map((message, index) => (
+        <Message
+          key={`message-${message.id || index}`}
+          id={message.id || ''}
+          role={message.role}
+          content={message.content}
+          time={message.created_at}
+          username={message.role === 'user' ? message.role : (message.model || 'assistant')}
+        />
+      ))}
+      {isTyping && (
+        <TypingIndicator isTyping={true} model={model?.name || ''} />
+      )}
     </div>
   );
 };

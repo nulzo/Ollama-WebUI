@@ -12,7 +12,7 @@ export const createMessageInputSchema = z.object({
   role: z.string().min(1).max(25),
   content: z.string(),
   created_at: z.date().nullable().optional(),
-  model: z.string().nullable().optional(),
+  model: z.string().optional(),
   user: z.string().nullable().optional(),
 });
 
@@ -36,15 +36,14 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
         queryKey: getMessageQueryOptions(conversation_id).queryKey,
       });
     },
-    onMutate: async (newMessage) => {
-      await queryClient.cancelQueries({ queryKey: ['messages', { conversation_id }]});
-      const previousMessages = queryClient.getQueryData(['messages', { conversation_id }]);
-      queryClient.setQueryData(['messages', { conversation_id }], (oldMessages) => [
+    onMutate: async newMessage => {
+      await queryClient.cancelQueries({ queryKey: ['messages', { conversation_id }] });
+      queryClient.setQueryData(['messages', { conversation_id }], oldMessages => [
         ...oldMessages,
-        { ...newMessage.data, id: String(Date.now()) } // temporary id for the optimistic message
+        { ...newMessage.data, id: String(Date.now()) },
       ]);
     },
-    onError: (err, newMessage, context) => {
+    onError: (_, __, context) => {
       queryClient.setQueryData(['messages', { conversation_id }], context.previousMessages);
     },
     onSettled: () => {
@@ -52,5 +51,6 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
     },
     ...mutationConfig,
     mutationFn: createMessage,
+    mutationKey: ['createMessage', conversation_id],
   });
 };

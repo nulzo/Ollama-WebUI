@@ -1,5 +1,4 @@
 import { ConversationArea } from '@/features/conversation/components/conversation-area';
-import { useModelStore } from '@/features/models/store/model-store';
 import ConversationHistory from '@/features/conversation/components/conversation-history.tsx';
 import { ConversationAreaHeader } from '@/features/conversation/components/conversation-area-header.tsx';
 import { MessagesList } from '@/features/message/components/message-list.tsx';
@@ -8,10 +7,9 @@ import useScrollToEnd from '@/hooks/use-scroll-to-end.ts';
 import { ChatInput } from '@/features/textbox/components/chat-input';
 import { useConversation } from '@/features/conversation/hooks/use-conversation';
 
-
 export function ChatRoute() {
-  const { conversationId, messages, createNewConversation, submitMessage, setSearchParams } = useConversation();
-  const { model } = useModelStore(state => ({ model: state.model }));
+  const { conversationId, messages, createNewConversation, submitMessage, setSearchParams } =
+    useConversation();
 
   const ref = useScrollToEnd(messages.data);
 

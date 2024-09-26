@@ -4,6 +4,7 @@ from rest_framework import status
 from services.message.message_service import MessageService
 from api.serializers.message import MessageSerializer
 import logging
+from django.http import StreamingHttpResponse
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +20,13 @@ class MessageView(APIView):
         
         logger.info(f"Message: {response}.")
 
-        if "errors" in response:
+        if isinstance(response, dict) and "errors" in response:
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        if not response['done']:
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        if isinstance(response, StreamingHttpResponse):
+            return response
+        
+        # If it's not a streaming response or an error, it's a regular response
         return Response(response, status=status.HTTP_200_OK)
 
     def get(self, request):

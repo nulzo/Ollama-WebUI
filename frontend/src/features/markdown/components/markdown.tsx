@@ -11,10 +11,11 @@ const revertSanitizedResponseContent = (content: string) => {
 };
 
 const renderTokens = (tokens: any): React.ReactNode[] => {
+  console.log(tokens)
   return tokens.map((token: any, index: number) => {
     switch (token.type) {
       case 'break':
-        return <br key={index} />;
+        return <div className="my-0.5" key={index} />;
       case 'hr':
         return <hr key={index} />;
       case 'blockquote':
@@ -94,7 +95,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           </p>
         );
       case 'text':
-        return <span key={index}>{he.decode(token.text)}</span>;
+        return <div key={index} className='flex justify-start'>{he.decode(token.text)}</div>;
       case 'list':
         return token.ordered ? (
           <ol key={index} className="my-6 ml-6 list-decimal [&>li]:mt-2">
@@ -162,7 +163,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           />
         );
       case 'space':
-        return <div className="my-0.5" key={index} />;
+        return <div className="h-4" key={index} />;
       default:
         return null;
     }
@@ -173,7 +174,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
   const tokens = useTokens(markdown);
 
   return (
-    <div className="markdown-prose markdown overflow-x-scroll max-w-sm min-w-sm md:max-w-lg md:min-w-lg lg:max-w-2xl lg:min-w-2xl xl:max-w-4xl xl:min-w-4xl mx-auto">
+    <div className="markdown-prose markdown overflow-x-scroll max-w-sm min-w-sm md:max-w-lg md:min-w-lg lg:max-w-2xl lg:min-w-2xl xl:max-w-4xl xl:min-w-4xl w-full mx-auto">
       {renderTokens(tokens)}
     </div>
   );

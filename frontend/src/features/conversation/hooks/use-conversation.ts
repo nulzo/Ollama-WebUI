@@ -1,6 +1,7 @@
 import { useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
+import { useState } from 'react';
 import { useCreateConversation } from '@/features/conversation/api/create-conversation';
 import { useMessages } from '@/features/message/api/get-messages';
 import { useCreateMessage } from '@/features/message/api/create-message';
@@ -12,6 +13,8 @@ export function useConversation() {
   const queryClient = useQueryClient();
   const createConversation = useCreateConversation();
   const { model } = useModelStore(state => ({ model: state.model }));
+  const [streamingContent, setStreamingContent] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
 
   const messages = useMessages({
     conversation_id: searchParamString ?? '',
@@ -24,9 +27,30 @@ export function useConversation() {
         queryClient.invalidateQueries({
           queryKey: ['messages', { conversation_id: searchParamString }],
         });
+        setStreamingContent('');
+        setIsStreaming(false);
       },
     },
   });
+
+  // useEffect(() => {
+  //   const handleMessageChunk = (event: CustomEvent) => {
+  //     setIsStreaming(true);
+  //     setStreamingContent(prev => prev + event.detail);
+  //   };
+
+  //   const handleMessageDone = () => {
+  //     setIsStreaming(false);
+  //   };
+
+  //   window.addEventListener('message-chunk', handleMessageChunk as EventListener);
+  //   window.addEventListener('message-done', handleMessageDone as EventListener);
+
+  //   return () => {
+  //     window.removeEventListener('message-chunk', handleMessageChunk as EventListener);
+  //     window.removeEventListener('message-done', handleMessageDone as EventListener);
+  //   };
+  // }, []);
 
   const createNewConversation = () => {
     const newUuid = uuidv4();
@@ -39,7 +63,7 @@ export function useConversation() {
     setSearchParams(`c=${newUuid}`);
   };
 
-  const submitMessage = (message: string) => {
+  const submitMessage = (message: string, image: string | null = null) => {
     if (message.trim()) {
       createMessage.mutate({
         data: {
@@ -48,6 +72,7 @@ export function useConversation() {
           content: message,
           model: model?.name,
           user: 'deez',
+          image: image,
         },
       });
     }
@@ -59,5 +84,7 @@ export function useConversation() {
     createNewConversation,
     submitMessage,
     setSearchParams,
+    streamingContent,
+    isStreaming,
   };
 }

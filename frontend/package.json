@@ -75,6 +75,7 @@
     "react-error-boundary": "^4.0.13",
     "react-helmet-async": "^2.0.5",
     "react-hook-form": "^7.51.3",
+    "react-medium-image-zoom": "^5.2.10",
     "react-query-auth": "^2.4.1",
     "react-resizable-panels": "^2.0.18",
     "react-router-dom": "^6.23.0",

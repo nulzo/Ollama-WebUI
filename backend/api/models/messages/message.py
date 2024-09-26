@@ -13,6 +13,7 @@ class Message(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     model = models.ForeignKey(Assistant, on_delete=models.PROTECT, null=True, blank=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
-
+    image = models.TextField(null=True, blank=True)
+    
     def __str__(self) -> str:
         return self.content[:15]

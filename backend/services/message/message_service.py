@@ -1,7 +1,10 @@
 from repository.message_repository import MessageRepository
 from services.ollama.ollama import OllamaService
 from api.serializers.message import MessageSerializer
-from api.models.conversation.conversation import Conversation
+from api.models.messages.message import Message
+from django.http import StreamingHttpResponse
+import json
+import base64
 
 
 class MessageService:
@@ -37,40 +40,56 @@ class MessageService:
             conversation = serializer.validated_data.get("conversation")
             user_id = serializer.validated_data.get("user")
             model_id = serializer.validated_data.get("model")
+            image_data_url = serializer.validated_data.get("image")
 
             if not model_id:
                 return serializer.errors
+
+            base64_data = None
+            if image_data_url:
+                # Extract the base64 data from the data URL
+                _, base64_data = image_data_url.split(',', 1)
 
             self.message_repository.create_message(
                 conversation=conversation,
                 role="user",
                 content=messages,
                 model=model_id,
-                user=user_id
+                user=user_id,
+                image=base64_data
             )
             
             all_messages = conversation.messages.all().order_by('created_at')
             
-            flattened_messages = [
-                {"role": message.role, "content": message.content}
-                for message in all_messages
-            ]
+            flattened_messages = []
 
-            print(flattened_messages)
+            for message in all_messages:
+                message_dict = {
+                    "role": message.role,
+                    "content": message.content
+                }
+                if message.image:
+                    message_dict["images"] = [base64_data]
+                flattened_messages.append(message_dict)
 
-            response = self.ollama_service.chat(model=model_id.name, messages=flattened_messages)
-
-            if response["done"]:
-                bot_response_content = response["message"]["content"]
+            def stream_response():
+                full_content = ""
+                for chunk in self.ollama_service.chat(model=model_id.name, messages=flattened_messages):
+                    full_content += chunk.get("message", {}).get("content", "")
+                    yield f"data: {json.dumps(chunk)}\n\n"
+                
+                # After streaming is complete, save the full message
                 self.message_repository.create_message(
                     conversation=conversation,
                     role="assistant",
-                    content=bot_response_content,
+                    content=full_content,
                     model=model_id,
-                    user=user_id
+                    user=user_id,
+                    image=None
                 )
-                return response
-            else:
-                return response
+                
+                yield "data: [DONE]\n\n"
+
+            return StreamingHttpResponse(stream_response(), content_type='text/event-stream')
 
         return {"errors": serializer.errors}

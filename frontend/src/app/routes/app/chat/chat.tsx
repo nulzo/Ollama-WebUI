@@ -8,10 +8,14 @@ import { ChatInput } from '@/features/textbox/components/chat-input';
 import { useConversation } from '@/features/conversation/hooks/use-conversation';
 
 export function ChatRoute() {
-  const { conversationId, messages, createNewConversation, submitMessage, setSearchParams } =
+  const { conversationId, messages, createNewConversation, submitMessage, setSearchParams, setImage } =
     useConversation();
 
   const ref = useScrollToEnd(messages.data);
+
+  const handleSubmit = (text: string, image: string | null) => {
+    submitMessage(text, image);
+  };
 
   return (
     <>
@@ -35,7 +39,7 @@ export function ChatRoute() {
             )}
           </ConversationArea>
           <div className="pb-4 pt-4 transition backdrop-blur">
-            <ChatInput onSubmit={submitMessage} />
+            <ChatInput onSubmit={handleSubmit} />
           </div>
         </div>
       </div>

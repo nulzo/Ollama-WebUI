@@ -30,7 +30,6 @@ export const MessagesList = ({ conversation_id }: MessagesListProps) => {
 
   const confirmedMessages: any[] = Array.isArray(messagesResponse) ? messagesResponse : [];
 
-
   const allMessages = [
     ...confirmedMessages,
     ...pendingMessages.filter(pendingMsg => 
@@ -52,6 +51,8 @@ export const MessagesList = ({ conversation_id }: MessagesListProps) => {
           content={message.content}
           time={message.created_at}
           username={message.role === 'user' ? message.role : (message.model || 'assistant')}
+          image={message.image} 
+          isTyping={false}
         />
       ))}
       {isTyping && (
@@ -59,4 +60,4 @@ export const MessagesList = ({ conversation_id }: MessagesListProps) => {
       )}
     </div>
   );
-};
+}

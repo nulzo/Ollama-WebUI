@@ -10,7 +10,7 @@ class OllamaService:
         return [{"role": role, "content": messages}]
 
     def chat(self, model: str, messages: Dict[Any, Any]):
-        return self._client.chat(model=model, messages=messages, stream=False)
+        return self._client.chat(model=model, messages=messages, stream=True)
 
     def get_all_models(self):
         return self._client.list()

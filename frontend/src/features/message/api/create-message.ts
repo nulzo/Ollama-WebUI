@@ -14,12 +14,23 @@ export const createMessageInputSchema = z.object({
   created_at: z.date().nullable().optional(),
   model: z.string().optional(),
   user: z.string().nullable().optional(),
+  image: z.string().optional()
 });
 
 export type CreateMessageInput = z.infer<typeof createMessageInputSchema>;
 
 export const createMessage = ({ data }: { data: CreateMessageInput }): Promise<Message> => {
-  return api.post(`/chat/ollama/`, data);
+  return api.post('/chat/ollama/', data, {
+    responseType: 'stream',
+    onDownloadProgress: (progressEvent) => {
+      const chunk = progressEvent.event.target.response;
+      // Process the chunk here (e.g., update state with new content)
+      if (chunk) {
+        // Emit an event with the new chunk
+        window.dispatchEvent(new CustomEvent('message-chunk', { detail: chunk }));
+      }
+    },
+  });
 };
 
 type UseCreateMessageOptions = {

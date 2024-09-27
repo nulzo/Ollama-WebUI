@@ -95,7 +95,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           return token.tokens ? (
             <span key={index}>{renderTokens(token.tokens)}</span>
           ) : (
-            <div className='whitespace-wrap' key={index}>{he.decode(token.text)}</div>
+            <span className='whitespace-wrap' key={index}>{he.decode(token.text)}</span>
           );
       case 'list':
         return token.ordered ? (

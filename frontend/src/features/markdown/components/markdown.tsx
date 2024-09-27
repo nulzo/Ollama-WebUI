@@ -5,13 +5,10 @@ import { MarkdownRendererProps } from '../types/markdown';
 import he from 'he';
 import KatexRenderer from './katex';
 import DOMPurify from 'dompurify';
+import MarkdownInlineTokens from './markdown-inline';
 
-const revertSanitizedResponseContent = (content: string) => {
-  return content.replace('&lt;', '<').replace('&gt;', '>');
-};
 
 const renderTokens = (tokens: any): React.ReactNode[] => {
-  console.log(tokens)
   return tokens.map((token: any, index: number) => {
     switch (token.type) {
       case 'break':
@@ -45,7 +42,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
               key={index}
               className="leading-9 [&:not(:first-child)]:mt-10 [&:first-child]:mt-2 scroll-m-20 text-4xl font-bold tracking-tight"
             >
-              {renderTokens(token.tokens || [token])}
+              <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h1>
           );
         } else if (token?.depth === 2) {
@@ -54,7 +51,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
               key={index}
               className="leading-7 [&:not(:first-child)]:mt-8 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0"
             >
-              {renderTokens(token.tokens || [token])}
+              <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h2>
           );
         } else if (token?.depth === 3) {
@@ -63,7 +60,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
               key={index}
               className="leading-7 [&:not(:first-child)]:mt-8 scroll-m-20 text-2xl font-semibold tracking-tight"
             >
-              {renderTokens(token.tokens || [token])}
+              <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h3>
           );
         } else if (token?.depth === 4) {
@@ -72,42 +69,54 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
               key={index}
               className="leading-7 [&:not(:first-child)]:mt-4 scroll-m-20 text-lg font-semibold tracking-tight"
             >
-              {renderTokens(token.tokens || [token])}
+              <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h4>
           );
         } else if (token?.depth === 5) {
           return (
             <h5 key={index} className="scroll-m-20 text-md font-semibold tracking-tight">
-              {renderTokens(token.tokens || [token])}
+              <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h5>
           );
         } else {
           return (
             <h6 key={index} className="scroll-m-20 font-semibold tracking-tight">
-              {renderTokens(token.tokens || [token])}
+              <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h6>
           );
         }
       case 'paragraph':
         return (
           <p key={index} className="leading-7 [&:not(:first-child)]:mt-4">
-            {renderTokens(token.tokens)}
+            <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens ?? []} /> 
           </p>
         );
-      case 'text':
-        return <div key={index} className='flex justify-start'>{he.decode(token.text)}</div>;
+        case 'text':
+          return token.tokens ? (
+            <span key={index}>{renderTokens(token.tokens)}</span>
+          ) : (
+            <div className='whitespace-wrap' key={index}>{he.decode(token.text)}</div>
+          );
       case 'list':
         return token.ordered ? (
-          <ol key={index} className="my-6 ml-6 list-decimal [&>li]:mt-2">
-            {renderTokens(token.items)}
+          <ol key={index} start={token.start || 1} className="my-6 ml-6 list-decimal [&>li]:mt-2">
+            {token.items.map((item: any, itemIdx: number) => (
+              <li key={`${index}-${itemIdx}`}>
+                {renderTokens(item.tokens)}
+              </li>
+            ))}
           </ol>
         ) : (
           <ul key={index} className="my-6 ml-6 list-disc [&>li]:mt-2">
-            {renderTokens(token.items)}
+            {token.items.map((item: any, itemIdx: number) => (
+              <li key={`${index}-${itemIdx}`}>
+                {renderTokens(item.tokens)}
+              </li>
+            ))}
           </ul>
         );
       case 'list_item':
-        return <li key={index}>{renderTokens(token.tokens)}</li>;
+        return <li className='flex whitespace-wrap' key={index}>{renderTokens(token.tokens)}</li>;
       case 'table':
         return (
           <div className="rounded-xl">
@@ -151,15 +160,15 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'blockKatex':
         return (
           <KatexRenderer
-            content={revertSanitizedResponseContent(token.text)}
-            displayMode={token?.displayMode ?? false}
+            content={token.text}
+            displayMode={true}
           />
         );
       case 'inlineKatex':
         return (
           <KatexRenderer
-            content={revertSanitizedResponseContent(token.text)}
-            displayMode={token?.displayMode ?? false}
+            content={token.text}
+            displayMode={false}
           />
         );
       case 'space':

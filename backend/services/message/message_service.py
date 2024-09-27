@@ -44,6 +44,10 @@ class MessageService:
 
             if not model_id:
                 return serializer.errors
+            
+            if not conversation.name:
+                conversation.name = messages
+                conversation.save()
 
             base64_data = None
             if image_data_url:

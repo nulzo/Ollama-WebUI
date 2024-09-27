@@ -6,6 +6,7 @@ import { MutationConfig } from '@/lib/query';
 
 import { getMessageQueryOptions } from '@/features/message/api/get-message.ts';
 import { Message } from '@/features/message/types/message';
+import { getConversationQueryOptions } from '@/features/conversation/api/get-conversation';
 
 export const createMessageInputSchema = z.object({
   conversation: z.string(),
@@ -45,6 +46,9 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getMessageQueryOptions(conversation_id).queryKey,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getConversationQueryOptions(conversation_id).queryKey,
       });
     },
     onMutate: async newMessage => {

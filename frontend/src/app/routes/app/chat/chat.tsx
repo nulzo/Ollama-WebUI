@@ -8,7 +8,7 @@ import { ChatInput } from '@/features/textbox/components/chat-input';
 import { useConversation } from '@/features/conversation/hooks/use-conversation';
 
 export function ChatRoute() {
-  const { conversationId, messages, createNewConversation, submitMessage, setSearchParams, setImage } =
+  const { conversationId, messages, createNewConversation, submitMessage, setSearchParams } =
     useConversation();
 
   const ref = useScrollToEnd(messages.data);

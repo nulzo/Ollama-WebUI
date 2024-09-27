@@ -2,7 +2,6 @@ import ReactDOM from 'react-dom/client';
 import * as React from 'react';
 import '@/style/syntax.css';
 import '@/style/output.css';
-import '@/style/md.css';
 import '@/style/confetti.css';
 import { App } from '@/app';
 

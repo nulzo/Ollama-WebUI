@@ -1126,6 +1126,10 @@ body {
   margin-top: auto;
 }
 
+.mb-0 {
+  margin-bottom: 0px;
+}
+
 .block {
   display: block;
 }
@@ -1637,22 +1641,6 @@ body {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(-25%);
-    animation-timing-function: cubic-bezier(0.8,0,1,1);
-  }
-
-  50% {
-    transform: none;
-    animation-timing-function: cubic-bezier(0,0,0.2,1);
-  }
-}
-
-.animate-bounce {
-  animation: bounce 1s infinite;
-}
-
 @keyframes ping {
   75%, 100% {
     transform: scale(2);
@@ -1714,20 +1702,6 @@ body {
 
 .animate-toast-out {
   animation: toast-out 0.5s ease-in-out forwards;
-}
-
-@keyframes accordion-down {
-  from {
-    height: 0;
-  }
-
-  to {
-    height: var(--radix-accordion-content-height);
-  }
-}
-
-.animate-accordion-down {
-  animation: accordion-down 0.2s ease-out;
 }
 
 .cursor-default {
@@ -2192,10 +2166,6 @@ body {
   background-color: hsl(var(--primary) / 0.25);
 }
 
-.bg-primary\/50 {
-  background-color: hsl(var(--primary) / 0.5);
-}
-
 .bg-secondary {
   background-color: hsl(var(--secondary));
 }
@@ -2215,10 +2185,6 @@ body {
 
 .bg-transparent {
   background-color: transparent;
-}
-
-.bg-primary\/30 {
-  background-color: hsl(var(--primary) / 0.3);
 }
 
 .bg-\[radial-gradient\(at_56\%_42\%\2c _hsla\(240\2c 100\%\2c 70\%\2c 0\.2\)_0px\2c _transparent_50\%\)\2c _radial-gradient\(at_62\%_61\%\2c _hsla\(302\2c 65\%\2c 63\%\2c 0\.1\)_0px\2c _transparent_50\%\)\] {

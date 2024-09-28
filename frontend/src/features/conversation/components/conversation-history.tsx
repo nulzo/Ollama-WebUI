@@ -56,7 +56,9 @@ export default function ConversationHistory(props: any) {
 
   if (!isExpanded) {
     return (
-      <div className={`p-1 transform transition-transform duration-300 h-screen flex justify-between w-fit gap-2 px-4 py-2`}>
+      <div
+        className={`p-1 transform transition-transform duration-300 h-screen flex justify-between w-fit gap-2 px-4 py-2`}
+      >
         <Button
           size="icon"
           variant="ghost"
@@ -69,7 +71,7 @@ export default function ConversationHistory(props: any) {
       </div>
     );
   }
-  
+
   if (chats.isLoading) {
     return (
       <>
@@ -102,12 +104,15 @@ export default function ConversationHistory(props: any) {
           </div>
           <div className="px-2 pt-8 font-medium lg:ps-4 overflow-y-scroll scrollbar w-[100%] space-y-1 h-[90vh] max-h-[90vh]">
             {skeleton.reverse().map(idx => (
-              <div className='z-50 h-8 rounded-lg bg-primary/10 w-full' style={{ opacity: idx * .10, animationDelay: `${idx * 100}ms`}} />
+              <div
+                className="z-50 h-8 rounded-lg bg-primary/10 w-full"
+                style={{ opacity: idx * 0.1, animationDelay: `${idx * 100}ms` }}
+              />
             ))}
           </div>
         </div>
       </>
-    )
+    );
   }
 
   return (
@@ -139,6 +144,18 @@ export default function ConversationHistory(props: any) {
             </Button>
           </div>
         </div>
+        <div className="flex px-2 pb-2">
+          <div className="flex pt-1 justify-between items-center w-full gap-2 px-2">
+            <div className="border border-primary bg-primary/10 h-full p-2 w-full rounded-lg">
+              <p className="text-primary font-bold text-xs pb-1 text-center">
+                Get 10% off Cringe™ PRO!
+              </p>
+              <p className="font-light text-primary text-center text-xs">
+                for a limited time, get Cringe™ PRO discounted!
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="px-2 font-medium lg:ps-4  overflow-y-scroll scrollbar h-[90vh] max-h-[90vh]">
           {Object.entries(organizeChatsByDate)
             .reverse()
@@ -152,20 +169,25 @@ export default function ConversationHistory(props: any) {
                     <button
                       key={chat.uuid}
                       value={chat.uuid}
-                      className={`truncate w-full flex justify-between rounded-lg px-3 py-2 hover:bg-accent ${props.uuid === chat.uuid && 'text-foreground bg-accent'
-                        }`}
+                      className={`truncate w-full flex justify-between rounded-lg px-3 py-2 hover:bg-accent ${
+                        props.uuid === chat.uuid && 'text-foreground bg-accent'
+                      }`}
                       onClick={() => {
                         getChatHistory(chat.uuid || '');
                       }}
                     >
                       <div className="flex self-center flex-1 w-full">
                         <div className="text-left self-center overflow-hidden w-full h-[20px]">
-                        {chat.name || (props.messages?.data?.length > 0 ? props.messages.data[0].content : 'New Conversation')}
+                          {chat.name ||
+                            (props.messages?.data?.length > 0
+                              ? props.messages.data[0].content
+                              : 'New Conversation')}
                         </div>
                       </div>
-
                     </button>
-                    <div className={`${props.uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}>
+                    <div
+                      className={`${props.uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}
+                    >
                       <ConversationOptionsDropdown conversationID={chat.uuid ?? ''} />
                     </div>
                   </div>

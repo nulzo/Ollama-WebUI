@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useDeleteConversation } from '../api/delete-conversation';
-import { Pen, Pin, Trash } from 'lucide-react';
+import { Pen, Pin, PinOff, Trash } from 'lucide-react';
 import { useUpdateConversation } from '../api/update-conversation';
 
 interface ConversationOptionsDropdownProps {
@@ -76,7 +76,7 @@ export const ConversationOptionsDropdown = ({
         <DropdownMenuContent className="w-[150px]">
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={handlePinToggle} className="gap-2 items-center">
-              <Pin className="size-3" /> {is_pinned ? 'Unpin' : 'Pin'}
+              {is_pinned ? <><PinOff className='size-3'/> Unpin</> : <><Pin className="size-3" /> Pin</>}
             </DropdownMenuItem>
             <DropdownMenuItem 
               onSelect={() => setIsNameDialogOpen(true)}

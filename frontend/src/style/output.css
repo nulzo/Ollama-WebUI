@@ -979,12 +979,12 @@ body {
   z-index: 99;
 }
 
-.col-span-4 {
-  grid-column: span 4 / span 4;
-}
-
 .col-span-3 {
   grid-column: span 3 / span 3;
+}
+
+.col-span-4 {
+  grid-column: span 4 / span 4;
 }
 
 .m-0 {
@@ -2924,10 +2924,6 @@ body {
 
 .spin-in-45 {
   --tw-enter-rotate: 45deg;
-}
-
-.spin-in-90 {
-  --tw-enter-rotate: 90deg;
 }
 
 .spin-out-180 {

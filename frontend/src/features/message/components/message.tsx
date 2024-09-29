@@ -1,6 +1,6 @@
 import React from 'react';
 import MarkdownRenderer from '@/features/markdown/components/markdown';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { Message as MessageType } from '@/features/message/types/message';
 import { BotIcon } from '@/features/message/components/bot-icon';
 import { formatDate } from '@/utils/format';

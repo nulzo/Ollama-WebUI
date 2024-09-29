@@ -7,7 +7,7 @@ import { Conversation } from '@/features/conversation/types/conversation';
 
 export const updateConversationInputSchema = z.object({
   createdAt: z.date().nullable().optional(),
-  isPinned: z.boolean().nullable().optional(),
+  is_pinned: z.boolean().nullable().optional(),
   isHidden: z.boolean().nullable().optional(),
   updatedAt: z.date().nullable().optional(),
   uuid: z.string().min(1, 'UUID is required and must be unique'),
@@ -24,14 +24,14 @@ export const updateConversation = ({
   data: updateConversationInput;
   conversationID: string;
 }): Promise<Conversation> => {
-  return api.patch(`/conversations/${conversationID}`, data);
+  return api.patch(`/conversations/${conversationID}/`, data);
 };
 
 type UseUpdateConversationOptions = {
   mutationConfig?: MutationConfig<typeof updateConversation>;
 };
 
-export const useConversationDiscussion = ({
+export const useUpdateConversation = ({
   mutationConfig,
 }: UseUpdateConversationOptions = {}) => {
   const queryClient = useQueryClient();

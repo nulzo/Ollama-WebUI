@@ -1,13 +1,13 @@
 import React from 'react';
 import MarkdownRenderer from '@/features/markdown/components/markdown';
-import { Sparkles, Heart, RefreshCw } from 'lucide-react';
+import { Sparkles, RefreshCw } from 'lucide-react';
 import { Message as MessageType } from '@/features/message/types/message';
 import { BotIcon } from '@/features/message/components/bot-icon';
 import { formatDate } from '@/utils/format';
 import { CopyButton } from '@/features/message/components/copy-message';
-import Zoom from 'react-medium-image-zoom';
-import 'react-medium-image-zoom/dist/styles.css';
 import { Image } from './image';
+import { LikeButton } from './like-message';
+import { EnhanceButton } from './enhance-button';
 
 interface MessageProps extends MessageType {
   username: string;
@@ -56,9 +56,9 @@ const Message: React.FC<MessageProps> = ({ username, role, time, content, isTypi
       </div>
       {role !== 'user' && (
         <div className="ms-12 flex gap-2">
-          <Heart className="size-3 stroke-muted-foreground hover:stroke-red-400 hover:cursor-pointer" />
+          <LikeButton content={content?.trim() ?? ''} />
           <CopyButton content={content?.trim() ?? ''} />
-          <Sparkles className="size-3 stroke-muted-foreground hover:stroke-yellow-400 hover:cursor-pointer" />
+          <EnhanceButton content={content?.trim() ?? ''} />
           <RefreshCw className="size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer" />
         </div>
       )}

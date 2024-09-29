@@ -1,5 +1,5 @@
 import { isToday, isThisWeek, isThisMonth, isBefore, subMonths } from 'date-fns';
-import { PanelRightClose, PanelRightOpen, SquarePen } from 'lucide-react';
+import { PanelRightClose, PanelRightOpen, Pin, SquarePen } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 import { Chat } from '@/services/provider/ollama/ollama.ts';
 import { useEffect, useMemo, useState } from 'react';
@@ -44,13 +44,18 @@ export default function ConversationHistory(props: any) {
   const skeleton = Array.from({ length: 19 }, (_, i) => (i + 1) / 2);
 
   const organizeChatsByDate = useMemo(() => {
-    if (!chats?.data) return {};
-    const groups = {};
+    if (!chats?.data) return { pinned: [], unpinned: {} };
+    const groups = { pinned: [], unpinned: {} };
     chats.data.forEach((chat: any) => {
-      const label = getDateLabel(chat.created_at);
-      groups[label] = groups[label] || [];
-      groups[label].push(chat);
+      if (chat.is_pinned) {
+        groups.pinned.push(chat);
+      } else {
+        const label = getDateLabel(chat.created_at);
+        groups.unpinned[label] = groups.unpinned[label] || [];
+        groups.unpinned[label].push(chat);
+      }
     });
+
     return groups;
   }, [chats]);
 
@@ -144,20 +149,18 @@ export default function ConversationHistory(props: any) {
             </Button>
           </div>
         </div>
-        <div className="flex px-2 pb-2">
-          <div className="flex pt-1 justify-between items-center w-full gap-2 px-2">
-            <div className="border border-primary bg-primary/10 h-full p-2 w-full rounded-lg">
-              <p className="text-primary font-bold text-xs pb-1 text-center">
-                Get 10% off Cringe™ PRO!
-              </p>
-              <p className="font-light text-primary text-center text-xs">
-                for a limited time, get Cringe™ PRO discounted!
-              </p>
-            </div>
-          </div>
-        </div>
         <div className="px-2 font-medium lg:ps-4  overflow-y-scroll scrollbar h-[90vh] max-h-[90vh]">
-          {Object.entries(organizeChatsByDate)
+          {organizeChatsByDate.pinned.length > 0 && (
+            <div>
+              <div className="flex gap-1 items-center sticky top-0 py-2 text-xs font-semibold text-muted-foreground capitalize">
+                <Pin className="size-3"/>Pinned
+              </div>
+              {organizeChatsByDate.pinned.map((chat: Chat) => (
+                <ChatItem key={chat.uuid} chat={chat} {...props} />
+              ))}
+            </div>
+          )}
+          {Object.entries(organizeChatsByDate.unpinned)
             .reverse()
             .map(([group, groupChats]: any) => (
               <div key={group}>
@@ -165,37 +168,42 @@ export default function ConversationHistory(props: any) {
                   {group}
                 </div>
                 {groupChats.reverse().map((chat: Chat) => (
-                  <div className="relative group">
-                    <button
-                      key={chat.uuid}
-                      value={chat.uuid}
-                      className={`truncate w-full flex justify-between rounded-lg px-3 py-2 hover:bg-accent ${
-                        props.uuid === chat.uuid && 'text-foreground bg-accent'
-                      }`}
-                      onClick={() => {
-                        getChatHistory(chat.uuid || '');
-                      }}
-                    >
-                      <div className="flex self-center flex-1 w-full">
-                        <div className="text-left self-center overflow-hidden w-full h-[20px]">
-                          {chat.name ||
-                            (props.messages?.data?.length > 0
-                              ? props.messages.data[0].content
-                              : 'New Conversation')}
-                        </div>
-                      </div>
-                    </button>
-                    <div
-                      className={`${props.uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}
-                    >
-                      <ConversationOptionsDropdown conversationID={chat.uuid ?? ''} />
-                    </div>
-                  </div>
+                  <ChatItem key={chat.uuid} chat={chat} {...props} />
                 ))}
               </div>
             ))}
         </div>
       </div>
     </>
+  );
+}
+
+function ChatItem({ chat, uuid, messages, updateURL }: any) {
+  return (
+    <div className="relative group">
+      <button
+        value={chat.uuid}
+        className={`truncate w-full flex justify-between rounded-lg px-3 py-2 hover:bg-accent ${
+          uuid === chat.uuid && 'text-foreground bg-accent'
+        }`}
+        onClick={() => {
+          updateURL(`c=${chat.uuid || ''}`);
+        }}
+      >
+        <div className="flex self-center flex-1 w-full">
+          <div className="text-left self-center overflow-hidden w-full h-[20px]">
+            {chat.name ||
+              (messages?.data?.length > 0
+                ? messages.data[0].content
+                : 'New Conversation')}
+          </div>
+        </div>
+      </button>
+      <div
+        className={`${uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}
+      >
+        <ConversationOptionsDropdown name={chat.name} is_pinned={chat.is_pinned} conversationID={chat.uuid ?? ''} />
+      </div>
+    </div>
   );
 }

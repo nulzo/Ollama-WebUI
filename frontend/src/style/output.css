@@ -983,6 +983,10 @@ body {
   grid-column: span 4 / span 4;
 }
 
+.col-span-3 {
+  grid-column: span 3 / span 3;
+}
+
 .m-0 {
   margin: 0px;
 }
@@ -1124,10 +1128,6 @@ body {
 
 .mt-auto {
   margin-top: auto;
-}
-
-.mb-0 {
-  margin-bottom: 0px;
 }
 
 .block {
@@ -1742,6 +1742,10 @@ body {
   list-style-type: none;
 }
 
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .flex-row {
   flex-direction: row;
 }
@@ -2221,8 +2225,24 @@ body {
   fill: hsl(var(--primary));
 }
 
+.stroke-green-200 {
+  stroke: #bbf7d0;
+}
+
 .stroke-muted-foreground {
   stroke: hsl(var(--muted-foreground));
+}
+
+.stroke-red-200 {
+  stroke: #fecaca;
+}
+
+.stroke-yellow-100 {
+  stroke: #fef9c3;
+}
+
+.stroke-yellow-200 {
+  stroke: #fef08a;
 }
 
 .p-0 {
@@ -2459,6 +2479,10 @@ body {
 
 .text-center {
   text-align: center;
+}
+
+.text-right {
+  text-align: right;
 }
 
 .align-middle {
@@ -2896,6 +2920,14 @@ body {
 
 .spin-in-180 {
   --tw-enter-rotate: 180deg;
+}
+
+.spin-in-45 {
+  --tw-enter-rotate: 45deg;
+}
+
+.spin-in-90 {
+  --tw-enter-rotate: 90deg;
 }
 
 .spin-out-180 {

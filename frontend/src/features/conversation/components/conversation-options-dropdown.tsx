@@ -9,35 +9,120 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useDeleteConversation } from '../api/delete-conversation';
 import { Pen, Pin, Trash } from 'lucide-react';
+import { useUpdateConversation } from '../api/update-conversation';
 
 interface ConversationOptionsDropdownProps {
-    conversationID: string;
+  conversationID: string;
+  is_pinned: boolean;
+  name: string;
 }
 
-export const ConversationOptionsDropdown = ({ conversationID }: ConversationOptionsDropdownProps) => {
-    const deleteChat = useDeleteConversation();
-    return (     
-        <div className="flex self-center space-x-1">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <DotsHorizontalIcon className="hover:stroke-primary self-center transition" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[150px]">
-                    <DropdownMenuGroup>
-                        <DropdownMenuItem className="gap-2 items-center">
-                            <Pin className="size-3" /> Pin
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2 items-center">
-                            <Pen className="size-3" /> Rename
-                        </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => deleteChat.mutate({ conversationID: conversationID })} className="flex gap-2 items-center group focus:bg-destructive">
-                        <Trash className="size-3.5 group-hover:stroke-destructive-foreground text-destructive" />
-                        <span className="group-hover:text-destructive-foreground text-destructive">Delete</span>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
-    )
-}
+import { useCallback, useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+
+export const ConversationOptionsDropdown = ({
+  conversationID,
+  is_pinned,
+  name,
+}: ConversationOptionsDropdownProps) => {
+  const deleteChat = useDeleteConversation();
+  const updateChat = useUpdateConversation();
+  const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
+  const [newName, setNewName] = useState(name);
+
+  const handlePinToggle = () => {
+    updateChat.mutate({
+      data: {
+        uuid: conversationID,
+        is_pinned: !is_pinned,
+      },
+      conversationID: conversationID,
+    });
+  };
+
+  const handleChangeName = useCallback(() => {
+    updateChat.mutate({
+      data: {
+        uuid: conversationID,
+        name: newName,
+      },
+      conversationID: conversationID,
+    });
+    setIsNameDialogOpen(false);
+  }, [updateChat, conversationID, newName]);
+
+  const handleOpenChange = useCallback((open: boolean) => {
+    setIsNameDialogOpen(open);
+    if (!open) {
+      setNewName(name);
+    }
+  }, [name]);
+
+  return (
+    <div className="flex self-center space-x-1">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <DotsHorizontalIcon className="hover:stroke-primary self-center transition" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-[150px]">
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={handlePinToggle} className="gap-2 items-center">
+              <Pin className="size-3" /> {is_pinned ? 'Unpin' : 'Pin'}
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onSelect={() => setIsNameDialogOpen(true)}
+              className="gap-2 items-center"
+            >
+              <Pen className="size-3" /> Rename
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={() => deleteChat.mutate({ conversationID: conversationID })}
+            className="flex gap-2 items-center group focus:bg-destructive"
+          >
+            <Trash className="size-3.5 group-hover:stroke-destructive-foreground text-destructive" />
+            <span className="group-hover:text-destructive-foreground text-destructive">Delete</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={isNameDialogOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Rename Chat</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={newName}
+                placeholder={name}
+                onChange={(e) => setNewName(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => handleOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleChangeName}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};

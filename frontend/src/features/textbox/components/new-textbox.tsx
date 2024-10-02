@@ -198,21 +198,14 @@ const TextareaFooter: React.FC<TextareaFooterProps> = ({
       {uploadedImageName && (
         <div className="flex items-center space-x-1">
           <span className="text-xs text-muted-foreground">{uploadedImageName}</span>
-          <Button
-            className="h-4 w-4 p-0"
-            variant="ghost"
-            size="icon"
-            onClick={handleRemoveImage}
-          >
+          <Button className="h-4 w-4 p-0" variant="ghost" size="icon" onClick={handleRemoveImage}>
             <X className="size-3" />
           </Button>
         </div>
       )}
     </div>
     <div className="flex items-center space-x-2">
-      <span className="text-xs text-muted-foreground">
-        {text.length > 0 ? text.length : ''}
-      </span>
+      <span className="text-xs text-muted-foreground">{text.length > 0 ? text.length : ''}</span>
       <Button
         size="icon"
         className="h-8 w-fit text-xs px-2"

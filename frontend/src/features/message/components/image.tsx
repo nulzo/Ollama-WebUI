@@ -1,11 +1,6 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 export const Image = ({ src }: { src: string }) => {
-
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -15,5 +10,5 @@ export const Image = ({ src }: { src: string }) => {
         <img src={src} className="bg-cover rounded-lg" />
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

@@ -8,6 +8,7 @@ import { CopyButton } from '@/features/message/components/copy-message';
 import { Image } from './image';
 import { LikeButton } from './like-message';
 import { EnhanceButton } from './enhance-button';
+import { useAssistants } from '@/features/assistant/hooks/use-assistant';
 
 interface MessageProps extends MessageType {
   username: string;
@@ -18,6 +19,23 @@ interface MessageProps extends MessageType {
 
 const Message: React.FC<MessageProps> = ({ username, role, time, content, isTyping, image }) => {
   const formattedDate = formatDate(time);
+  const { getAssistantIdByName, isLoading, error, getAssistantByName } = useAssistants();
+  let assistantId: number | undefined = undefined;
+  let displayName: string = username;
+
+  if (isLoading) return <div>Loading assistant data...</div>;
+
+  if (role !== 'user' && !isLoading && !error && username) {
+    const assistant = getAssistantByName(username);
+    if (assistant) {
+      assistantId = assistant.id;
+      displayName = assistant.display_name || assistant.name || username;
+    }
+  }
+
+  if (role !== 'user' && !isLoading && !error && username) {
+    assistantId = getAssistantIdByName(username);
+  }
 
   if (image && !image?.startsWith('data:') && !image?.includes(';base64,')) {
     image = 'data:image/png;base64,' + image;
@@ -26,9 +44,9 @@ const Message: React.FC<MessageProps> = ({ username, role, time, content, isTypi
   return (
     <div className="py-3">
       <div
-        className={`text-sm items-baseline gap-1 py-0 my-0 pb-1 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}
+        className={`text-sm items-baseline gap-1 py-0 my-0 pb-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}
       >
-        {role !== 'user' && username}
+        {role !== 'user' && displayName}
         <span className="text-[10px] font-base text-muted-foreground/50">{formattedDate}</span>
       </div>
       <div
@@ -40,7 +58,7 @@ const Message: React.FC<MessageProps> = ({ username, role, time, content, isTypi
         className={`flex place-items-start ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}
       >
         <div className="pe-2 font-bold flex items-center mb-2">
-          {role !== 'user' && <BotIcon />}
+          {role !== 'user' && <BotIcon assistantId={assistantId ?? 0} />}
         </div>
         <div className={`${role !== 'user' && 'max-w-[75%]'}`}>
           <div

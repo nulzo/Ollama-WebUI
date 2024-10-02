@@ -30,9 +30,10 @@ export function useChat() {
     setMessages([]);
     createConversation.mutate({
       data: {
-      uuid: newUuid,
-      user: 1,
-    }})
+        uuid: newUuid,
+        user: 1,
+      },
+    });
   }, []);
 
   return {
@@ -44,6 +45,6 @@ export function useChat() {
     loading,
     setModel,
     setMessage,
-    createChat
+    createChat,
   };
 }

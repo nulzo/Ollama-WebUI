@@ -15,7 +15,7 @@ export const MessagesList = ({ conversation_id }: MessagesListProps) => {
 
   const pendingMessages = useMutationState({
     filters: { mutationKey: ['createMessage', conversation_id], status: 'pending' },
-    select: (mutation) => mutation.state.variables?.data,
+    select: mutation => mutation.state.variables?.data,
   });
 
   const isTyping = pendingMessages?.length > 0;
@@ -32,12 +32,13 @@ export const MessagesList = ({ conversation_id }: MessagesListProps) => {
 
   const allMessages = [
     ...confirmedMessages,
-    ...pendingMessages.filter(pendingMsg => 
-      pendingMsg.role === 'user' && 
-      !confirmedMessages.some(confirmedMsg => 
-        confirmedMsg.content === pendingMsg.content && 
-        confirmedMsg.role === pendingMsg.role
-      )
+    ...pendingMessages.filter(
+      pendingMsg =>
+        pendingMsg.role === 'user' &&
+        !confirmedMessages.some(
+          confirmedMsg =>
+            confirmedMsg.content === pendingMsg.content && confirmedMsg.role === pendingMsg.role
+        )
     ),
   ];
 
@@ -50,14 +51,12 @@ export const MessagesList = ({ conversation_id }: MessagesListProps) => {
           role={message.role}
           content={message.content}
           time={message.created_at}
-          username={message.role === 'user' ? message.role : (message.model || 'assistant')}
-          image={message.image} 
+          username={message.role === 'user' ? message.role : message.model || 'assistant'}
+          image={message.image}
           isTyping={false}
         />
       ))}
-      {isTyping && (
-        <TypingIndicator isTyping={true} model={model?.name || ''} />
-      )}
+      {isTyping && <TypingIndicator isTyping={true} model={model?.name || ''} />}
     </div>
   );
-}
+};

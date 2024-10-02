@@ -1,5 +1,5 @@
 import React from 'react';
-import DOMPurify from 'dompurify';;
+import DOMPurify from 'dompurify';
 import type { Token } from 'marked';
 import he from 'he';
 import KatexRenderer from './katex';
@@ -10,11 +10,10 @@ interface MarkdownInlineTokensProps {
 }
 
 const revertSanitizedResponseContent = (content: string) => {
-    return content.replace('&lt;', '<').replace('&gt;', '>');
-  };
+  return content.replace('&lt;', '<').replace('&gt;', '>');
+};
 
 const MarkdownInlineTokens: React.FC<MarkdownInlineTokensProps> = ({ id, tokens }) => {
-
   return (
     <>
       {tokens.map((token, index) => {
@@ -25,8 +24,8 @@ const MarkdownInlineTokens: React.FC<MarkdownInlineTokensProps> = ({ id, tokens 
             return <span key={key}>{he.escape(token.text)}</span>;
           case 'html':
             const html = DOMPurify.sanitize(token.text);
-              return <span key={key}>{token.text}</span>;
-            
+            return <span key={key}>{token.text}</span>;
+
           case 'link':
             if (token.tokens) {
               return (
@@ -56,10 +55,7 @@ const MarkdownInlineTokens: React.FC<MarkdownInlineTokensProps> = ({ id, tokens 
             );
           case 'codespan':
             return (
-              <code
-                key={key}
-                className="codespan cursor-pointer"
-              >
+              <code key={key} className="codespan cursor-pointer">
                 {he.escape(token.text)}
               </code>
             );
@@ -82,7 +78,7 @@ const MarkdownInlineTokens: React.FC<MarkdownInlineTokensProps> = ({ id, tokens 
               );
             }
             return null;
-          
+
           case 'text':
             return <span key={key}>{token.raw}</span>;
           default:

@@ -514,7 +514,7 @@ math {
 }
 
 .markdown-prose ol > li::before {
-  content: counter(list-item) ".";
+  content: counter(list-item) '.';
   counter-increment: list-item;
   font-weight: bold;
   min-width: 1.5em;
@@ -531,7 +531,8 @@ math {
   text-decoration-line: underline;
 }
 
-ol > li, ul > li {
+ol > li,
+  ul > li {
   display: flex;
   align-items: flex-start;
   margin-bottom: 0.5em;
@@ -546,7 +547,7 @@ ol > li {
 }
 
 ul > li::before {
-  content: "•";
+  content: '•';
   font-weight: bold;
   min-width: 1em;
   margin-right: 0.5em;
@@ -823,6 +824,10 @@ body {
   bottom: -3rem;
 }
 
+.-bottom-2 {
+  bottom: -0.5rem;
+}
+
 .-left-12 {
   left: -3rem;
 }
@@ -837,6 +842,10 @@ body {
 
 .-right-12 {
   right: -3rem;
+}
+
+.-right-2 {
+  right: -0.5rem;
 }
 
 .-top-12 {
@@ -991,6 +1000,10 @@ body {
   margin: 0px;
 }
 
+.m-2 {
+  margin: 0.5rem;
+}
+
 .-mx-1 {
   margin-left: -0.25rem;
   margin-right: -0.25rem;
@@ -1058,6 +1071,10 @@ body {
   margin-bottom: 1rem;
 }
 
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
 .ml-1 {
   margin-left: 0.25rem;
 }
@@ -1076,10 +1093,6 @@ body {
 
 .ml-auto {
   margin-left: auto;
-}
-
-.mr-1 {
-  margin-right: 0.25rem;
 }
 
 .mr-2 {
@@ -1166,6 +1179,11 @@ body {
   aspect-ratio: 1 / 1;
 }
 
+.size-10 {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
 .size-2 {
   width: 0.5rem;
   height: 0.5rem;
@@ -1204,6 +1222,11 @@ body {
 .size-8 {
   width: 2rem;
   height: 2rem;
+}
+
+.size-9 {
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
 .size-full {
@@ -1354,6 +1377,10 @@ body {
 
 .max-h-screen {
   max-height: 100vh;
+}
+
+.min-h-\[60px\] {
+  min-height: 60px;
 }
 
 .min-h-full {
@@ -2128,11 +2155,6 @@ body {
   background-color: hsl(var(--foreground));
 }
 
-.bg-green-100 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(220 252 231 / var(--tw-bg-opacity));
-}
-
 .bg-green-400 {
   --tw-bg-opacity: 1;
   background-color: rgb(74 222 128 / var(--tw-bg-opacity));
@@ -2156,6 +2178,10 @@ body {
 
 .bg-primary {
   background-color: hsl(var(--primary));
+}
+
+.bg-primary-foreground {
+  background-color: hsl(var(--primary-foreground));
 }
 
 .bg-primary\/10 {
@@ -2243,6 +2269,11 @@ body {
 
 .stroke-yellow-200 {
   stroke: #fef08a;
+}
+
+.object-cover {
+  -o-object-fit: cover;
+     object-fit: cover;
 }
 
 .p-0 {
@@ -2371,6 +2402,10 @@ body {
 .py-\[0\.2rem\] {
   padding-top: 0.2rem;
   padding-bottom: 0.2rem;
+}
+
+.pb-0 {
+  padding-bottom: 0px;
 }
 
 .pb-1 {
@@ -3254,10 +3289,6 @@ body {
 
 .focus-visible\:ring-ring:focus-visible {
   --tw-ring-color: hsl(var(--primary));
-}
-
-.focus-visible\:ring-offset-0:focus-visible {
-  --tw-ring-offset-width: 0px;
 }
 
 .focus-visible\:ring-offset-1:focus-visible {

@@ -15,7 +15,7 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
 }
 
 export const api = Axios.create({
-  baseURL: urlJoin(env.BACKEND_API_VERSION),
+  baseURL: urlJoin(env.BACKEND_API_URL, env.BACKEND_API_VERSION),
   withCredentials: true,
 });
 

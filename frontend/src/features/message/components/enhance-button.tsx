@@ -18,13 +18,9 @@ export const EnhanceButton: React.FC<{ content: string }> = ({ content }: Enhanc
 
   return (
     <div className="relative inline-block">
-      <div
-        
-      >
+      <div>
         {isCopied ? (
-          <Sparkles
-            className="stroke-yellow-100 animate-pulse size-3"
-          />
+          <Sparkles className="stroke-yellow-100 animate-pulse size-3" />
         ) : (
           <Sparkles
             className="animate-in size-3 stroke-muted-foreground hover:stroke-yellow-400 hover:cursor-pointer"
@@ -32,9 +28,7 @@ export const EnhanceButton: React.FC<{ content: string }> = ({ content }: Enhanc
           />
         )}
       </div>
-      <div
-        className="absolute top-0 left-0 overflow-hidden h-12 w-12 pointer-events-none z-[1000]"
-      ></div>
+      <div className="absolute top-0 left-0 overflow-hidden h-12 w-12 pointer-events-none z-[1000]"></div>
     </div>
   );
 };

@@ -1,9 +1,9 @@
 export interface Conversation {
-  created_at?: Date;
+  created_at?: string; // ISO date string
   is_pinned?: boolean;
   is_hidden?: boolean;
-  updated_at?: Date;
-  uuid: string;
-  name?: string | null;
-  userId: number | string | null;
+  updated_at?: string; // ISO date string
+  uuid: string; // Primary key
+  name?: string;
+  user_id: number; // Foreign key to CustomUser
 }

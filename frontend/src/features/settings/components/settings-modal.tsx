@@ -29,13 +29,11 @@ export function SettingsModal() {
         </DialogHeader>
         <div className="">
           <div className="flex flex-col items-start gap-4">
-            <Label htmlFor="name" className='flex gap-1 items-center align-middle'>
+            <Label htmlFor="name" className="flex gap-1 items-center align-middle">
               Color Theme:
-              <div className='text-muted-foreground text-xs'>
-                {color}
-              </div>
+              <div className="text-muted-foreground text-xs">{color}</div>
             </Label>
-            
+
             <div className="flex gap-5 w-fit flex-wrap">
               {Object.entries(colorThemes).map(([key, value]) => {
                 const isActive = color === key;
@@ -46,7 +44,10 @@ export function SettingsModal() {
                     onClick={() => {
                       setColor(key);
                     }}
-                    className={cn('justify-start h-10 px-1 py-3 rounded-lg', isActive && 'border border-primary ring-1 ring-primary')}
+                    className={cn(
+                      'justify-start h-10 px-1 py-3 rounded-lg',
+                      isActive && 'border border-primary ring-1 ring-primary'
+                    )}
                     style={
                       {
                         '--theme-primary': `hsl(${theme === 'dark' ? value.dark.primary : value.light.primary})`,

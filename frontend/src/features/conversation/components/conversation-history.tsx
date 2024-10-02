@@ -153,7 +153,8 @@ export default function ConversationHistory(props: any) {
           {organizeChatsByDate.pinned.length > 0 && (
             <div>
               <div className="flex gap-1 items-center sticky top-0 py-2 text-xs font-semibold text-muted-foreground capitalize">
-                <Pin className="size-3"/>Pinned
+                <Pin className="size-3" />
+                Pinned
               </div>
               {organizeChatsByDate.pinned.map((chat: Chat) => (
                 <ChatItem key={chat.uuid} chat={chat} {...props} />
@@ -193,16 +194,18 @@ function ChatItem({ chat, uuid, messages, updateURL }: any) {
         <div className="flex self-center flex-1 w-full">
           <div className="text-left self-center overflow-hidden w-full h-[20px]">
             {chat.name ||
-              (messages?.data?.length > 0
-                ? messages.data[0].content
-                : 'New Conversation')}
+              (messages?.data?.length > 0 ? messages.data[0].content : 'New Conversation')}
           </div>
         </div>
       </button>
       <div
         className={`${uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}
       >
-        <ConversationOptionsDropdown name={chat.name} is_pinned={chat.is_pinned} conversationID={chat.uuid ?? ''} />
+        <ConversationOptionsDropdown
+          name={chat.name}
+          is_pinned={chat.is_pinned}
+          conversationID={chat.uuid ?? ''}
+        />
       </div>
     </div>
   );

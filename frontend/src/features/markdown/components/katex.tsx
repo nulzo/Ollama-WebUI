@@ -10,7 +10,12 @@ const KatexRenderer = ({ content, displayMode = false }) => {
     output: 'html',
   });
 
-  return <span className='inline-block align-middle' dangerouslySetInnerHTML={{ __html: renderedContent }} />;
+  return (
+    <span
+      className="inline-block align-middle"
+      dangerouslySetInnerHTML={{ __html: renderedContent }}
+    />
+  );
 };
 
 export default KatexRenderer;

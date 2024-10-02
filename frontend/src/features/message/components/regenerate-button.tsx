@@ -6,7 +6,9 @@ interface RegenerateButtonProps {
   content: string;
 }
 
-export const RegenerateButton: React.FC<{ content: string }> = ({ content }: RegenerateButtonProps) => {
+export const RegenerateButton: React.FC<{ content: string }> = ({
+  content,
+}: RegenerateButtonProps) => {
   const { copy } = useClipboard();
   const [isCopied, setIsCopied] = useState(false);
 
@@ -18,13 +20,9 @@ export const RegenerateButton: React.FC<{ content: string }> = ({ content }: Reg
 
   return (
     <div className="relative inline-block">
-      <div
-        
-      >
+      <div>
         {isCopied ? (
-          <Sparkle
-            className="stroke-yellow-200 animate-in spin-in-180 size-3 hover:stroke-foreground"
-          />
+          <Sparkle className="stroke-yellow-200 animate-in spin-in-180 size-3 hover:stroke-foreground" />
         ) : (
           <Sparkles
             className="animate-in spin-in-45 size-3 stroke-muted-foreground hover:stroke-yellow-400 hover:cursor-pointer"
@@ -32,9 +30,7 @@ export const RegenerateButton: React.FC<{ content: string }> = ({ content }: Reg
           />
         )}
       </div>
-      <div
-        className="absolute top-0 left-0 overflow-hidden h-12 w-12 pointer-events-none z-[1000]"
-      ></div>
+      <div className="absolute top-0 left-0 overflow-hidden h-12 w-12 pointer-events-none z-[1000]"></div>
     </div>
   );
 };

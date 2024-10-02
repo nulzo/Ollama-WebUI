@@ -20,13 +20,9 @@ export const CopyButton: React.FC<{ content: string }> = ({ content }: CopyButto
 
   return (
     <div className="relative inline-block">
-      <div
-        
-      >
+      <div>
         {isCopied ? (
-          <Check
-            className="stroke-green-200 animate-in spin-in-180 size-3 hover:stroke-foreground"
-          />
+          <Check className="stroke-green-200 animate-in spin-in-180 size-3 hover:stroke-foreground" />
         ) : (
           <Copy
             className="animate-in spin-in-45 size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer"

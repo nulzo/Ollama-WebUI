@@ -7,7 +7,6 @@ import KatexRenderer from './katex';
 import DOMPurify from 'dompurify';
 import MarkdownInlineTokens from './markdown-inline';
 
-
 const renderTokens = (tokens: any): React.ReactNode[] => {
   return tokens.map((token: any, index: number) => {
     switch (token.type) {
@@ -88,35 +87,37 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'paragraph':
         return (
           <p key={index} className="leading-7 [&:not(:first-child)]:mt-4">
-            <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens ?? []} /> 
+            <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens ?? []} />
           </p>
         );
-        case 'text':
-          return token.tokens ? (
-            <span key={index}>{renderTokens(token.tokens)}</span>
-          ) : (
-            <span className='whitespace-wrap' key={index}>{he.decode(token.text)}</span>
-          );
+      case 'text':
+        return token.tokens ? (
+          <span key={index}>{renderTokens(token.tokens)}</span>
+        ) : (
+          <span className="whitespace-wrap" key={index}>
+            {he.decode(token.text)}
+          </span>
+        );
       case 'list':
         return token.ordered ? (
           <ol key={index} start={token.start || 1} className="my-6 ml-6 list-decimal [&>li]:mt-2">
             {token.items.map((item: any, itemIdx: number) => (
-              <li key={`${index}-${itemIdx}`}>
-                {renderTokens(item.tokens)}
-              </li>
+              <li key={`${index}-${itemIdx}`}>{renderTokens(item.tokens)}</li>
             ))}
           </ol>
         ) : (
           <ul key={index} className="my-6 ml-6 list-disc [&>li]:mt-2">
             {token.items.map((item: any, itemIdx: number) => (
-              <li key={`${index}-${itemIdx}`}>
-                {renderTokens(item.tokens)}
-              </li>
+              <li key={`${index}-${itemIdx}`}>{renderTokens(item.tokens)}</li>
             ))}
           </ul>
         );
       case 'list_item':
-        return <li className='flex whitespace-wrap' key={index}>{renderTokens(token.tokens)}</li>;
+        return (
+          <li className="flex whitespace-wrap" key={index}>
+            {renderTokens(token.tokens)}
+          </li>
+        );
       case 'table':
         return (
           <div className="rounded-xl">
@@ -158,19 +159,9 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'html':
         return <div key={index}>{DOMPurify.sanitize(token.text)}</div>;
       case 'blockKatex':
-        return (
-          <KatexRenderer
-            content={token.text}
-            displayMode={true}
-          />
-        );
+        return <KatexRenderer content={token.text} displayMode={true} />;
       case 'inlineKatex':
-        return (
-          <KatexRenderer
-            content={token.text}
-            displayMode={false}
-          />
-        );
+        return <KatexRenderer content={token.text} displayMode={false} />;
       case 'space':
         return <div className="h-4" key={index} />;
       default:
@@ -183,7 +174,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
   const tokens = useTokens(markdown);
 
   return (
-    <div className="markdown-prose markdown overflow-x-scroll max-w-sm min-w-sm md:max-w-lg md:min-w-lg lg:max-w-2xl lg:min-w-2xl xl:max-w-4xl xl:min-w-4xl w-full mx-auto">
+    <div className="markdown-prose markdown overflow-none max-w-sm min-w-sm md:max-w-lg md:min-w-lg lg:max-w-2xl lg:min-w-2xl xl:max-w-4xl xl:min-w-4xl w-full mx-auto mb-3">
       {renderTokens(tokens)}
     </div>
   );

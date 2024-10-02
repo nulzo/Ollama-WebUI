@@ -32,16 +32,18 @@ const useTheme = (initialTheme: string = 'theme-default'): UseThemeHook => {
 
     // Clean up function to reset theme class when the component unmounts or the theme changes
     return () => {
-      const cleanClassList = bodyElement.className.split(' ').filter(className => className !== currentTheme);
+      const cleanClassList = bodyElement.className
+        .split(' ')
+        .filter(className => className !== currentTheme);
       bodyElement.className = cleanClassList.join(' ');
     };
   }, [currentTheme]); // Run when currentTheme changes
-  
+
   const setTheme = useCallback((theme: string) => {
     console.log(theme);
     setCurrentTheme(theme);
   }, []);
-  
+
   const getTheme = useCallback((): string => {
     return currentTheme;
   }, [currentTheme]);

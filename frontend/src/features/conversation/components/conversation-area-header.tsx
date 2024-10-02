@@ -10,19 +10,24 @@ const ThemeToggleButton = () => {
 
   const handleClick = () => {
     setAnimate(true);
-    (theme === 'light' ? setTheme('dark') : setTheme('light'))
+    theme === 'light' ? setTheme('dark') : setTheme('light');
     setTimeout(() => {
-      
       setAnimate(false);
     }, 500);
   };
-  
+
   return (
     <Button variant="ghost" size="icon" onClick={handleClick}>
       {theme === 'dark' ? (
-        <MoonStar className={`size-4 ${animate ? 'animate-in spin-in-180' : ''}`} strokeWidth="1.5" />
+        <MoonStar
+          className={`size-4 ${animate ? 'animate-in spin-in-180' : ''}`}
+          strokeWidth="1.5"
+        />
       ) : (
-        <SunIcon className={`size-4 ${animate ? 'animate-out spin-out-180' : ''}`} strokeWidth="1.5" />
+        <SunIcon
+          className={`size-4 ${animate ? 'animate-out spin-out-180' : ''}`}
+          strokeWidth="1.5"
+        />
       )}
     </Button>
   );

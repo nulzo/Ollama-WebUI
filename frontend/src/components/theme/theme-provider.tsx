@@ -89,7 +89,7 @@ export function ThemeProvider({
     setColor: (color: Color) => {
       localStorage.setItem(storageKeyColor, color);
       setColor(color);
-    }
+    },
   };
 
   return (

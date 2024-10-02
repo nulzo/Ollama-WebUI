@@ -18,13 +18,9 @@ export const LikeButton: React.FC<{ content: string }> = ({ content }: LikeButto
 
   return (
     <div className="relative inline-block">
-      <div
-        
-      >
+      <div>
         {isCopied ? (
-          <Heart
-            className="animate-in spin-in-180 stroke-red-200 size-3"
-          />
+          <Heart className="animate-in spin-in-180 stroke-red-200 size-3" />
         ) : (
           <Heart
             className="animate-in size-3 stroke-muted-foreground hover:stroke-red-400 hover:cursor-pointer"
@@ -32,9 +28,7 @@ export const LikeButton: React.FC<{ content: string }> = ({ content }: LikeButto
           />
         )}
       </div>
-      <div
-        className="absolute top-0 left-0 overflow-hidden h-12 w-12 pointer-events-none z-[1000]"
-      ></div>
+      <div className="absolute top-0 left-0 overflow-hidden h-12 w-12 pointer-events-none z-[1000]"></div>
     </div>
   );
 };

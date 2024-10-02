@@ -15,25 +15,25 @@
 
 @layer base {
   :root {
-      --background: 0 0% 100%;
-      --foreground: 0 0% 3.9%;
-      --primary: 240 5.9% 10%;
-      --primary-foreground: 0 0% 98%;
-      --secondary: 0 0% 95.1%;
-      --secondary-foreground: 0 0% 9%;
-      --tertiary: 0 0% 90%;
-      --tertiary-foreground: 0 0% 98%;
-      --muted: 240 4.8% 95.9%;
-      --muted-foreground: 240 3.8% 46.1%;
-      --accent: 240 4.8% 95.9%;
-      --accent-foreground: 240 5.9% 10%;
-      --destructive: 0 84.2% 60.2%;
-      --destructive-foreground: 0 0% 98%;
-      --border: 240 5.9% 90%;
-      --input: 240 5.9% 90%;
-      --ring: 240 5.9% 10%;
-      --radius: 0.5rem;
-      --border-width: 5rem;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 95.1%;
+    --secondary-foreground: 0 0% 9%;
+    --tertiary: 0 0% 90%;
+    --tertiary-foreground: 0 0% 98%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+    --border-width: 5rem;
 
     *::-webkit-scrollbar-thumb {
       background-color: #111111 !important;
@@ -71,36 +71,37 @@
   html {
     word-break: break-word;
   }
-  
+
   code {
     /* white-space-collapse: preserve !important; */
     overflow-x: auto;
     width: auto;
     display: inline;
   }
-  
+
   math {
     margin-top: 1rem;
   }
-  
+
   .markdown-prose {
     @apply prose whitespace-pre-line;
   }
-  
+
   .markdown a {
     @apply underline;
   }
-  
+
   .font-primary {
     font-family: 'Archivo', sans-serif;
   }
 
-  ol > li, ul > li {
+  ol > li,
+  ul > li {
     display: flex;
     align-items: flex-start;
     margin-bottom: 0.5em;
   }
-  
+
   ol > li {
     counter-increment: list-number;
     display: flex;
@@ -108,9 +109,9 @@
     margin-top: 0;
     min-height: 28px;
   }
-  
+
   .prose ol > li::before {
-    content: counter(list-item) ".";
+    content: counter(list-item) '.';
     counter-increment: list-item;
     font-weight: bold;
     min-width: 1.5em;
@@ -120,7 +121,7 @@
   }
 
   ul > li::before {
-    content: "•";
+    content: '•';
     font-weight: bold;
     min-width: 1em;
     margin-right: 0.5em;
@@ -136,22 +137,20 @@
   li > span > div {
     display: inline;
   }
-  
-  
+
   .markdown a {
     color: #1b6ac9;
     text-decoration: none;
   }
-  
+
   .markdown a:hover {
     text-decoration: underline;
   }
-  
+
   li p {
     margin: 0;
     display: inline;
   }
-  
 
   .hljs {
     margin-top: 0.5rem !important;

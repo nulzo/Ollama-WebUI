@@ -60,12 +60,15 @@ export const ConversationOptionsDropdown = ({
     setIsNameDialogOpen(false);
   }, [updateChat, conversationID, newName]);
 
-  const handleOpenChange = useCallback((open: boolean) => {
-    setIsNameDialogOpen(open);
-    if (!open) {
-      setNewName(name);
-    }
-  }, [name]);
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      setIsNameDialogOpen(open);
+      if (!open) {
+        setNewName(name);
+      }
+    },
+    [name]
+  );
 
   return (
     <div className="flex self-center space-x-1">
@@ -76,9 +79,17 @@ export const ConversationOptionsDropdown = ({
         <DropdownMenuContent className="w-[150px]">
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={handlePinToggle} className="gap-2 items-center">
-              {is_pinned ? <><PinOff className='size-3'/> Unpin</> : <><Pin className="size-3" /> Pin</>}
+              {is_pinned ? (
+                <>
+                  <PinOff className="size-3" /> Unpin
+                </>
+              ) : (
+                <>
+                  <Pin className="size-3" /> Pin
+                </>
+              )}
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onSelect={() => setIsNameDialogOpen(true)}
               className="gap-2 items-center"
             >
@@ -110,7 +121,7 @@ export const ConversationOptionsDropdown = ({
                 id="name"
                 value={newName}
                 placeholder={name}
-                onChange={(e) => setNewName(e.target.value)}
+                onChange={e => setNewName(e.target.value)}
                 className="col-span-3"
               />
             </div>

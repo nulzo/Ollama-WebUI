@@ -3,6 +3,31 @@
 
 FROM nikolaik/python-nodejs:python3.11-nodejs20-slim
 
+# --- Configure some optional arg dependencies ---
+
+ARG INSTALL_OLLAMA=false
+ARG USE_OPEN_AI=false
+ARG OPENAI_API_KEY=""
+
+# Install Ollama if the flag is set to true
+RUN if [ "$INSTALL_OLLAMA" = "true" ]; then \
+    # Use the official install script from Ollama
+    curl -fsSL https://ollama.com/install.sh | sh; \
+    # Pull the llama3.1 model by default (Gives the container something to do)
+    ollama pull llama3.1; \
+    fi
+
+# Set the OPENAI_API_KEY environment variable if the flag is set to true
+RUN if [ "$USE_OPEN_AI" = "true" ]; then \
+    if [ -n "$OPENAI_API_KEY" ]; then \
+    echo "OPENAI_API_KEY=${OPENAI_API_KEY}" >> /etc/environment; \
+    echo "OpenAI API key set successfully"; \
+    else \
+    echo "Error: USE_OPEN_AI is true but OPENAI_API_KEY is not provided"; \
+    exit 1; \
+    fi \
+    fi
+
 # --- Configure the Backend Python Service ---
 
 ENV PYTHONUNBUFFERED=1 \
@@ -64,4 +89,3 @@ CMD nginx -t && \
     cd /app/backend && python manage.py runserver 0.0.0.0:6969 & \
     cd /app/frontend && npm run dev & \
     tail -f /dev/null
-    

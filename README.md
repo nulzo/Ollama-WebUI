@@ -54,8 +54,8 @@ CringeGPT is a powerful and user-friendly web interface for Ollama, designed to 
 
 ## Local Deployment
 
-[!IMPORTANT]  
-Ollama WebUI is designed to work with Ollama, a local AI model server. To use Ollama WebUI, you need to have Ollama installed and running on your machine. You can download Ollama from the [official website](https://ollama.com/).
+> [!IMPORTANT]  
+> Ollama WebUI is designed to work with Ollama, a local AI model server. To use Ollama WebUI, you need to have Ollama installed and running on your machine. You can download Ollama from the [official website](https://ollama.com/).
 
 To set up CringeGPT, follow these steps:
 
@@ -87,8 +87,8 @@ cd backend && poetry shell && poetry install
 
 ## Deployment with Docker
 
-[!TIP]
-The default Ollama server is configured to run on port 11434. If this is already being used by another application, you can change the port in the `docker-compose.yml` file or the `Dockerfile`. If you are running locally, you can change this in the settings files for the frontend and backend.
+> [!TIP]
+> The default Ollama server is configured to run on port 11434. If this is already being used by another application, you can change the port in the `docker-compose.yml` file or the `Dockerfile`. If you are running locally, you can change this in the settings files for the frontend and backend.
 
 We provide a `docker-compose.yml` file to simplify the setup process. This will generate three containers, one for the backend, one for the frontend, and one for the nginx proxy. 
 
@@ -117,8 +117,8 @@ After starting the application, you can:
 5. Use Markdown or LaTeX in your messages for rich text formatting.
 6. Explore different themes by accessing the settings menu.
 
-[!NOTE]  
-For a comprehensive guide on using all features, check out our [User Manual](docs/readme.md).
+> [!NOTE]  
+> For a comprehensive guide on using all features, check out our [User Manual](docs/readme.md).
 
 
 

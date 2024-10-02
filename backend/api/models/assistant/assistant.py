@@ -4,7 +4,7 @@ from django.db import models
 class Assistant(models.Model):
     name = models.CharField(max_length=100, unique=True)
     display_name = models.CharField(max_length=100)
-    icon = models.ImageField(upload_to="icons/", null=True, blank=True)
+    icon = models.TextField(null=True, blank=True)
     description = models.TextField(max_length=500, null=True, blank=True)
     api_key = models.CharField(max_length=255, null=True, blank=True)
     default_temperature = models.FloatField(default=0.7)

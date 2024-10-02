@@ -1,10 +1,10 @@
-# Start with a base image that includes both Python and Node.js
+# THIS IS A SINGLE CONTAINER FOR THE BACKEND, FRONTEND, AND NGINX. 
+# IF YOU WANT TO USE MULTIPLE CONTAINERS, USE THE DOCKER COMPOSE FILE INSTEAD!
+
 FROM nikolaik/python-nodejs:python3.11-nodejs20-slim
 
-# Install NGINX
-RUN apt-get update && apt-get install -y nginx
+# --- Configure the Backend Python Service ---
 
-# Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=off \
@@ -23,31 +23,45 @@ ENV PYTHONUNBUFFERED=1 \
     DJANGO_SUPERUSER_EMAIL=test@test.com \
     PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 
-# Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Set up backend
 WORKDIR /app/backend
-COPY backend/pyproject.toml ./
-RUN poetry install
+
+COPY backend/pyproject.toml backend/poetry.lock ./
+
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi
+
 COPY backend .
 
-# Set up frontend
+# --- Configure the Frontend Service ---
+
 WORKDIR /app/frontend
-COPY frontend/package.json ./
+
+# Set the environment variables for the frontend
+ENV VITE_APP_BACKEND_API_URL=http://0.0.0.0:6969
+ENV VITE_APP_APP_URL=http://localhost:4200
+ENV VITE_APP_BACKEND_API_VERSION=api/v1/
+
+# Install the dependencies
+COPY frontend/package.json frontend/package-lock.json ./
 RUN npm install
 COPY frontend .
 
-# Set up NGINX
+# --- Configure the NGINX Proxy ---
+
+RUN apt-get update && apt-get install -y nginx
+
 COPY proxy/nginx.conf /etc/nginx/nginx.conf
 
-# Expose port 80
-EXPOSE 8008
+EXPOSE 8080
 
-# Start services
+# --- Start the Services ---
+
 CMD nginx -t && \
     service nginx start && \
     cat /var/log/nginx/error.log && \
-    cd /app/backend && poetry run python manage.py runserver 0.0.0.0:6969 & \
+    cd /app/backend && python manage.py runserver 0.0.0.0:6969 & \
     cd /app/frontend && npm run dev & \
     tail -f /dev/null
+    

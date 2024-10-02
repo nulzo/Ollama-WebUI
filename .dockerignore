@@ -1,0 +1,28 @@
+**/tests
+**/docs 
+**/.venv/
+**/__pycache__/
+
+# Node should be built from scratch inside the container
+# See https://stackoverflow.com/a/67431349 for the reason why
+node_modules
+node_modules/*
+**/node_modules
+/node_modules
+
+**/.env
+**/*.db
+.sqlite3
+*.sqlite3
+./*.sqlite3
+**/db.sqlite3
+**/*.sqlite3
+**/.pylintrc
+**/.flake8
+**/.eslintrc.cjs
+**/.gitignore
+# **/poetry.lock
+# poetry.lock
+**/env.dist
+**/.eslintrc.cjs
+**/README.md

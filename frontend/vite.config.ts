@@ -27,9 +27,9 @@ export default defineConfig({
     // watch:
     //   {usePolling: true}
   },
-  define: {
-    'import.meta.env.VITE_APP_BACKEND_API_URL': JSON.stringify(process.env.VITE_APP_BACKEND_API_URL),
-    'import.meta.env.VITE_APP_APP_URL': JSON.stringify(process.env.VITE_APP_APP_URL),
-    'import.meta.env.VITE_APP_BACKEND_API_VERSION': JSON.stringify(process.env.VITE_APP_BACKEND_API_VERSION),
-  },
+  // define: {
+  //   'import.meta.env.VITE_APP_BACKEND_API_URL': JSON.stringify(process.env.VITE_APP_BACKEND_API_URL),
+  //   'import.meta.env.VITE_APP_APP_URL': JSON.stringify(process.env.VITE_APP_APP_URL),
+  //   'import.meta.env.VITE_APP_BACKEND_API_VERSION': JSON.stringify(process.env.VITE_APP_BACKEND_API_VERSION),
+  // },
 });

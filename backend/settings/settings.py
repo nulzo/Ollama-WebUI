@@ -2,9 +2,13 @@ from pathlib import Path
 import os
 import logging.config
 from rich.logging import RichHandler
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables
+load_dotenv()
 
 SECRET_KEY = "django-insecure-u98dn^i6(rfh=n1sl10n-ar84+5cz1c2mb-a8@$lb+qewaf&vo"
 
@@ -24,8 +28,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:6969",
     "http://localhost:6969",
 
-    "http://127.0.0.1:8008",
-    "http://localhost:8008",
+    "http://127.0.0.1:8080",
+    "http://localhost:8080",
 ]
 
 CORS_ALLOW_HEADERS = [

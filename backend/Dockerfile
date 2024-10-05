@@ -1,4 +1,21 @@
-FROM python:3.11-slim as python-base
+FROM python:3.11-slim AS python-base
+
+ARG DEBUG
+ARG SECRET_KEY
+ARG DJANGO_SUPERUSER_PASSWORD
+ARG DJANGO_SUPERUSER_USERNAME
+ARG DJANGO_SUPERUSER_EMAIL
+ARG OLLAMA_URL
+ARG OLLAMA_PORT
+
+# Set environment variables
+ENV DEBUG=$DEBUG \
+    SECRET_KEY=$SECRET_KEY \
+    DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD \
+    DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME \
+    DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL \
+    OLLAMA_URL=$OLLAMA_URL \
+    OLLAMA_PORT=$OLLAMA_PORT
 
 # Environment variables for Python and Django
 ENV PYTHONUNBUFFERED=1 \
@@ -12,7 +29,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DEFAULT_TIMEOUT=1000 \
     # Installing Poetry. See here to get a better idea vvv
     # https://python-poetry.org/docs/configuration/#using-environment-variables
-    POETRY_VERSION=1.6.1 \
+    POETRY_VERSION=1.8.3 \
     # make poetry install to this location
     POETRY_HOME="/opt/poetry" \
     # Create poetry virtual environment within the poetry root and
@@ -20,9 +37,6 @@ ENV PYTHONUNBUFFERED=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=true \
     # Runs the poetry installer without interaction from user
     POETRY_NO_INTERACTION=1 \
-    \
-    # paths
-    # this is where our requirements + virtual environment will live
     PYSETUP_PATH="/opt/pysetup" \
     VENV_PATH="/opt/pysetup/.venv" \
     DEBUG=True \
@@ -35,10 +49,9 @@ ENV PYTHONUNBUFFERED=1 \
 # Prepend poetry and the virtual environment to the path
 ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 
-
 # "builder-base" is used here to compile dependencies and 
 # will be used to create the virtual environment
-FROM python-base as builder-base
+FROM python-base AS builder-base
 # Update apt if needed
 RUN apt-get update \
 # Install apt with no output and pass yes to all prompts
@@ -51,19 +64,18 @@ RUN apt-get update \
 # Install poetry using Curl to the $POETRY_VERSION and $POETRY_HOME paths
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-RUN mkdir -p /home/backend
-
-# Set the working directory to the root of the backend
 WORKDIR /home/backend/
 
 # Copy the pyproject.toml file (our dependencies) to the container
 # (Don't copy over the lock file - we wanto to generate that within the container)
-COPY pyproject.toml ./
+COPY pyproject.toml poetry.lock* ./
 
 # Install poetry dependencies to the virtual environment created earlier
 # Should probably pass in the --no-dev flag at some point during prod build
 # i.e. `poetry install --no-interaction --no-cache`
-RUN poetry install
+RUN poetry config virtualenvs.create true \
+    && poetry config virtualenvs.in-project true \
+    && poetry install
 
 # Send the contents of the main backend directory to the container so that
 # it follows the same directory structure as the project

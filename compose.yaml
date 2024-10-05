@@ -3,7 +3,14 @@ services:
   # Backend service (Django REST framework)
   backend:
     container_name: backend
-    build: ./backend  # Build the backend service using the Dockerfile in the ./backend directory
+    build: 
+      context: ./backend  # Build the backend service using the Dockerfile in the ./backend directory
+      args:
+        - OLLAMA_URL=192.168.0.25
+        - OLLAMA_PORT=11434
+    environment:
+      - OLLAMA_URL=192.168.0.25
+      - OLLAMA_PORT=11434
     restart: always  # Restart the backend service always (even if it exits normally)
     ports:
       - 6969:6969  # Map port 6969 on the host to port 6969 on the container
@@ -17,20 +24,7 @@ services:
     container_name: frontend
     build:
       context: ./frontend  # Build the frontend service using the Dockerfile in the ./frontend directory
-      args:
-        - OLLAMA_URL=${OLLAMA_URL}
-        - OLLAMA_PORT=${OLLAMA_PORT}
-        - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-        - DATABASE_URL=${DATABASE_URL}
-        - DATABASE_PORT=${DATABASE_PORT}
-        - DATABASE_VERSION=${DATABASE_VERSION}
     environment:
-      - OLLAMA_URL=${OLLAMA_URL}
-      - OLLAMA_PORT=${OLLAMA_PORT}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - DATABASE_URL=${DATABASE_URL}
-      - DATABASE_PORT=${DATABASE_PORT}
-      - DATABASE_VERSION=${DATABASE_VERSION}
       - CHOKIDAR_USEPOLLING=true  # Enable polling for file changes in Chokidar
       - WATCHPACK_POLLING=true  # Enable polling for file changes in Watchpack
     depends_on:
@@ -46,16 +40,17 @@ services:
       - ./frontend/tsconfig.json:/home/frontend/tsconfig.json  # Mount the local tsconfig.json file to /home/frontend/tsconfig.json in the container
     develop:
       watch:
-        - action: sync
-          path: frontend/src/components  # Watch for changes in the specified directory, excluding node_modules
+        - path: frontend/src/components  # Watch for changes in the specified directory, excluding node_modules
+          target: /home/frontend/src
+          action: sync
     command: npm run dev  # Run the "npm run dev" command when starting the frontend service
 
   # Nginx server service
   server:
-    container_name: proxy
+    container_name: nginx
     build: ./proxy  # Build the Nginx service using the Dockerfile in the ./nginx directory
     depends_on:
       - frontend  # Ensure that the frontend service is started before the Nginx service
     restart: always  # Restart the Nginx service always (even if it exits normally)
     ports:
-      - 80:80  # Map port 80 on the host to port 80 on the container
+      - 5073:5073

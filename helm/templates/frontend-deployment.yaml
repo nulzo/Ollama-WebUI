@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-frontend
+  labels:
+    app: {{ .Release.Name }}-frontend
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-frontend
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          ports:
+            - containerPort: 4200
+          env:
+            - name: VITE_APP_BACKEND_API_URL
+              value: "http://{{ .Release.Name }}-backend:6969"
+            - name: VITE_APP_APP_URL
+              value: "http://{{ .Values.ingress.hosts[0].host }}"
+            - name: VITE_APP_BACKEND_API_VERSION
+              value: "api/v1/"

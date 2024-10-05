@@ -1,0 +1,39 @@
+backend:
+  replicaCount: 1
+  image:
+    repository: your-docker-registry/ollama-webui-backend
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 6969
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: your-docker-registry/ollama-webui-frontend
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 4200
+
+proxy:
+  replicaCount: 1
+  image:
+    repository: your-docker-registry/ollama-webui-proxy
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: ollama-webui.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+prometheus:
+  enabled: true
+  

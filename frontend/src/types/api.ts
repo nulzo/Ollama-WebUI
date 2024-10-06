@@ -36,8 +36,9 @@ export type Comment = Entity<{
 }>;
 
 export interface User {
-  id: number;
+  user_id: number;
   email: string;
+  token: string;
 }
 
 export interface AuthResponse {

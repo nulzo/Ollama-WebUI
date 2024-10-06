@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { queryConfig } from '@/lib/query';
 import { AuthProvider } from '@/features/authentication/components/auth-provider';
 import { ToastProvider } from '@/components/ui/toast';
+import { AuthLoader } from '@/lib/auth';
 
 type AppProviderProps = {
   children: React.ReactNode;
@@ -23,6 +24,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         defaultOptions: queryConfig,
       })
   );
+  console.log(children);
 
   return (
     <ThemeProvider

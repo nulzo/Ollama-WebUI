@@ -36,25 +36,6 @@ export function useConversation() {
     },
   });
 
-  // useEffect(() => {
-  //   const handleMessageChunk = (event: CustomEvent) => {
-  //     setIsStreaming(true);
-  //     setStreamingContent(prev => prev + event.detail);
-  //   };
-
-  //   const handleMessageDone = () => {
-  //     setIsStreaming(false);
-  //   };
-
-  //   window.addEventListener('message-chunk', handleMessageChunk as EventListener);
-  //   window.addEventListener('message-done', handleMessageDone as EventListener);
-
-  //   return () => {
-  //     window.removeEventListener('message-chunk', handleMessageChunk as EventListener);
-  //     window.removeEventListener('message-done', handleMessageDone as EventListener);
-  //   };
-  // }, []);
-
   const createNewConversation = () => {
     const newUuid = uuidv4();
     createConversation.mutate({
@@ -74,7 +55,7 @@ export function useConversation() {
           role: 'user',
           content: message,
           model: model?.name,
-          user: user?.id,
+          user: user[0].username,
           image: image,
         },
       });

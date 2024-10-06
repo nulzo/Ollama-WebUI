@@ -97,7 +97,7 @@ export const LoginRoute = () => {
         </Form>
         <div className="flex pt-2 text-sm gap-1 text-center justify-center">
           <p className="text-muted-foreground">Don't have an account?</p>
-          <Link to="/create-account" className="text-sm hover:underline">
+          <Link to="/register" className="text-sm hover:underline">
             Create an Account
           </Link>
         </div>

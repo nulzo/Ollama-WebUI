@@ -13,6 +13,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from api.view.message import MessageView
 from api.view.ollama import OllamaModels
+from rest_framework.authtoken.views import obtain_auth_token
+from .views import LoginView, LogoutView
 
 router = DefaultRouter()
 
@@ -30,5 +32,7 @@ urlpatterns = [
     path("settings/<int:pk>/", SettingsDetail.as_view(), name="settings-detail"),
     path("", include(router.urls)),
     path("chat/ollama/", MessageView.as_view(), name="chat"),
-    path("models/ollama/", OllamaModels.as_view(), name="ollama_models")
+    path("models/ollama/", OllamaModels.as_view(), name="ollama_models"),
+    path("login/", LoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(), name="logout"),
 ]

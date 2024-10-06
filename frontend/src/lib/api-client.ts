@@ -1,13 +1,18 @@
 import Axios, { InternalAxiosRequestConfig } from 'axios';
+import urlJoin from 'url-join';
 
 import { useNotifications } from '@/components/notification/notification-store';
 import { env } from '@/config/env';
-import urlJoin from 'url-join';
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
+  const token = localStorage.getItem('authToken');
+  
   if (config.headers) {
     config.headers.Accept = 'application/json';
     config.headers['Content-Type'] = 'application/json';
+    if (token) {
+      config.headers.Authorization = `Token ${token}`;
+    }
   }
 
   config.withCredentials = true;
@@ -27,6 +32,7 @@ api.interceptors.request.use(authRequestInterceptor, error => {
   });
   return Promise.reject(error);
 });
+
 api.interceptors.response.use(
   response => {
     return response.data;
@@ -40,11 +46,13 @@ api.interceptors.response.use(
     });
 
     if (error.response?.status === 401) {
-      const searchParams = new URLSearchParams();
-      const redirectTo = searchParams.get('redirectTo');
-      window.location.href = `/auth/login?redirectTo=${redirectTo}`;
+      localStorage.removeItem('authToken');
+      const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = `/auth/login?redirectTo=${currentPath}`;
     }
 
     return Promise.reject(error);
   }
 );
+
+export default api;

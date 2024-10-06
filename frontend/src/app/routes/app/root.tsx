@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner';
+import { Toaster } from "@/components/ui/toaster"
 import Sidebar from '@/components/element/sidebar.tsx';
 
 export const AppRoot = () => {
@@ -20,6 +21,7 @@ export const AppRoot = () => {
           <Outlet />
         </ErrorBoundary>
       </Suspense>
+      <Toaster />
     </div>
   );
 };

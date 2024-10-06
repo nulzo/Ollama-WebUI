@@ -6,6 +6,8 @@ import { useCreateConversation } from '@/features/conversation/api/create-conver
 import { useMessages } from '@/features/message/api/get-messages';
 import { useCreateMessage } from '@/features/message/api/create-message';
 import { useModelStore } from '@/features/models/store/model-store';
+import { useUser } from '@/lib/auth';
+
 
 export function useConversation() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,6 +17,7 @@ export function useConversation() {
   const { model } = useModelStore(state => ({ model: state.model }));
   const [streamingContent, setStreamingContent] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const { data: user } = useUser();
 
   const messages = useMessages({
     conversation_id: searchParamString ?? '',
@@ -71,7 +74,7 @@ export function useConversation() {
           role: 'user',
           content: message,
           model: model?.name,
-          user: 'deez',
+          user: user?.id,
           image: image,
         },
       });

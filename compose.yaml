@@ -14,10 +14,10 @@ services:
     restart: always  # Restart the backend service always (even if it exits normally)
     ports:
       - 6969:6969  # Map port 6969 on the host to port 6969 on the container
-    volumes:
+    # volumes:
       # We want a way to persist the database from the container to the local machine
-      - ./backend/db.sqlite3:/home/backend/db.sqlite3  # Mount the local db.sqlite3 file to the container
-      - ./backend/api/:/home/backend/api
+      # - ./backend/db.sqlite3:/home/backend/db.sqlite3
+      # - ./backend/api/:/home/backend/api
 
   # Frontend service
   frontend:

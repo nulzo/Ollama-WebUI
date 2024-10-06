@@ -41,8 +41,8 @@ ENV PYTHONUNBUFFERED=1 \
     VENV_PATH="/opt/pysetup/.venv" \
     DEBUG=True \
     SECRET_KEY=fkwsueyfgsekfg \
-    DJANGO_SUPERUSER_PASSWORD=test \
-    DJANGO_SUPERUSER_USERNAME=test \
+    DJANGO_SUPERUSER_PASSWORD=supatest \
+    DJANGO_SUPERUSER_USERNAME=supatest \
     DJANGO_SUPERUSER_EMAIL=test@test.com
 
 
@@ -87,6 +87,11 @@ COPY . .
 
 # Expose the port to the container
 EXPOSE "$PORT"
+
+RUN poetry run python manage.py makemigrations
+RUN poetry run python manage.py migrate
+
+RUN poetry run python manage.py createsuperuser --noinput
 
 # Start the Django backend server on port 6969.
 # Running this command with "0.0.0.0:PORT" allows us to tell Docker that

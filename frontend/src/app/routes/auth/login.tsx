@@ -2,11 +2,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import logo from '@/assets/cringelogomedium.svg';
 import { Link } from '@/components/link/link';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useLogin } from '@/lib/auth';
 
 // Define schema with both username and password
 const FormSchema = z.object({
@@ -19,6 +21,11 @@ const FormSchema = z.object({
 });
 
 export const LoginRoute = () => {
+  const { toast } = useToast();
+  const login = useLogin();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -27,19 +34,32 @@ export const LoginRoute = () => {
     },
   });
 
-  function onSubmit(data: z.infer<typeof FormSchema>) {
-    toast({
-      title: 'Login attempt:',
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    try {
+      await login.mutateAsync(data);
+      
+      // Get the redirect URL from the location state or default to '/'
+      const from = location.state?.from?.pathname || '/';
+      
+      toast({
+        title: 'Login successful',
+        description: 'You have been successfully logged in.',
+      });
+
+      // Navigate to the redirect URL
+      navigate(from, { replace: true });
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: 'Login failed',
+        description: 'Please check your credentials and try again.',
+        variant: 'destructive',
+      });
+    }
   }
 
   return (
-    <main className="text-foreground bg-background font-inter selection:bg-primary/50 max-h-[100dvh] overflow-auto flex flex-row flex-col h-screen min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
+    <main className="text-foreground bg-background font-inter selection:bg-primary/50 max-h-[100dvh] overflow-auto flex flex-col h-screen min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
       <img src={logo} className="size-24" />
       <p className="font-semibold text-4xl">CringeGPT™</p>
       <p className="text-muted-foreground">An Open Source Software provided by CringeAI</p>

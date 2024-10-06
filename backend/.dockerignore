@@ -3,13 +3,11 @@
 **/.venv/
 **/__pycache__/
 
-**/.env
-**/*.db
-.sqlite3
+db.sqlite3
 *.sqlite3
-./*.sqlite3
-**/db.sqlite3
 **/*.sqlite3
+
+**/.env
 **/.pylintrc
 **/.flake8
 **/.eslintrc.cjs
@@ -19,5 +17,3 @@ poetry.lock
 **/env.dist
 **/.eslintrc.cjs
 **/README.md
-backend/db.sqlite3
-/db.sqlite3

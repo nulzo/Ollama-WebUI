@@ -5,7 +5,7 @@ import { useNotifications } from '@/components/notification/notification-store';
 import { env } from '@/config/env';
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('token');
   
   if (config.headers) {
     config.headers.Accept = 'application/json';
@@ -48,7 +48,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken');
       const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
-      window.location.href = `/auth/login?redirectTo=${currentPath}`;
+      window.location.href = `/login?redirectTo=${currentPath}`;
     }
 
     return Promise.reject(error);

@@ -1,13 +1,23 @@
 interface Route {
-  url?: string;
-  location?: string;
+  endpoint?: string;
+  isProtected?: boolean;
+  requiresLogout?: boolean;
 }
 
 export const CHAT_ROUTE: Route = {
-  url: '/chat',
-  location: '@/routes/chat-page',
+  endpoint: '/chat',
+  isProtected: true,
+  requiresLogout: false
 };
 
-export const MODELS_ROUTE: string = '/models';
+export const MODELS_ROUTE: Route = {
+  endpoint: '/models',
+  isProtected: true,
+  requiresLogout: false
+};
 
-export const CLOUD_ROUTE: string = '/store';
+export const CLOUD_ROUTE: Route = {
+  endpoint: '/store',
+  isProtected: true,
+  requiresLogout: false
+}

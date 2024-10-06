@@ -17,20 +17,6 @@ export type Meta = {
   totalPages: number;
 };
 
-export type User = Entity<{
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: 'ADMIN' | 'USER';
-  teamId: string;
-  bio: string;
-}>;
-
-export type AuthResponse = {
-  jwt: string;
-  user: User;
-};
-
 export type Team = Entity<{
   name: string;
   description: string;
@@ -48,3 +34,13 @@ export type Comment = Entity<{
   discussionId: string;
   author: User;
 }>;
+
+export interface User {
+  id: number;
+  email: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}

@@ -26,3 +26,7 @@ node_modules/*
 **/env.dist
 **/.eslintrc.cjs
 **/README.md
+
+db.sqlite3
+*.sqlite3
+**/*.sqlite3

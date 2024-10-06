@@ -24,31 +24,48 @@ class AssistantViewSet(viewsets.ModelViewSet):
 
 
 class ConversationList(generics.ListCreateAPIView):
-    queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Conversation.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class ConversationDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Conversation.objects.filter(user=self.request.user)
 
 
 class MessageList(generics.ListCreateAPIView):
-    queryset = Message.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = MessageSerializer
 
     def get_queryset(self):
-        queryset = Message.objects.all()
+        queryset = Message.objects.filter(conversation__user=self.request.user)
         chat_uuid = self.request.query_params.get("c", None)
-        print(chat_uuid)
         if chat_uuid is not None:
             queryset = queryset.filter(conversation_id=chat_uuid)
         return queryset
 
+    def perform_create(self, serializer):
+        conversation = serializer.validated_data['conversation']
+        if conversation.user != self.request.user:
+            raise PermissionDenied("You don't have permission to add messages to this conversation.")
+        serializer.save()
+
 
 class MessageDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Message.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = MessageSerializer
+
+    def get_queryset(self):
+        return Message.objects.filter(conversation__user=self.request.user)
 
 
 class UserSettingsList(generics.ListCreateAPIView):

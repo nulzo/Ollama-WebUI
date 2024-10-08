@@ -8,6 +8,27 @@ import { ProtectedRoute } from '@/lib/auth';
 export const createAppRouter = (_queryClient: QueryClient) =>
   createBrowserRouter([
     {
+      path: 'login',
+      lazy: async () => {
+        const { LoginRoute } = await import('@/app/routes/auth/login');
+        return { Component: LoginRoute };
+      },
+    },
+    {
+      path: 'register',
+      lazy: async () => {
+        const { RegisterRoute } = await import('@/app/routes/auth/register');
+        return { Component: RegisterRoute };
+      },
+    },
+    {
+      path: 'logout',
+      lazy: async () => {
+        const { LogoutRoute } = await import('@/app/routes/auth/logout');
+        return { Component: LogoutRoute };
+      },
+    },
+    {
       path: '/',
       element: (
         <ProtectedRoute>
@@ -37,27 +58,6 @@ export const createAppRouter = (_queryClient: QueryClient) =>
           },
         },
       ],
-    },
-    {
-      path: 'login',
-      lazy: async () => {
-        const { LoginRoute } = await import('@/app/routes/auth/login');
-        return { Component: LoginRoute };
-      },
-    },
-    {
-      path: 'register',
-      lazy: async () => {
-        const { RegisterRoute } = await import('@/app/routes/auth/register');
-        return { Component: RegisterRoute };
-      },
-    },
-    {
-      path: 'logout',
-      lazy: async () => {
-        const { LoginRoute } = await import('@/app/routes/auth/login');
-        return { Component: LoginRoute };
-      },
     },
     {
       path: '*',

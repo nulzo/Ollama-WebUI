@@ -125,6 +125,7 @@ export function AssistantCard({ assistantId, onClose }: AssistantCardProps) {
             value={name}
             onChange={e => setName(e.target.value)}
             className="col-span-3"
+            disabled
           />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">

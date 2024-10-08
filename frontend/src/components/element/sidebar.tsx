@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button.tsx';
-import { ArrowUpDown, Bot, LifeBuoy, MessageSquareCode } from 'lucide-react';
+import { ArrowUpDown, Bot, DoorClosed, DoorOpen, LifeBuoy, LogIn, LogOut, MessageSquareCode } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -9,9 +9,12 @@ import {
 import { Link, useLocation } from 'react-router-dom';
 import { SettingsModal } from '@/features/settings/components/settings-modal';
 import logo from '@/assets/cringelogomedium.svg';
+import { useUser } from '@/lib/auth';
 
 const Sidebar = () => {
   const route = useLocation();
+  const user = useUser();
+
   return (
     <aside className="bg-tertiary inset-y flex left-0 z-20 h-full flex-col border-r w-[53px]">
       <nav className="mt-1 grid gap-1 p-2">
@@ -114,6 +117,40 @@ const Sidebar = () => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+
+        <div className='my-1 border border-border' />
+
+        <div className='mb-2'>
+          {user?.data ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/logout">
+                    <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Models">
+                      <DoorOpen className="size-5" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={5} className="bg-accent">
+                  Logout
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Models">
+                    <DoorClosed className="size-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={5} className="bg-accent">
+                  Login
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       </nav>
     </aside>
   );

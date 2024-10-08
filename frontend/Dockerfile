@@ -23,7 +23,7 @@ COPY . .
 # 2. Compile into ./dist file (will contain the "production" code)
 # RUN npm run build
 
-# RUN npx tailwindcss --watch -i ./src/style/globals.css -o ./src/style/output.css &
+RUN npx tailwindcss --watch -i ./src/style/globals.css -o ./src/style/output.css &
 
 # Run a command to preview the production build in ./dist.
 # This preview will be the last thing that is run before the container terminates

@@ -45,6 +45,10 @@ export const ModelSelect = () => {
     setModel(selectedModel);
   };
 
+  const truncateModelName = (name: string) => {
+    return name.endsWith(':latest') ? name.slice(0, -7) : name;
+  };
+
   const userAssistants = assistants || [];
   const availableOllamaModels =
     ollamaModels.data?.models?.filter(
@@ -60,7 +64,7 @@ export const ModelSelect = () => {
             aria-expanded={open}
             className="flex gap-1 text-sm font-semibold w-fit max-w-sm justify-start border-0 select-none"
           >
-            {model ? model.name : 'Select model...'}
+            {model ? truncateModelName(model.name) : 'Select model...'}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </button>
         </PopoverTrigger>
@@ -78,7 +82,7 @@ export const ModelSelect = () => {
                       value={assistant.name}
                       onSelect={() => handleModelSelect(assistant)}
                     >
-                      <span className="truncate">{assistant.display_name || assistant.name}</span>
+                      <span className="truncate">{truncateModelName(assistant.name)}</span>
                       <CheckIcon
                         className={cn(
                           'ml-auto h-4 w-4',
@@ -101,7 +105,7 @@ export const ModelSelect = () => {
                       value={m.name}
                       onSelect={() => handleModelSelect(m)}
                     >
-                      <span className="truncate">{m.name}</span>
+                      <span className="truncate">{truncateModelName(m.name)}</span>
                       <CheckIcon
                         className={cn(
                           'ml-auto h-4 w-4',

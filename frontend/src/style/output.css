@@ -1071,10 +1071,6 @@ body {
   margin-bottom: 0.75rem;
 }
 
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
 .mb-8 {
   margin-bottom: 2rem;
 }
@@ -2059,12 +2055,12 @@ body {
   border-top-right-radius: 0.75rem;
 }
 
-.rounded-tl-sm {
-  border-top-left-radius: calc(var(--radius) - 4px);
-}
-
 .rounded-bl-xl {
   border-bottom-left-radius: 0.75rem;
+}
+
+.rounded-tl-sm {
+  border-top-left-radius: calc(var(--radius) - 4px);
 }
 
 .border {
@@ -2630,6 +2626,18 @@ body {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+
+.text-\[8px\] {
+  font-size: 8px;
+}
+
+.text-\[9px\] {
+  font-size: 9px;
+}
+
+.text-\[12px\] {
+  font-size: 12px;
 }
 
 .font-bold {

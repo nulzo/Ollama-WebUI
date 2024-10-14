@@ -155,6 +155,7 @@ export default function ConversationHistory(props: any) {
               <div className="flex gap-1 items-center sticky top-0 py-2 text-xs font-semibold text-muted-foreground capitalize">
                 <Pin className="size-3" />
                 Pinned
+                <div className="text-[10px] font-light flex gap-1">{organizeChatsByDate.pinned.length}</div>
               </div>
               {organizeChatsByDate.pinned.map((chat: Chat) => (
                 <ChatItem key={chat.uuid} chat={chat} {...props} />
@@ -165,8 +166,9 @@ export default function ConversationHistory(props: any) {
             .reverse()
             .map(([group, groupChats]: any) => (
               <div key={group}>
-                <div className="sticky top-0 py-2 text-xs font-semibold text-muted-foreground capitalize">
+                <div className="flex gap-1 items-baseline sticky top-0 py-2 text-xs font-semibold text-muted-foreground capitalize">
                   {group}
+                  <div className="text-[10px] font-light flex gap-1 items-center">{groupChats.length}</div>
                 </div>
                 {groupChats.reverse().map((chat: Chat) => (
                   <ChatItem key={chat.uuid} chat={chat} {...props} />

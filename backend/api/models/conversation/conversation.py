@@ -13,4 +13,4 @@ class Conversation(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name="conversations")
 
     def __str__(self) -> str:
-        return str(f"({self.created_at.date()}) {self.name}")
+        return str(f"{self.uuid}")

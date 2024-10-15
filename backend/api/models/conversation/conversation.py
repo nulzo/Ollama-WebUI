@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from api.models.users.user import CustomUser
 
@@ -7,7 +8,7 @@ class Conversation(models.Model):
     is_pinned = models.BooleanField(default=False)
     is_hidden = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
-    uuid = models.CharField(max_length=100, blank=False, null=False, unique=True, primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, primary_key=True)
     name = models.CharField(blank=True, null=True, default="", max_length=150)
     user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, related_name="conversations")
 

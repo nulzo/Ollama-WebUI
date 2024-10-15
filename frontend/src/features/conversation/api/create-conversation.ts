@@ -8,7 +8,6 @@ import { Conversation } from '@/features/conversation/types/conversation';
 import { getConversationsQueryOptions } from '@/features/conversation/api/get-conversations';
 
 export const createConversationInputSchema = z.object({
-  uuid: z.string().min(1, 'UUID is required and must be unique'),
   name: z.string().max(150).nullable().optional(),
   user: z.number(),
 });

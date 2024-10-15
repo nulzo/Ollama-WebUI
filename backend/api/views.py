@@ -1,3 +1,4 @@
+import uuid
 from rest_framework import generics
 from api.models.users.user import CustomUser
 from api.models.conversation.conversation import Conversation
@@ -33,6 +34,10 @@ class ConversationList(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        return Response({'uuid': response.data['uuid']}, status=status.HTTP_201_CREATED)
+
 
 class ConversationDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ConversationSerializer
@@ -43,21 +48,37 @@ class ConversationDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class MessageList(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
     serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = Message.objects.filter(conversation__user=self.request.user)
         chat_uuid = self.request.query_params.get("c", None)
-        if chat_uuid is not None:
-            queryset = queryset.filter(conversation_id=chat_uuid)
+        if chat_uuid and chat_uuid.strip():  # Check if chat_uuid is not empty
+            try:
+                uuid.UUID(chat_uuid)  # Validate UUID
+                print(chat_uuid)
+                queryset = queryset.filter(conversation__uuid=chat_uuid)
+            except ValueError:
+                # Handle invalid UUID (e.g., log error, return empty queryset)
+                print("Invalid UUID")
+                queryset = Message.objects.none()
         return queryset
 
-    def perform_create(self, serializer):
-        conversation = serializer.validated_data['conversation']
-        if conversation.user != self.request.user:
-            raise PermissionDenied("You don't have permission to add messages to this conversation.")
-        serializer.save()
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        message = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+
+        # Check if a new conversation was created (i.e., no conversation_uuid was provided)
+        if not request.data.get('conversation_uuid'):
+            return Response({
+                'message': MessageSerializer(message, context={'request': request}).data,
+                'uuid': message.conversation.uuid
+            }, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class MessageDetail(generics.RetrieveUpdateDestroyAPIView):

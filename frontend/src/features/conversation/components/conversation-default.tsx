@@ -1,63 +1,82 @@
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card.tsx';
-import { Clipboard, Flame, Lightbulb, Sparkle } from 'lucide-react';
+import { usePrompts } from '../api/get-default-prompts';
+import logo from '@/assets/cringelogomedium.svg';
+import { useConversation } from '../hooks/use-conversation';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 export const ConversationDefault = () => {
+  const { data, isLoading, error } = usePrompts();
+  const { createNewConversation, submitMessage } = useConversation();
+  const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  if (isLoading) return <div>Loading prompts...</div>;
+  if (error) return <div>Error loading prompts.</div>;
+
+  console.log(data);
+
+  const handlePromptClick = async (prompt: string) => {
+    try {
+      setIsProcessing(true);
+      // Submit the selected prompt as the first message
+      await submitMessage(prompt);
+      // Navigation is handled within the `onSuccess` of the hook
+    } catch (err) {
+      console.error('Failed to create conversation and submit message:', err);
+      // Optionally, display an error message to the user using a notification system
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+
   return (
-    <div className="relative h-full">
-      {/*<div className="-z-10 absolute blur-2xl w-screen h-screen bg-[radial-gradient(at_56%_42%,_hsla(240,100%,70%,0.2)_0px,_transparent_50%),_radial-gradient(at_62%_61%,_hsla(302,65%,63%,0.1)_0px,_transparent_50%)]" />*/}
-      <div className="w-full h-full flex mt-24 flex-col items-center justify-center">
-        <div>
-          <svg
-            version="1.0"
-            xmlns="http://www.w3.org/2000/svg"
-            className="font-primary-foreground"
-            fill="#ddd"
-            width="60"
-            viewBox="0 0 300.000000 282.000000"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            {' '}
-            <g transform="translate(0.000000,282.000000) scale(0.100000,-0.100000)" stroke="none">
-              {' '}
-              <path d="M1579 2810 c-10 -6 -115 -181 -235 -390 l-219 -380 -211 0 c-153 0 -214 -3 -226 -12 -9 -7 -160 -263 -336 -569 -349 -606 -352 -612 -352 -632 0 -17 216 -396 241 -421 18 -19 36 -20 456 -20 l437 -1 103 -180 c57 -99 110 -186 120 -192 13 -10 167 -13 689 -13 386 0 683 4 697 9 17 7 57 66 141 211 64 111 116 210 116 221 0 10 -97 187 -215 393 l-215 374 105 182 c58 100 105 193 105 206 0 30 -651 1169 -686 1202 -25 22 -30 22 -262 22 -133 0 -244 -5 -253 -10z m738 -635 l293 -510 -147 -3 c-80 -1 -150 1 -154 5 -4 5 -130 222 -279 483 -150 261 -281 490 -292 508 l-20 33 153 -3 153 -3 293 -510z m-408 -66 l293 -511 -173 -301 c-95 -166 -178 -310 -185 -320 -10 -16 -20 -3 -83 107 -39 70 -71 131 -71 137 0 7 45 91 101 188 56 97 101 186 101 198 0 22 -172 337 -219 401 l-24 32 -185 0 c-104 0 -184 4 -184 9 0 13 322 571 329 571 4 0 138 -230 300 -511z m-287 -257 c21 -37 54 -95 73 -129 l36 -63 -374 0 -375 0 -71 124 c-39 68 -71 126 -71 130 0 3 168 6 373 6 l372 0 37 -68z m-822 -127 l72 -125 -294 -509 c-216 -375 -296 -506 -304 -498 -16 18 -134 225 -134 236 0 10 580 1021 586 1021 1 0 35 -56 74 -125z m903 -217 c-11 -18 -45 -79 -77 -135 l-58 -103 -212 0 c-116 0 -216 -4 -223 -8 -20 -13 -243 -406 -243 -430 0 -12 38 -89 84 -170 l85 -147 -164 -3 c-90 -1 -240 -1 -334 0 l-171 3 296 513 296 512 370 0 370 0 -19 -32z m898 5 c-5 -10 -86 -151 -180 -313 l-170 -295 -151 -3 c-86 -1 -150 1 -148 6 1 5 82 147 178 315 l175 306 153 1 c142 0 152 -1 143 -17z m-919 -543 c54 -96 106 -181 115 -187 12 -10 81 -13 259 -13 216 0 244 2 262 18 12 9 57 79 100 155 l80 138 122 -213 c68 -117 142 -247 166 -288 l43 -75 -586 -3 c-323 -1 -590 1 -594 5 -8 8 -328 563 -355 616 l-15 28 152 -3 152 -3 99 -175z m-327 -207 c99 -174 179 -320 177 -325 -6 -22 -134 -238 -140 -238 -7 0 -357 603 -364 626 -3 11 132 254 142 254 3 -1 86 -143 185 -317z m1465 -398 c0 -3 -30 -57 -66 -120 l-67 -115 -593 0 -594 0 29 48 c16 26 47 80 70 120 l42 72 589 0 c325 0 590 -2 590 -5z" />{' '}
-            </g>{' '}
-          </svg>
+    <div className="relative h-full flex flex-col my-auto flex-grow items-center justify-center">
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center mb-4">
+          <img src={logo} alt="CringeAI" className="size-20" />
         </div>
-        <div className="w-full flex gap-6 items-center justify-center mt-16">
-          <Card className="w-[200px] bg-secondary/50">
-            <CardHeader>
-              <CardTitle className="flex gap-1 mb-2">
-                <Clipboard className="size-4" /> Create project
-              </CardTitle>
-              <CardDescription>Generate structural code with one-click.</CardDescription>
-            </CardHeader>
-          </Card>
-          <Card className="w-[200px] bg-secondary/50">
-            <CardHeader>
-              <CardTitle className="flex gap-1 mb-2">
-                <Lightbulb className="size-4" /> Brainstorm Ideas
-              </CardTitle>
-              <CardDescription>Come up with novel and creative ideas.</CardDescription>
-            </CardHeader>
-          </Card>
-          <Card className="w-[200px] bg-secondary/50">
-            <CardHeader>
-              <CardTitle className="flex gap-1 mb-2">
-                <Sparkle className="size-4" /> Enhance Writing
-              </CardTitle>
-              <CardDescription>Get real time feedback and suggestions.</CardDescription>
-            </CardHeader>
-          </Card>
-          <Card className="w-[200px] bg-secondary/50">
-            <CardHeader>
-              <CardTitle className="flex gap-1 mb-2">
-                <Flame className="size-4" /> Pillow Talk
-              </CardTitle>
-              <CardDescription>Talk out your wildest dreams.</CardDescription>
-            </CardHeader>
-          </Card>
+        <div className='text-2xl font-bold'>
+          Welcome to CringeAI.
+        </div>
+        <div className='text-base font-normal text-muted-foreground'>
+          You can use the prompts below to start a conversation with CringeAI.
         </div>
       </div>
+      <div className="w-full max-w-4xl mt-16">
+        <div className="overflow-x-auto pb-4">
+          <div className="flex gap-6 w-max">
+            {data?.prompts.prompts.map((item, index) => (
+              <Card
+                key={index}
+                className="w-[300px] mb-4 hover:border-primary bg-secondary/50 cursor-pointer flex flex-col shrink-0"
+                onClick={() => handlePromptClick(item.prompt)}
+                disabled={isProcessing}
+              >
+                <CardHeader className="flex-grow flex flex-col">
+                  <CardTitle className="flex gap-1 mb-2 items-baseline">
+                      <div
+                        key={index}
+                        className='flex font-bold text-primary'
+                      >{item.title.split(' ')[0]}</div>
+                      <div
+                        key={index}
+                        className='flex text-muted-foreground text-sm font-normal'
+                      >{item.title.split(' ').slice(1).join(' ')}</div>
+                  </CardTitle>
+                  <CardDescription className="flex-grow text-xs text-muted-foreground">{item.prompt}</CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+      {isProcessing && (
+        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
+          <div className="text-white">Processing...</div>
+        </div>
+      )}
     </div>
   );
 };

@@ -8,7 +8,6 @@ from django.http import StreamingHttpResponse
 
 logger = logging.getLogger(__name__)
 
-
 class MessageView(APIView):
     
     def __init__(self, **kwargs):
@@ -16,7 +15,7 @@ class MessageView(APIView):
         self.message_service = MessageService()
 
     def post(self, request, *args, **kwargs):
-        response = self.message_service.handle_user_message(request.data)
+        response = self.message_service.handle_user_message(request.data, request)
         
         logger.info(f"Message: {response}.")
 

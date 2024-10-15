@@ -19,3 +19,14 @@ class OllamaModels(APIView):
     def get(self, request):
         models = self.ollama_service.get_all_models()
         return Response(models, status=status.HTTP_200_OK)
+    
+
+class OllamaPrompts(APIView):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ollama_service = OllamaService()
+
+    def get(self, request):
+        prompts = self.ollama_service.get_actionable_prompts()
+        return Response({"prompts": prompts}, status=status.HTTP_200_OK)

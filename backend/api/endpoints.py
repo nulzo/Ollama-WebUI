@@ -16,6 +16,7 @@ from api.view.ollama import OllamaModels
 from rest_framework.authtoken.views import obtain_auth_token
 from .views import LoginView, LogoutView
 from api.view.auth import LoginView as Login, LogoutView as Logout, RegisterView
+from api.view.ollama import OllamaPrompts
 
 router = DefaultRouter()
 
@@ -34,6 +35,7 @@ urlpatterns = [
     path("", include(router.urls)),
     path("chat/ollama/", MessageView.as_view(), name="chat"),
     path("models/ollama/", OllamaModels.as_view(), name="ollama_models"),
+    path("ollama/default/", OllamaPrompts.as_view(), name="ollama_default_prompts"),
     path("login/", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path('auth/login/', Login.as_view(), name='auth_login'),

@@ -6,7 +6,7 @@ from api.models.users.user import CustomUser
 
 class Message(models.Model):
     conversation = models.ForeignKey(
-        Conversation, on_delete=models.CASCADE, related_name="messages"
+        Conversation, on_delete=models.CASCADE, related_name="messages", null=True, blank=True
     )
     role = models.CharField(max_length=25, blank=False, null=False)
     content = models.TextField()

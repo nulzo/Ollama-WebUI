@@ -1,10 +1,10 @@
+import uuid
 from rest_framework import serializers
 from api.models.messages.message import Message
 from api.serializers.liked_messages import LikedMessageSerializer
 from api.models.assistant.assistant import Assistant
 from api.models.users.user import CustomUser
 from api.models.conversation.conversation import Conversation
-import uuid
 
 class UserField(serializers.RelatedField):
     def to_representation(self, value):
@@ -32,15 +32,22 @@ class MessageSerializer(serializers.ModelSerializer):
     liked_by = LikedMessageSerializer(many=True, read_only=True)
     user = UserField(queryset=CustomUser.objects.all())
     model = AssistantField(queryset=Assistant.objects.all())
-    conversation_uuid = serializers.UUIDField(write_only=True, required=False, allow_null=True)
+    conversation = serializers.UUIDField(required=False, allow_null=True)
 
     class Meta:
         model = Message
         fields = "__all__"
 
+    def validate_conversation(self, value):
+        if value:
+            try:
+                return uuid.UUID(str(value), version=4)
+            except ValueError:
+                raise serializers.ValidationError("Invalid UUID format")
+        return None
+
     def create(self, validated_data):
         conversation_uuid = validated_data.pop('conversation', None)
-        print(conversation_uuid)
         user = self.context['request'].user
 
         if conversation_uuid:
@@ -48,16 +55,15 @@ class MessageSerializer(serializers.ModelSerializer):
                 conversation = Conversation.objects.get(uuid=conversation_uuid, user=user)
             except Conversation.DoesNotExist:
                 raise serializers.ValidationError({
-                    "conversation_uuid": "Invalid conversation UUID or you do not have permission."
+                    "conversation": "Conversation not found or you do not have permission."
                 })
         else:
-            # Create a new Conversation if no UUID is provided
-            conversation = Conversation.objects.create(user=user)
-        print(conversation)
+            conversation = Conversation.objects.create(user=user, name=validated_data.get('content', ''))
+
         message = Message.objects.create(conversation=conversation, **validated_data)
         return message
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['conversation_uuid'] = instance.conversation.uuid
+        representation['conversation_uuid'] = str(instance.conversation.uuid)
         return representation

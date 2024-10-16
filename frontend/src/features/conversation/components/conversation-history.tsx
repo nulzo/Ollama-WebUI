@@ -5,9 +5,11 @@ import { Chat } from '@/services/provider/ollama/ollama.ts';
 import { useEffect, useMemo, useState } from 'react';
 import { useConversations } from '@/features/conversation/api/get-conversations';
 import { ConversationOptionsDropdown } from './conversation-options-dropdown';
+import { useNavigate } from 'react-router-dom';
 
 export default function ConversationHistory(props: any) {
   const chats = useConversations();
+  const navigate = useNavigate();
   const [isExpanded, setExpanded] = useState<boolean>(true);
 
   function createChat() {
@@ -15,15 +17,6 @@ export default function ConversationHistory(props: any) {
     props.createChat();
     chats?.refetch();
   }
-
-  useEffect(() => {
-    if (chats?.data) {
-      const names = {};
-      chats.data.forEach((chat: Chat) => {
-        names[chat.uuid] = chat.name || 'Unnamed conversation';
-      });
-    }
-  }, [chats?.data]);
 
   async function getChatHistory(id: string) {
     if (!chats?.data) {
@@ -100,7 +93,7 @@ export default function ConversationHistory(props: any) {
                 type="submit"
                 className="font-bold"
                 onClick={() => {
-                  createChat();
+                  
                 }}
               >
                 <SquarePen className="size-4" />
@@ -142,7 +135,7 @@ export default function ConversationHistory(props: any) {
               type="submit"
               className="font-bold"
               onClick={() => {
-                createChat();
+                navigate('/');
               }}
             >
               <SquarePen className="size-4" />
@@ -181,7 +174,7 @@ export default function ConversationHistory(props: any) {
   );
 }
 
-function ChatItem({ chat, uuid, messages, updateURL }: any) {
+function ChatItem({ chat, uuid, updateURL }: any) {
   return (
     <div className="relative group">
       <button
@@ -194,9 +187,8 @@ function ChatItem({ chat, uuid, messages, updateURL }: any) {
         }}
       >
         <div className="flex self-center flex-1 w-full">
-          <div className="text-left self-center overflow-hidden w-full h-[20px]">
-            {chat.name ||
-              (messages?.data?.length > 0 ? messages.data[0].content : 'New Conversation')}
+          <div className="text-left self-center overflow-hidden w-fit truncate h-[20px]">
+            {chat.name || 'New Conversation'}
           </div>
         </div>
       </button>

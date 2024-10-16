@@ -4,6 +4,7 @@ from api.serializers.message import MessageSerializer
 from api.models.conversation.conversation import Conversation
 from repository.message_repository import MessageRepository
 from services.ollama.ollama import OllamaService
+from api.models.messages.message import Message
 
 class MessageService:
     def __init__(self):
@@ -14,13 +15,12 @@ class MessageService:
         serializer = MessageSerializer(data=serializer_data, context={'request': request})
 
         if serializer.is_valid():
-            message = serializer.save()
-            
+            message: Message = serializer.save()
+            print(message, type(message))
             # Fetch the conversation
             conversation = message.conversation
-            print(conversation)
             all_messages = conversation.messages.all().order_by('created_at')
-            print(all_messages)
+            
             flattened_messages = [
                 {
                     "role": msg.role,
@@ -29,7 +29,6 @@ class MessageService:
                 }
                 for msg in all_messages
             ]
-            print(flattened_messages)
 
             def stream_response():
                 full_content = ""
@@ -37,19 +36,16 @@ class MessageService:
                     full_content += chunk.get("message", {}).get("content", "")
                     yield f"data: {json.dumps(chunk)}\n\n"
                 
-                print(full_content)
-                
-                # After streaming is complete, save the full assistant message
+                # After streaming is complete, save the full message
                 self.message_repository.create_message(
                     conversation=conversation,
                     role="assistant",
                     content=full_content,
                     model=message.model,
-                    user=request.user,
+                    user=message.user,
                     image=None
                 )
                 
-                yield f"data: {json.dumps({'conversation_uuid': str(conversation.uuid)})}\n\n"
                 yield "data: [DONE]\n\n"
 
             return StreamingHttpResponse(stream_response(), content_type='text/event-stream')

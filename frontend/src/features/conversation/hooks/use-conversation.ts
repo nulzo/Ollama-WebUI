@@ -21,29 +21,21 @@ export function useConversation() {
     conversation_id: searchParamString ?? '',
   });
 
-  const createMessage = useCreateMessage({
+  const { mutateAsync: createMessageMutation } = useCreateMessage({
     conversation_id: searchParamString,
     mutationConfig: {
       onSuccess: (data: CreateMessageResponse) => {
-        queryClient.invalidateQueries(['messages', { conversation_id: searchParamString }]);
-        queryClient.invalidateQueries(['conversation', searchParamString]);
-        if (data.uuid) {
-          // A new conversation was created
-          setSearchParams(`c=${data.uuid}`);
+        if (data) {
+          queryClient.invalidateQueries(['messages', { conversation_id: data.conversation_uuid }]);
+          queryClient.invalidateQueries(['conversation', data.conversation_uuid]);
+          setStreamingContent('');
+          setIsStreaming(false);
         }
-        setStreamingContent('');
-        setIsStreaming(false);
       },
     },
   });
 
-  const createNewConversation = async (): Promise<string> => {
-    const response = await createConversation({ data: { user: user.id } });
-    const newUuid = response.uuid;
-    return newUuid;
-  };
-
-  const submitMessage = async (message: string, image: string | null = null) => {
+  const submitMessage = async (message: string, image: string | null = null): Promise<string | undefined> => {
     if (message.trim()) {
       try {
         setIsStreaming(true);
@@ -51,19 +43,31 @@ export function useConversation() {
           role: 'user',
           content: message,
           model: model?.name || 'llama3.2:3b',
-          user: user.username || 'supatest', // Ensure 'user' has 'username'
+          user: user?.username || 'supatest',
           image: image,
-          conversation: searchParamString,
+          conversation: searchParamString || null,
         };
-
-        if (searchParamString) {
-          data.conversation = searchParamString;
+  
+        const response = await createMessageMutation({ data });
+  
+        if (response && response.conversation_uuid) {
+          const newConversationUuid = response.conversation_uuid;
+          
+          if (newConversationUuid !== searchParamString) {
+            setSearchParams(`c=${newConversationUuid}`);
+          }
+  
+          return newConversationUuid;
+        } else {
+          console.error('Unexpected response format:', response);
+          throw new Error('Unexpected response format from server');
         }
-
-        await createMessage.mutateAsync({ data });
       } catch (error) {
         console.error('Error submitting message:', error);
-        // Optionally, trigger a notification or handle the error
+        throw error;
+      } finally {
+        setIsStreaming(false);
+        setStreamingContent('');
       }
     }
   };
@@ -71,7 +75,6 @@ export function useConversation() {
   return {
     conversationId: searchParamString,
     messages,
-    createNewConversation,
     submitMessage,
     setSearchParams,
     streamingContent,

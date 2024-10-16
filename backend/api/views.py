@@ -54,14 +54,11 @@ class MessageList(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = Message.objects.filter(conversation__user=self.request.user)
         chat_uuid = self.request.query_params.get("c", None)
-        if chat_uuid and chat_uuid.strip():  # Check if chat_uuid is not empty
+        if chat_uuid and chat_uuid.strip():
             try:
-                uuid.UUID(chat_uuid)  # Validate UUID
-                print(chat_uuid)
+                uuid.UUID(chat_uuid)
                 queryset = queryset.filter(conversation__uuid=chat_uuid)
             except ValueError:
-                # Handle invalid UUID (e.g., log error, return empty queryset)
-                print("Invalid UUID")
                 queryset = Message.objects.none()
         return queryset
 
@@ -71,14 +68,10 @@ class MessageList(generics.ListCreateAPIView):
         message = serializer.save()
         headers = self.get_success_headers(serializer.data)
 
-        # Check if a new conversation was created (i.e., no conversation_uuid was provided)
-        if not request.data.get('conversation_uuid'):
-            return Response({
-                'message': MessageSerializer(message, context={'request': request}).data,
-                'uuid': message.conversation.uuid
-            }, status=status.HTTP_201_CREATED, headers=headers)
-        else:
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        response_data = MessageSerializer(message, context={'request': request}).data
+        response_data['conversation_uuid'] = str(message.conversation.uuid)
+
+        return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class MessageDetail(generics.RetrieveUpdateDestroyAPIView):

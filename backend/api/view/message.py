@@ -17,7 +17,7 @@ class MessageView(APIView):
     def post(self, request, *args, **kwargs):
         response = self.message_service.handle_user_message(request.data, request)
         
-        logger.info(f"Message: {response}.")
+        logger.info(f"Message: {response.streaming_content}.")
 
         if isinstance(response, dict) and "errors" in response:
             return Response(response, status=status.HTTP_400_BAD_REQUEST)

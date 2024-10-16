@@ -8,8 +8,6 @@ class OllamaService:
     def __init__(self):
         _ollama_host = settings.OLLAMA_URL
         _ollama_port = settings.OLLAMA_PORT
-        print(f"OLLAMA_URL: {_ollama_host}")
-        print(f"OLLAMA_PORT: {_ollama_port}")
         self._client = Client(host=f"http://{_ollama_host}:{_ollama_port}")
 
     def create_message_context(self, role: str, messages: Union[List, str]):
@@ -44,16 +42,13 @@ class OllamaService:
         """
 
         response = self._client.chat(model="llama3.2:3b", messages=[{"role": "user", "content": prompt}], format="json")
-        print(response)
         # Parse the JSON response
         import json
         try:
             prompts = json.loads(response['message']['content'])
-            print(prompts)
             return prompts
         except Exception as e:
             # Fallback to default prompts if parsing fails
-            print(e)
             return [
                 {
                     "title": "Explore Space Colonization",

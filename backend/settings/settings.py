@@ -21,7 +21,9 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     # Requests from the proxy container in docker compose
-    "backend"
+    "backend",
+    "http://192.168.0.90:6969",
+    "192.168.0.90",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -38,6 +40,9 @@ CORS_ALLOWED_ORIGINS = [
 
     "http://127.0.0.1:8080",
     "http://localhost:8080",
+
+    "http://192.168.0.90:6969",
+    # "192.168.0.90:6969",
 ]
 
 CORS_ALLOW_HEADERS = [

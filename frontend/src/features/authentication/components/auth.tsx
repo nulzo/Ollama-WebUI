@@ -8,17 +8,19 @@ import { api } from '@/lib/api-client';
 
 const getUser = async (): Promise<User | null> => {
   const token = localStorage.getItem('token');
-  console.log('Token from localStorage:', token); // Add this line
+  console.log('Token from localStorage:', token); // Debugging line
   if (!token) {
-    console.log('No token found, returning null'); // Add this line
+    console.log('No token found, returning null'); // Debugging line
     return null;
   }
 
   try {
-    const response = await api.get('/user/');
-    console.log(response);
+    // Updated endpoint to fetch the current user
+    const response = await api.get('/users/me/');
+    console.log('Current User:', response);
     return response;
   } catch (error) {
+    console.error('Error fetching user:', error);
     localStorage.removeItem('token');
     return null;
   }
@@ -27,7 +29,7 @@ const getUser = async (): Promise<User | null> => {
 export const logout = async () => {
   await api.post('/auth/logout/');
   localStorage.removeItem('token');
-}
+};
 
 export const loginInputSchema = z.object({
   username: z.string().min(1, 'Required'),
@@ -35,8 +37,9 @@ export const loginInputSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof loginInputSchema>;
+
 const loginWithEmailAndPassword = async (data: LoginInput): Promise<AuthResponse> => {
-  const response = await api.post('/login/', data);
+  const response = await api.post('/auth/login/', data);
   const { token, user_id, email } = response.data;
   localStorage.setItem('token', token);
   return { user: { id: user_id, email } };
@@ -49,8 +52,9 @@ export const registerInputSchema = z.object({
 });
 
 export type RegisterInput = z.infer<typeof registerInputSchema>;
+
 const registerWithEmailAndPassword = async (data: RegisterInput): Promise<AuthResponse> => {
-  const response = await api.post('/register/', data);
+  const response = await api.post('/auth/register/', data);
   const { token, user_id, email } = response.data;
   localStorage.setItem('token', token);
   return { user: { id: user_id, email } };

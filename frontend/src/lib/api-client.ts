@@ -5,7 +5,7 @@ import { useNotifications } from '@/components/notification/notification-store';
 import { env } from '@/config/env';
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('authToken');
   
   if (config.headers) {
     config.headers.Accept = 'application/json';

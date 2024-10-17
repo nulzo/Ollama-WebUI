@@ -3,99 +3,82 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { z } from 'zod';
 
 import { AuthResponse, User } from '@/types/api';
-import { api } from './api-client';
+
+import { api } from '@/lib/api-client';
 
 const getUser = async (): Promise<User | null> => {
-  const token = localStorage.getItem('token');
-  console.log('Token in getUser:', token);
-  if (!token) return null;
+  const token = localStorage.getItem('authToken');
+  console.log('Token from localStorage:', token);
+  if (!token) {
+    console.log('No token found, returning null');
+    return null;
+  }
 
   try {
-    return await api.get('/user/');
+    const response = await api.get('/user/current/');
+    console.log('Current User:', response);
+    return response;
   } catch (error) {
-    localStorage.removeItem('token');
+    console.error('Error fetching user:', error);
+    localStorage.removeItem('authToken');
     return null;
   }
 };
 
 export const logout = async () => {
-  await api.post('/auth/logout/');
-  localStorage.removeItem('token');
-}
+  try {
+    await api.post('/auth/logout/');
+  } catch (error) {
+    console.error('Error during logout:', error);
+  }
+  localStorage.removeItem('authToken');
+};
 
 export const loginInputSchema = z.object({
   username: z.string().min(1, 'Required'),
-  password: z.string().min(1, 'Required'),
+  password: z.string().min(5, 'Required'),
 });
 
 export type LoginInput = z.infer<typeof loginInputSchema>;
+
 const loginWithEmailAndPassword = async (data: LoginInput): Promise<AuthResponse> => {
   try {
-    const response: User = await api.post('/auth/login/', data);
-
-    if (response) {
-      const { token, user_id, email } = response;
-      localStorage.setItem('token', token);
-      return { 
-        user: { user_id, email, token },
-        token 
-      };
-    } else {
-      throw new Error('Login failed: No data in response');
-    }
+    const response = await api.post('/auth/login/', data);
+    const { token, user } = response;
+    localStorage.setItem('authToken', token);
+    return { user };
   } catch (error) {
+    console.error('Login error:', error);
     throw error;
   }
 };
 
-export const registerInputSchema = z.object({
-  username: z.string().min(1, 'Required'),
-  email: z.string().min(1, 'Required').email('Invalid email'),
-  password: z.string().min(1, 'Required'),
-});
-
-export type RegisterInput = z.infer<typeof registerInputSchema>;
 const registerWithEmailAndPassword = async (data: RegisterInput): Promise<AuthResponse> => {
-  const response: User = await api.post('/auth/register/', data);
-  const { token, user_id, email } = response;
-  localStorage.setItem('token', token);
-  return { user: { user_id, email, token }, token };
+  try {
+    const response = await api.post('/auth/register/', data);
+    const { token, user } = response;
+    localStorage.setItem('authToken', token);
+    return { user };
+  } catch (error) {
+    console.error('Registration error:', error);
+    throw error;
+  }
 };
 
 const authConfig = {
   userFn: getUser,
-  loginFn: async (data: LoginInput) => {
-    const response = await loginWithEmailAndPassword(data);
-    return response.user;
-  },
-  registerFn: async (data: RegisterInput) => {
-    const response = await registerWithEmailAndPassword(data);
-    return response.user;
-  },
+  loginFn: loginWithEmailAndPassword,
+  registerFn: registerWithEmailAndPassword,
   logoutFn: logout,
 };
 
-export const { useUser, useLogin, useLogout, useRegister, AuthLoader } = configureAuth<
-  User | null,
-  unknown,
-  LoginInput,
-  RegisterInput
->(authConfig);
+export const { useUser, useLogin, useLogout, useRegister, AuthLoader } = configureAuth(authConfig);
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { data: user, isLoading, isError } = useUser();
+  const user = useUser();
   const location = useLocation();
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (isError) {
-    console.error('Error loading user');
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!user) {
+  if (!user.data) {
     return (
       <Navigate to={`/login?redirectTo=${encodeURIComponent(location.pathname)}`} replace />
     );

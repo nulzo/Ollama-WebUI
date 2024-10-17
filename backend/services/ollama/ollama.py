@@ -27,8 +27,8 @@ class OllamaService:
             {
                 "prompts": [
                     {
-                        "title": "Explore Space Colonization",
-                        "prompt": "What are the main challenges and potential solutions for establishing a self-sustaining human colony on Mars?"
+                        "title": "Create a love song",
+                        "prompt": "Please create a love song for me. Provide the chords and the lyrics."
                     },
                     ...
                 ]
@@ -36,7 +36,7 @@ class OllamaService:
         Ensure the prompts are diverse, engaging, and cover various subjects.
         Ensure that the JSON output is valid.
         Be very creative with the prompts. They should be fun and engaging, while providing novelty.
-        Ensure that the prompts are less than 50 words each.
+        Ensure that the prompts are less than 20 words each.
         Ensure that the prompts are concise and to the point.
         ONLY reply with the JSON output.
         """

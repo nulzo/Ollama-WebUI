@@ -8,6 +8,7 @@ from api.views import (
     MessageDetail,
     UserSettingsList,
     UserSettingsDetail,
+    CurrentUserView
 )
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
@@ -41,4 +42,5 @@ urlpatterns = [
     path('auth/login/', Login.as_view(), name='auth_login'),
     path('auth/logout/', Logout.as_view(), name='auth_logout'),
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
+    path('user/current/', CurrentUserView.as_view(), name='current_user'),
 ]

@@ -1589,8 +1589,12 @@ body {
   width: 100vw;
 }
 
-.w-6 {
-  width: 1.5rem;
+.w-\[50px\] {
+  width: 50px;
+}
+
+.w-\[00px\] {
+  width: 00px;
 }
 
 .min-w-0 {
@@ -1714,6 +1718,11 @@ body {
 
 .translate-x-\[-50\%\] {
   --tw-translate-x: -50%;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.translate-x-full {
+  --tw-translate-x: 100%;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 

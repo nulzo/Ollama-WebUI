@@ -31,6 +31,7 @@ pillow = "^10.4.0"
 ollama = "^0.3.2"
 rich = "^13.8.0"
 django-rest-auth = "^0.9.5"
+openai = "^1.52.0"
 
 [tool.black]
 line-length = 100

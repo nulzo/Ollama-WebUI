@@ -8,6 +8,7 @@ interface BotIconProps {
   assistantId: number;
 }
 
+// erm
 export const BotIcon = ({ assistantId }: BotIconProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { data: assistant, isLoading } = useAssistant(assistantId);

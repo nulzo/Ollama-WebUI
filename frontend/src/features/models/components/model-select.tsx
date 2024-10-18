@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Spinner } from '@/components/ui/spinner';
 import { OllamaModel } from '@/types/models';
 import { useModels } from '@/features/models/api/get-models.ts';
+import { useOpenAiModels } from '@/features/models/api/get-openai-models.ts';
 import { OllamaModelData } from '@/features/models/types/models';
 import { Heart } from 'lucide-react';
 import { Tooltip } from '@radix-ui/react-tooltip';
@@ -26,6 +27,7 @@ import { Assistant } from '@/features/assistant/types/assistant';
 export const ModelSelect = () => {
   const [open, setOpen] = useState(false);
   const ollamaModels = useModels({});
+  const openaiModels = useOpenAiModels({});
   const { assistants, isLoading: isLoadingAssistants } = useAssistants();
 
   const { setModel, model } = useModelStore(state => ({
@@ -46,10 +48,17 @@ export const ModelSelect = () => {
   };
 
   const truncateModelName = (name: string) => {
-    return name.endsWith(':latest') ? name.slice(0, -7) : name;
+    try {
+      return name.endsWith(':latest') ? name.slice(0, -7) : name;
+    } catch (error) {
+      return name;
+    }
+    
   };
 
   const userAssistants = assistants || [];
+  const openai = openaiModels.data || [];
+  console.log(openai);
   const availableOllamaModels =
     ollamaModels.data?.models?.filter(
       (m: OllamaModelData) => !userAssistants.some(assistant => assistant.name === m.name)
@@ -106,6 +115,27 @@ export const ModelSelect = () => {
                       onSelect={() => handleModelSelect(m)}
                     >
                       <span className="truncate">{truncateModelName(m.name)}</span>
+                      <CheckIcon
+                        className={cn(
+                          'ml-auto h-4 w-4',
+                          model?.name === m.name ? 'opacity-100' : 'opacity-0'
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+              <CommandSeparator />
+              {openai.length > 0 && (
+                <CommandGroup heading="Available OpenAI Models">
+                  {openai.map((m: OllamaModel) => (
+                    <CommandItem
+                      key={m.id}
+                      className="min-w-[250px] max-w-[250px] w-[250px] whitespace-nowrap truncate"
+                      value={m.id}
+                      onSelect={() => handleModelSelect(m)}
+                    >
+                      <span className="truncate">{m.id}</span>
                       <CheckIcon
                         className={cn(
                           'ml-auto h-4 w-4',

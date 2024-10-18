@@ -2,6 +2,7 @@ import json
 from django.http import StreamingHttpResponse
 from api.serializers.message import MessageSerializer
 from api.models.conversation.conversation import Conversation
+from services.openai.openai import OpenAIService
 from repository.message_repository import MessageRepository
 from services.ollama.ollama import OllamaService
 from api.models.messages.message import Message
@@ -10,6 +11,7 @@ class MessageService:
     def __init__(self):
         self.message_repository = MessageRepository()
         self.ollama_service = OllamaService()
+        self.openai_service = OpenAIService()
 
     def handle_user_message(self, serializer_data, request):
         serializer = MessageSerializer(data=serializer_data, context={'request': request})
@@ -30,9 +32,19 @@ class MessageService:
                 for msg in all_messages
             ]
 
+            full_content = ""
+
             def stream_response():
-                full_content = ""
-                for chunk in self.ollama_service.chat(model=message.model.name, messages=flattened_messages):
+                # Determine provider based on model
+                model = message.model.name
+                if model.startswith('gpt-'):
+                    # OpenAI
+                    chat_generator = self.openai_service.chat_stream(model=model, messages=flattened_messages)
+                else:
+                    # Ollama
+                    chat_generator = self.ollama_service.chat(model=model, messages=flattened_messages, stream=True)
+
+                for chunk in chat_generator:
                     full_content += chunk.get("message", {}).get("content", "")
                     yield f"data: {json.dumps(chunk)}\n\n"
                 

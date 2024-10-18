@@ -19,7 +19,10 @@ export const createMessageInputSchema = z.object({
 export type CreateMessageInput = z.infer<typeof createMessageInputSchema>;
 
 export const createMessage = ({ data }: { data: CreateMessageInput }): Promise<Message> => {
-  return api.post('/chat/ollama/', data, {
+  const isOpenAIModel = data.model.startsWith('gpt-');
+  const endpoint = isOpenAIModel ? '/chat/openai/' : '/chat/ollama/';
+  
+  return api.post(endpoint, data, {
     responseType: 'stream',
     onDownloadProgress: progressEvent => {
       const chunk = progressEvent.event.target.response;
@@ -50,7 +53,7 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
     onMutate: async newMessage => {
       await queryClient.cancelQueries({ queryKey: ['messages', { conversation_id }] });
       queryClient.setQueryData(['messages', { conversation_id }], oldMessages => [
-        ...(oldMessages || []), // Ensure oldMessages is an array
+        ...(oldMessages || []),
         { ...newMessage.data, id: String(Date.now()) },
       ]);
     },

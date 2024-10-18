@@ -18,6 +18,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from .views import LoginView, LogoutView
 from api.view.auth import LoginView as Login, LogoutView as Logout, RegisterView
 from api.view.ollama import OllamaPrompts
+from api.view.openai import OpenAIChat, OpenAIModels
 
 router = DefaultRouter()
 
@@ -43,4 +44,6 @@ urlpatterns = [
     path('auth/logout/', Logout.as_view(), name='auth_logout'),
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
     path('user/current/', CurrentUserView.as_view(), name='current_user'),
+    path("models/openai/", OpenAIModels.as_view(), name="openai_models"),
+    path("chat/openai/", OpenAIChat.as_view(), name="chat_openai"),
 ]

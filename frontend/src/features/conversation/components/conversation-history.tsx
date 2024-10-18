@@ -1,5 +1,5 @@
 import { isToday, isThisWeek, isThisMonth, isBefore, subMonths } from 'date-fns';
-import { Bot, Cloud, HardDriveDownload, PanelRightClose, PanelRightOpen, Pin, Settings, SquarePen, User } from 'lucide-react';
+import { Bot, HardDriveDownload, PanelRightClose, PanelRightOpen, Pin, SquarePen, User } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 import { Chat } from '@/services/provider/ollama/ollama.ts';
 import { useMemo, useState } from 'react';
@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { useUser } from '@/features/authentication/components/auth';
+import { cn } from '@/lib/utils';
 
 export default function ConversationHistory(props: any) {
   const chats = useConversations();
@@ -48,24 +49,6 @@ export default function ConversationHistory(props: any) {
 
     return groups;
   }, [chats]);
-
-  if (!isExpanded) {
-    return (
-      <div
-        className={`p-1 transform transition-transform duration-300 h-screen flex justify-between w-fit gap-2 px-4 py-2`}
-      >
-        <Button
-          size="icon"
-          variant="ghost"
-          type="submit"
-          className="font-bold mt-1"
-          onClick={() => setExpanded(!isExpanded)}
-        >
-          <PanelRightClose className="size-4" />
-        </Button>
-      </div>
-    );
-  }
 
   if (chats.isLoading) {
     return (
@@ -110,10 +93,16 @@ export default function ConversationHistory(props: any) {
 
   return (
     <div
-      className={`h-screen w-[250px] max-w-[250px] select-none ease-in-out transform transition-transform duration-500 md:relative text-foreground text-sm fixed top-0 left-0 bg-secondary border-r ${isExpanded ? 'translate-x-0' : '-translate-x-full'
-        } flex flex-col`}
+      className={cn(
+        "h-screen overflow-hidden transition-all duration-300 ease-in-out",
+        "fixed top-0 left-0 md:relative",
+        "bg-secondary border-r flex flex-col",
+        isExpanded ? "w-[250px]" : "w-[50px] bg-transparent border-0"
+      )}
     >
-      {/* Top Section */}
+      {isExpanded ? (
+        <>
+        {/* Top Section */}
       <div className="flex flex-col">
         <div className="flex px-2 pt-2">
           <div className="flex pt-1 justify-between items-center w-full gap-1 px-1">
@@ -270,6 +259,20 @@ export default function ConversationHistory(props: any) {
           </PopoverContent>
         </Popover>
       </div>
+        </>
+      ) : (
+        <div className="p-1 flex justify-center pt-2">
+          <Button
+            size="icon"
+            variant="ghost"
+            type="submit"
+            className="font-bold"
+            onClick={() => setExpanded(!isExpanded)}
+          >
+            <PanelRightClose className="size-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

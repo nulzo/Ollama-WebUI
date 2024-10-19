@@ -5,13 +5,10 @@ services:
     container_name: backend
     build: 
       context: ./backend  # Build the backend service using the Dockerfile in the ./backend directory
-      args:
-        - OLLAMA_URL=192.168.0.25
-        - OLLAMA_PORT=11434
     environment:
-      - OLLAMA_URL=192.168.0.25
-      - OLLAMA_PORT=11434
-      - OPENAI_API_KEY=...
+      - OLLAMA_URL=${OLLAMA_URL:-127.0.0.1}
+      - OLLAMA_PORT=${OLLAMA_PORT:-11434}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     restart: always  # Restart the backend service always (even if it exits normally)
     ports:
       - 6969:6969  # Map port 6969 on the host to port 6969 on the container

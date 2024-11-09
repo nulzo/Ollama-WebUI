@@ -12,11 +12,11 @@ ARG OPENAI_API_KEY
 # Set environment variables
 ENV DEBUG=$DEBUG \
     SECRET_KEY=$SECRET_KEY \
-    DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD \
-    DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME \
-    DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL \
-    OLLAMA_URL=$OLLAMA_URL \
-    OLLAMA_PORT=$OLLAMA_PORT \
+    DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-admin} \
+    DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-password} \
+    DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com} \
+    OLLAMA_URL=${OLLAMA_URL:-127.0.0.1} \
+    OLLAMA_PORT=${OLLAMA_PORT:-11434} \
     OPENAI_API_KEY=${OPENAI_API_KEY}
 
 
@@ -41,12 +41,7 @@ ENV PYTHONUNBUFFERED=1 \
     # Runs the poetry installer without interaction from user
     POETRY_NO_INTERACTION=1 \
     PYSETUP_PATH="/opt/pysetup" \
-    VENV_PATH="/opt/pysetup/.venv" \
-    DEBUG=True \
-    SECRET_KEY=fkwsueyfgsekfg \
-    DJANGO_SUPERUSER_PASSWORD=supatest \
-    DJANGO_SUPERUSER_USERNAME=supatest \
-    DJANGO_SUPERUSER_EMAIL=test@test.com
+    VENV_PATH="/opt/pysetup/.venv"
 
 
 # Prepend poetry and the virtual environment to the path

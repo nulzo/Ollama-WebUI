@@ -40,7 +40,7 @@ class OllamaService:
         ONLY reply with the JSON output.
         """
 
-        response = self._client.chat(model="phi3:latest", messages=[{"role": "user", "content": prompt}], format="json")
+        response = self._client.chat(model="llama3.2:3b", messages=[{"role": "user", "content": prompt}], format="json")
         # Parse the JSON response
         import json
         try:

@@ -1,5 +1,5 @@
 import { isToday, isThisWeek, isThisMonth, isBefore, subMonths } from 'date-fns';
-import { Bot, HardDriveDownload, PanelRightClose, PanelRightOpen, Pin, SquarePen, User } from 'lucide-react';
+import { Bot, HardDriveDownload, ArrowUpDown, LifeBuoy, DoorOpen, MessageSquareCode, PanelRightClose, PanelRightOpen, Pin, SquarePen, User } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 import { Chat } from '@/services/provider/ollama/ollama.ts';
 import { useMemo, useState } from 'react';
@@ -7,6 +7,14 @@ import { useConversations } from '@/features/conversation/api/get-conversations'
 import { ConversationOptionsDropdown } from './conversation-options-dropdown';
 import { Input } from '@/components/ui/input';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip.tsx';
+import { Link, useLocation } from 'react-router-dom';
+import { SettingsModal } from '@/features/settings/components/settings-modal';
 import logo from '@/assets/cringelogomedium.svg';
 
 import { Label } from "@/components/ui/label"
@@ -21,6 +29,7 @@ import { cn } from '@/lib/utils';
 export default function ConversationHistory(props: any) {
   const chats = useConversations();
   const user = useUser();
+  const route = useLocation();
   const [isExpanded, setExpanded] = useState<boolean>(true);
 
   const getDateLabel = (timestamp: string) => {
@@ -92,6 +101,146 @@ export default function ConversationHistory(props: any) {
   }
 
   return (
+    <>
+      {!isExpanded && (
+        <aside className="bg-tertiary inset-y flex left-0 z-20 h-full flex-col border-r w-[53px]">
+          <nav className="mt-1 grid gap-1 p-2">
+          <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`rounded-lg mb-3`}
+                  aria-label="Chat"
+                  id="chat"
+                  key="chat"
+                >
+                  <img className="rounded size-8" src={logo} alt="nulzo" />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={5} className="bg-accent">
+              Chat
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`rounded-lg ${route.pathname === '/' ? 'bg-muted' : ''}`}
+                  aria-label="Chat"
+                  id="chat"
+                  key="chat"
+                >
+                  <MessageSquareCode id="chat" className="size-5" />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={5} className="bg-accent">
+              Chat
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/models">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`rounded-lg ${route.pathname === '/models' ? 'bg-muted' : ''}`}
+                  aria-label="Models"
+                >
+                  <Bot className="size-5" />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={5} className="bg-accent">
+              Models
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Models">
+                <ArrowUpDown className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={5} className="bg-accent">
+              Download Models
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </nav>
+      <nav className="mt-auto grid gap-1 p-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="mt-auto rounded-lg" aria-label="Help">
+                <LifeBuoy className="size-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={5} className="bg-accent">
+              Help
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <SettingsModal />
+            </TooltipTrigger>
+            <TooltipContent side="right" sideOffset={5} className="bg-accent">
+              User Settings
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <div className='my-1 border border-border' />
+
+        <div className='mb-2'>
+          {user?.data ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/logout">
+                    <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Models">
+                      <DoorOpen className="size-5" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={5} className="bg-accent">
+                  Logout
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Models">
+                    <DoorClosed className="size-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={5} className="bg-accent">
+                  Login
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
+          </nav>
+        </aside>
+      )}
     <div
       className={cn(
         "h-screen overflow-hidden transition-all duration-300 ease-in-out",
@@ -274,6 +423,7 @@ export default function ConversationHistory(props: any) {
         </div>
       )}
     </div>
+    </>
   );
 }
 

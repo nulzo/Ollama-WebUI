@@ -17,7 +17,6 @@ export const AppRoot = () => {
         }
       >
         <ErrorBoundary key={location.pathname} fallback={<div>Something went wrong!</div>}>
-          <Sidebar />
           <Outlet />
         </ErrorBoundary>
       </Suspense>

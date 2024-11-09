@@ -3,11 +3,18 @@
 /* Chrome, Edge, and Safari */
 *::-webkit-scrollbar {
   width: 3px;
+  height: 3px;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  visibility: hidden;
+  background-color: transparent;
 }
 
 *::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 5px;
+  height: 3px;
 }
 
 @tailwind components;
@@ -39,6 +46,7 @@
       background-color: #111111 !important;
       border-radius: 15px;
       border: 3px solid var(--primary);
+      height: 3px;
     }
   }
 
@@ -69,6 +77,7 @@
       background-color: #cccccc !important;
       border-radius: 14px;
       border: 3px solid var(--primary);
+      height: 3px;
     }
   }
 

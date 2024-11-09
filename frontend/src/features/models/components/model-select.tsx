@@ -47,6 +47,13 @@ export const ModelSelect = () => {
     setModel(selectedModel);
   };
 
+  const openaiToOllama = (id: string) => {
+    return {
+      "model": id,
+      "name": id
+    }
+  }
+
   const truncateModelName = (name: string) => {
     try {
       return name.endsWith(':latest') ? name.slice(0, -7) : name;
@@ -58,7 +65,7 @@ export const ModelSelect = () => {
 
   const userAssistants = assistants || [];
   const openai = openaiModels.data || [];
-  console.log(openai);
+  console.log(openai, ollamaModels);
   const availableOllamaModels =
     ollamaModels.data?.models?.filter(
       (m: OllamaModelData) => !userAssistants.some(assistant => assistant.name === m.name)
@@ -133,7 +140,7 @@ export const ModelSelect = () => {
                       key={m.id}
                       className="min-w-[250px] max-w-[250px] w-[250px] whitespace-nowrap truncate"
                       value={m.id}
-                      onSelect={() => handleModelSelect(m)}
+                      onSelect={() => {handleModelSelect(openaiToOllama(m.id))}}
                     >
                       <span className="truncate">{m.id}</span>
                       <CheckIcon

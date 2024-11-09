@@ -3,7 +3,7 @@ import * as z from 'zod';
 const createEnv = () => {
   const EnvSchema = z.object({
     BACKEND_API_URL: z.string(),
-    APP_URL: z.string().optional().default('http://localhost:4200'),
+    APP_URL: z.string().optional().default('http://localhost:6969'),
     BACKEND_API_VERSION: z.string().optional().default('api/v1/'),
   });
 

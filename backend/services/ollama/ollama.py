@@ -1,4 +1,3 @@
-import os
 from ollama import Client
 from typing import Union, List, Dict, Any
 from django.conf import settings
@@ -6,7 +5,7 @@ from django.conf import settings
 
 class OllamaService:
     def __init__(self):
-        _ollama_host = settings.OLLAMA_URL
+        _ollama_host = settings.OLLAMA_HOST
         _ollama_port = settings.OLLAMA_PORT
         self._client = Client(host=f"http://{_ollama_host}:{_ollama_port}")
 
@@ -41,7 +40,7 @@ class OllamaService:
         ONLY reply with the JSON output.
         """
 
-        response = self._client.chat(model="llama3.2:3b", messages=[{"role": "user", "content": prompt}], format="json")
+        response = self._client.chat(model="phi3:latest", messages=[{"role": "user", "content": prompt}], format="json")
         # Parse the JSON response
         import json
         try:

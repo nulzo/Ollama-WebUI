@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLogin } from '@/lib/auth';
+import { Separator } from '@/components/ui/separator';
 
 // Define schema with both username and password
 const FormSchema = z.object({
@@ -37,10 +38,10 @@ export const LoginRoute = () => {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       await login.mutateAsync(data);
-      
+
       // Get the redirect URL from the location state or default to '/'
       const from = location.state?.from?.pathname || '/';
-      
+
       toast({
         title: 'Login successful',
         description: 'You have been successfully logged in.',
@@ -92,6 +93,11 @@ export const LoginRoute = () => {
             />
             <div className="flex justify-end pt-4 gap-1">
               <Button className="w-full">Sign In</Button>
+            </div>
+            <div className="flex justify-end gap-1">
+              <Button variant="secondary" className="w-full">
+                Private Chat
+              </Button>
             </div>
           </form>
         </Form>

@@ -20,7 +20,7 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
 }
 
 export const api = Axios.create({
-  baseURL: urlJoin(env.BACKEND_API_VERSION),
+  baseURL: urlJoin(env.APP_URL, env.BACKEND_API_VERSION),
   withCredentials: true,
   maxContentLength: 200 * 1024 * 1024,
   maxBodyLength: 200 * 1024 * 1024, 

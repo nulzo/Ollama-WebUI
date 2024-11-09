@@ -19,10 +19,8 @@ export const createMessageInputSchema = z.object({
 export type CreateMessageInput = z.infer<typeof createMessageInputSchema>;
 
 export const createMessage = ({ data }: { data: CreateMessageInput }): Promise<Message> => {
-  const isOpenAIModel = data.model.startsWith('gpt-');
-  const endpoint = isOpenAIModel ? '/chat/openai/' : '/chat/ollama/';
   
-  return api.post(endpoint, data, {
+  return api.post('/chat/', data, {
     responseType: 'stream',
     onDownloadProgress: progressEvent => {
       const chunk = progressEvent.event.target.response;

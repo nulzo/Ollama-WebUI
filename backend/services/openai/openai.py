@@ -1,6 +1,5 @@
 from openai import OpenAI
 from typing import List, Dict, Any, Generator
-from django.conf import settings
 from openai.types import Model
 import os
 import dotenv

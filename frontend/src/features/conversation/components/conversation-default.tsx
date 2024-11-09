@@ -1,11 +1,11 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card.tsx';
+import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card.tsx';
 import { usePrompts } from '../api/get-default-prompts';
 import logo from '@/assets/cringelogomedium.svg';
 import { useConversation } from '../hooks/use-conversation';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Flame, MoveRight, Send } from 'lucide-react';
+import { Flame } from 'lucide-react';
 import { useUser } from '@/lib/auth';
 
 export const ConversationDefault = () => {
@@ -72,9 +72,8 @@ export const ConversationDefault = () => {
           </div>
         )}
         {/* <div className='absolute h-full backdrop-blur bg-gradient-to-r from-transparent to-transparent z-[9000] w-[25%] right-0 top-0' /> */}
-        <div className="w-full overflow-x-auto pb-4 snap-x snap-mandatory md:snap-none">
+        <div className="w-full overflow-x-auto pb-4 snap-x snap-mandatory md:snap-none scrollbar-none">
           <div className="flex gap-6 w-full snap-center p-4">
-            
             {(isLoading || isFetching) && cardMap.map(idx => (
               <div
                 key={`skeleton-${idx}`}

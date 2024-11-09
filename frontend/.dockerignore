@@ -10,10 +10,7 @@ node_modules/*
 **/node_modules
 /node_modules
 
-# Poetry specific dependencies
-# We want poetry to be run on each build;
-# and not be pulled in from the builders directory
-poetry.lock
+package-lock.json
 
 # No need to send this to the container
 env.dist

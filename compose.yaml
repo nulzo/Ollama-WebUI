@@ -19,29 +19,30 @@ services:
 
   # Frontend service
   frontend:
-    container_name: frontend
     build:
-      context: ./frontend  # Build the frontend service using the Dockerfile in the ./frontend directory
+      context: ./frontend
+      args:
+        - VITE_APP_BACKEND_API_URL=${VITE_APP_BACKEND_API_URL:-}
+        - VITE_APP_APP_URL=${VITE_APP_APP_URL:-http://localhost:4200}
+        - VITE_APP_BACKEND_API_VERSION=${VITE_APP_BACKEND_API_VERSION:-api/v1/}
     environment:
-      - CHOKIDAR_USEPOLLING=true  # Enable polling for file changes in Chokidar
-      - WATCHPACK_POLLING=true  # Enable polling for file changes in Watchpack
-    depends_on:
-      - backend  # Ensure that the backend service is started before the frontend service
-    restart: always  # Restart the frontend service always (even if it exits normally)
+      - VITE_APP_BACKEND_API_URL=${VITE_APP_BACKEND_API_URL:-}
+      - VITE_APP_APP_URL=${VITE_APP_APP_URL:-http://localhost:4200}
+      - VITE_APP_BACKEND_API_VERSION=${VITE_APP_BACKEND_API_VERSION:-api/v1/}
     ports:
-      - 4200:4200  # Map port 4200 on the host to port 4200 on the container
+      - "${FRONTEND_PORT:-4200}:4200"
     tty: true  # Allocate a pseudo-TTY for the frontend service
-    volumes:
+    # volumes:
       # Mount specific directories and files to the container
-      - ./frontend/src/:/home/frontend/src  # Mount the local ./frontend/src directory to /home/frontend/src in the container
-      - ./frontend/vite.config.ts:/home/frontend/vite.config.js  # Mount the local vite.config.ts file to /home/frontend/vite.config.js in the container
-      - ./frontend/tsconfig.json:/home/frontend/tsconfig.json  # Mount the local tsconfig.json file to /home/frontend/tsconfig.json in the container
+      # - ./frontend/src/:/home/frontend/src  # Mount the local ./frontend/src directory to /home/frontend/src in the container
+      # - ./frontend/vite.config.ts:/home/frontend/vite.config.js  # Mount the local vite.config.ts file to /home/frontend/vite.config.js in the container
+      #- ./frontend/tsconfig.json:/home/frontend/tsconfig.json  # Mount the local tsconfig.json file to /home/frontend/tsconfig.json in the container
     develop:
       watch:
         - path: frontend/src/components  # Watch for changes in the specified directory, excluding node_modules
           target: /home/frontend/src
           action: sync
-    command: npm run dev  # Run the "npm run dev" command when starting the frontend service
+    command: bun run dev  # Run the "npm run dev" command when starting the frontend service
 
   # Nginx server service
   server:

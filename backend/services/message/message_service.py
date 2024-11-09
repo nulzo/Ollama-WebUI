@@ -42,7 +42,7 @@ class MessageService:
                     chat_generator = self.openai_service.chat_stream(model=model, messages=flattened_messages)
                 else:
                     # Ollama
-                    chat_generator = self.ollama_service.chat(model=model, messages=flattened_messages, stream=True)
+                    chat_generator = self.ollama_service.chat(model=model, messages=flattened_messages)
 
                 for chunk in chat_generator:
                     full_content += chunk.get("message", {}).get("content", "")

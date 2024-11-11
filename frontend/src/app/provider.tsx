@@ -12,6 +12,7 @@ import { queryConfig } from '@/lib/query';
 import { AuthProvider } from '@/features/authentication/components/auth-provider';
 import { ToastProvider } from '@/components/ui/toast';
 import { AuthLoader } from '@/lib/auth';
+import { SidebarProvider } from '@/features/sidebar/components/sidebar-context';
 
 type AppProviderProps = {
   children: React.ReactNode;
@@ -40,19 +41,21 @@ export const AppProvider = ({ children }: AppProviderProps) => {
           </div>
         }
       >
-        <ErrorBoundary FallbackComponent={MainErrorFallback}>
-          <ToastProvider>
-            <HelmetProvider>
-              <QueryClientProvider client={queryClient}>
-                <AuthProvider>
-                  {import.meta.env.DEV && <ReactQueryDevtools />}
-                  {children}
-                  <Notifications />
-                </AuthProvider>
-              </QueryClientProvider>
-            </HelmetProvider>
-          </ToastProvider>
-        </ErrorBoundary>
+        <SidebarProvider>
+          <ErrorBoundary FallbackComponent={MainErrorFallback}>
+            <ToastProvider>
+              <HelmetProvider>
+                <QueryClientProvider client={queryClient}>
+                  <AuthProvider>
+                    {import.meta.env.DEV && <ReactQueryDevtools />}
+                    {children}
+                    <Notifications />
+                  </AuthProvider>
+                </QueryClientProvider>
+              </HelmetProvider>
+            </ToastProvider>
+          </ErrorBoundary>
+        </SidebarProvider>
       </React.Suspense>
     </ThemeProvider>
   );

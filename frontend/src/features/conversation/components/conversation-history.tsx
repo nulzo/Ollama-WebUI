@@ -1,36 +1,35 @@
+import { Bot, HardDriveDownload, ArrowUpDown, LifeBuoy, DoorOpen, DoorClosed, MessageSquareCode, PanelRightClose, PanelRightOpen, Pin, SquarePen, User, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { isToday, isThisWeek, isThisMonth, isBefore, subMonths } from 'date-fns';
-import { Bot, HardDriveDownload, ArrowUpDown, LifeBuoy, DoorOpen, MessageSquareCode, PanelRightClose, PanelRightOpen, Pin, SquarePen, User } from 'lucide-react';
-import { Button } from '@/components/ui/button.tsx';
-import { Chat } from '@/services/provider/ollama/ollama.ts';
-import { useMemo, useState } from 'react';
-import { useConversations } from '@/features/conversation/api/get-conversations';
-import { ConversationOptionsDropdown } from './conversation-options-dropdown';
-import { Input } from '@/components/ui/input';
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { useState, useMemo } from 'react'
+import { Input } from '@/components/ui/input'
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip.tsx';
-import { Link, useLocation } from 'react-router-dom';
-import { SettingsModal } from '@/features/settings/components/settings-modal';
-import logo from '@/assets/cringelogomedium.svg';
-
+} from '@/components/ui/tooltip'
+import { Link, useLocation } from 'react-router-dom'
+import { SettingsModal } from '@/features/settings/components/settings-modal'
+import logo from '@/assets/cringelogomedium.svg'
+import { useConversations } from '@/features/conversation/api/get-conversations';
 import { Label } from "@/components/ui/label"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { useUser } from '@/features/authentication/components/auth';
-import { cn } from '@/lib/utils';
+import { useUser } from '@/features/authentication/components/auth'
+import { cn } from '@/lib/utils'
+import { ConversationOptionsDropdown } from './conversation-options-dropdown';
+import { Chat } from '@/types/chat';
 
 export default function ConversationHistory(props: any) {
+  const user = useUser()
+  const route = useLocation()
+  const [isExpanded, setExpanded] = useState<boolean>(true)
   const chats = useConversations();
-  const user = useUser();
-  const route = useLocation();
-  const [isExpanded, setExpanded] = useState<boolean>(true);
 
   const getDateLabel = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -101,53 +100,161 @@ export default function ConversationHistory(props: any) {
   }
 
   return (
-    <>
-      {!isExpanded && (
-        <aside className="bg-tertiary inset-y flex left-0 z-20 h-full flex-col border-r w-[53px]">
-          <nav className="mt-1 grid gap-1 p-2">
-          <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link to="/">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`rounded-lg mb-3`}
-                  aria-label="Chat"
-                  id="chat"
-                  key="chat"
-                >
-                  <img className="rounded size-8" src={logo} alt="nulzo" />
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={5} className="bg-accent">
-              Chat
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+    <div
+      className={cn(
+        "h-screen transition-all duration-300 ease-in-out",
+        "fixed top-0 left-0 md:relative",
+        "bg-secondary border-r flex flex-col",
+        isExpanded ? "w-[250px]" : "w-[53px]"
+      )}
+    >
+      {/* Top Section */}
+      <div className="flex flex-col overflow-hidden">
+        <div className={cn(
+          "flex px-2",
+          !isExpanded ? "mb-2" : "pt-2 mb-2"
+        )}>
+          <div className="relative flex pt-1 justify-between items-center w-full gap-1 px-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              type="submit"
+              className={cn(
+                "flex justify-between text-sm h-9 transition-all duration-300",
+                isExpanded ? "w-full" : "hidden"
+              )}
+              onClick={() => { }}
+            >
+              <div className="flex gap-2.5 items-center overflow-hidden">
+                <img src={logo} alt="logo" className="size-4 flex-shrink-0" />
+                {isExpanded && <span className="truncate">New Chat</span>}
+              </div>
+              {isExpanded && <SquarePen className="size-4 flex-shrink-0" />}
+            </Button>
+            {isExpanded && (
+              <Button
+                size="icon"
+                variant="ghost"
+                type="submit"
+                className="font-bold flex-shrink-0"
+                onClick={() => setExpanded(!isExpanded)}
+              >
+                <PanelRightOpen className="size-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+        {!isExpanded && (
+          <Button
+            size="icon"
+            variant="ghost"
+            type="submit"
+            className="font-bold flex-shrink-0 absolute top-2.5 left-16 z-[10000]"
+            onClick={() => setExpanded(!isExpanded)}
+          >
+            <PanelLeftOpen className="size-4" />
+          </Button>
+        )}
+        <nav className={cn(
+          "transition-all duration-300 overflow-hidden",
+          isExpanded ? "opacity-100" : "opacity-0 h-0"
+        )}>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link to="/">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`rounded-lg ${route.pathname === '/' ? 'bg-muted' : ''}`}
-                  aria-label="Chat"
-                  id="chat"
-                  key="chat"
-                >
-                  <MessageSquareCode id="chat" className="size-5" />
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={5} className="bg-accent">
-              Chat
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+          {/* Models Button */}
+          <div className="flex items-center px-3 gap-2.5 w-full">
+            <Button
+              size="sm"
+              variant="ghost"
+              type="submit"
+              className="w-full justify-start flex gap-2.5 text-sm font-normal h-9"
+              onClick={() => { }}
+            >
+              <Bot className="size-4 group-hover:stroke-foreground transition-colors duration-200" />
+              Explore Agents
+            </Button>
+          </div>
+
+          {/* Download Models Button */}
+          <div className="flex items-center px-3 gap-2.5 w-full">
+            <Button
+              size="sm"
+              variant="ghost"
+              type="submit"
+              className="w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
+              onClick={() => { }}
+            >
+              <ArrowUpDown className="size-4 group-hover:stroke-foreground transition-colors duration-200" />
+              Download Models
+            </Button>
+          </div>
+
+          <div className="flex items-center px-6 gap-2.5 w-full">
+            <MagnifyingGlassIcon className="stroke-muted-foreground size-4" />
+            <Input
+              className="w-[75%] focus-visible:ring-0 border-0 bg-transparent px-0 hover:ring-0 focus-within:ring-0 focus-within:border-0 focus:ring-0 focus:outline-none focus:border-0"
+              placeholder="Search"
+            />
+          </div>
+        </nav>
+        <div className="px-2 font-medium lg:ps-4 flex-1 overflow-y-auto scrollbar mt-4">
+          {organizeChatsByDate.pinned.length > 0 && (
+            <div>
+              <div className="flex gap-1 items-center sticky top-0 py-2 text-xs font-semibold text-muted-foreground capitalize">
+                <Pin className="size-3" />
+                Pinned
+                <div className="text-[10px] font-light flex gap-1">
+                  {organizeChatsByDate.pinned.length}
+                </div>
+              </div>
+              {organizeChatsByDate.pinned.map((chat: Chat) => (
+                <ChatItem key={chat.uuid} chat={chat} {...props} />
+              ))}
+            </div>
+          )}
+          {Object.entries(organizeChatsByDate.unpinned)
+            .reverse()
+            .map(([group, groupChats]: any) => (
+              <div key={group}>
+                <div className="flex gap-1 items-baseline sticky top-0 py-2 text-xs font-semibold text-muted-foreground capitalize">
+                  {group}
+                  <div className="text-[10px] font-light flex gap-1 items-center">
+                    {groupChats.length}
+                  </div>
+                </div>
+                {groupChats.reverse().map((chat: Chat) => (
+                  <ChatItem key={chat.uuid} chat={chat} {...props} />
+                ))}
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Main Navigation (Collapsed) */}
+      <nav className={cn(
+        "grid gap-1 p-2 pt-0 transition-all duration-300",
+        isExpanded ? "opacity-0 h-0 overflow-hidden" : "opacity-100"
+      )}>
+        <div className='mb-1'>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-lg"
+                    aria-label="Chat"
+                  >
+                    <img src={logo} alt="logo" className="size-4 flex-shrink-0" />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={5} className="bg-accent">
+                Chat
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
 
         <TooltipProvider>
           <Tooltip>
@@ -159,7 +266,7 @@ export default function ConversationHistory(props: any) {
                   className={`rounded-lg ${route.pathname === '/models' ? 'bg-muted' : ''}`}
                   aria-label="Models"
                 >
-                  <Bot className="size-5" />
+                  <Bot className="size-4" />
                 </Button>
               </Link>
             </TooltipTrigger>
@@ -168,10 +275,11 @@ export default function ConversationHistory(props: any) {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Models">
+              <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Download Models">
                 <ArrowUpDown className="size-4" />
               </Button>
             </TooltipTrigger>
@@ -181,12 +289,14 @@ export default function ConversationHistory(props: any) {
           </Tooltip>
         </TooltipProvider>
       </nav>
+
+      {/* Bottom Navigation */}
       <nav className="mt-auto grid gap-1 p-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className="mt-auto rounded-lg" aria-label="Help">
-                <LifeBuoy className="size-5" />
+                <LifeBuoy className="size-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right" sideOffset={5} className="bg-accent">
@@ -194,6 +304,7 @@ export default function ConversationHistory(props: any) {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -213,8 +324,8 @@ export default function ConversationHistory(props: any) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link to="/logout">
-                    <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Models">
-                      <DoorOpen className="size-5" />
+                    <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Logout">
+                      <DoorOpen className="size-4" />
                     </Button>
                   </Link>
                 </TooltipTrigger>
@@ -227,8 +338,8 @@ export default function ConversationHistory(props: any) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Models">
-                    <DoorClosed className="size-5" />
+                  <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Login">
+                    <DoorClosed className="size-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right" sideOffset={5} className="bg-accent">
@@ -238,115 +349,13 @@ export default function ConversationHistory(props: any) {
             </TooltipProvider>
           )}
         </div>
-          </nav>
-        </aside>
-      )}
-    <div
-      className={cn(
-        "h-screen overflow-hidden transition-all duration-300 ease-in-out",
-        "fixed top-0 left-0 md:relative",
-        "bg-secondary border-r flex flex-col",
-        isExpanded ? "w-[250px]" : "w-[50px] bg-transparent border-0"
-      )}
-    >
-      {isExpanded ? (
-        <>
-        {/* Top Section */}
-      <div className="flex flex-col">
-        <div className="flex px-2 pt-2">
-          <div className="flex pt-1 justify-between items-center w-full gap-1 px-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              type="submit"
-              className="flex justify-between w-full text-sm h-9"
-              onClick={() => { }}
-            >
-              <div className="flex gap-2.5 items-center">
-                <img src={logo} alt="logo" className="size-4" />
-                New Chat
-              </div>
-              <SquarePen className="size-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              type="submit"
-              className="font-bold"
-              onClick={() => setExpanded(!isExpanded)}
-            >
-              <PanelRightOpen className="size-4" />
-            </Button>
-          </div>
-        </div>
-        <div className="flex items-center px-3 gap-2.5 w-full pt-2">
-          <Button
-            size="sm"
-            variant="ghost"
-            type="submit"
-            className="w-full justify-start flex gap-2.5 text-sm h-9"
-            onClick={() => { }}
-          >
-            <Bot className="size-4 group-hover:stroke-foreground transition-colors duration-200" />
-            Explore Agents
-          </Button>
-        </div>
-        <div className="flex items-center px-3 gap-2.5 w-full">
-          <Button
-            size="sm"
-            variant="ghost"
-            type="submit"
-            className="w-full justify-start flex gap-2.5 text-sm group h-9"
-            onClick={() => { }}
-          >
-            <HardDriveDownload className="size-4 group-hover:stroke-foreground transition-colors duration-200" />
-            Download Models
-          </Button>
-        </div>
-        <div className="flex items-center px-6 gap-2.5 w-full">
-          <MagnifyingGlassIcon className="stroke-muted-foreground size-4" />
-          <Input
-            className="w-[75%] focus-visible:ring-0 border-0 bg-transparent px-0 hover:ring-0 focus-within:ring-0 focus-within:border-0 focus:ring-0 focus:outline-none focus:border-0"
-            placeholder="Search"
-          />
-        </div>
-      </div>
+      </nav>
 
-      {/* Chat History Section */}
-      <div className="px-2 font-medium lg:ps-4 flex-1 overflow-y-auto scrollbar mt-4">
-        {organizeChatsByDate.pinned.length > 0 && (
-          <div>
-            <div className="flex gap-1 items-center sticky top-0 py-2 text-xs font-semibold text-muted-foreground capitalize">
-              <Pin className="size-3" />
-              Pinned
-              <div className="text-[10px] font-light flex gap-1">
-                {organizeChatsByDate.pinned.length}
-              </div>
-            </div>
-            {organizeChatsByDate.pinned.map((chat: Chat) => (
-              <ChatItem key={chat.uuid} chat={chat} {...props} />
-            ))}
-          </div>
-        )}
-        {Object.entries(organizeChatsByDate.unpinned)
-          .reverse()
-          .map(([group, groupChats]: any) => (
-            <div key={group}>
-              <div className="flex gap-1 items-baseline sticky top-0 py-2 text-xs font-semibold text-muted-foreground capitalize">
-                {group}
-                <div className="text-[10px] font-light flex gap-1 items-center">
-                  {groupChats.length}
-                </div>
-              </div>
-              {groupChats.reverse().map((chat: Chat) => (
-                <ChatItem key={chat.uuid} chat={chat} {...props} />
-              ))}
-            </div>
-          ))}
-      </div>
-
-      {/* Popover at Bottom */}
-      <div className="px-3 py-4">
+      {/* User Popover */}
+      <div className={cn(
+        "px-3 py-4 transition-all duration-300 overflow-hidden",
+        isExpanded ? "opacity-100" : "opacity-0 h-0"
+      )}>
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -408,23 +417,8 @@ export default function ConversationHistory(props: any) {
           </PopoverContent>
         </Popover>
       </div>
-        </>
-      ) : (
-        <div className="p-1 flex justify-center pt-2">
-          <Button
-            size="icon"
-            variant="ghost"
-            type="submit"
-            className="font-bold"
-            onClick={() => setExpanded(!isExpanded)}
-          >
-            <PanelRightClose className="size-4" />
-          </Button>
-        </div>
-      )}
     </div>
-    </>
-  );
+  )
 }
 
 function ChatItem({ chat, uuid, updateURL }: any) {
@@ -432,14 +426,15 @@ function ChatItem({ chat, uuid, updateURL }: any) {
     <div className="relative group">
       <button
         value={chat.uuid}
-        className={`truncate w-full flex justify-between rounded-lg px-3 py-2 hover:bg-accent ${uuid === chat.uuid && 'text-foreground bg-accent'
-          }`}
+        className={`w-full flex justify-between rounded-lg px-3 py-2 hover:bg-accent ${
+          uuid === chat.uuid && 'text-foreground bg-accent'
+        }`}
         onClick={() => {
           updateURL(`c=${chat.uuid || ''}`);
         }}
       >
-        <div className="flex self-center flex-1 w-full">
-          <div className="text-left self-center overflow-hidden w-fit truncate h-[20px]">
+        <div className="flex self-center flex-1 min-w-0"> {/* Changed to min-w-0 */}
+          <div className="text-left self-center w-full truncate h-[20px]">
             {chat.name || 'New Conversation'}
           </div>
         </div>

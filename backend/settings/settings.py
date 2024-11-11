@@ -14,14 +14,13 @@ SECRET_KEY = "django-insecure-u98dn^i6(rfh=n1sl10n-ar84+5cz1c2mb-a8@$lb+qewaf&vo
 
 DEBUG = True
 
-OLLAMA_PORT = os.environ.get('OLLAMA_PORT', '11434')
-OLLAMA_HOST = os.environ.get('OLLAMA_URL', '127.0.0.1')
+OLLAMA_PORT = os.environ.get('OLLAMA_PORT')
+OLLAMA_HOST = os.environ.get('OLLAMA_HOST')
 
 OPENAI_HOST = ""
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
 
 ALLOWED_HOSTS = [
-    
     "localhost",
     "127.0.0.1",
     # Requests from the proxy container in docker compose

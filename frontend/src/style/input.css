@@ -17,6 +17,8 @@
   height: 3px;
 }
 
+
+
 @tailwind components;
 @tailwind utilities;
 
@@ -41,6 +43,8 @@
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
     --border-width: 5rem;
+    --sidebar-width-collapsed: '50px';
+    --sidebar-width: '250px';
 
     *::-webkit-scrollbar-thumb {
       background-color: #111111 !important;

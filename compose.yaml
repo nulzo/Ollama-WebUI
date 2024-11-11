@@ -9,14 +9,16 @@ services:
         - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
         - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
         - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
-        - OLLAMA_URL=${OLLAMA_URL}
+        - OLLAMA_HOST=${OLLAMA_HOST}
         - OLLAMA_PORT=${OLLAMA_PORT}
+        - OPENAI_API_KEY=${OPENAI_API_KEY}
     environment:
       - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
       - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
       - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
-      - OLLAMA_URL=${OLLAMA_URL}
+      - OLLAMA_HOST=${OLLAMA_HOST}
       - OLLAMA_PORT=${OLLAMA_PORT}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     restart: always  # Restart the backend service always (even if it exits normally)
     ports:
       - 6969:6969  # Map port 6969 on the host to port 6969 on the container
@@ -27,6 +29,7 @@ services:
 
   # Frontend service
   frontend:
+    container_name: frontend
     build:
       context: ./frontend
       args:

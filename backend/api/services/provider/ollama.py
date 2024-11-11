@@ -9,6 +9,7 @@ class OllamaProvider(BaseProvider):
         _ollama_host = settings.OLLAMA_HOST
         _ollama_port = settings.OLLAMA_PORT
         self._client = Client(host=f"http://{_ollama_host}:{_ollama_port}")
+        print(self._client)
         super().__init__()
 
     def chat(self, model: str, messages: Union[List, AnyStr]):

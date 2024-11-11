@@ -59,6 +59,7 @@
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.13",
     "embla-carousel-react": "^8.0.2",
+    "framer-motion": "^11.11.11",
     "he": "^1.2.0",
     "highlight.js": "^11.9.0",
     "input-otp": "^1.2.4",

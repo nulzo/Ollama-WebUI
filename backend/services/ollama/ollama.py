@@ -7,7 +7,7 @@ class OllamaService:
     def __init__(self):
         _ollama_host = settings.OLLAMA_HOST
         _ollama_port = settings.OLLAMA_PORT
-        self._client = Client(host=f"http://{_ollama_host}:{_ollama_port}")
+        self._client = Client(host=f"{_ollama_host}:{_ollama_port}")
 
     def create_message_context(self, role: str, messages: Union[List, str]):
         return [{"role": role, "content": messages}]

@@ -76,7 +76,7 @@ export const ConversationOptionsDropdown = ({
         <DropdownMenuTrigger asChild>
           <DotsHorizontalIcon className="hover:stroke-primary self-center transition" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[150px]">
+        <DropdownMenuContent className="w-[150px]" align="center" sideOffset={2} side="right">
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={handlePinToggle} className="gap-2 items-center">
               {is_pinned ? (

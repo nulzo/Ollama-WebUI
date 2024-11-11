@@ -36,7 +36,7 @@ const ThemeToggleButton = () => {
 export function ConversationAreaHeader() {
   return (
     <div className="sticky py-2.5 top-0 flex flex-row z-10 grow-0 px-4 gap-3 justify-between items-center col-span-4 w-full rounded-b-none bg-background/25 backdrop-blur h-14">
-      <div className="flex items-center gap-3 font-semibold text-lg ps-4">
+      <div className="flex items-center gap-3 font-semibold text-lg ps-8">
         <ModelSelect />
       </div>
       <div className="flex items-center gap-1 pe-6">

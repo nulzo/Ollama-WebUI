@@ -6,7 +6,7 @@ import { MutationConfig } from '@/lib/query';
 import { getConversationsQueryOptions } from '@/features/conversation/api/get-conversations';
 
 export const deleteConversation = ({ conversationID }: { conversationID: string }) => {
-  return api.delete(`/conversations/${conversationID}`);
+  return api.delete(`/conversations/${conversationID}/`);
 };
 
 type UseDeleteConversationOptions = {

@@ -12,7 +12,6 @@ interface MessagesListProps {
 export const MessagesList = ({ conversation_id }: MessagesListProps) => {
   const { data: messagesResponse, isLoading } = useMessages({ conversation_id });
   const { model } = useModelStore(state => ({ model: state.model }));
-  console.log(messagesResponse);
 
   const pendingMessages = useMutationState({
     filters: { mutationKey: ['createMessage', conversation_id], status: 'pending' },
@@ -29,12 +28,9 @@ export const MessagesList = ({ conversation_id }: MessagesListProps) => {
     );
   }
 
-  // Ensure we have the correct data structure
-  const confirmedMessages = Array.isArray(messagesResponse?.data) 
-    ? messagesResponse.data 
-    : [];
+  // Use messagesResponse directly since it's already an array
+  const confirmedMessages = messagesResponse || [];
 
-  // Combine confirmed and pending messages
   const allMessages = [
     ...confirmedMessages,
     ...pendingMessages.filter(

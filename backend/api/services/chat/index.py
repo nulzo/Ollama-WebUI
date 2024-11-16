@@ -51,6 +51,7 @@ class ChatService:
 
                 yield "data: [DONE]\n\n"
 
+
             return StreamingHttpResponse(stream(), content_type='text/event-stream')
 
         return {"errors": serializer.errors}

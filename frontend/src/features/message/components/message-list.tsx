@@ -12,6 +12,7 @@ interface MessagesListProps {
 export const MessagesList = ({ conversation_id }: MessagesListProps) => {
   const { data: messagesResponse, isLoading } = useMessages({ conversation_id });
   const { model } = useModelStore(state => ({ model: state.model }));
+  console.log(messagesResponse);
 
   const pendingMessages = useMutationState({
     filters: { mutationKey: ['createMessage', conversation_id], status: 'pending' },
@@ -28,8 +29,12 @@ export const MessagesList = ({ conversation_id }: MessagesListProps) => {
     );
   }
 
-  const confirmedMessages: any[] = Array.isArray(messagesResponse) ? messagesResponse : [];
+  // Ensure we have the correct data structure
+  const confirmedMessages = Array.isArray(messagesResponse?.data) 
+    ? messagesResponse.data 
+    : [];
 
+  // Combine confirmed and pending messages
   const allMessages = [
     ...confirmedMessages,
     ...pendingMessages.filter(
@@ -37,13 +42,14 @@ export const MessagesList = ({ conversation_id }: MessagesListProps) => {
         pendingMsg.role === 'user' &&
         !confirmedMessages.some(
           confirmedMsg =>
-            confirmedMsg.content === pendingMsg.content && confirmedMsg.role === pendingMsg.role
+            confirmedMsg.content === pendingMsg.content && 
+            confirmedMsg.role === pendingMsg.role
         )
     ),
   ];
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-4 pb-4">
       {allMessages.map((message, index) => (
         <Message
           key={`message-${message.id || index}`}

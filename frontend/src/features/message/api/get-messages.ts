@@ -34,5 +34,8 @@ export const useMessages = ({ conversation_id, queryConfig }: UseMessagesOptions
   return useQuery({
     ...getMessagesQueryOptions({ conversation_id }),
     ...queryConfig,
+    enabled: !!conversation_id,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 };

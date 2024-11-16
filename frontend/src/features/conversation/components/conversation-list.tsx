@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useConversations } from "../api/get-conversations";
 import { ConversationOptionsDropdown } from "./conversation-options-dropdown";
 
@@ -33,6 +34,11 @@ function ChatItem({ chat, uuid, updateURL }: any) {
 
 export const ConversationList = () => {
     const { data: conversations } = useConversations();
+    const navigate = useNavigate();
+
+    const handleConversationClick = (uuid: string) => {
+        navigate(`?c=${uuid}`);
+    };
 
     return (
         <>
@@ -42,8 +48,10 @@ export const ConversationList = () => {
             <div className="space-y-1">
                 {conversations?.map((conversation) => (
                     <ChatItem 
+                        key={conversation.uuid}
                         chat={conversation}
                         uuid={conversation.uuid}
+                        updateURL={() => handleConversationClick(conversation.uuid)}
                     />
                 ))}
             </div>

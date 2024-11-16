@@ -104,7 +104,6 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
               </div>
             </Button>
 
-
             {/* Explore Agents Button */}
             <Button
               variant="ghost"

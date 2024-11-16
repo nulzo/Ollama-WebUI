@@ -4,6 +4,9 @@ import Message from '@/features/message/components/message';
 import { useMutationState } from '@tanstack/react-query';
 import { useModelStore } from '@/features/models/store/model-store';
 import { TypingIndicator } from './typing-indicator';
+import { CreateMessageInput } from '../api/create-message';
+import { useEffect } from 'react';
+import { useState } from 'react';
 
 interface MessagesListProps {
   conversation_id: string;
@@ -12,10 +15,33 @@ interface MessagesListProps {
 export const MessagesList = ({ conversation_id }: MessagesListProps) => {
   const { data: messagesResponse, isLoading } = useMessages({ conversation_id });
   const { model } = useModelStore(state => ({ model: state.model }));
+  const [streamingContent, setStreamingContent] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  useEffect(() => {
+    const handleMessageChunk = (event: CustomEvent) => {
+      const chunk = event.detail;
+      setStreamingContent(prev => prev + (chunk.message?.content || ''));
+      setIsStreaming(true);
+    };
+
+    const handleMessageDone = () => {
+      setStreamingContent('');
+      setIsStreaming(false);
+    };
+
+    window.addEventListener('message-chunk', handleMessageChunk as EventListener);
+    window.addEventListener('message-done', handleMessageDone);
+
+    return () => {
+      window.removeEventListener('message-chunk', handleMessageChunk as EventListener);
+      window.removeEventListener('message-done', handleMessageDone);
+    };
+  }, []);
 
   const pendingMessages = useMutationState({
     filters: { mutationKey: ['createMessage', conversation_id], status: 'pending' },
-    select: mutation => mutation.state.variables?.data,
+    select: mutation => mutation.state.variables as CreateMessageInput,
   });
 
   const isTyping = pendingMessages?.length > 0;
@@ -49,16 +75,11 @@ export const MessagesList = ({ conversation_id }: MessagesListProps) => {
       {allMessages.map((message, index) => (
         <Message
           key={`message-${message.id || index}`}
-          id={message.id || ''}
-          role={message.role}
-          content={message.content}
-          time={message.created_at}
-          username={message.role === 'user' ? message.role : message.model || 'assistant'}
-          image={message.image}
-          isTyping={false}
+          {...message}
+          content={message.content + (isStreaming && index === allMessages.length - 1 ? streamingContent : '')}
+          isTyping={isStreaming && index === allMessages.length - 1}
         />
       ))}
-      {isTyping && <TypingIndicator isTyping={true} model={model?.name || ''} />}
     </div>
   );
 };

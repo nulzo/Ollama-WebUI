@@ -1,9 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
-
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/query';
-import { Message } from '@/features/message/types/message';
 import { getConversationQueryOptions } from '@/features/conversation/api/get-conversation';
 import { getMessageQueryOptions } from '@/features/message/api/get-message.ts';
 
@@ -18,17 +16,51 @@ export const createMessageInputSchema = z.object({
 
 export type CreateMessageInput = z.infer<typeof createMessageInputSchema>;
 
-export const createMessage = ({ data }: { data: CreateMessageInput }): Promise<Message> => {
-  
-  return api.post('/chat/', data, {
-    responseType: 'stream',
-    onDownloadProgress: progressEvent => {
-      const chunk = progressEvent.event.target.response;
-      if (chunk) {
-        window.dispatchEvent(new CustomEvent('message-chunk', { detail: chunk }));
+export const createMessage = async ({ data }: { data: CreateMessageInput }): Promise<void> => {
+  try {
+      const response = await api.post('/chat/', data, {
+          headers: {
+              'Accept': 'text/event-stream',
+          }
+      });
+
+      const reader = response.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) {
+              break;
+          }
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                  const data = line.slice(6).trim();
+                  
+                  if (data === '[DONE]') {
+                      window.dispatchEvent(new CustomEvent('message-done'));
+                      return;
+                  }
+
+                  try {
+                      const parsed = JSON.parse(data);
+                      window.dispatchEvent(new CustomEvent('message-chunk', { 
+                          detail: parsed 
+                      }));
+                  } catch (e) {
+                      console.error('Error parsing chunk:', e);
+                  }
+              }
+          }
       }
-    },
-  });
+  } catch (error) {
+      console.error('Error in createMessage:', error);
+      throw error;
+  }
 };
 
 type UseCreateMessageOptions = {

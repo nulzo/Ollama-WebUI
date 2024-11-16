@@ -59,7 +59,7 @@ class MessageService:
                 )
                 
                 yield "data: [DONE]\n\n"
-
             return StreamingHttpResponse(stream_response(), content_type='text/event-stream')
+
 
         return {"errors": serializer.errors}

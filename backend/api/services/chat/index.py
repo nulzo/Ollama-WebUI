@@ -16,7 +16,6 @@ class ChatService:
 
         if serializer.is_valid():
             message: Message = serializer.save()
-            # Fetch the conversation
             conversation = message.conversation
             all_messages = conversation.messages.all().order_by('created_at')
 
@@ -51,7 +50,7 @@ class ChatService:
 
                 yield "data: [DONE]\n\n"
 
-
             return StreamingHttpResponse(stream(), content_type='text/event-stream')
 
         return {"errors": serializer.errors}
+    

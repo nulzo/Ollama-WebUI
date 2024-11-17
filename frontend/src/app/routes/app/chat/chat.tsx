@@ -5,13 +5,19 @@ import { ConversationDefault } from '@/features/conversation/components/conversa
 import useScrollToEnd from '@/hooks/use-scroll-to-end.ts';
 import { ChatInput } from '@/features/textbox/components/chat-input';
 import { useConversation } from '@/features/conversation/hooks/use-conversation';
+import { useState } from 'react';
 
 export function ChatRoute() {
   const { conversationId, messages, submitMessage } = useConversation();
-  const ref = useScrollToEnd(messages.data);
-
+  const [streamingContent, setStreamingContent] = useState('');
+  const ref = useScrollToEnd(messages.data ?? [], streamingContent);
+  
   const handleSubmit = (text: string, image: string | null) => {
     submitMessage(text, image);
+  };
+
+  const handleStreamingUpdate = (content: string) => {
+    setStreamingContent(content);
   };
 
   return (
@@ -21,7 +27,7 @@ export function ChatRoute() {
         <ConversationArea>
           {conversationId ? (
             <>
-              <MessagesList conversation_id={conversationId} />
+              <MessagesList conversation_id={conversationId} onStreamingUpdate={handleStreamingUpdate} />
               <div ref={ref} className="h-0" />
             </>
           ) : (

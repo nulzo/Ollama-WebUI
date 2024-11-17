@@ -96,4 +96,4 @@ RUN poetry run python manage.py createsuperuser --noinput
 # we want this application to be exposed through the Docker DNS bridge.
 # It allows our application to be seen *outside* of Docker, and gives us 
 # the ability to run it via localhost on our main machine.
-CMD ["poetry", "run", "python3", "manage.py", "runserver", "0.0.0.0:6969"]
+CMD ["poetry", "run", "uvicorn", "settings.asgi:application", "--host", "0.0.0.0", "--port", "6969"]

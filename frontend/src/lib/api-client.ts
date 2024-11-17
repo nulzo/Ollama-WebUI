@@ -38,9 +38,11 @@ class ApiClient {
   }
 
   private getHeaders(config: RequestConfig = {}): Headers {
+    const isStreaming = config.headers?.Accept === 'text/event-stream';
     const headers = new Headers({
-        'Content-Type': 'application/json',
-        ...config.headers,
+      'Content-Type': 'application/json',  // Default content type
+      'Accept': isStreaming ? 'text/event-stream' : 'application/json',
+      ...config.headers,
     });
 
     // Add auth token if available
@@ -54,22 +56,15 @@ class ApiClient {
 
   private async handleResponse(response: Response) {
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      const message = error.message || response.statusText;
-      
-      useNotifications.getState().addNotification({
-        type: 'error',
-        title: 'Error',
-        message,
-      });
-
-      if (response.status === 401) {
-        localStorage.removeItem('authToken');
-        const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.href = `/login?redirectTo=${currentPath}`;
+      let errorMessage = 'Network response was not ok';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.detail || errorMessage;
+      } catch (e) {
+        // If parsing fails, use the status text
+        errorMessage = response.statusText || errorMessage;
       }
-
-      throw new Error(message);
+      throw new Error(errorMessage);
     }
     return response;
   }
@@ -103,31 +98,31 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: unknown, config: RequestConfig = {}): Promise<T> {
-    const isStreaming = config.headers?.Accept === 'text/event-stream';
-    
-    const response = await fetch(this.getFullURL(endpoint), {
+    try {
+      const response = await fetch(this.getFullURL(endpoint), {
         method: 'POST',
-        headers: this.getHeaders({
-            ...config,
-            headers: {
-                ...config.headers,
-                'Accept': isStreaming ? 'text/event-stream' : 'application/json',
-            }
-        }),
+        headers: this.getHeaders(config),
         credentials: 'include',
-        body: JSON.stringify(data),
-    });
+        body: JSON.stringify(data),  // Ensure data is properly stringified
+      });
 
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || 'Network response was not ok');
-    }
+      if (!response.ok) {
+        console.error('Response status:', response.status);
+        console.error('Response headers:', Object.fromEntries(response.headers));
+        const errorText = await response.text();
+        console.error('Response body:', errorText);
+        throw new Error(response.statusText || 'Network response was not ok');
+      }
 
-    if (isStreaming) {
+      if (config.headers?.Accept === 'text/event-stream') {
         return response.body as unknown as T;
-    }
+      }
 
-    return response.json();
+      return response.json();
+    } catch (error) {
+      console.error('API Client Error:', error);
+      throw error;
+    }
   }
 
   async put<T>(endpoint: string, data?: unknown): Promise<T> {

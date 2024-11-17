@@ -1,6 +1,6 @@
 import { useEffect, useRef, RefObject } from 'react';
 
-const useScrollToEnd = (messages: unknown[]): RefObject<HTMLDivElement> => {
+const useScrollToEnd = (messages: unknown[], streamingContent?: string): RefObject<HTMLDivElement> => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ const useScrollToEnd = (messages: unknown[]): RefObject<HTMLDivElement> => {
     const timeoutId = setTimeout(scrollToBottom, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [messages]);
+  }, [messages, streamingContent]);
 
   return ref;
 };

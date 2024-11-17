@@ -65,9 +65,14 @@ const Message: React.FC<MessageProps> = ({ username, role, time, content, isTypi
             className={`px-1 ${role !== 'user' ? 'rounded-e-xl rounded-b-xl' : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'}`}
           >
             <div
-              className={`flex flex-col items-center w-full m-0 border-0 transition-opacity duration-300 ${isTyping ? 'opacity-0' : 'opacity-100'}`}
+              className={`flex flex-col items-center w-full m-0 border-0 ${isTyping ? 'opacity-80' : 'opacity-100'}`}
             >
               <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
+              {isTyping && (
+                <div className="w-full h-4 flex items-center justify-start ps-2">
+                  <div className="typing-indicator" />
+                </div>
+              )}
             </div>
           </div>
         </div>

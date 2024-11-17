@@ -18,48 +18,63 @@ export type CreateMessageInput = z.infer<typeof createMessageInputSchema>;
 
 export const createMessage = async ({ data }: { data: CreateMessageInput }): Promise<void> => {
   try {
-      const response = await api.post('/chat/', data, {
-          headers: {
-              'Accept': 'text/event-stream',
-          }
-      });
-
-      const reader = response.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-          const { done, value } = await reader.read();
-          
-          if (done) {
-              break;
-          }
-
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                  const data = line.slice(6).trim();
-                  
-                  if (data === '[DONE]') {
-                      window.dispatchEvent(new CustomEvent('message-done'));
-                      return;
-                  }
-
-                  try {
-                      const parsed = JSON.parse(data);
-                      window.dispatchEvent(new CustomEvent('message-chunk', { 
-                          detail: parsed 
-                      }));
-                  } catch (e) {
-                      console.error('Error parsing chunk:', e);
-                  }
-              }
-          }
+    const response = await api.post('/chat/', data, {
+      headers: {
+        'Accept': 'text/event-stream',
+        'Content-Type': 'application/json',
       }
+    });
+
+    if (!response) {
+      throw new Error('No response from server');
+    }
+
+    const reader = response.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = '';
+
+    while (true) {
+      try {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') {
+              window.dispatchEvent(new CustomEvent('message-done'));
+              return;
+            }
+            try {
+              const parsed = JSON.parse(data);
+              // Extract content from the OpenAI-style delta format
+              const content = parsed.delta?.content || '';
+              fullContent += content;
+              
+              window.dispatchEvent(new CustomEvent('message-chunk', {
+                detail: {
+                  message: {
+                    role: 'assistant',
+                    content: fullContent
+                  }
+                }
+              }));
+            } catch (e) {
+              console.error('Error parsing chunk:', e, data);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error reading stream:', error);
+        throw error;
+      }
+    }
   } catch (error) {
-      console.error('Error in createMessage:', error);
-      throw error;
+    console.error('Full error details:', error);
+    throw error;
   }
 };
 

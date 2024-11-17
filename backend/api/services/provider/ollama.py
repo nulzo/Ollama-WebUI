@@ -1,4 +1,7 @@
+import json
 from typing import Union, List, AnyStr
+
+import httpx
 from api.services.provider import BaseProvider
 from django.conf import settings
 from ollama import Client
@@ -12,11 +15,37 @@ class OllamaProvider(BaseProvider):
         print(self._client)
         super().__init__()
 
+    async def achat(self, model: str, messages: Union[List, AnyStr]):
+        """
+        Async version of chat that yields responses
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"http://{self._ollama_host}:{self._ollama_port}/api/chat",
+                json={"model": model, "messages": messages, "stream": True},
+                timeout=None
+            )
+            async for line in response.aiter_lines():
+                if line:
+                    try:
+                        chunk = json.loads(line)
+                        if 'message' in chunk and 'content' in chunk['message']:
+                            yield chunk['message']['content']
+                    except json.JSONDecodeError:
+                        continue
+
     def chat(self, model: str, messages: Union[List, AnyStr]):
         """
         Sends a message to the ollama service.
         """
-        return self._client.chat(model=model, messages=messages, stream=True)
+        response = self._client.chat(model=model, messages=messages, stream=True)
+        for chunk in response:
+            if isinstance(chunk, bytes):
+                chunk = chunk.decode('utf-8')
+            if isinstance(chunk, dict) and 'message' in chunk and 'content' in chunk['message']:
+                yield chunk['message']['content']  # Return just the content string
+            elif isinstance(chunk, str):
+                yield chunk
 
     def stream(self, model: str, messages: Union[List, AnyStr]):
         """

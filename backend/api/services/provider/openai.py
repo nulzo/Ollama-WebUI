@@ -13,20 +13,16 @@ class OpenAiProvider(BaseProvider):
 
     def chat(self, model: str, messages: Union[List, AnyStr]):
         """
-        Sends a message to the ollama service.
+        Sends a message to the OpenAI service with streaming.
         """
         response = self._client.chat.completions.create(
             model=model,
             messages=messages,
             stream=True
         )
-        full_content = ""
         for chunk in response:
             if chunk.choices[0].delta.content is not None:
-                full_content += chunk.choices[0].delta.content
-                yield {"message": {"role": "assistant", "content": full_content}, "done": False}
-            if chunk.choices[0].finish_reason:
-                yield {"message": {"role": "assistant", "content": full_content}, "done": True}
+                yield chunk.choices[0].delta.content
 
     def stream(self, model: str, messages: Union[List, AnyStr]):
         """

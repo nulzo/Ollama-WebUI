@@ -13,21 +13,30 @@ class Chat(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.ollama_service = OllamaService()
+        self.logger = logging.getLogger(__name__)
 
-    def post(self, request, *args, **kwargs):
-        response = self.chat_service.handle_chat(request.data, request)
+    async def post(self, request, *args, **kwargs):
+        response = await self.chat_service.handle_chat(request.data, request)
         
         if isinstance(response, dict) and "errors" in response:
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
         
         if isinstance(response, StreamingHttpResponse):
-            logger.info(f"Message: {response.streaming_content}.")
-            return response
+            async def streaming_content():
+                async for chunk in response.streaming_content:
+                    yield chunk
+            
+            return StreamingHttpResponse(
+                streaming_content(),
+                content_type='text/event-stream'
+            )
+        
+        return Response(response, status=status.HTTP_200_OK)
         
         # If it's not a streaming response or an error, it's a regular response
         return Response(response, status=status.HTTP_200_OK)
 
-    def get(self, request):
-        models = self.ollama_service.get_all_models()
+    async def get(self, request):
+        models = await self.ollama_service.get_all_models()
         return Response(models, status=status.HTTP_200_OK)
     

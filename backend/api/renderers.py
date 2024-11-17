@@ -8,4 +8,3 @@ class EventStreamRenderer(renderers.BaseRenderer):
         if isinstance(data, str):
             return data.encode('utf-8')
         return data
-    

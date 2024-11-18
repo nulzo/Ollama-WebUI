@@ -106,13 +106,17 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
     );
   }
 
-  const confirmedMessages = messagesResponse || [];
-  
+  const confirmedMessages = messagesResponse ? 
+    [...Object.values(messagesResponse)
+      .filter(value => typeof value === 'object' && !Array.isArray(value)), 
+     ...(messagesResponse.data || [])]
+    .filter(msg => msg.id && msg.role && msg.content) : [];
+
   const allMessages = [
     ...confirmedMessages,
     ...pendingMessages.filter(pendingMsg => 
       pendingMsg.role === 'user' && 
-      pendingMsg.conversation === conversation_id && // Add this condition
+      pendingMsg.conversation === conversation_id &&
       !confirmedMessages.some(confirmedMsg => 
         confirmedMsg.content === pendingMsg.content && 
         confirmedMsg.role === pendingMsg.role

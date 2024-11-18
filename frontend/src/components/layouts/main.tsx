@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
+import { Toaster } from "@/components/ui/sonner"
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -24,6 +25,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       >
         <div className="h-full w-full overflow-auto">
           {children}
+          <Toaster />
         </div>
       </motion.main>
     </div>

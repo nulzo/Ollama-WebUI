@@ -1,17 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Command, Copy, CornerDownLeft, Image, Redo, Undo, X } from 'lucide-react';
+import { Command, Copy, CornerDownLeft, Image as ImageIcon, Redo, Undo, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DynamicTextareaProps {
+  text: string;
+  setText: (text: string) => void;
+  onSubmit: () => void;
+  model: string;
+  onImageUpload: (images: string[]) => void;
+  onRemoveImage: (index: number) => void;
+  uploadedImages: string[];
   placeholder?: string;
   maxLength?: number;
-  onSubmit: (text: string, image: string | null) => void;
-  setText: (value: string) => void;
-  onImageUpload: (base64Image: string | null, fileName: string | null) => void;
-  text: string;
-  model: string;
-  uploadedImageName: string | null;
 }
 
 export default function DynamicTextarea({
@@ -19,17 +20,16 @@ export default function DynamicTextarea({
   maxLength = 1000000,
   onSubmit,
   onImageUpload,
+  onRemoveImage,
   setText,
   text,
   model,
-  uploadedImageName,
+  uploadedImages,
 }: DynamicTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [history, setHistory] = useState<string[]>(['']);
   const [historyIndex, setHistoryIndex] = useState(0);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<string | null>(null);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -49,10 +49,23 @@ export default function DynamicTextarea({
 
   const handleSubmit = () => {
     if (text.trim()) {
-      onSubmit(text, imageBase64);
+      onSubmit();
       setText('');
-      setImageBase64(null);
-      onImageUpload(null, null);
+    }
+  };
+
+  const handlePaste = async (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageItems = Array.from(items).filter(item => item.type.startsWith('image/'));
+    
+    for (const item of imageItems) {
+      const file = item.getAsFile();
+      if (file) {
+        const base64 = await convertFileToBase64(file);
+        onImageUpload([base64]);
+      }
     }
   };
 
@@ -62,27 +75,24 @@ export default function DynamicTextarea({
     }
   };
 
-  const handleUpload = () => fileInputRef.current?.click();
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setImageBase64(base64String);
-        setImageFile(file.name);
-        onImageUpload(base64String, file.name);
-      };
       reader.readAsDataURL(file);
-    }
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   };
 
-  const handleRemoveImage = () => {
-    setImageBase64(null);
-    setImageFile(null);
-    onImageUpload(null, null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    const base64Images = await Promise.all(
+      files.map(file => convertFileToBase64(file))
+    );
+    onImageUpload(base64Images);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleUndo = () => {
@@ -98,6 +108,18 @@ export default function DynamicTextarea({
       setText(history[historyIndex + 1]);
     }
   };
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.addEventListener('paste', handlePaste);
+    }
+    return () => {
+      if (textarea) {
+        textarea.removeEventListener('paste', handlePaste);
+      }
+    };
+  }, []);
 
   const handleCopy = () => navigator.clipboard.writeText(text);
 
@@ -115,24 +137,124 @@ export default function DynamicTextarea({
             className="placeholder:text-muted-foreground text-foreground w-full resize-none bg-transparent px-4 py-3 text-sm focus:outline-none focus:ring-0 focus:ring-none rounded-lg"
             style={{ minHeight: '44px', maxHeight: '200px' }}
           />
-          <TextareaFooter
-            text={text}
-            model={model}
-            handleSubmit={handleSubmit}
-            handleUndo={handleUndo}
-            handleRedo={handleRedo}
-            handleCopy={handleCopy}
-            handleUpload={handleUpload}
-            handleRemoveImage={handleRemoveImage}
-            uploadedImageName={imageFile}
-            historyIndex={historyIndex}
-            historyLength={history.length}
-          />
+          
+          {uploadedImages.length > 0 && (
+            <div className="flex flex-wrap gap-2 px-4 pb-2">
+              {uploadedImages.map((image, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={image}
+                    alt={`Uploaded ${index + 1}`}
+                    className="h-12 w-12 object-cover rounded"
+                  />
+                  <button
+                    onClick={() => onRemoveImage(index)}
+                    className="absolute -top-1 -right-1 bg-background border rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="pb-2 px-2 flex justify-between items-center">
+            <div className="flex space-x-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="h-5 w-5"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleUndo}
+                    disabled={historyIndex === 0}
+                  >
+                    <Undo className="size-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Undo</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="h-5 w-5"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleRedo}
+                    disabled={historyIndex === history.length - 1}
+                  >
+                    <Redo className="size-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Redo</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="h-5 w-5"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleCopy}
+                  >
+                    <Copy className="size-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Copy to clipboard</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {uploadedImages.length === 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      className="h-5 w-5"
+                      variant="link"
+                      size="icon"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <ImageIcon className="size-3 stroke-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Upload Image (requires vision capable model)</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-muted-foreground">
+                {text.length > 0 ? text.length : ''}
+              </span>
+              <Button
+                size="icon"
+                className="h-8 w-fit text-xs px-2"
+                onClick={handleSubmit}
+                disabled={!text.trim() || model.length === 0}
+              >
+                Send
+                <kbd className="px-1 gap-1 rounded inline-flex justify-center items-center py-1 font-mono text-sm">
+                  <Command className="size-2" />
+                  <CornerDownLeft className="size-2" />
+                </kbd>
+                <span className="sr-only">Send message</span>
+              </Button>
+            </div>
+          </div>
+
           <input
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
             accept="image/*"
+            multiple
             style={{ display: 'none' }}
           />
         </div>
@@ -140,118 +262,3 @@ export default function DynamicTextarea({
     </TooltipProvider>
   );
 }
-
-interface TextareaFooterProps {
-  text: string;
-  model: string;
-  handleSubmit: () => void;
-  handleUndo: () => void;
-  handleRedo: () => void;
-  handleCopy: () => void;
-  handleUpload: () => void;
-  handleRemoveImage: () => void;
-  uploadedImageName: string | null;
-  historyIndex: number;
-  historyLength: number;
-}
-
-const TextareaFooter: React.FC<TextareaFooterProps> = ({
-  text,
-  model,
-  handleSubmit,
-  handleUndo,
-  handleRedo,
-  handleCopy,
-  handleUpload,
-  handleRemoveImage,
-  uploadedImageName,
-  historyIndex,
-  historyLength,
-}) => (
-  <div className="pb-2 px-2 flex justify-between items-center">
-    <div className="flex space-x-2">
-      <TooltipButton
-        onClick={handleUndo}
-        disabled={historyIndex === 0}
-        icon={<Undo className="size-3" />}
-        tooltipText="Undo"
-      />
-      <TooltipButton
-        onClick={handleRedo}
-        disabled={historyIndex === historyLength - 1}
-        icon={<Redo className="size-3" />}
-        tooltipText="Redo"
-      />
-      <TooltipButton
-        onClick={handleCopy}
-        icon={<Copy className="size-3" />}
-        tooltipText="Copy to clipboard"
-      />
-      {!uploadedImageName && (
-        <TooltipButton
-          onClick={handleUpload}
-          icon={<Image className="size-3 stroke-muted-foreground" />}
-          tooltipText="Upload Image (requires vision capable model)"
-          variant="link"
-        />
-      )}
-      {uploadedImageName && (
-        <div className="flex items-center space-x-1">
-          <span className="text-xs text-muted-foreground">{uploadedImageName}</span>
-          <Button className="h-4 w-4 p-0" variant="ghost" size="icon" onClick={handleRemoveImage}>
-            <X className="size-3" />
-          </Button>
-        </div>
-      )}
-    </div>
-    <div className="flex items-center space-x-2">
-      <span className="text-xs text-muted-foreground">{text.length > 0 ? text.length : ''}</span>
-      <Button
-        size="icon"
-        className="h-8 w-fit text-xs px-2"
-        onClick={handleSubmit}
-        disabled={!text.trim() || model.length === 0}
-      >
-        Send
-        <kbd className="px-1 gap-1 rounded inline-flex justify-center items-center py-1 font-mono text-sm">
-          <Command className="size-2" />
-          <CornerDownLeft className="size-2" />
-        </kbd>
-        <span className="sr-only">Send message</span>
-      </Button>
-    </div>
-  </div>
-);
-
-interface TooltipButtonProps {
-  onClick: () => void;
-  disabled?: boolean;
-  icon: React.ReactNode;
-  tooltipText: string;
-  variant?: 'ghost' | 'link';
-}
-
-const TooltipButton: React.FC<TooltipButtonProps> = ({
-  onClick,
-  disabled = false,
-  icon,
-  tooltipText,
-  variant = 'ghost',
-}) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <Button
-        className="h-5 w-5"
-        variant={variant}
-        size="icon"
-        onClick={onClick}
-        disabled={disabled}
-      >
-        {icon}
-      </Button>
-    </TooltipTrigger>
-    <TooltipContent>
-      <p>{tooltipText}</p>
-    </TooltipContent>
-  </Tooltip>
-);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useModelStore } from '../store/model-store';
 import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils.ts';
@@ -35,6 +35,32 @@ export const ModelSelect = () => {
     model: state.model,
   }));
 
+  const handleModelSelect = useCallback((selectedModel: OllamaModel | Assistant) => {
+    setModel(selectedModel);
+    setOpen(false);
+  }, [setModel]);
+
+  const openaiToOllama = useCallback((id: string) => ({
+    model: id,
+    name: id
+  }), []);
+
+  const truncateModelName = useCallback((name: string) => {
+    try {
+      return name.endsWith(':latest') ? name.slice(0, -7) : name;
+    } catch (error) {
+      return name;
+    }
+  }, []);
+
+  const { userAssistants, availableOllamaModels, openai } = useMemo(() => ({
+    userAssistants: assistants || [],
+    openai: openaiModels.data || [],
+    availableOllamaModels: ollamaModels.data?.models?.filter(
+      (m: OllamaModelData) => !assistants?.some(assistant => assistant.name === m.name)
+    ) || []
+  }), [assistants, ollamaModels.data, openaiModels.data]);
+
   if (ollamaModels.isLoading || isLoadingAssistants) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
@@ -42,34 +68,6 @@ export const ModelSelect = () => {
       </div>
     );
   }
-
-  const handleModelSelect = (selectedModel: OllamaModel | Assistant) => {
-    setModel(selectedModel);
-  };
-
-  const openaiToOllama = (id: string) => {
-    return {
-      "model": id,
-      "name": id
-    }
-  }
-
-  const truncateModelName = (name: string) => {
-    try {
-      return name.endsWith(':latest') ? name.slice(0, -7) : name;
-    } catch (error) {
-      return name;
-    }
-    
-  };
-
-  const userAssistants = assistants || [];
-  const openai = openaiModels.data || [];
-  console.log(openai, ollamaModels);
-  const availableOllamaModels =
-    ollamaModels.data?.models?.filter(
-      (m: OllamaModelData) => !userAssistants.some(assistant => assistant.name === m.name)
-    ) || [];
 
   return (
     <div className="relative flex items-center">

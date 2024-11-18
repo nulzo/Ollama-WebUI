@@ -61,6 +61,8 @@
     --border-width: 5rem;
     --sidebar-width-collapsed: '50px';
     --sidebar-width: '250px';
+    --success: 158.1 64.4% 51.6%;
+    --success-foreground: 0 0% 3.9%;
 
     *::-webkit-scrollbar-thumb {
       background-color: #111111 !important;
@@ -92,6 +94,8 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+    --success: 162.9 93.5% 24.3%;
+    --success-foreground: 149.3 80.4% 90%;
 
     *::-webkit-scrollbar-thumb {
       background-color: #cccccc !important;

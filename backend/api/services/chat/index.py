@@ -5,7 +5,6 @@ from api.serializers.message import MessageSerializer
 from repository.message_repository import MessageRepository
 from api.services.provider import ProviderFactory
 from api.models.messages.message import Message
-from api.models.assistant.assistant import Assistant  # Add this import
 import logging
 
 
@@ -15,10 +14,36 @@ class ChatService:
         self.message_repository = MessageRepository()
         self.logger = logging.getLogger(__name__)
 
+    def process_image(self, images):
+        try:
+            if not isinstance(images, list):
+                self.logger.warning(f"Expected list of images, got {type(images)}")
+                return []
+                
+            processed_images = []
+            for image_str in images:
+                try:
+                    # Split on comma and take second part (the actual base64 data)
+                    base64_data = image_str.split(',')[1]
+                    print(base64_data[:50])
+                    # Convert base64 to bytes
+                    import base64
+                    image_bytes = base64.b64decode(base64_data)
+                    processed_images.append(image_bytes)
+                except Exception as e:
+                    self.logger.warning(f"Error processing individual image: {str(e)}")
+                    continue
+                    
+            self.logger.info(f"Processed {len(processed_images)} images")
+            return processed_images
+        except Exception as e:
+            self.logger.warning(f"Error processing images: {str(e)}")
+            return []
+
 
     def handle_chat(self, serializer_data, request):
-        self.logger.info(f"Starting chat handling for user {request.user.id}")
-        self.logger.debug(f"Received data: {serializer_data}")
+        # self.logger.info(f"Starting chat handling for user {request.user.id}")
+        # self.logger.debug(f"Received data: {serializer_data}")
         
         serializer = MessageSerializer(data=serializer_data, context={'request': request})
         
@@ -31,20 +56,23 @@ class ChatService:
             
             # Get conversation history
             all_messages = message.conversation.messages.all().order_by('created_at')
-            self.logger.debug(f"Retrieved {len(all_messages)} messages from conversation history")
+            # self.logger.debug(f"Retrieved {len(all_messages)} messages from conversation history")
             
             flattened_messages = [
                 {
                     "role": msg.role,
                     "content": msg.content,
-                    "images": [msg.image] if msg.image else []
+                    "images": self.process_image(msg.get_images()) if msg.images else []
                 }
                 for msg in all_messages
             ]
 
+            self.logger.info(f"Flattened messages: {flattened_messages}")
+
             async def async_stream_response():
                 full_content = ""
-                provider = self.provider_factory.get_provider("ollama")
+                provider_name = "openai" if message.model.name.startswith("gpt") else "ollama"
+                provider = self.provider_factory.get_provider(provider_name)
                 self.logger.info(f"Using provider: {provider}")
                 yield f"data: {json.dumps({'conversation_uuid': str(conversation.uuid)})}\n\n"
                 
@@ -72,7 +100,7 @@ class ChatService:
                         content=full_content,
                         model=message.model,
                         user=message.user,
-                        image=None
+                        images=[]
                     )
                     
                     yield f"data: {json.dumps({'done': True})}\n\n"

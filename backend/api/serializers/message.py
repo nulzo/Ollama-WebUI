@@ -33,6 +33,7 @@ class MessageSerializer(serializers.ModelSerializer):
     user = UserField(queryset=CustomUser.objects.all())
     model = AssistantField(queryset=Assistant.objects.all())
     conversation = serializers.UUIDField(required=False, allow_null=True)
+    images = serializers.ListField(child=serializers.CharField(), required=False)
 
     class Meta:
         model = Message
@@ -62,8 +63,9 @@ class MessageSerializer(serializers.ModelSerializer):
 
         message = Message.objects.create(conversation=conversation, **validated_data)
         return message
-
+    
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['conversation_uuid'] = str(instance.conversation.uuid)
+        representation['images'] = instance.get_images()
         return representation

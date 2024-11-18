@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { HeartCrack, Search, PlusCircle, X, Send, Edit } from 'lucide-react'
+import { HeartCrack, Search, SortAsc, SortDesc } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import {
@@ -9,15 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useModels } from '@/features/models/api/get-models'
+import { motion } from 'framer-motion'
 import { useModel } from '@/features/models/api/get-model'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Slider } from "@/components/ui/slider"
-import { Skeleton } from '@/components/ui/skeleton'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+
 
 interface ModelsResponse {
   name: string;
@@ -55,10 +55,38 @@ interface ModelDetailsResponse {
   modified_at: string;
 }
 
+const ModelCard = ({ model, onEdit }: { model: ModelsResponse, onEdit: (model: ModelsResponse) => void }) => (
+  <motion.div
+    className="bg-secondary rounded-lg shadow-md p-6 transition-shadow duration-300 overflow-y-auto"
+    whileHover={{ scale: 1.00 }}
+  >
+    <h2 className="text-xl font-semibold whitespace-nowrap truncate">{model.name}</h2>
+    <div className="flex flex-wrap gap-2 mb-2 mt-1">
+      <Badge variant="outline" className="text-xs border-primary bg-primary/10 text-primary">{model.details.format}</Badge>
+      <Badge variant="outline" className="text-xs border-primary bg-primary/10 text-primary">{model.details.family}</Badge>
+      <Badge variant="outline" className="text-xs border-primary bg-primary/10 text-primary">{model.details.parameter_size}</Badge>
+      <Badge variant="outline" className="text-xs border-primary bg-primary/10 text-primary">{model.details.quantization_level}</Badge>
+    </div>
+    <p className="text-sm mt-4">
+      Size: {formatFileSize(model.size)}
+    </p>
+    <p className="text-sm text-muted-foreground mb-2">
+      Modified: {new Date(model.modified_at).toLocaleDateString()}
+    </p>
+    <div className="flex justify-end mt-4">
+      <Button onClick={() => onEdit(model)} className="w-full">
+        Edit Agent
+      </Button>
+    </div>
+  </motion.div>
+);
+
 const formatFileSize = (bytes: number): string => {
   if (!bytes) return 'Unknown';
+
   const gigabytes = bytes / (1024 * 1024 * 1024);
   const megabytes = bytes / (1024 * 1024);
+
   if (gigabytes >= 1) {
     return `${gigabytes.toFixed(2)} GB`;
   } else {
@@ -71,13 +99,13 @@ export function ModelsRoute() {
   const [sortBy, setSortBy] = useState('name')
   const [selectedModel, setSelectedModel] = useState(null)
   const [filterFamily, setFilterFamily] = useState('all')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [temperature, setTemperature] = useState(0.7)
-  const [newTag, setNewTag] = useState('')
-  const [customTags, setCustomTags] = useState([])
-  const itemsPerPage = 8
 
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const { isLoading, data: modelList } = useModels();
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 9
+
   const { data: selectedModelDetails, isLoading: isLoadingDetails } = useModel({
     id: selectedModel?.name ?? '',
     queryConfig: {
@@ -87,22 +115,38 @@ export function ModelsRoute() {
 
   const handleEdit = (model) => {
     setSelectedModel(model);
-    setCustomTags(model.details.families || []);
-    setTemperature(0.7);
   }
 
-  const handleAddTag = () => {
-    if (newTag && !customTags.includes(newTag)) {
-      setCustomTags(prev => [...prev, newTag]);
-      setNewTag('');
+  const closeModal = () => {
+    setSelectedModel(null);
+  }
+
+  const handleEditModel = (model) => {
+    setSelectedModel(model);
+    setIsEditModalOpen(true);
+  }
+
+  const handleDeleteModel = (model) => {
+    setSelectedModel(model);
+    setIsDeleteDialogOpen(true);
+  }
+
+  const getPageNumbers = (currentPage: number, totalPages: number) => {
+    if (totalPages <= 3) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-  }
 
-  const handleRemoveTag = (tag) => {
-    setCustomTags(prev => prev.filter(t => t !== tag));
-  }
+    if (currentPage <= 2) {
+      return [1, 2, 3, '...', totalPages];
+    }
 
-  // Filter and sort models
+    if (currentPage >= totalPages - 1) {
+      return [1, '...', totalPages - 2, totalPages - 1, totalPages];
+    }
+
+    return [1, '...', currentPage, '...', totalPages];
+  };
+
   const filteredAndSortedModels = useMemo(() => {
     return modelList?.models
       ?.filter(model =>
@@ -117,279 +161,214 @@ export function ModelsRoute() {
       });
   }, [modelList?.models, searchTerm, filterFamily, sortBy]);
 
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.3,
-      },
-    }),
-  };
-
-  // Paginate models
+  // Add pagination calculation
   const paginatedModels = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage
     return filteredAndSortedModels?.slice(startIndex, startIndex + itemsPerPage)
   }, [filteredAndSortedModels, currentPage])
 
   const totalPages = Math.ceil((filteredAndSortedModels?.length || 0) / itemsPerPage)
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mt-16 text-start">Model Store</h1>
-      <h3 className="text-lg mb-8 text-start text-muted-foreground">Browse and download models for your AI applications.</h3>
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card className="md:col-span-1 bg-secondary/15">
-          <CardHeader className="pb-4">
-            <CardTitle>Available Models</CardTitle>
-            <CardDescription>Select a model to edit its parameters</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 stroke-muted-foreground size-4" />
-                <Input
-                  type="text"
-                  placeholder="Search models..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+      <h1 className="text-4xl font-bold mt-16 text-start">Fine-Tune Agents</h1>
+      <h3 className="text-lg mb-8 text-start text-muted-foreground">Fine-tune your agents, customize existing models, or create your own.</h3>
 
-              <div>
-                <Label>Sort By</Label>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name">Name</SelectItem>
-                    <SelectItem value="size">Size</SelectItem>
-                    <SelectItem value="modified">Last Modified</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-grow">
+          <Input
+            type="text"
+            placeholder="Search models..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+          <Search className="absolute left-3 size-4 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
+        </div>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-full md:w-[180px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Name</SelectItem>
+            <SelectItem value="size">Size</SelectItem>
+            <SelectItem value="modified">Last Modified</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterFamily} onValueChange={setFilterFamily}>
+          <SelectTrigger className="w-full md:w-[180px]">
+            <SelectValue placeholder="Filter by family" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Families</SelectItem>
+            <SelectItem value="llama">Llama</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-              <div>
-                <Label>Model Family</Label>
-                <Select value={filterFamily} onValueChange={setFilterFamily}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter by family" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Families</SelectItem>
-                    <SelectItem value="llama">Llama</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+      {isLoading && (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      )}
 
-            <div className="h-full flex flex-col">
-              <div className="space-y-2 flex-1 overflow-auto">
-                {isLoading ? (
-                  // Skeleton loading state
-                  Array.from({ length: 5 }).map((_, idx) => (
-                    <motion.div
-                      key={`skeleton-${idx}`}
-                      custom={idx}
-                      variants={cardVariants}
-                      initial="hidden"
-                      animate="visible"
-                      className="h-[52px] p-4 rounded-lg bg-secondary/15 backdrop-blur-sm flex items-center"
-                    >
-                      <Skeleton className="w-full h-4" />
-                    </motion.div>
-                  ))
-                ) : paginatedModels?.length === 0 ? (
-                  <div className="flex justify-center items-center flex-col gap-2 p-4">
-                    <p className="text-muted-foreground">No models found</p>
-                    <HeartCrack className="text-primary/50 size-5" />
-                  </div>
-                ) : (
-                  paginatedModels?.map((model, index) => (
-                    <motion.div
-                      key={model.name}
-                      custom={index}
-                      variants={cardVariants}
-                      initial="hidden"
-                      animate="visible"
-                      onClick={() => handleEdit(model)}
-                      className="group h-[52px] px-4 rounded-lg border border-secondary/50 hover:border-primary/50 bg-secondary/20 hover:bg-secondary/30 backdrop-blur-sm cursor-pointer transition-all duration-200 ease-in-out flex items-center justify-between hover:shadow-sm"
-                    >
-                      <div className="flex items-center gap-1 overflow-hidden">
-                        <span className="text-sm font-semibold text-primary whitespace-nowrap">
-                          {model.name.split('/')[0]}
-                        </span>
-                        <span className="text-sm text-muted-foreground truncate">
-                          {model.name.split('/').slice(1).join('/')}
-                        </span>
-                      </div>
-                      <Edit className="w-3 h-3 text-primary/70 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </motion.div>
-                  ))
-                )}
-              </div>
+      {paginatedModels?.length === 0 && (
+        <div className="flex justify-center items-center h-64 flex-col gap-2">
+          <p className="text-muted-foreground">No models found</p>
+          <HeartCrack className="text-primary/50 size-5" />
+        </div>
+      )}
 
-              {filteredAndSortedModels?.length > 0 && (
-                <div className="flex justify-between items-center pt-4 border-t mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {paginatedModels?.map((model) => (
+          <ModelCard
+            key={model.name}
+            model={model}
+            onEdit={handleEdit}
+          />
+        ))}
+      </motion.div>
 
-        <Card className="md:col-span-2 h-[calc(100vh-12rem)]">
-          <CardHeader>
-            <CardTitle>
-              {selectedModel ? 'Edit Model Parameters' : 'Model Details'}
-            </CardTitle>
-            <CardDescription>
-              {selectedModel 
-                ? `Customize the settings for ${selectedModel.name}`
-                : 'Select a model from the list to view its details'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[calc(100%-7rem)] overflow-auto">
-            {selectedModel ? (
-              isLoadingDetails ? (
-                <div className="flex justify-center p-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <form className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Model Name</Label>
-                    <Input
-                      id="name"
-                      value={selectedModel.name}
-                      readOnly
-                    />
-                  </div>
+      {paginatedModels?.length > 0 && (
 
-                  <div>
-                    <Label htmlFor="temperature">Temperature: {temperature.toFixed(2)}</Label>
-                    <Slider
-                      id="temperature"
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      value={[temperature]}
-                      onValueChange={([value]) => setTemperature(value)}
-                    />
-                  </div>
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <Button
+            variant="ghost"
+            className='gap-1 text-xs'
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" /> Previous
+          </Button>
 
-                  <div>
-                    <Label htmlFor="modelfile">Modelfile</Label>
-                    <Textarea
-                      id="modelfile"
-                      className="font-mono"
-                      value={selectedModelDetails?.modelfile || ''}
-                      rows={3}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="parameters">Parameters</Label>
-                    <Textarea
-                      id="parameters"
-                      className="font-mono"
-                      value={selectedModelDetails?.parameters || ''}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="template">Template</Label>
-                    <Textarea
-                      id="template"
-                      className="font-mono"
-                      value={selectedModelDetails?.template || ''}
-                      rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Tags</Label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {customTags.map(tag => (
-                        <Badge key={tag} variant="secondary" className="text-sm">
-                          {tag}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-1 h-auto p-0"
-                            onClick={() => handleRemoveTag(tag)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        value={newTag}
-                        onChange={(e) => setNewTag(e.target.value)}
-                        placeholder="Add a new tag"
-                      />
-                      <Button type="button" onClick={handleAddTag} size="icon">
-                        <PlusCircle className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>Model Details</Label>
-                    <div className="grid grid-cols-2 gap-4 mt-2">
-                      {selectedModelDetails?.details &&
-                        Object.entries(selectedModelDetails.details).map(([key, value]) => (
-                          <div key={key}>
-                            <Label className="capitalize text-xs text-muted-foreground">
-                              {key.replace(/_/g, ' ')}
-                            </Label>
-                            <Input
-                              value={Array.isArray(value) ? value.join(', ') : value?.toString() || ''}
-                              readOnly
-                              className="font-mono text-sm"
-                            />
-                          </div>
-                        ))
-                      }
-                    </div>
-                  </div>
-
-                  <Button type="submit">Save Changes</Button>
-                </form>
-              )
+          {getPageNumbers(currentPage, totalPages).map((pageNum, idx) => (
+            pageNum === '...' ? (
+              <span key={`ellipsis-${idx}`} className="px-2">...</span>
             ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                Select a model from the list to view and edit its details
+              <Button
+                key={pageNum}
+                variant={currentPage === pageNum ? "default" : "outline"}
+                onClick={() => setCurrentPage(Number(pageNum))}
+                className="min-w-[40px]"
+              >
+                {pageNum}
+              </Button>
+            )
+          ))}
+
+          <Button
+            variant="ghost"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages || totalPages === 0}
+            className='gap-1 text-xs'
+          >
+            Next <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{
+          duration: 0.2,
+          ease: "easeOut"
+        }}
+      >
+        <Dialog open={!!selectedModel} onOpenChange={closeModal}>
+          <DialogContent className="max-w-4xl overflow-auto max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>{selectedModel?.name}</DialogTitle>
+              <DialogDescription>Model Details</DialogDescription>
+            </DialogHeader>
+
+            {isLoadingDetails ? (
+              <div className="flex justify-center p-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="modelfile">Modelfile</Label>
+                  <Textarea
+                    id="modelfile"
+                    className="h-48 font-mono text-sm"
+                    value={selectedModelDetails?.modelfile || ''}
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="parameters">Parameters</Label>
+                  <Textarea
+                    id="parameters"
+                    className="h-48 font-mono text-sm"
+                    value={selectedModelDetails?.parameters || ''}
+                    readOnly
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="template">Template</Label>
+                  <Textarea
+                    id="template"
+                    className="h-32 font-mono text-sm"
+                    value={selectedModelDetails?.template || ''}
+                    readOnly
+                  />
+                </div>
+
+                {/* Model Details Section */}
+                <div className="md:col-span-2">
+                  <h3 className="text-lg font-semibold mb-2">Model Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedModelDetails?.details &&
+                      Object.entries(selectedModelDetails.details).map(([key, value]) => (
+                        <div key={key}>
+                          <Label className="capitalize">{key.replace(/_/g, ' ')}</Label>
+                          <Input
+                            value={Array.isArray(value) ? value.join(', ') : value?.toString() || ''}
+                            readOnly
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
+
+                {/* Model Info Section */}
+                <div className="md:col-span-2">
+                  <h3 className="text-lg font-semibold mb-2">Model Info</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedModelDetails?.model_info &&
+                      Object.entries(selectedModelDetails.model_info).map(([key, value]) => (
+                        <div key={key}>
+                          <Label className="capitalize">
+                            {key.split('.').pop()?.replace(/_/g, ' ')}
+                          </Label>
+                          <Input
+                            value={value?.toString() || ''}
+                            readOnly
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
+            <DialogFooter>
+              <Button onClick={closeModal}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </motion.div>
     </div>
   );
 }

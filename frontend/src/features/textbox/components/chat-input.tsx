@@ -3,22 +3,26 @@ import AutoResizeTextarea from '@/features/textbox/components/new-textbox';
 import { useModelStore } from '@/features/models/store/model-store';
 
 interface ChatInputProps {
-  onSubmit: (message: string, image: string | null) => void;
+  onSubmit: (message: string, images: string[]) => void;
 }
 
 export function ChatInput({ onSubmit }: ChatInputProps) {
   const [message, setMessage] = useState('');
-  const [image, setImage] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
   const { model } = useModelStore(state => ({ model: state.model }));
 
   const handleSubmit = () => {
-    onSubmit(message, image);
+    onSubmit(message, images);
     setMessage('');
-    setImage(null);
+    setImages([]);
   };
 
-  const handleImageUpload = (base64Image: string | null) => {
-    setImage(base64Image);
+  const handleImageUpload = (base64Images: string[]) => {
+    setImages(prev => [...prev, ...base64Images]);
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -29,7 +33,8 @@ export function ChatInput({ onSubmit }: ChatInputProps) {
         onSubmit={handleSubmit}
         model={model?.name || ''}
         onImageUpload={handleImageUpload}
-        uploadedImage={image}
+        onRemoveImage={handleRemoveImage}
+        uploadedImages={images}
       />
       <div className="text-xs gap-1 text-muted-foreground mt-1 pb-1 flex w-full text-center justify-center">
         CringeGPT <span className="italic">never</span> makes mistakes.

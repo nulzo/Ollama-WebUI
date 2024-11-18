@@ -19,6 +19,18 @@ import { Input } from '../ui/input';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { ThemeSettings } from '@/features/settings/components/theme-settings';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { User, Palette } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { BrainCircuit, Zap, Shield, Bell, Eye, MessageSquare } from 'lucide-react'
+
 
 interface SidebarProps {
   conversationList?: React.ReactNode;
@@ -29,14 +41,24 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user, isLoading } = useAuth();
   const animationDuration = 0.2;
+  const [selectedSetting, setSelectedSetting] = useState('general');
   const navigate = useNavigate();
+  const [openModal, setOpenModal] = useState<string | null>(null)
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
 
+  const handleOpenModal = (modal: string) => {
+    setOpenModal(modal)
+  }
+
+  const handleCloseModal = () => {
+    setOpenModal(null)
+  }
+
   return (
     <motion.div
-      className="sidebar-container fixed inset-y-0 left-0 z-[50]"
+      className="sidebar-container fixed inset-y-0 left-0 z-10"
       animate={{
         width: isCollapsed ? '55px' : '250px'
       }}
@@ -86,7 +108,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
               variant="ghost"
               size="icon"
               className="relative w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
-              onClick={() => {navigate('/')}}
+              onClick={() => { navigate('/') }}
             >
               <div className="absolute left-3 flex items-center">
                 <Plus className="size-4 shrink-0" />
@@ -111,7 +133,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
               variant="ghost"
               size="icon"
               className="relative w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
-              onClick={() => {navigate('/models')}}
+              onClick={() => { navigate('/models') }}
             >
               <div className="absolute left-3 flex items-center">
                 <Bot className="size-4" />
@@ -136,7 +158,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
               variant="ghost"
               size="icon"
               className="relative w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
-              onClick={() => {navigate('/cloud')}}
+              onClick={() => { navigate('/cloud') }}
             >
               <div className="absolute left-3 flex items-center">
                 <ArrowUpDown className="size-4" />
@@ -241,7 +263,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-[200px] rounded-lg z-[5000]"
+                  className="w-[200px] rounded-lg z-20"
                   side="right"
                   align="end"
                   sideOffset={4}
@@ -263,11 +285,11 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
 
                   <DropdownMenuGroup>
                     <ThemeSettings />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleOpenModal('settings')}>
                       <Settings className='size-3 mr-1.5' /> Settings
                       <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleOpenModal('profile')}>
                       <SquareUser className='size-3 mr-1.5' /> Profile
                       <DropdownMenuShortcut>⇧⌘S</DropdownMenuShortcut>
                     </DropdownMenuItem>
@@ -291,6 +313,234 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
           </div>
         </div>
       </div>
+      <Dialog open={openModal === 'theme'} onOpenChange={handleCloseModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Theme Settings</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">Theme settings content goes here</div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openModal === 'settings'} onOpenChange={handleCloseModal}>
+        <DialogContent className="sm:max-w-[825px] p-0 gap-0">
+          <div className="flex h-[600px]">
+            {/* Settings Sidebar */}
+            <div className="w-[200px] border-r border-border shrink-0">
+              <DialogHeader className="p-4 pb-2">
+                <DialogTitle>Settings</DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-1 p-2">
+                {[
+                  { value: 'general', label: 'General', icon: Settings2 },
+                  { value: 'models', label: 'Models', icon: BrainCircuit },
+                  { value: 'privacy', label: 'Privacy', icon: Shield },
+                  { value: 'notifications', label: 'Notifications', icon: Bell }
+                ].map((item) => (
+                  <Button
+                    key={item.value}
+                    variant={selectedSetting === item.value ? "secondary" : "ghost"}
+                    className="justify-start gap-2"
+                    onClick={() => setSelectedSetting(item.value)}
+                  >
+                    <item.icon className="size-4" />
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Content Area */}
+            <div className="flex-1 p-12 overflow-y-auto">
+              {selectedSetting === 'general' && (
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="language">Language</Label>
+                    <Select>
+                      <SelectTrigger id="language">
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="es">Español</SelectItem>
+                        <SelectItem value="fr">Français</SelectItem>
+                        <SelectItem value="de">Deutsch</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="auto-save">Auto-save conversations</Label>
+                    <Switch id="auto-save" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="timezone">Timezone</Label>
+                    <Select>
+                      <SelectTrigger id="timezone">
+                        <SelectValue placeholder="Select timezone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="utc">UTC</SelectItem>
+                        <SelectItem value="est">Eastern Time</SelectItem>
+                        <SelectItem value="pst">Pacific Time</SelectItem>
+                        <SelectItem value="cet">Central European Time</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
+              {selectedSetting === 'models' && (
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="default-model">Default Model</Label>
+                    <Select>
+                      <SelectTrigger id="default-model">
+                        <SelectValue placeholder="Select default model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-4">GPT-4</SelectItem>
+                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                        <SelectItem value="claude-2">Claude 2</SelectItem>
+                        <SelectItem value="palm">PaLM</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="temperature">Default Temperature</Label>
+                    <Slider id="temperature" min={0} max={2} step={0.1} defaultValue={[0.7]} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="max-tokens">Default Max Tokens</Label>
+                    <Input id="max-tokens" type="number" placeholder="Enter max tokens" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="stream-response">Stream Response</Label>
+                    <Switch id="stream-response" />
+                  </div>
+                </div>
+              )}
+
+              {selectedSetting === 'privacy' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="data-collection">Allow data collection for improvement</Label>
+                    <Switch id="data-collection" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="third-party-sharing">Share data with third parties</Label>
+                    <Switch id="third-party-sharing" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="data-retention">Data Retention Period</Label>
+                    <Select>
+                      <SelectTrigger id="data-retention">
+                        <SelectValue placeholder="Select retention period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30">30 days</SelectItem>
+                        <SelectItem value="90">90 days</SelectItem>
+                        <SelectItem value="180">180 days</SelectItem>
+                        <SelectItem value="365">1 year</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
+              {selectedSetting === 'notifications' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="email-notifications">Email Notifications</Label>
+                    <Switch id="email-notifications" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="push-notifications">Push Notifications</Label>
+                    <Switch id="push-notifications" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="notification-frequency">Notification Frequency</Label>
+                    <Select>
+                      <SelectTrigger id="notification-frequency">
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="realtime">Real-time</SelectItem>
+                        <SelectItem value="daily">Daily Digest</SelectItem>
+                        <SelectItem value="weekly">Weekly Summary</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openModal === 'profile'} onOpenChange={handleCloseModal}>
+        <DialogContent className="sm:max-w-[825px] p-12 gap-0">
+          <DialogHeader>
+            <DialogTitle>User Profile</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex items-center space-x-4">
+              <Avatar className="w-20 h-20">
+                <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
+                <AvatarFallback>UN</AvatarFallback>
+              </Avatar>
+              <Button variant="outline">Change Avatar</Button>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" placeholder="Enter your name" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="username">Username</Label>
+              <Input id="username" placeholder="Enter your username" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="Enter your email" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea id="bio" placeholder="Tell us about yourself" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="expertise">Areas of Expertise</Label>
+              <Select>
+                <SelectTrigger id="expertise">
+                  <SelectValue placeholder="Select areas of expertise" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ai">Artificial Intelligence</SelectItem>
+                  <SelectItem value="ml">Machine Learning</SelectItem>
+                  <SelectItem value="nlp">Natural Language Processing</SelectItem>
+                  <SelectItem value="cv">Computer Vision</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="preferred-models">Preferred Models</Label>
+              <Select>
+                <SelectTrigger id="preferred-models">
+                  <SelectValue placeholder="Select preferred models" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gpt-4">GPT-4</SelectItem>
+                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                  <SelectItem value="claude-2">Claude 2</SelectItem>
+                  <SelectItem value="palm">PaLM</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="public-profile">Make profile public</Label>
+              <Switch id="public-profile" />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };

@@ -24,13 +24,15 @@ class MessageService:
             all_messages = conversation.messages.all().order_by('created_at')
             
             flattened_messages = [
-                {
-                    "role": msg.role,
-                    "content": msg.content,
-                    "images": [msg.image] if msg.image else []
-                }
+            {
+                "role": msg.role,
+                "content": msg.content,
+                "images": msg.get_images() if hasattr(msg, 'get_images') else []
+            }
                 for msg in all_messages
             ]
+
+            print("\n\n\nYOURE JOINING THE CHAT\n\n\n")
 
             full_content = ""
 
@@ -55,7 +57,7 @@ class MessageService:
                     content=full_content,
                     model=message.model,
                     user=message.user,
-                    image=None
+                    images=[]
                 )
                 
                 yield "data: [DONE]\n\n"

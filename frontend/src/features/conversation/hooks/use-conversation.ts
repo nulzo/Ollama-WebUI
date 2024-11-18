@@ -35,7 +35,7 @@ export function useConversation() {
     },
   });
 
-  const submitMessage = async (message: string, image: string | null = null): Promise<void> => {
+  const submitMessage = async (message: string, images: string[] = []): Promise<void> => {
     if (!message.trim()) return;
 
     try {
@@ -44,7 +44,7 @@ export function useConversation() {
         content: message,
         model: model?.name || 'llama3.2:3b',
         user: user?.username || 'supatest',
-        image: image,
+        images: images || [],
         conversation: searchParamString || null,
       };
 

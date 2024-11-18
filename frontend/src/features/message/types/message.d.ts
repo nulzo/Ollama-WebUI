@@ -10,11 +10,11 @@
 
 export interface Message {
   id?: number;
-  conversation_id?: string; // Foreign key to Conversation
+  conversation_id: string; // Make this required
   role?: string;
   content: string;
-  created_at?: string; // ISO date string
-  model_id?: number; // Optional foreign key to Assistant
-  user_id?: number; // Optional foreign key to CustomUser
-  image?: string; // Optional
+  created_at?: string;
+  model_id?: number;
+  user_id?: number;
+  image?: string;
 }

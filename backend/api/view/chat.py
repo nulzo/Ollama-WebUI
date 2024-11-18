@@ -16,6 +16,10 @@ class Chat(APIView):
         self.logger = logging.getLogger(__name__)
 
     async def post(self, request, *args, **kwargs):
+        # Create conversation first and get UUID
+        conversation_uuid = await self.chat_service.create_conversation(request.data)
+        
+        # Start the streaming response
         response = await self.chat_service.handle_chat(request.data, request)
         
         if isinstance(response, dict) and "errors" in response:
@@ -23,6 +27,10 @@ class Chat(APIView):
         
         if isinstance(response, StreamingHttpResponse):
             async def streaming_content():
+                # Send conversation UUID as first chunk
+                yield f'data: {{"conversation_uuid": "{conversation_uuid}"}}\n\n'
+                
+                # Then stream the rest of the response
                 async for chunk in response.streaming_content:
                     yield chunk
             
@@ -31,9 +39,6 @@ class Chat(APIView):
                 content_type='text/event-stream'
             )
         
-        return Response(response, status=status.HTTP_200_OK)
-        
-        # If it's not a streaming response or an error, it's a regular response
         return Response(response, status=status.HTTP_200_OK)
 
     async def get(self, request):

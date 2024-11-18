@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { QueryClient, useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/query';
@@ -16,7 +16,13 @@ export const createMessageInputSchema = z.object({
 
 export type CreateMessageInput = z.infer<typeof createMessageInputSchema>;
 
-export const createMessage = async ({ data }: { data: CreateMessageInput }): Promise<void> => {
+export const createMessage = async ({ 
+  data, 
+  queryClient
+}: { 
+  data: CreateMessageInput;
+  queryClient: QueryClient;
+}): Promise<void> => {
   try {
     const response = await api.post('/chat/', data, {
       headers: {
@@ -46,10 +52,20 @@ export const createMessage = async ({ data }: { data: CreateMessageInput }): Pro
             const data = line.slice(6).trim();
             if (data === '[DONE]') {
               window.dispatchEvent(new CustomEvent('message-done'));
+              queryClient.invalidateQueries({
+                queryKey: ['messages', { conversation_id: data.conversation }]
+              });
               return;
             }
             try {
               const parsed = JSON.parse(data);
+
+              if (parsed.conversation_uuid) {
+                window.dispatchEvent(new CustomEvent('conversation-created', {
+                  detail: { uuid: parsed.conversation_uuid }
+                }));
+                continue;
+              }
               // Extract content from the OpenAI-style delta format
               const content = parsed.delta?.content || '';
               fullContent += content;
@@ -109,7 +125,7 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
       queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id }] });
     },
     ...mutationConfig,
-    mutationFn: createMessage,
+    mutationFn: (variables) => createMessage({ ...variables, queryClient }), // Pass queryClient here
     mutationKey: ['createMessage', conversation_id],
   });
 };

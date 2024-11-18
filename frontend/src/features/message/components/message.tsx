@@ -9,12 +9,14 @@ import { Image } from './image';
 import { LikeButton } from './like-message';
 import { EnhanceButton } from './enhance-button';
 import { useAssistants } from '@/features/assistant/hooks/use-assistant';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface MessageProps extends MessageType {
+interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   username: string;
   time: number;
   isTyping: boolean;
   image?: string | null;
+  conversation_id: string;
 }
 
 const Message: React.FC<MessageProps> = ({ username, role, time, content, isTyping, image }) => {
@@ -42,7 +44,13 @@ const Message: React.FC<MessageProps> = ({ username, role, time, content, isTypi
   }
 
   return (
-    <div className="py-3">
+<motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.1 }}
+      className="py-3 w-full"
+      layout="position" // Add this to maintain position during transitions
+    >
       <div
         className={`text-sm items-baseline gap-1 py-0 my-0 pb-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}
       >
@@ -50,23 +58,20 @@ const Message: React.FC<MessageProps> = ({ username, role, time, content, isTypi
         <span className="text-[10px] font-base text-muted-foreground/50">{formattedDate}</span>
       </div>
       <div
-        className={`flex place-items-start pt-1 ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}
-      >
-        {image && <Image src={image} />}
-      </div>
-      <div
         className={`flex place-items-start ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}
       >
         <div className="pe-2 font-bold flex items-center mb-2">
           {role !== 'user' && <BotIcon assistantId={assistantId ?? 0} />}
         </div>
-        <div className={`${role !== 'user' && 'max-w-[75%]'}`}>
+        <div className={`${role !== 'user' ? 'max-w-[75%] min-w-[200px]' : ''}`}>
           <div
-            className={`px-1 ${role !== 'user' ? 'rounded-e-xl rounded-b-xl' : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'}`}
+            className={`px-1 ${
+              role !== 'user' 
+                ? 'rounded-e-xl rounded-b-xl' 
+                : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'
+            }`}
           >
-            <div
-              className={`flex flex-col items-center w-full m-0 border-0 ${isTyping ? 'opacity-80' : 'opacity-100'}`}
-            >
+            <div className="flex flex-col w-full m-0 border-0">
               <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
               {isTyping && (
                 <div className="w-full h-4 flex items-center justify-start ps-2">
@@ -85,7 +90,7 @@ const Message: React.FC<MessageProps> = ({ username, role, time, content, isTypi
           <RefreshCw className="size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer" />
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

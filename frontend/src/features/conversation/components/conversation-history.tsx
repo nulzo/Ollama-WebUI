@@ -421,26 +421,26 @@ export default function ConversationHistory(props: any) {
   )
 }
 
-function ChatItem({ chat, uuid, updateURL }: any) {
+function ChatItem({ chat, uuid, updateURL, isActive }: any) {
   return (
     <div className="relative group">
       <button
         value={chat.uuid}
         className={`w-full flex justify-between rounded-lg px-3 py-2 hover:bg-accent ${
-          uuid === chat.uuid && 'text-foreground bg-accent'
+          isActive ? 'text-foreground bg-accent' : ''
         }`}
         onClick={() => {
-          updateURL(`c=${chat.uuid || ''}`);
+          updateURL();
         }}
       >
-        <div className="flex self-center flex-1 min-w-0"> {/* Changed to min-w-0 */}
+        <div className="flex self-center flex-1 min-w-0">
           <div className="text-left self-center w-full truncate h-[20px]">
             {chat.name || 'New Conversation'}
           </div>
         </div>
       </button>
       <div
-        className={`${uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} cursor-pointer h-7 group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}
+        className={`${isActive ? 'opacity-100' : 'opacity-0'} cursor-pointer h-7 group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}
       >
         <ConversationOptionsDropdown
           name={chat.name}

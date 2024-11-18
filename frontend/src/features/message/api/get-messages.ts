@@ -6,15 +6,13 @@ import { Message } from '@/features/message/types/message';
 import { Meta } from '@/types/api.ts';
 
 export const getMessages = (
-  c: string
+  conversation_id: string
 ): Promise<{
   data: Message[];
   meta: Meta;
 }> => {
   return api.get(`/messages/`, {
-    params: {
-      c,
-    },
+    c: conversation_id
   });
 };
 
@@ -34,7 +32,7 @@ export const useMessages = ({ conversation_id, queryConfig }: UseMessagesOptions
   return useQuery({
     ...getMessagesQueryOptions({ conversation_id }),
     ...queryConfig,
-    enabled: !!conversation_id,
+    enabled: Boolean(conversation_id), // Only run query when conversation_id exists
     staleTime: 0,
     refetchOnWindowFocus: true,
   });

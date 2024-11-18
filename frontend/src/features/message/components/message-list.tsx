@@ -1,10 +1,12 @@
 import { Spinner } from '@/components/ui/spinner';
 import { useMessages } from '@/features/message/api/get-messages';
 import Message from '@/features/message/components/message';
-import { useMutationState } from '@tanstack/react-query';
+import { useMutationState, useQueryClient } from '@tanstack/react-query';
 import { useModelStore } from '@/features/models/store/model-store';
 import { CreateMessageInput } from '../api/create-message';
 import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 interface MessagesListProps {
   conversation_id: string;
@@ -17,36 +19,65 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
   const [streamingContent, setStreamingContent] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const streamingMessageRef = useRef('');
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const smoothScrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'end'
+      });
+    }
+  };
 
   useEffect(() => {
+    let rafId: number;
+    
     const handleMessageChunk = (event: CustomEvent) => {
       const chunk = event.detail;
       let newContent = '';
       
-      // Handle both OpenAI and Ollama streaming formats
       if (chunk.delta?.content) {
         newContent = chunk.delta.content;
       } else if (chunk.message?.content) {
         newContent = chunk.message.content;
       }
 
-      // Update the ref immediately for smooth streaming
+      if (chunk.conversation_uuid) {
+        navigate(`/?c=${chunk.conversation_uuid}`, { replace: true });
+        return;
+      }
+
       streamingMessageRef.current += newContent;
-      
-      // Update state (this will trigger a re-render)
       setStreamingContent(streamingMessageRef.current);
       onStreamingUpdate?.(streamingMessageRef.current);
       setIsStreaming(true);
+
+      // Use requestAnimationFrame for smoother scrolling
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(smoothScrollToBottom);
     };
 
     const handleMessageDone = () => {
-      setIsStreaming(false);
-      // Reset the ref and state after a small delay
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      
       setTimeout(() => {
-        streamingMessageRef.current = '';
-        setStreamingContent('');
-        onStreamingUpdate?.('');
-      }, 100);
+        queryClient.invalidateQueries({
+          queryKey: ['messages', { conversation_id: conversation_id }]
+        }).then(() => {
+          setIsStreaming(false);
+          streamingMessageRef.current = '';
+          setStreamingContent('');
+          onStreamingUpdate?.('');
+          // smoothScrollToBottom();
+        });
+      }, 500);
     };
 
     window.addEventListener('message-chunk', handleMessageChunk as EventListener);
@@ -55,7 +86,9 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
     return () => {
       window.removeEventListener('message-chunk', handleMessageChunk as EventListener);
       window.removeEventListener('message-done', handleMessageDone);
-      // Clean up ref on unmount
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
       streamingMessageRef.current = '';
     };
   }, [onStreamingUpdate]);
@@ -79,6 +112,7 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
     ...confirmedMessages,
     ...pendingMessages.filter(pendingMsg => 
       pendingMsg.role === 'user' && 
+      pendingMsg.conversation === conversation_id && // Add this condition
       !confirmedMessages.some(confirmedMsg => 
         confirmedMsg.content === pendingMsg.content && 
         confirmedMsg.role === pendingMsg.role
@@ -86,30 +120,31 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
     ),
   ];
 
-  // Add streaming message if we're currently streaming
-  const displayMessages = isStreaming ? [
+  const displayMessages = [
     ...allMessages,
-    {
+    ...(isStreaming ? [{
       id: 'streaming',
       role: 'assistant',
       content: streamingContent,
       model: model?.name || '',
       user: null,
+      conversation_id: conversation_id, // Add this
       time: Date.now(),
       isTyping: true,
-      username: model?.name || 'Assistant' // Add username for the Message component
-    }
-  ] : allMessages;
+      username: model?.name || 'Assistant'
+    }] : [])
+  ];
 
   return (
     <div className="flex flex-col space-y-4 pb-4">
       {displayMessages.map((message, index) => (
         <Message
-          key={`message-${message.id || index}`}
+          key={message.id || `${message.role}-${index}`}
           {...message}
           isTyping={message.id === 'streaming'}
         />
       ))}
+      <div ref={scrollRef} style={{ height: 0 }} />
     </div>
   );
 };

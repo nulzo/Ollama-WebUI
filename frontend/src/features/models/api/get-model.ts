@@ -8,10 +8,10 @@ import { OllamaModelData } from '@/features/models/types/models';
 export const getModel = (
   id: string
 ): Promise<{
-  data: OllamaModelData;
+  models: OllamaModelData;
   meta: Meta;
 }> => {
-  return api.get(`/models/ollama/${id}`);
+  return api.get(`/models/ollama/?name=${id}`);
 };
 
 export const getModelQueryOptions = (id: string) => {

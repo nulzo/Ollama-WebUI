@@ -18,6 +18,7 @@ import { useAuth } from '@/features/authentication/hooks/use-auth';
 import { Input } from '../ui/input';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { ThemeSettings } from '@/features/settings/components/theme-settings';
+import { useNavigate } from 'react-router-dom';
 
 interface SidebarProps {
   conversationList?: React.ReactNode;
@@ -28,7 +29,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user, isLoading } = useAuth();
   const animationDuration = 0.2;
-
+  const navigate = useNavigate();
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
@@ -85,6 +86,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
               variant="ghost"
               size="icon"
               className="relative w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
+              onClick={() => {navigate('/')}}
             >
               <div className="absolute left-3 flex items-center">
                 <Plus className="size-4 shrink-0" />
@@ -109,6 +111,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
               variant="ghost"
               size="icon"
               className="relative w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
+              onClick={() => {navigate('/models')}}
             >
               <div className="absolute left-3 flex items-center">
                 <Bot className="size-4" />
@@ -123,7 +126,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                     ease: "easeInOut"
                   }}
                 >
-                  Explore Agents
+                  Fine-Tune Agents
                 </motion.span>
               </div>
             </Button>
@@ -133,6 +136,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
               variant="ghost"
               size="icon"
               className="relative w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
+              onClick={() => {navigate('/cloud')}}
             >
               <div className="absolute left-3 flex items-center">
                 <ArrowUpDown className="size-4" />

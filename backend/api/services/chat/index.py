@@ -46,6 +46,7 @@ class ChatService:
                 full_content = ""
                 provider = self.provider_factory.get_provider("ollama")
                 self.logger.info(f"Using provider: {provider}")
+                yield f"data: {json.dumps({'conversation_uuid': str(conversation.uuid)})}\n\n"
                 
                 try:
                     for chunk in provider.chat(message.model.name, flattened_messages):

@@ -20,6 +20,17 @@ class OllamaService:
     def get_all_models(self):
         return self._client.list()
     
+    def get_model(self, model_name: str):
+        """
+        Get details for a specific model
+        """
+
+        try:
+            return self._client.show(model_name)
+        except Exception as e:
+            print(f"Error fetching model details: {e}")
+            return None
+    
     def get_actionable_prompts(self) -> List[Dict[str, str]]:
         """
         Returns a list of predefined actionable prompts with titles.

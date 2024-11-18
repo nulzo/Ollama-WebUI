@@ -6,7 +6,7 @@ import { Meta } from '@/types/api.ts';
 import { OllamaModelData } from '@/features/models/types/models';
 
 export const getModels = (): Promise<{
-  data: OllamaModelData[];
+  models: OllamaModelData[];
   meta: Meta;
 }> => {
   return api.get(`/models/ollama/`);
@@ -25,7 +25,7 @@ type UseModelsOptions = {
   queryConfig?: QueryConfig<typeof getModels>;
 };
 
-export const useModels = ({ queryConfig }: UseModelsOptions) => {
+export const useModels = ({ queryConfig }: UseModelsOptions  = {}) => {
   return useQuery({
     ...getModelsQueryOptions(),
     ...queryConfig,

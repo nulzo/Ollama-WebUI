@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useConversations } from "../api/get-conversations";
 import { ConversationOptionsDropdown } from "./conversation-options-dropdown";
+import { useSearchParams } from "react-router-dom";
 
 function ChatItem({ chat, uuid, updateURL }: any) {
     return (
@@ -13,7 +14,7 @@ function ChatItem({ chat, uuid, updateURL }: any) {
                     updateURL(`c=${chat.uuid || ''}`);
                 }}
             >
-                <div className="flex self-center items-center align-middle flex-1 min-w-0"> {/* Changed to min-w-0 */}
+                <div className="flex self-center items-center align-middle flex-1 min-w-0">
                     <div className="text-left self-center w-full truncate h-[20px]">
                         {chat.name || 'New Conversation'}
                     </div>
@@ -35,9 +36,11 @@ function ChatItem({ chat, uuid, updateURL }: any) {
 export const ConversationList = () => {
     const { data: conversations } = useConversations();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const activeConversationId = searchParams.get('c') || '';
 
     const handleConversationClick = (uuid: string) => {
-        navigate(`?c=${uuid}`);
+        navigate(`/?c=${uuid}`);
     };
 
     return (
@@ -46,11 +49,11 @@ export const ConversationList = () => {
                 <span className="whitespace-nowrap text-xs cursor-default select-none">Recent Chats</span> 
             </div>
             <div className="space-y-1">
-                {conversations?.map((conversation) => (
+                {conversations?.slice().reverse().map((conversation) => (
                     <ChatItem 
                         key={conversation.uuid}
                         chat={conversation}
-                        uuid={conversation.uuid}
+                        uuid={activeConversationId}
                         updateURL={() => handleConversationClick(conversation.uuid)}
                     />
                 ))}

@@ -14,4 +14,14 @@ export interface User {
   settings?: Settings;
   has_conversation?: boolean;
   theme?: string;
+  settings?: {
+    default_ollama_model: string;
+    default_ollama_port: number;
+    default_ollama_url: string;
+    openai_api_key: string;
+    default_open_ai_model: string;
+    default_open_ai_temperature: number;
+    default_open_ai_max_tokens: number;
+    theme: 'light' | 'dark' | 'system';
+  };
 }

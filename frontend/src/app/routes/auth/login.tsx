@@ -2,14 +2,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import logo from '@/assets/cringelogomedium.svg';
 import { Link } from '@/components/link/link';
-import { useToast } from '@/components/ui/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLogin } from '@/lib/auth';
-import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 
 // Define schema with both username and password
 const FormSchema = z.object({
@@ -22,7 +21,6 @@ const FormSchema = z.object({
 });
 
 export const LoginRoute = () => {
-  const { toast } = useToast();
   const login = useLogin();
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,23 +36,18 @@ export const LoginRoute = () => {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       await login.mutateAsync(data);
-
+      
+      toast.success('Login successful', {
+        duration: 1500,
+      });
+  
       // Get the redirect URL from the location state or default to '/'
       const from = location.state?.from?.pathname || '/';
-
-      toast({
-        title: 'Login successful',
-        description: 'You have been successfully logged in.',
-      });
-
-      // Navigate to the redirect URL
       navigate(from, { replace: true });
     } catch (error) {
       console.error('Login error:', error);
-      toast({
-        title: 'Login failed',
-        description: 'Please check your credentials and try again.',
-        variant: 'destructive',
+      toast.error('Login failed', {
+        duration: 1500,
       });
     }
   }

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowUpDown, Bot, ChevronsUpDown, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
+import { ArrowUpDown, Bot, ChevronsUpDown, Image, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
 import { Button } from '../ui/button';
 import { CringeLogo } from '@/assets/cringelogo';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
@@ -174,6 +174,31 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                   }}
                 >
                   Download Models
+                </motion.span>
+              </div>
+            </Button>
+
+            {/* Download Models Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
+              onClick={() => { navigate('/diffusion') }}
+            >
+              <div className="absolute left-3 flex items-center">
+                <Image className="size-4" />
+                <motion.span
+                  className="ml-2 text-sm overflow-hidden whitespace-nowrap"
+                  animate={{
+                    width: isCollapsed ? 0 : 'auto',
+                    opacity: isCollapsed ? 0 : 1,
+                  }}
+                  transition={{
+                    duration: animationDuration,
+                    ease: "easeInOut"
+                  }}
+                >
+                  Image Generation
                 </motion.span>
               </div>
             </Button>

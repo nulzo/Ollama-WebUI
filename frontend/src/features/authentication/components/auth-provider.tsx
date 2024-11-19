@@ -1,6 +1,12 @@
 import React from 'react';
-import { AuthLoader } from '@/lib/auth';
+import { useUser } from '@/lib/auth';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  return <AuthLoader renderLoading={() => <div>Loading...</div>}>{children}</AuthLoader>;
+  const { isLoading } = useUser();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return <>{children}</>;
 };

@@ -6,6 +6,7 @@ import he from 'he';
 import KatexRenderer from './katex';
 import DOMPurify from 'dompurify';
 import MarkdownInlineTokens from './markdown-inline';
+import { memo, useMemo } from 'react';
 
 const renderTokens = (tokens: any): React.ReactNode[] => {
   return tokens.map((token: any, index: number) => {
@@ -170,14 +171,19 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
   });
 };
 
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
+
+const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ markdown }) => {
   const tokens = useTokens(markdown);
+  
+  const renderedContent = useMemo(() => {
+    return renderTokens(tokens);
+  }, [tokens]);
 
   return (
     <div className="markdown-prose markdown overflow-none max-w-sm min-w-sm md:max-w-lg md:min-w-lg lg:max-w-2xl lg:min-w-2xl xl:max-w-4xl xl:min-w-4xl w-full mx-auto mb-3">
-      {renderTokens(tokens)}
+      {renderedContent}
     </div>
   );
-};
+});
 
 export default MarkdownRenderer;

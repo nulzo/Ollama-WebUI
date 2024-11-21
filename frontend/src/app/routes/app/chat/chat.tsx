@@ -11,8 +11,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 export function ChatRoute() {
   const { conversationId, messages, submitMessage } = useConversation();
   const [streamingContent, setStreamingContent] = useState('');
-  const ref = useScrollToEnd(messages.data ?? [], streamingContent);
-  const navigate = useNavigate();
+  const ref = useScrollToEnd(messages.data ?? [], streamingContent, true);
   const [searchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
 
@@ -44,11 +43,9 @@ export function ChatRoute() {
             <ConversationDefault />
           )}
         </ConversationArea>
-        {searchParamString && (
-          <div className="pb-4 pt-4 transition backdrop-blur">
-            <ChatInput onSubmit={handleSubmit} />
-          </div>
-        )}
+        <div className="pb-4 pt-4 transition backdrop-blur">
+          <ChatInput onSubmit={handleSubmit} />
+        </div>
       </div>
     </div>
   );

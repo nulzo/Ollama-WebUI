@@ -2,7 +2,6 @@ import { ConversationArea } from '@/features/conversation/components/conversatio
 import { ConversationAreaHeader } from '@/features/conversation/components/conversation-area-header.tsx';
 import { MessagesList } from '@/features/message/components/message-list.tsx';
 import { ConversationDefault } from '@/features/conversation/components/conversation-default.tsx';
-import useScrollToEnd from '@/hooks/use-scroll-to-end.ts';
 import { ChatInput } from '@/features/textbox/components/chat-input';
 import { useConversation } from '@/features/conversation/hooks/use-conversation';
 import { useEffect, useState } from 'react';
@@ -11,7 +10,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 export function ChatRoute() {
   const { conversationId, messages, submitMessage } = useConversation();
   const [streamingContent, setStreamingContent] = useState('');
-  const ref = useScrollToEnd(messages.data ?? [], streamingContent, true);
+  // const ref = useScrollToEnd(messages.data ?? [], streamingContent, true);
   const [searchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
   const navigate = useNavigate();
@@ -38,7 +37,6 @@ export function ChatRoute() {
           {searchParamString ? (
             <>
               <MessagesList conversation_id={searchParamString} onStreamingUpdate={handleStreamingUpdate} />
-              <div ref={ref} className="h-0" />
             </>
           ) : (
             <ConversationDefault />

@@ -4,9 +4,11 @@ import Message from '@/features/message/components/message';
 import { useMutationState, useQueryClient } from '@tanstack/react-query';
 import { useModelStore } from '@/features/models/store/model-store';
 import { CreateMessageInput } from '../api/create-message';
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { throttle } from 'lodash';
+import useScrollToEnd from '@/hooks/use-scroll-to-end';
+import { StreamingMessage } from './streaming-message';
 
 interface MessagesListProps {
   conversation_id: string;
@@ -22,6 +24,9 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
   const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const ref = useScrollToEnd(messagesResponse?.data ?? [], streamingContent);
+  const [estimatedHeight, setEstimatedHeight] = useState(0);
+
   const throttledUpdate = useRef(throttle((content: string) => {
     setStreamingContent(content);
     if (onStreamingUpdate) {
@@ -29,49 +34,25 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
     }
   }, 500));
 
-  const smoothScrollToBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'end'
-      });
+  const handleMessageChunk = (event: CustomEvent) => {
+    const chunk = event.detail.content;
+    streamingMessageRef.current += chunk;
+    throttledUpdate.current(streamingMessageRef.current);
+
+    const isNearBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 100;
+
+    if (isNearBottom) {
+      smoothScrollToBottom();
+    }
+
+    if (event.detail.conversation_uuid) {
+      navigate(`/?c=${event.detail.conversation_uuid}`, { replace: true });
+      return;
     }
   };
 
   useEffect(() => {
-    let rafId: number;
-
-    const handleMessageChunk = (event: CustomEvent) => {
-      const chunk = event.detail;
-      let newContent = '';
-
-      if (chunk.delta?.content) {
-        newContent = chunk.delta.content;
-      } else if (chunk.message?.content) {
-        newContent = chunk.message.content;
-      }
-
-      if (chunk.conversation_uuid) {
-        navigate(`/?c=${chunk.conversation_uuid}`, { replace: true });
-        return;
-      }
-
-      streamingMessageRef.current += newContent;
-      setStreamingContent(streamingMessageRef.current);
-      onStreamingUpdate?.(streamingMessageRef.current);
-      setIsStreaming(true);
-
-      // Use requestAnimationFrame for smoother scrolling
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
-      rafId = requestAnimationFrame(smoothScrollToBottom);
-    };
-
     const handleMessageDone = () => {
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
 
       setTimeout(() => {
         queryClient.invalidateQueries({
@@ -92,12 +73,36 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
     return () => {
       window.removeEventListener('message-chunk', handleMessageChunk as EventListener);
       window.removeEventListener('message-done', handleMessageDone);
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
-      streamingMessageRef.current = '';
     };
-  }, [throttledUpdate]);
+  }, []);
+
+  const smoothScrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  };
+
+  // const allMessages = isStreaming ? [...messages, {
+  //   id: 'streaming',
+  //   role: 'assistant',
+  //   content: streamingContent,
+  // }] : messages;
+
+  useEffect(() => {
+    if (streamingContent && scrollRef.current) {
+      requestAnimationFrame(smoothScrollToBottom);
+    }
+  }, [streamingContent]);
+
+  useEffect(() => {
+    if (isStreaming) {
+      // Estimate 24px per line, assuming average of 80 chars per line
+      const estimatedLines = Math.ceil(streamingContent.length / 80);
+      setEstimatedHeight(Math.max(100, estimatedLines * 24));
+    } else {
+      setEstimatedHeight(0);
+    }
+  }, [streamingContent, isStreaming]);
 
   const pendingMessages = useMutationState({
     filters: { mutationKey: ['createMessage', conversation_id], status: 'pending' },
@@ -138,10 +143,11 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
       content: streamingContent,
       model: model?.name || '',
       user: null,
-      conversation_id: conversation_id, // Add this
+      conversation_id: conversation_id,
       time: Date.now(),
       isTyping: true,
-      username: model?.name || 'Assistant'
+      username: model?.name || 'Assistant',
+      minHeight: estimatedHeight // Add this property
     }] : [])
   ];
 
@@ -154,7 +160,8 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
           isTyping={message.id === 'streaming'}
         />
       ))}
-      <div ref={scrollRef} style={{ height: 0 }} />
+      {isStreaming && <StreamingMessage content={streamingContent} model={model?.name || ''} conversation_id={conversation_id} />}
+      <div ref={ref} style={{ height: 0 }} />
     </div>
   );
 };

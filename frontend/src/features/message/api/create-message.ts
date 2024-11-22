@@ -55,10 +55,6 @@ export const createMessage = async ({
               queryClient.invalidateQueries({
                 queryKey: ['messages', { conversation_id: data.conversation }]
               });
-              // Trigger scroll after message is done
-              setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('scroll-to-bottom'));
-              }, 100);
               return;
             }
             try {

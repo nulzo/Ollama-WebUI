@@ -17,17 +17,27 @@
   height: 3px;
 }
 
-.typing-indicator {
-  width: 20px;
-  height: 10px;
-  position: relative;
+.streaming-message {
+  transition: height 0.1s ease-out;
+  will-change: height;
+  contain: content;
 }
 
-.typing-indicator::after {
-  content: '▋';
-  color: currentColor;
-  opacity: 0.7;
-  animation: blink 1s ease-in-out infinite;
+.message-content {
+  transition: all 0.2s ease-out;
+  opacity: 1;
+}
+
+.typing-indicator-container {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+}
+
+.message-container {
+  contain: content;
+  transform: translateZ(0);
 }
 
 @keyframes blink {

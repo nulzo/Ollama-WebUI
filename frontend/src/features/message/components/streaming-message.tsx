@@ -1,5 +1,4 @@
 import React from 'react';
-import { Message as MessageType } from '@/features/message/types/message';
 import Message from './message';
 
 interface StreamingMessageProps {
@@ -8,8 +7,8 @@ interface StreamingMessageProps {
   conversation_id: string;
 }
 
-export const StreamingMessage = React.memo(({ content, model, conversation_id }: StreamingMessageProps) => {
-  return (
+export const StreamingMessage = React.memo(
+  ({ content, model, conversation_id }: StreamingMessageProps) => (
     <Message
       id={0}
       role="assistant"
@@ -21,5 +20,6 @@ export const StreamingMessage = React.memo(({ content, model, conversation_id }:
       isTyping={true}
       username={model || 'Assistant'}
     />
-  );
-});
+  ),
+  (prevProps, nextProps) => prevProps.content === nextProps.content
+);

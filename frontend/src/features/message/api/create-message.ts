@@ -103,29 +103,52 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
   const queryClient = useQueryClient();
 
   return useMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getMessageQueryOptions(conversation_id).queryKey,
-      });
-      queryClient.invalidateQueries({
-        queryKey: getConversationQueryOptions(conversation_id).queryKey,
-      });
-    },
-    onMutate: async newMessage => {
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['messages', { conversation_id }] });
-      queryClient.setQueryData(['messages', { conversation_id }], oldMessages => [
-        ...(oldMessages || []),
-        { ...newMessage.data, id: String(Date.now()) },
-      ]);
+
+      // Snapshot the previous value
+      const previousMessages = queryClient.getQueryData(['messages', { conversation_id }]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(['messages', { conversation_id }], (old: any) => {
+        const existingMessages = old?.data || [];
+        const messageList = Array.isArray(existingMessages) ? existingMessages : 
+                          Array.isArray(existingMessages.json) ? existingMessages.json : [];
+        
+        return {
+          ...old,
+          data: [...messageList, { 
+            id: `temp-${Date.now()}`,
+            role: variables.data.role,
+            content: variables.data.content,
+            user: variables.data.user,
+            model: variables.data.model,
+            created_at: new Date().toISOString(),
+            conversation_uuid: conversation_id,
+            images: variables.data.images || []
+          }]
+        };
+      });
+
+      return { previousMessages };
     },
-    onError: (_, __, context) => {
-      queryClient.setQueryData(['messages', { conversation_id }], context?.previousMessages);
+
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['messages', { conversation_id }], context.previousMessages);
+      }
     },
+
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id }] });
+      // Always refetch after error or success to ensure we have the correct data
+      queryClient.invalidateQueries({
+        queryKey: ['messages', { conversation_id }]
+      });
     },
+
     ...mutationConfig,
-    mutationFn: (variables) => createMessage({ ...variables, queryClient }), // Pass queryClient here
-    mutationKey: ['createMessage', conversation_id],
+    mutationFn: (variables) => createMessage({ ...variables, queryClient }),
   });
 };

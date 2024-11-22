@@ -18,7 +18,7 @@ interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   conversation_id: string;
 }
 
-const Message: React.FC<MessageProps> = ({
+export const Message: React.FC<MessageProps> = ({
   username,
   role,
   time,
@@ -102,5 +102,3 @@ const Message: React.FC<MessageProps> = ({
     </div>
   );
 };
-
-export default Message;

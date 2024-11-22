@@ -1,5 +1,5 @@
 from api.repositories.assistant_repository import AssistantRepository
-from api.core.exceptions import NotFoundException
+from api.utils.exceptions import NotFoundException
 import logging
 
 

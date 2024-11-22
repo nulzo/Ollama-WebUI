@@ -6,7 +6,7 @@ import useScrollToEnd from '@/hooks/use-scroll-to-end.ts';
 import { ChatInput } from '@/features/textbox/components/chat-input';
 import { useConversation } from '@/features/conversation/hooks/use-conversation';
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 export function ChatRoute() {
   const { conversationId, messages, submitMessage } = useConversation();
@@ -14,6 +14,7 @@ export function ChatRoute() {
   const ref = useScrollToEnd(messages.data ?? [], streamingContent, true);
   const [searchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
+  const navigate = useNavigate();
 
   const handleSubmit = (text: string, image: string | null) => {
     submitMessage(text, image);

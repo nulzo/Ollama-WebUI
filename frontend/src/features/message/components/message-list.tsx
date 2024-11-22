@@ -4,10 +4,9 @@ import Message from '@/features/message/components/message';
 import { useMutationState, useQueryClient } from '@tanstack/react-query';
 import { useModelStore } from '@/features/models/store/model-store';
 import { CreateMessageInput } from '../api/create-message';
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useScrollToEnd from '@/hooks/use-scroll-to-end';
-import { StreamingMessage } from './streaming-message';
+import { throttle } from 'lodash';
 
 interface MessagesListProps {
   conversation_id: string;
@@ -20,28 +19,112 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
   const [streamingContent, setStreamingContent] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const streamingMessageRef = useRef('');
+  const scrollRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
+  const throttledUpdate = useRef(throttle((content: string) => {
+    setStreamingContent(content);
+    if (onStreamingUpdate) {
+      onStreamingUpdate(content);
+    }
+  }, 500));
+
+  const smoothScrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }
+  };
+
+  useEffect(() => {
+    let rafId: number;
+
+    const handleMessageChunk = (event: CustomEvent) => {
+      const chunk = event.detail;
+      let newContent = '';
+
+      if (chunk.delta?.content) {
+        newContent = chunk.delta.content;
+      } else if (chunk.message?.content) {
+        newContent = chunk.message.content;
+      }
+
+      if (chunk.conversation_uuid) {
+        navigate(`/?c=${chunk.conversation_uuid}`, { replace: true });
+        return;
+      }
+
+      streamingMessageRef.current += newContent;
+      setStreamingContent(streamingMessageRef.current);
+      onStreamingUpdate?.(streamingMessageRef.current);
+      setIsStreaming(true);
+
+      // Use requestAnimationFrame for smoother scrolling
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(smoothScrollToBottom);
+    };
+
+    const handleMessageDone = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+
+      setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: ['messages', { conversation_id: conversation_id }]
+        }).then(() => {
+          setIsStreaming(false);
+          streamingMessageRef.current = '';
+          setStreamingContent('');
+          onStreamingUpdate?.('');
+          // smoothScrollToBottom();
+        });
+      }, 500);
+    };
+
+    window.addEventListener('message-chunk', handleMessageChunk as EventListener);
+    window.addEventListener('message-done', handleMessageDone);
+
+    return () => {
+      window.removeEventListener('message-chunk', handleMessageChunk as EventListener);
+      window.removeEventListener('message-done', handleMessageDone);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      streamingMessageRef.current = '';
+    };
+  }, [throttledUpdate]);
 
   const pendingMessages = useMutationState({
     filters: { mutationKey: ['createMessage', conversation_id], status: 'pending' },
     select: mutation => mutation.state.variables as CreateMessageInput,
   });
 
-  const confirmedMessages = messagesResponse ? 
+  if (isLoading) {
+    return (
+      <div className="flex h-48 w-full items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  const confirmedMessages = messagesResponse ?
     [...Object.values(messagesResponse)
-      .filter(value => typeof value === 'object' && !Array.isArray(value)), 
-     ...(messagesResponse.data || [])]
-    .filter(msg => msg.id && msg.role && msg.content) : [];
+      .filter(value => typeof value === 'object' && !Array.isArray(value)),
+    ...(messagesResponse.data || [])]
+      .filter(msg => msg.id && msg.role && msg.content) : [];
 
   const allMessages = [
     ...confirmedMessages,
-    ...pendingMessages.filter(pendingMsg => 
-      pendingMsg.role === 'user' && 
+    ...pendingMessages.filter(pendingMsg =>
+      pendingMsg.role === 'user' &&
       pendingMsg.conversation === conversation_id &&
-      !confirmedMessages.some(confirmedMsg => 
-        confirmedMsg.content === pendingMsg.content && 
+      !confirmedMessages.some(confirmedMsg =>
+        confirmedMsg.content === pendingMsg.content &&
         confirmedMsg.role === pendingMsg.role
       )
     ),
@@ -62,33 +145,6 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
     }] : [])
   ];
 
-  // const memoizedStaticMessages = useMemo(() => staticMessages, [staticMessages]);
-
-  // Add scroll handler
-  useEffect(() => {
-    const scrollToBottom = () => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    window.addEventListener('scroll-to-bottom', scrollToBottom);
-
-    // Scroll on initial load
-    scrollToBottom();
-
-    return () => {
-      window.removeEventListener('scroll-to-bottom', scrollToBottom);
-    };
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex h-48 w-full items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
-
   return (
     <div className="flex flex-col space-y-4 pb-4">
       {displayMessages.map((message, index) => (
@@ -98,7 +154,7 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
           isTyping={message.id === 'streaming'}
         />
       ))}
-      <div ref={messagesEndRef} style={{ height: 0 }} />
+      <div ref={scrollRef} style={{ height: 0 }} />
     </div>
   );
 };

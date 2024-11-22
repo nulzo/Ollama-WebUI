@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import MarkdownRenderer from '@/features/markdown/components/markdown';
 import { RefreshCw } from 'lucide-react';
 import { Message as MessageType } from '@/features/message/types/message';
@@ -9,7 +9,6 @@ import { Image } from './image';
 import { LikeButton } from './like-message';
 import { EnhanceButton } from './enhance-button';
 import { useAssistants } from '@/features/assistant/hooks/use-assistant';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   username: string;
@@ -19,29 +18,22 @@ interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   conversation_id: string;
 }
 
-const Message = React.memo(({
+const Message: React.FC<MessageProps> = ({
   username,
   role,
   time,
   content,
   isTyping,
-  images = []
-}: MessageProps) => {
+  images = [] // Changed from image
+}) => {
   const formattedDate = formatDate(time);
   const { getAssistantIdByName, isLoading, error, getAssistantByName } = useAssistants();
   let assistantId: number | undefined = undefined;
   let displayName: string = username;
-  const memoizedContent = useMemo(() => {
-    return content?.trim() ?? 'ERROR';
-  }, [content]);
 
   const processedImages = Array.isArray(images) ? images : images ? [images] : [];
 
-  if (isLoading) return (
-    <div className="py-3 w-full">
-      <Skeleton className="w-full h-4" />
-    </div>
-  )
+  if (isLoading) return <div>Loading assistant data...</div>;
 
   if (role !== 'user' && !isLoading && !error && username) {
     const assistant = getAssistantByName(username);
@@ -56,56 +48,59 @@ const Message = React.memo(({
   }
 
   return (
-    <div className="py-3 w-full">
-      <div className="max-w-[75%] min-w-[200px] relative">
-        <div className={`flex flex-col ${role !== 'user' ? 'items-start' : 'items-end ml-auto'}`}>
-          <div className="flex items-baseline gap-1 text-sm font-semibold text-muted-foreground">
-            {role !== 'user' && <span>{displayName}</span>}
-            <span className="text-[10px] font-base text-muted-foreground/50">{formattedDate}</span>
-          </div>
-          
-          {processedImages.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {processedImages.map((imageUrl, index) => (
-                <Image
-                  key={index}
-                  src={imageUrl}
-                  images={processedImages}
-                  currentIndex={index}
-                />
-              ))}
-            </div>
-          )}
-
-          <div className="flex items-start gap-2">
-            {role !== 'user' && (
-              <div className="flex-shrink-0">
-                <BotIcon assistantId={assistantId ?? 0} />
-              </div>
-            )}
-            
-            <div className={`overflow-hidden ${role === 'user' ? 'bg-primary/25 rounded-s-xl rounded-b-xl p-4' : 'rounded-e-xl rounded-b-xl'}`}>
-              <MarkdownRenderer markdown={memoizedContent} />
+    <div>
+      <div
+        className={`text-sm items-baseline gap-1 py-0 my-0 pb-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}
+      >
+        {role !== 'user' && displayName}
+        <span className="text-[10px] font-base text-muted-foreground/50">{formattedDate}</span>
+      </div>
+      {processedImages.length > 0 && (
+        <div className={`flex flex-wrap gap-2 place-items-start pt-1 ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
+          {processedImages.map((imageUrl, index) => (
+            <Image
+              key={index}
+              src={imageUrl}
+              images={processedImages}
+              currentIndex={index}
+            />
+          ))}
+        </div>
+      )}
+      <div
+        className={`flex place-items-start ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}
+      >
+        <div className="pe-2 font-bold flex items-center mb-2">
+          {role !== 'user' && <BotIcon assistantId={assistantId ?? 0} />}
+        </div>
+        <div className={`${role !== 'user' ? 'max-w-[75%] min-w-[200px]' : ''}`}>
+          <div
+            className={`px-1 ${role !== 'user'
+              ? 'rounded-e-xl rounded-b-xl'
+              : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'
+              }`}
+          >
+            <div className="flex flex-col w-full m-0 border-0">
+              <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
               {isTyping && (
-                <div className="h-4 flex items-center ps-2">
+                <div className="w-full h-4 flex items-center justify-start ps-2">
                   <div className="typing-indicator" />
                 </div>
               )}
             </div>
           </div>
-
-          {role !== 'user' && (
-            <div className="flex gap-2 mt-1">
-              <LikeButton content={content?.trim() ?? ''} />
-              <CopyButton content={content?.trim() ?? ''} />
-              <EnhanceButton content={content?.trim() ?? ''} />
-              <RefreshCw className="size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer" />
-            </div>
-          )}
         </div>
       </div>
+      {role !== 'user' && (
+        <div className="ms-12 flex gap-2">
+          <LikeButton content={content?.trim() ?? ''} />
+          <CopyButton content={content?.trim() ?? ''} />
+          <EnhanceButton content={content?.trim() ?? ''} />
+          <RefreshCw className="size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer" />
+        </div>
+      )}
     </div>
   );
-});
+};
 
 export default Message;

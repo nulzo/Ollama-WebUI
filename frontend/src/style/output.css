@@ -1069,6 +1069,11 @@ body {
   margin-right: auto;
 }
 
+.my-0 {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
 .my-0\.5 {
   margin-top: 0.125rem;
   margin-bottom: 0.125rem;
@@ -1146,6 +1151,10 @@ body {
 
 .mr-2 {
   margin-right: 0.5rem;
+}
+
+.ms-12 {
+  margin-inline-start: 3rem;
 }
 
 .mt-0 {
@@ -1965,6 +1974,10 @@ body {
   flex-wrap: wrap;
 }
 
+.place-items-start {
+  place-items: start;
+}
+
 .place-items-center {
   place-items: center;
 }
@@ -2597,6 +2610,11 @@ body {
   padding-right: 75px;
 }
 
+.py-0 {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
 .py-0\.5 {
   padding-top: 0.125rem;
   padding-bottom: 0.125rem;
@@ -2652,6 +2670,10 @@ body {
   padding-bottom: 0.2rem;
 }
 
+.pb-0 {
+  padding-bottom: 0px;
+}
+
 .pb-1 {
   padding-bottom: 0.25rem;
 }
@@ -2662,6 +2684,10 @@ body {
 
 .pb-4 {
   padding-bottom: 1rem;
+}
+
+.pe-2 {
+  padding-inline-end: 0.5rem;
 }
 
 .pe-6 {
@@ -2720,12 +2746,20 @@ body {
   padding-right: 2rem;
 }
 
+.ps-11 {
+  padding-inline-start: 2.75rem;
+}
+
 .ps-2 {
   padding-inline-start: 0.5rem;
 }
 
 .ps-8 {
   padding-inline-start: 2rem;
+}
+
+.ps-\[25\%\] {
+  padding-inline-start: 25%;
 }
 
 .pt-0 {
@@ -2742,6 +2776,10 @@ body {
 
 .pt-2 {
   padding-top: 0.5rem;
+}
+
+.pt-3 {
+  padding-top: 0.75rem;
 }
 
 .pt-4 {

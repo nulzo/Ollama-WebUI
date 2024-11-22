@@ -1,3 +1,4 @@
+import asyncio
 import json
 from django.http import StreamingHttpResponse
 from api.serializers.message import MessageSerializer
@@ -81,7 +82,7 @@ class ChatService:
             self.logger.error(f"Chat handling error: {str(e)}", exc_info=True)
             return {"errors": str(e)}
 
-    def _stream_chat_response(self, message, conversation, flattened_messages):
+    async def _stream_chat_response(self, message, conversation, flattened_messages):
         """Stream the chat response from the provider"""
         full_content = ""
         provider = self._get_provider(message.model.name)
@@ -95,19 +96,23 @@ class ChatService:
                 if isinstance(chunk, str):
                     full_content += chunk
                     yield f"data: {json.dumps({'delta': {'content': chunk}})}\n\n"
+                    await asyncio.sleep(0.001)
                 elif isinstance(chunk, dict):
                     if content := chunk.get('message', {}).get('content', ''):
                         full_content += content
                         yield f"data: {json.dumps({'delta': {'content': content}})}\n\n"
+                        await asyncio.sleep(0.001)
 
-            # Save assistant's response
-            self.message_repository.create_message(
-                conversation=conversation,
-                role="assistant",
-                content=full_content,
-                model=message.model,
-                user=message.user,
-                images=[]
+            await asyncio.to_thread(
+                self.message_repository.create,
+                {
+                    "conversation": conversation,
+                    "role": "assistant",
+                    "content": full_content,
+                    "model": message.model,
+                    "user": message.user,
+                    "images": []
+                }
             )
 
             yield f"data: {json.dumps({'done': True})}\n\n"

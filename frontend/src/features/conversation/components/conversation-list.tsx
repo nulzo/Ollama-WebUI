@@ -14,8 +14,8 @@ function ChatItem({ chat, uuid, updateURL }: any) {
                     updateURL(`c=${chat.uuid || ''}`);
                 }}
             >
-                <div className="flex self-center items-center align-middle flex-1 min-w-0">
-                    <div className="text-left self-center w-full truncate h-[20px]">
+                <div className="flex flex-1 items-center min-w-0 align-middle self-center">
+                    <div className="flex items-center w-full h-[20px] text-left truncate self-center">
                         {chat.name || 'New Conversation'}
                     </div>
                 </div>
@@ -45,8 +45,8 @@ export const ConversationList = () => {
 
     return (
         <>
-            <div className="mb-2 flex justify-start text-sm align-middle items-center gap-2 px-2 text-muted-foreground">
-                <span className="whitespace-nowrap text-xs cursor-default select-none">Recent Chats</span> 
+            <div className="flex justify-start items-center gap-2 mb-2 px-2 text-muted-foreground text-sm align-middle">
+                <span className="text-xs whitespace-nowrap cursor-default select-none">Recent Chats</span> 
             </div>
             <div className="space-y-1">
                 {conversations?.slice().reverse().map((conversation) => (

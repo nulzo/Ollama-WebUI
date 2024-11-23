@@ -8,8 +8,6 @@ import { CopyButton } from '@/features/message/components/copy-message';
 import { Image } from './image';
 import { LikeButton } from './like-message';
 import { EnhanceButton } from './enhance-button';
-import { useAssistants } from '@/features/assistant/hooks/use-assistant';
-import { motion } from 'framer-motion';
 
 interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   username: string;
@@ -17,53 +15,43 @@ interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   isTyping: boolean;
   images?: string[]; // Changed from image?: string | null
   conversation_id: string;
+  modelName: string;
+  isLoading: boolean;
 }
 
-const Message: React.FC<MessageProps> = ({
+export const Message: React.FC<MessageProps> = ({
   username,
   role,
   time,
   content,
   isTyping,
-  images = [] // Changed from image
+  modelName,
+  images = [], // Changed from image
+  isLoading
 }) => {
   const formattedDate = formatDate(time);
-  const { getAssistantIdByName, isLoading, error, getAssistantByName } = useAssistants();
   let assistantId: number | undefined = undefined;
-  let displayName: string = username;
 
   const processedImages = Array.isArray(images) ? images : images ? [images] : [];
 
-  if (isLoading) return <div>Loading assistant data...</div>;
-
-  if (role !== 'user' && !isLoading && !error && username) {
-    const assistant = getAssistantByName(username);
-    if (assistant) {
-      assistantId = assistant.id;
-      displayName = assistant.display_name || assistant.name || username;
-    }
-  }
-
-  if (role !== 'user' && !isLoading && !error && username) {
-    assistantId = getAssistantIdByName(username);
+  if (isLoading) {
+    return <div className="flex flex-col gap-2 pb-4">
+      <div className="flex flex-col gap-2 pb-4">
+        <div className="typing-indicator" />
+      </div>
+    </div>;
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.1 }}
-      className="py-3 w-full"
-      layout="position"
-    >
+    <div className="flex flex-col gap-2 pb-4">
       <div
-        className={`text-sm items-baseline gap-1 py-0 my-0 pb-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}
+        className={`text-sm items-baseline gap-1 py-0 my-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}
       >
-        {role !== 'user' && displayName}
-        <span className="text-[10px] font-base text-muted-foreground/50">{formattedDate}</span>
+        {role !== 'user' && modelName}
+        <span className={`font-base text-[10px] text-muted-foreground/50 ${role === 'user' ? 'pb-1 flex justify-end' : ''}`}>{formattedDate}</span>
       </div>
       {processedImages.length > 0 && (
-        <div className={`flex flex-wrap gap-2 place-items-start pt-1 ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
+        <div className={`flex flex-wrap gap-2 place-items-start items-center align-middle ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
           {processedImages.map((imageUrl, index) => (
             <Image
               key={index}
@@ -77,20 +65,20 @@ const Message: React.FC<MessageProps> = ({
       <div
         className={`flex place-items-start ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}
       >
-        <div className="pe-2 font-bold flex items-center mb-2">
+        <div className="flex items-center mb-2 font-bold pe-2">
           {role !== 'user' && <BotIcon assistantId={assistantId ?? 0} />}
         </div>
-        <div className={`${role !== 'user' ? 'max-w-[75%] min-w-[200px]' : ''}`}>
+        <div className={`${role !== 'user' ? 'w-[75%] flex items-center align-middle' : ''}`}>
           <div
             className={`px-1 ${role !== 'user'
               ? 'rounded-e-xl rounded-b-xl'
               : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'
               }`}
           >
-            <div className="flex flex-col w-full m-0 border-0">
+            <div className="flex flex-col items-center border-0 m-0 w-full align-middle">
               <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
               {isTyping && (
-                <div className="w-full h-4 flex items-center justify-start ps-2">
+                <div className="flex justify-start items-center w-full h-4 ps-2">
                   <div className="typing-indicator" />
                 </div>
               )}
@@ -98,16 +86,14 @@ const Message: React.FC<MessageProps> = ({
           </div>
         </div>
       </div>
-      {role !== 'user' && (
-        <div className="ms-12 flex gap-2">
+      {role !== 'user' && !isTyping && (
+        <div className="flex gap-2 ms-12">
           <LikeButton content={content?.trim() ?? ''} />
           <CopyButton content={content?.trim() ?? ''} />
           <EnhanceButton content={content?.trim() ?? ''} />
           <RefreshCw className="size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer" />
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
-
-export default Message;

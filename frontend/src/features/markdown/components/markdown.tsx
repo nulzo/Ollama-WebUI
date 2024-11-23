@@ -6,6 +6,7 @@ import he from 'he';
 import KatexRenderer from './katex';
 import DOMPurify from 'dompurify';
 import MarkdownInlineTokens from './markdown-inline';
+import { memo, useMemo } from 'react';
 
 const renderTokens = (tokens: any): React.ReactNode[] => {
   return tokens.map((token: any, index: number) => {
@@ -13,10 +14,10 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'break':
         return <div className="my-0.5" key={index} />;
       case 'hr':
-        return <hr key={index} />;
+        return <hr key={index} className='my-1' />;
       case 'blockquote':
         return (
-          <blockquote key={index} className="mt-6 border-l-2 pl-6 italic">
+          <blockquote key={index} className="mt-6 pl-6 border-l-2 italic">
             {renderTokens(token.tokens)}
           </blockquote>
         );
@@ -39,7 +40,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           return (
             <h1
               key={index}
-              className="leading-9 [&:not(:first-child)]:mt-10 [&:first-child]:mt-2 scroll-m-20 text-4xl font-bold tracking-tight"
+              className="scroll-m-20 [&:not(:first-child)]:mt-10 [&:first-child]:mt-2 font-bold text-4xl leading-9 tracking-tight"
             >
               <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h1>
@@ -48,7 +49,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           return (
             <h2
               key={index}
-              className="leading-7 [&:not(:first-child)]:mt-8 scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0"
+              className="scroll-m-20 [&:not(:first-child)]:mt-8 first:mt-0 pb-2 border-b font-semibold text-3xl leading-7 tracking-tight"
             >
               <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h2>
@@ -57,7 +58,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           return (
             <h3
               key={index}
-              className="leading-7 [&:not(:first-child)]:mt-8 scroll-m-20 text-2xl font-semibold tracking-tight"
+              className="scroll-m-20 [&:not(:first-child)]:mt-8 font-semibold text-2xl leading-7 tracking-tight"
             >
               <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h3>
@@ -66,14 +67,14 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           return (
             <h4
               key={index}
-              className="leading-7 [&:not(:first-child)]:mt-4 scroll-m-20 text-lg font-semibold tracking-tight"
+              className="scroll-m-20 [&:not(:first-child)]:mt-4 font-semibold text-lg leading-7 tracking-tight"
             >
               <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h4>
           );
         } else if (token?.depth === 5) {
           return (
-            <h5 key={index} className="scroll-m-20 text-md font-semibold tracking-tight">
+            <h5 key={index} className="scroll-m-20 font-semibold text-md tracking-tight">
               <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h5>
           );
@@ -86,7 +87,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
         }
       case 'paragraph':
         return (
-          <p key={index} className="leading-7 [&:not(:first-child)]:mt-4">
+          <p key={index} className="[&:not(:first-child)]:mt-4 leading-7">
             <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens ?? []} />
           </p>
         );
@@ -121,14 +122,14 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'table':
         return (
           <div className="rounded-xl">
-            <table className="w-[100%] min-w-2xl ">
+            <table className="w-[100%] min-w-2xl">
               <thead className="">
-                <tr className="m-0 border-t p-0 even:bg-muted">
+                <tr className="even:bg-muted m-0 p-0 border-t">
                   {token.header.map((header: any, headerIdx: any) => (
                     <th
                       key={index}
                       style={{ textAlign: token.align[headerIdx] || '' }}
-                      className="border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right"
+                      className="[&[align=right]]:text-right px-4 py-2 border font-bold text-left [&[align=center]]:text-center"
                     >
                       {renderTokens(header.tokens)}
                     </th>
@@ -139,13 +140,13 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
                 {token.rows.map((row: any, rowIdx: any) => (
                   <tr
                     key={`$key-${index}-row-${rowIdx}`}
-                    className="m-0 border-t p-0 even:bg-muted/50 backdrop-blur"
+                    className="even:bg-muted/50 backdrop-blur m-0 p-0 border-t"
                   >
                     {(row ?? []).map((cell: any, cellIdx: any) => (
                       <td
                         key={`${index}-row-${rowIdx}-${cellIdx}`}
                         style={{ textAlign: token.align[cellIdx] || '' }}
-                        className="border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right"
+                        className="[&[align=right]]:text-right px-4 py-2 border text-left [&[align=center]]:text-center"
                       >
                         {renderTokens(cell.tokens)}
                       </td>
@@ -163,21 +164,26 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'inlineKatex':
         return <KatexRenderer content={token.text} displayMode={false} />;
       case 'space':
-        return <div className="h-4" key={index} />;
+        return <div className="h-1" key={index} />;
       default:
         return null;
     }
   });
 };
 
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
+
+const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ markdown }) => {
   const tokens = useTokens(markdown);
+  
+  const renderedContent = useMemo(() => {
+    return renderTokens(tokens);
+  }, [tokens]);
 
   return (
-    <div className="markdown-prose markdown overflow-none max-w-sm min-w-sm md:max-w-lg md:min-w-lg lg:max-w-2xl lg:min-w-2xl xl:max-w-4xl xl:min-w-4xl w-full mx-auto mb-3">
-      {renderTokens(tokens)}
+    <div className="mx-auto mb-3 w-full min-w-sm md:min-w-lg lg:min-w-2xl xl:min-w-4xl max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl overflow-none markdown markdown-prose">
+      {renderedContent}
     </div>
   );
-};
+});
 
 export default MarkdownRenderer;

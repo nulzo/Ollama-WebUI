@@ -32,8 +32,17 @@ export const useMessages = ({ conversation_id, queryConfig }: UseMessagesOptions
   return useQuery({
     ...getMessagesQueryOptions({ conversation_id }),
     ...queryConfig,
-    enabled: Boolean(conversation_id), // Only run query when conversation_id exists
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+    enabled: Boolean(conversation_id),
+    select: (data) => {
+      const messages = Array.isArray(data) ? data : data?.data || [];
+      return {
+        data: messages,
+        meta: data?.meta || {}
+      };
+    },
+    staleTime: Infinity, // Keep data fresh during streaming
+    refetchOnWindowFocus: false, // Prevent unwanted refetches
+    refetchOnMount: false, // Prevent refetch on mount
+    refetchOnReconnect: false, // Prevent refetch on reconnect
   });
 };

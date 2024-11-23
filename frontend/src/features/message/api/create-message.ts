@@ -53,7 +53,10 @@ export const createMessage = async ({
             if (data === '[DONE]') {
               window.dispatchEvent(new CustomEvent('message-done'));
               queryClient.invalidateQueries({
-                queryKey: ['messages', { conversation_id: data.conversation }]
+                queryKey: ['messages']
+              });
+              queryClient.invalidateQueries({
+                queryKey: ['conversations']
               });
               return;
             }
@@ -103,29 +106,46 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
   const queryClient = useQueryClient();
 
   return useMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getMessageQueryOptions(conversation_id).queryKey,
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ 
+        queryKey: ['messages', { conversation_id }],
+        exact: true 
       });
-      queryClient.invalidateQueries({
-        queryKey: getConversationQueryOptions(conversation_id).queryKey,
+
+      const previousMessages = queryClient.getQueryData(['messages', { conversation_id }]);
+
+      // Update cache with new message while preserving existing ones
+      queryClient.setQueryData(['messages', { conversation_id }], (old: any) => {
+        const existingMessages = old?.data || [];
+        return {
+          ...old,
+          data: [...existingMessages, {
+            id: `temp-${Date.now()}`,
+            role: variables.data.role,
+            content: variables.data.content,
+            user: variables.data.user,
+            model: variables.data.model,
+            created_at: new Date().toISOString(),
+            conversation_uuid: conversation_id,
+            images: variables.data.images || []
+          }]
+        };
       });
+
+      return { previousMessages };
     },
-    onMutate: async newMessage => {
-      await queryClient.cancelQueries({ queryKey: ['messages', { conversation_id }] });
-      queryClient.setQueryData(['messages', { conversation_id }], oldMessages => [
-        ...(oldMessages || []),
-        { ...newMessage.data, id: String(Date.now()) },
-      ]);
-    },
-    onError: (_, __, context) => {
-      queryClient.setQueryData(['messages', { conversation_id }], context?.previousMessages);
+    onError: (err, variables, context) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          ['messages', { conversation_id }],
+          context.previousMessages
+        );
+      }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id }] });
+      // Don't invalidate here
     },
     ...mutationConfig,
-    mutationFn: (variables) => createMessage({ ...variables, queryClient }), // Pass queryClient here
-    mutationKey: ['createMessage', conversation_id],
+    mutationFn: (variables) => createMessage({ ...variables, queryClient }),
   });
 };

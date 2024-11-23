@@ -11,23 +11,20 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { isCollapsed } = useSidebar();
 
   return (
-    <div className="text-foreground bg-background font-inter selection:bg-primary/50 h-screen max-h-[100dvh] overflow-hidden flex">
+    <div className="flex bg-background selection:bg-primary/50 h-screen max-h-[100dvh] font-inter text-foreground overflow-hidden">
       {/* Main Content Area */}
-      <motion.main
-        className="flex-1 relative w-full max-w-full flex flex-col overflow-auto"
-        animate={{
-          marginLeft: isCollapsed ? '55px' : '250px'
-        }}
-        transition={{
-          duration: 0.2,
-          ease: "easeInOut"
+      <div
+        className="relative flex flex-col flex-1 w-full max-w-full overflow-auto"
+        style={{
+          marginLeft: isCollapsed ? '55px' : '250px',
+          transition: 'margin-left 0.2s ease-in-out'
         }}
       >
-        <div className="h-full w-full overflow-auto">
+        <div className="w-full h-full overflow-auto">
           {children}
           <Toaster />
         </div>
-      </motion.main>
+      </div>
     </div>
   );
 }

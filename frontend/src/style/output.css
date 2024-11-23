@@ -633,6 +633,29 @@ math {
   margin-top: 1rem;
 }
 
+.markdown-prose ol > li::before,.markdown-prose ul > li::before {
+  /* Adjust based on your layout/indentation needs */
+  position: absolute;
+  left: -1.5em;
+  /* Adjust based on your layout/indentation needs */
+  min-width: 1em;
+  text-align: right;
+  color: hsl(var(--primary));
+}
+
+.markdown-prose ol > li::before {
+  content: counter(list-item) '.';
+  counter-increment: list-item;
+  font-weight: bold;
+  color: hsl(var(--primary));
+}
+
+.markdown-prose ul > li::before {
+  content: '•';
+  font-weight: bold;
+  color: hsl(var(--primary));
+}
+
 .markdown-prose ol > li::before {
   content: counter(list-item) '.';
   counter-increment: list-item;
@@ -640,7 +663,7 @@ math {
   min-width: 1.5em;
   margin-right: 0.5em;
   text-align: right;
-  color: hsl(var(--muted-foreground));
+  color: hsl(var(--primary));
 }
 
 .markdown-prose {
@@ -664,6 +687,112 @@ ol > li {
   margin-bottom: 0;
   margin-top: 0;
   min-height: 28px;
+}
+
+/* General style for all list items */
+
+ol,
+  ul {
+  list-style-position: outside;
+  margin: 0;
+  padding: 0;
+}
+
+ol > li,
+  ul > li {
+  margin-bottom: 0.5em;
+}
+
+/* Style for nested lists with cascading indentation */
+
+ol ol,
+  ol ul,
+  ul ol,
+  ul ul {
+  margin-left: 1.5em;
+}
+
+/* Ensuring uniform block display for list items */
+
+ol > li,
+  ul > li {
+  display: block;
+  position: relative;
+  /* For any pseudo-elements */
+}
+
+/* Reset the counter for each new list */
+
+ol {
+  counter-reset: list-item;
+}
+
+/* Remove any span display flex of the li spans */
+
+li > span {
+  display: block;
+  width: 100%;
+}
+
+/* General styles for ordered list items */
+
+ol {
+  counter-reset: list-number;
+  /* Initialize the counter for each list */
+  list-style: none;
+  /* Remove default list styles */
+  padding-left: 0;
+  /* Remove default padding */
+}
+
+/* Style individual list items */
+
+ol > li {
+  counter-increment: list-number;
+  /* Increment the counter */
+  position: relative;
+  /* Necessary for positioning pseudo-element */
+  margin-bottom: 0.5em;
+  /* Space between list items */
+  padding-left: 0.5em;
+  /* Indent to make space for number */
+}
+
+/* Modern browser support using ::marker */
+
+ol > li::marker {
+  content: counter(list-number) '. ';
+  /* Display the counter as a list-item number */
+  font-weight: bold;
+  /* Bold styling for the number */
+  margin-right: 0.5em;
+  /* Space between the number and text */
+  color: hsl(var(--primary));
+}
+
+/* Pseudo-element fallback for broader support */
+
+ol > li::before {
+  content: counter(list-number) '. ';
+  /* Display the counter */
+  position: absolute;
+  /* Position relative to the li */
+  left: 0;
+  /* Adjust as necessary to match padding */
+  font-weight: bold;
+  width: 1.5em;
+  /* Width of the number area */
+  text-align: right;
+  /* Align right for neat appearance */
+  margin-right: 0.5em;
+  /* Space between the number and text */
+  color: hsl(var(--primary));
+}
+
+/* Ensure paragraphs in lists render as expected */
+
+li p {
+  margin: 0;
 }
 
 ul > li::before {
@@ -759,21 +888,32 @@ body {
   height: 3px;
 }
 
-.typing-indicator {
-  width: 20px;
-  height: 10px;
-  position: relative;
+.streaming-message {
+  transition: height 0.1s ease-out;
+  will-change: height;
+  contain: content;
 }
 
-.typing-indicator::after {
-  content: '▋';
-  color: currentColor;
-  opacity: 0.7;
-  animation: blink 1s ease-in-out infinite;
+.message-content {
+  transition: all 0.2s ease-out;
+  opacity: 1;
+}
+
+.typing-indicator-container {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+}
+
+.message-container {
+  contain: content;
+  transform: translateZ(0);
 }
 
 @keyframes blink {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.7;
   }
 
@@ -874,12 +1014,20 @@ body {
   right: -0.125rem;
 }
 
+.-right-1 {
+  right: -0.25rem;
+}
+
 .-right-12 {
   right: -3rem;
 }
 
 .-right-2 {
   right: -0.5rem;
+}
+
+.-top-1 {
+  top: -0.25rem;
 }
 
 .-top-12 {
@@ -994,14 +1142,6 @@ body {
   top: 100%;
 }
 
-.-right-1 {
-  right: -0.25rem;
-}
-
-.-top-1 {
-  top: -0.25rem;
-}
-
 .z-0 {
   z-index: 0;
 }
@@ -1032,10 +1172,6 @@ body {
 
 .z-\[1\] {
   z-index: 1;
-}
-
-.z-\[5000\] {
-  z-index: 5000;
 }
 
 .col-span-2 {
@@ -1105,6 +1241,10 @@ body {
   margin-bottom: 0.25rem;
 }
 
+.mb-10 {
+  margin-bottom: 2.5rem;
+}
+
 .mb-2 {
   margin-bottom: 0.5rem;
 }
@@ -1115,10 +1255,6 @@ body {
 
 .mb-4 {
   margin-bottom: 1rem;
-}
-
-.mb-6 {
-  margin-bottom: 1.5rem;
 }
 
 .mb-8 {
@@ -1141,8 +1277,20 @@ body {
   margin-left: 1.5rem;
 }
 
+.ml-\[250px\] {
+  margin-left: 250px;
+}
+
+.ml-\[55px\] {
+  margin-left: 55px;
+}
+
 .ml-auto {
   margin-left: auto;
+}
+
+.mr-1 {
+  margin-right: 0.25rem;
 }
 
 .mr-1\.5 {
@@ -1306,6 +1454,10 @@ body {
   height: 0px;
 }
 
+.h-1 {
+  height: 0.25rem;
+}
+
 .h-1\.5 {
   height: 0.375rem;
 }
@@ -1446,6 +1598,10 @@ body {
   height: 100svh;
 }
 
+.max-h-48 {
+  max-height: 12rem;
+}
+
 .max-h-96 {
   max-height: 24rem;
 }
@@ -1476,6 +1632,10 @@ body {
 
 .min-h-24 {
   min-height: 6rem;
+}
+
+.min-h-\[100px\] {
+  min-height: 100px;
 }
 
 .min-h-\[60px\] {
@@ -1660,10 +1820,6 @@ body {
   min-width: 12rem;
 }
 
-.min-w-\[200px\] {
-  min-width: 200px;
-}
-
 .min-w-\[250px\] {
   min-width: 250px;
 }
@@ -1700,8 +1856,8 @@ body {
   max-width: 300px;
 }
 
-.max-w-\[75\%\] {
-  max-width: 75%;
+.max-w-\[80\%\] {
+  max-width: 80%;
 }
 
 .max-w-full {
@@ -1946,6 +2102,10 @@ body {
   flex-direction: row;
 }
 
+.flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
 .flex-col {
   flex-direction: column;
 }
@@ -2091,6 +2251,10 @@ body {
   --tw-space-y-reverse: 0;
   margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
   margin-bottom: calc(1rem * var(--tw-space-y-reverse));
+}
+
+.space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
 }
 
 .self-center {
@@ -2335,13 +2499,22 @@ body {
   background-color: hsl(var(--background) / 0.5);
 }
 
-.bg-black {
-  --tw-bg-opacity: 1;
-  background-color: rgb(0 0 0 / var(--tw-bg-opacity, 1));
+.bg-black\/75 {
+  background-color: rgb(0 0 0 / 0.75);
 }
 
 .bg-black\/80 {
   background-color: rgb(0 0 0 / 0.8);
+}
+
+.bg-blue-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(219 234 254 / var(--tw-bg-opacity, 1));
+}
+
+.bg-blue-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(59 130 246 / var(--tw-bg-opacity, 1));
 }
 
 .bg-border {
@@ -2360,9 +2533,19 @@ body {
   background-color: hsl(var(--foreground));
 }
 
+.bg-gray-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
+}
+
 .bg-green-400 {
   --tw-bg-opacity: 1;
   background-color: rgb(74 222 128 / var(--tw-bg-opacity, 1));
+}
+
+.bg-green-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(34 197 94 / var(--tw-bg-opacity, 1));
 }
 
 .bg-muted {
@@ -2425,18 +2608,6 @@ body {
   background-color: transparent;
 }
 
-.bg-black\/75 {
-  background-color: rgb(0 0 0 / 0.75);
-}
-
-.bg-opacity-50 {
-  --tw-bg-opacity: 0.5;
-}
-
-.bg-opacity-75 {
-  --tw-bg-opacity: 0.75;
-}
-
 .bg-gradient-to-l {
   background-image: linear-gradient(to left, var(--tw-gradient-stops));
 }
@@ -2487,6 +2658,11 @@ body {
   stroke: #fef08a;
 }
 
+.object-contain {
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+
 .object-cover {
   -o-object-fit: cover;
      object-fit: cover;
@@ -2494,6 +2670,10 @@ body {
 
 .p-0 {
   padding: 0px;
+}
+
+.p-0\.5 {
+  padding: 0.125rem;
 }
 
 .p-1 {
@@ -2522,10 +2702,6 @@ body {
 
 .p-\[1px\] {
   padding: 1px;
-}
-
-.p-0\.5 {
-  padding: 0.125rem;
 }
 
 .px-0 {
@@ -2638,10 +2814,6 @@ body {
   padding-bottom: 0.2rem;
 }
 
-.pb-0 {
-  padding-bottom: 0px;
-}
-
 .pb-1 {
   padding-bottom: 0.25rem;
 }
@@ -2692,6 +2864,10 @@ body {
 
 .pl-8 {
   padding-left: 2rem;
+}
+
+.pr-10 {
+  padding-right: 2.5rem;
 }
 
 .pr-2 {
@@ -2926,6 +3102,11 @@ body {
 
 .text-foreground\/50 {
   color: hsl(var(--foreground) / 0.5);
+}
+
+.text-gray-600 {
+  --tw-text-opacity: 1;
+  color: rgb(75 85 99 / var(--tw-text-opacity, 1));
 }
 
 .text-green-500 {
@@ -4229,6 +4410,21 @@ body {
   border-color: hsl(var(--destructive));
 }
 
+.dark\:bg-blue-900:is(.dark *) {
+  --tw-bg-opacity: 1;
+  background-color: rgb(30 58 138 / var(--tw-bg-opacity, 1));
+}
+
+.dark\:bg-gray-800:is(.dark *) {
+  --tw-bg-opacity: 1;
+  background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+}
+
+.dark\:text-gray-400:is(.dark *) {
+  --tw-text-opacity: 1;
+  color: rgb(156 163 175 / var(--tw-text-opacity, 1));
+}
+
 @media (min-width: 640px) {
   .sm\:bottom-0 {
     bottom: 0px;
@@ -4372,6 +4568,10 @@ body {
     width: auto;
   }
 
+  .md\:max-w-2xl {
+    max-width: 42rem;
+  }
+
   .md\:max-w-\[420px\] {
     max-width: 420px;
   }
@@ -4401,6 +4601,10 @@ body {
 
   .lg\:max-w-2xl {
     max-width: 42rem;
+  }
+
+  .lg\:max-w-3xl {
+    max-width: 48rem;
   }
 
   .lg\:grid-cols-2 {
@@ -4434,6 +4638,10 @@ body {
   .xl\:max-w-4xl {
     max-width: 56rem;
   }
+
+  .xl\:max-w-5xl {
+    max-width: 64rem;
+  }
 }
 
 @media (min-width: 1536px) {
@@ -4443,6 +4651,10 @@ body {
 
   .\32xl\:max-w-6xl {
     max-width: 72rem;
+  }
+
+  .\32xl\:max-w-7xl {
+    max-width: 80rem;
   }
 }
 

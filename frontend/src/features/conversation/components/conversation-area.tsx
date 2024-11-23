@@ -6,9 +6,9 @@ interface ConversationAreaProps {
 
 export const ConversationArea = ({ children }: ConversationAreaProps) => (
   <div 
-    className="relative flex flex-col justify-between w-[100%] flex-auto overflow-auto h-0 max-w-full z-10 scrollbar-hidden"
+    className="relative z-10 flex flex-col flex-auto justify-between scrollbar-hidden w-[100%] max-w-full h-0 overflow-auto"
   >
-    <div className="relative h-full w-full md:max-w-lg lg:max-w-2xl xl:max-w-4xl 2xl:max-w-6xl mx-auto">
+    <div className="relative mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-7xl h-full">
       {children}
     </div>
   </div>

@@ -1,1 +1,1 @@
-from api.views.chat import Chat
+from api.views.chat_view import ChatView

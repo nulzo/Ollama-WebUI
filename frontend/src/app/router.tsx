@@ -58,6 +58,13 @@ export const createAppRouter = (_queryClient: QueryClient) =>
           },
         },
         {
+          path: 'diffusion',
+          lazy: async () => {
+            const { DiffusionRoute } = await import('@/app/routes/app/diffusion');
+            return { Component: DiffusionRoute };
+          },
+        },
+        {
           path: '',
           lazy: async () => {
             const { ChatRoute } = await import('@/app/routes/app/chat');

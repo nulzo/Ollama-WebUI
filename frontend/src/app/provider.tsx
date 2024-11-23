@@ -24,7 +24,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         defaultOptions: queryConfig,
       })
   );
-  console.log(children);
 
   return (
     <ThemeProvider

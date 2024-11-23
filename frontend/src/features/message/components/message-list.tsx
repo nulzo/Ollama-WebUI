@@ -1,83 +1,33 @@
-import { Spinner } from '@/components/ui/spinner';
+import { useEffect, useState } from 'react';
+import { Message } from '@/features/message/components/message';
+import { StreamingMessage } from '@/features/message/components/streaming-message';
 import { useMessages } from '@/features/message/api/get-messages';
-import Message from '@/features/message/components/message';
-import { useMutationState, useQueryClient } from '@tanstack/react-query';
-import { useModelStore } from '@/features/models/store/model-store';
-import { CreateMessageInput } from '../api/create-message';
-import { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface MessagesListProps {
   conversation_id: string;
-  onStreamingUpdate?: (content: string) => void;
+  onStreamingUpdate: (content: string) => void;
 }
 
-export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesListProps) => {
-  const { data: messagesResponse, isLoading } = useMessages({ conversation_id });
-  const { model } = useModelStore(state => ({ model: state.model }));
-  const [streamingContent, setStreamingContent] = useState('');
+export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesListProps) {
+  const { data, isLoading } = useMessages({ conversation_id });
+  const [streamContent, setStreamContent] = useState('');
+  const [currentModel, setCurrentModel] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const streamingMessageRef = useRef('');
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-
-  const smoothScrollToBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'end'
-      });
-    }
-  };
 
   useEffect(() => {
-    let rafId: number;
-    
     const handleMessageChunk = (event: CustomEvent) => {
-      const chunk = event.detail;
-      let newContent = '';
-      
-      if (chunk.delta?.content) {
-        newContent = chunk.delta.content;
-      } else if (chunk.message?.content) {
-        newContent = chunk.message.content;
+      const { message } = event.detail;
+      if (message?.content) {
+        setStreamContent(message.content);
+        onStreamingUpdate(message.content);
+        setIsStreaming(true);
       }
-
-      if (chunk.conversation_uuid) {
-        navigate(`/?c=${chunk.conversation_uuid}`, { replace: true });
-        return;
-      }
-
-      streamingMessageRef.current += newContent;
-      setStreamingContent(streamingMessageRef.current);
-      onStreamingUpdate?.(streamingMessageRef.current);
-      setIsStreaming(true);
-
-      // Use requestAnimationFrame for smoother scrolling
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
-      rafId = requestAnimationFrame(smoothScrollToBottom);
     };
 
     const handleMessageDone = () => {
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
-      
-      setTimeout(() => {
-        queryClient.invalidateQueries({
-          queryKey: ['messages', { conversation_id: conversation_id }]
-        }).then(() => {
-          setIsStreaming(false);
-          streamingMessageRef.current = '';
-          setStreamingContent('');
-          onStreamingUpdate?.('');
-          // smoothScrollToBottom();
-        });
-      }, 500);
+      setStreamContent('');
+      setIsStreaming(false);
     };
 
     window.addEventListener('message-chunk', handleMessageChunk as EventListener);
@@ -86,69 +36,73 @@ export const MessagesList = ({ conversation_id, onStreamingUpdate }: MessagesLis
     return () => {
       window.removeEventListener('message-chunk', handleMessageChunk as EventListener);
       window.removeEventListener('message-done', handleMessageDone);
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
-      streamingMessageRef.current = '';
     };
   }, [onStreamingUpdate]);
 
-  const pendingMessages = useMutationState({
-    filters: { mutationKey: ['createMessage', conversation_id], status: 'pending' },
-    select: mutation => mutation.state.variables as CreateMessageInput,
-  });
+  // Handle the case where data might be wrapped in a json property
+  const messages = data?.data || [];
+  const messageList = Array.isArray(messages) ? messages :
+    Array.isArray(messages.json) ? messages.json : [];
+
 
   if (isLoading) {
+    // Show skeleton loading state with message headers
     return (
-      <div className="flex h-48 w-full items-center justify-center">
-        <Spinner size="lg" />
+      <div className="flex flex-col gap-4">
+        {[1, 2, 3].map((index) => (
+          <div key={index} className="flex flex-col gap-2">
+            <div className="flex items-baseline gap-1 my-0 py-0 pl-6 font-semibold leading-none">
+              {index % 2 === 0 ? (
+                <div className="text-muted-foreground text-sm ps-11">
+                  <Skeleton className="w-24 h-4" />
+                </div>
+              ) : (
+                <div className="flex justify-end w-full text-muted-foreground text-sm">
+                  <Skeleton className="w-16 h-4" />
+                </div>
+              )}
+            </div>
+            <div className={`flex place-items-start ${index % 2 === 0 ? 'justify-start' : 'justify-end ps-[25%]'}`}>
+              {index % 2 === 0 && (
+                <div className="flex items-center mb-2 font-bold pe-2">
+                  <Skeleton className="rounded-full w-8 h-8" />
+                </div>
+              )}
+              <div className={index % 2 === 0 ? 'w-[75%]' : ''}>
+                <div className={`px-4 py-3 ${index % 2 === 0
+                    ? 'rounded-e-xl rounded-b-xl bg-secondary/50'
+                    : 'bg-primary/25 rounded-s-xl rounded-b-xl'
+                  }`}>
+                  <Skeleton className="w-full h-16" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
-
-  const confirmedMessages = messagesResponse ? 
-    [...Object.values(messagesResponse)
-      .filter(value => typeof value === 'object' && !Array.isArray(value)), 
-     ...(messagesResponse.data || [])]
-    .filter(msg => msg.id && msg.role && msg.content) : [];
-
-  const allMessages = [
-    ...confirmedMessages,
-    ...pendingMessages.filter(pendingMsg => 
-      pendingMsg.role === 'user' && 
-      pendingMsg.conversation === conversation_id &&
-      !confirmedMessages.some(confirmedMsg => 
-        confirmedMsg.content === pendingMsg.content && 
-        confirmedMsg.role === pendingMsg.role
-      )
-    ),
-  ];
-
-  const displayMessages = [
-    ...allMessages,
-    ...(isStreaming ? [{
-      id: 'streaming',
-      role: 'assistant',
-      content: streamingContent,
-      model: model?.name || '',
-      user: null,
-      conversation_id: conversation_id, // Add this
-      time: Date.now(),
-      isTyping: true,
-      username: model?.name || 'Assistant'
-    }] : [])
-  ];
-
   return (
-    <div className="flex flex-col space-y-4 pb-4">
-      {displayMessages.map((message, index) => (
+    <div className="flex flex-col gap-4">
+      {messageList.map((message) => (
         <Message
-          key={message.id || `${message.role}-${index}`}
+          key={message.id}
           {...message}
-          isTyping={message.id === 'streaming'}
+          username={message.user || message.model || 'Assistant'}
+          time={new Date(message.created_at).getTime()}
+          isTyping={false}
+          conversation_id={conversation_id}
+          modelName={message.model || 'Assistant'}
+          isLoading={isLoading}
         />
       ))}
-      <div ref={scrollRef} style={{ height: 0 }} />
+      {isStreaming && streamContent && (
+        <StreamingMessage
+          content={streamContent}
+          model={currentModel}
+          conversation_id={conversation_id}
+        />
+      )}
     </div>
   );
-};
+}

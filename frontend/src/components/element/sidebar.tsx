@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowUpDown, Bot, ChevronsUpDown, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
+import { ArrowUpDown, Bot, ChevronsUpDown, Image, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
 import { Button } from '../ui/button';
 import { CringeLogo } from '@/assets/cringelogo';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
@@ -57,25 +57,29 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
   }
 
   return (
-    <motion.div
-      className="sidebar-container fixed inset-y-0 left-0 z-10"
-      animate={{
-        width: isCollapsed ? '55px' : '250px'
-      }}
-      transition={{
-        duration: animationDuration,
-        ease: "easeInOut"
-      }}
-    >
-      <div className="bg-secondary border-alpha-200 h-svh flex flex-col overflow-hidden border-r">
+      <motion.div
+        className="left-0 z-10 fixed inset-y-0 sidebar-container"
+        initial={false} // Prevent initial animation
+        animate={{
+          width: isCollapsed ? '55px' : '250px'
+        }}
+        transition={{
+          duration: animationDuration,
+          ease: "easeInOut"
+        }}
+        style={{
+          width: isCollapsed ? '55px' : '250px', // Force immediate width
+        }}
+      >
+      <div className="flex flex-col border-alpha-200 bg-secondary border-r h-svh overflow-hidden">
         {/* Top Section */}
-        <div className="flex items-center p-2 mt-2 relative pb-1">
+        <div className="relative flex items-center mt-2 p-2 pb-1">
           <div className={`flex items-center gap-2.5 ${!isCollapsed ? 'justify-start w-[80%]' : 'justify-center w-full'}`}>
             <Button variant="default" className="relative w-full h-9">
-              <div className="absolute left-2 flex items-center">
-                <CringeLogo className="stroke-primary-foreground size-6 shrink-0" />
+              <div className="left-2 absolute flex items-center">
+                <CringeLogo className="shrink-0 size-6 stroke-primary-foreground" />
                 <motion.div
-                  className="ml-2 flex items-center text-xs overflow-hidden whitespace-nowrap"
+                  className="flex items-center ml-2 text-xs whitespace-nowrap overflow-hidden"
                   animate={{
                     width: isCollapsed ? 0 : 'auto',
                     opacity: isCollapsed ? 0 : 1,
@@ -86,7 +90,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                   }}
                 >
                   CringeAI
-                  <span className='text-xs font-light ml-1'>beta</span>
+                  <span className='ml-1 font-light text-xs'>beta</span>
                 </motion.div>
               </div>
             </Button>
@@ -107,13 +111,13 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
             <Button
               variant="ghost"
               size="icon"
-              className="relative w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
+              className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
               onClick={() => { navigate('/') }}
             >
-              <div className="absolute left-3 flex items-center">
-                <Plus className="size-4 shrink-0" />
+              <div className="left-3 absolute flex items-center">
+                <Plus className="shrink-0 size-4" />
                 <motion.span
-                  className="ml-2 text-sm overflow-hidden whitespace-nowrap"
+                  className="ml-2 text-sm whitespace-nowrap overflow-hidden"
                   animate={{
                     width: isCollapsed ? 0 : 'auto',
                     opacity: isCollapsed ? 0 : 1,
@@ -132,13 +136,13 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
             <Button
               variant="ghost"
               size="icon"
-              className="relative w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
+              className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
               onClick={() => { navigate('/models') }}
             >
-              <div className="absolute left-3 flex items-center">
+              <div className="left-3 absolute flex items-center">
                 <Bot className="size-4" />
                 <motion.span
-                  className="ml-2 text-sm overflow-hidden whitespace-nowrap"
+                  className="ml-2 text-sm whitespace-nowrap overflow-hidden"
                   animate={{
                     width: isCollapsed ? 0 : 'auto',
                     opacity: isCollapsed ? 0 : 1,
@@ -157,13 +161,13 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
             <Button
               variant="ghost"
               size="icon"
-              className="relative w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
+              className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
               onClick={() => { navigate('/cloud') }}
             >
-              <div className="absolute left-3 flex items-center">
+              <div className="left-3 absolute flex items-center">
                 <ArrowUpDown className="size-4" />
                 <motion.span
-                  className="ml-2 text-sm overflow-hidden whitespace-nowrap"
+                  className="ml-2 text-sm whitespace-nowrap overflow-hidden"
                   animate={{
                     width: isCollapsed ? 0 : 'auto',
                     opacity: isCollapsed ? 0 : 1,
@@ -178,11 +182,36 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
               </div>
             </Button>
 
+            {/* Download Models Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
+              onClick={() => { navigate('/diffusion') }}
+            >
+              <div className="left-3 absolute flex items-center">
+                <Image className="size-4" />
+                <motion.span
+                  className="ml-2 text-sm whitespace-nowrap overflow-hidden"
+                  animate={{
+                    width: isCollapsed ? 0 : 'auto',
+                    opacity: isCollapsed ? 0 : 1,
+                  }}
+                  transition={{
+                    duration: animationDuration,
+                    ease: "easeInOut"
+                  }}
+                >
+                  Image Generation
+                </motion.span>
+              </div>
+            </Button>
+
             {/* Search Bar */}
             <div className={`flex items-center px-3 gap-2.5 w-full ${!isCollapsed ? 'opacity-100' : 'hidden'}`}>
-              <MagnifyingGlassIcon className="stroke-muted-foreground size-4" />
+              <MagnifyingGlassIcon className="size-4 stroke-muted-foreground" />
               <Input
-                className="w-[75%] focus-visible:ring-0 border-0 bg-transparent px-0 hover:ring-0 focus-within:ring-0 focus-within:border-0 focus:ring-0 focus:outline-none focus:border-0"
+                className="border-0 focus-within:border-0 focus:border-0 bg-transparent px-0 hover:ring-0 focus-visible:ring-0 focus-within:ring-0 focus:ring-0 w-[75%] focus:outline-none"
                 placeholder="Search"
               />
             </div>
@@ -195,7 +224,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
 
           {/* Collapse Button (when collapsed) */}
           {isCollapsed && (
-            <div className="p-2 mt-auto">
+            <div className="mt-auto p-2">
               <Button
                 variant="ghost"
                 size="icon"
@@ -234,9 +263,9 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                         ease: "easeInOut"
                       }}
                     >
-                      <img src={avatar} alt="avatar" className='size-8 shrink-0 rounded-lg' />
+                      <img src={avatar} alt="avatar" className='rounded-lg shrink-0 size-8' />
                       <motion.div
-                        className="flex items-center justify-between flex-1 m-2"
+                        className="flex flex-1 justify-between items-center m-2"
                         animate={{
                           width: isCollapsed ? 0 : 'auto',
                           opacity: isCollapsed ? 0 : 1,
@@ -250,32 +279,32 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                         }}
                       >
                         <div className='flex flex-col justify-start w-full'>
-                          <span className='whitespace-nowrap justify-start font-semibold flex text-sm truncate'>
+                          <span className='flex justify-start font-semibold text-sm truncate whitespace-nowrap'>
                             {isLoading ? 'Loading...' : user?.username || 'Guest'}
                           </span>
-                          <span className='whitespace-nowrap justify-start flex font-normal text-xs truncate'>
+                          <span className='flex justify-start font-normal text-xs truncate whitespace-nowrap'>
                             {isLoading ? 'Loading...' : user?.email || 'Guest'}
                           </span>
                         </div>
-                        <ChevronsUpDown className='size-3 shrink-0 mr-2' />
+                        <ChevronsUpDown className='mr-2 shrink-0 size-3' />
                       </motion.div>
                     </motion.div>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-[200px] rounded-lg z-20"
+                  className="z-20 rounded-lg w-[200px]"
                   side="right"
                   align="end"
                   sideOffset={4}
                 >
                   <DropdownMenuLabel className="p-0 font-normal">
                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                      <img src={avatar} alt="avatar" className='size-8 shrink-0 rounded-lg' />
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
+                      <img src={avatar} alt="avatar" className='rounded-lg shrink-0 size-8' />
+                      <div className="flex-1 grid text-left text-sm leading-tight">
+                        <span className="font-semibold truncate">
                           {isLoading ? 'Loading...' : user?.username || 'Guest'}
                         </span>
-                        <span className="truncate text-xs">
+                        <span className="text-xs truncate">
                           {isLoading ? 'Loading...' : user?.email || 'Guest'}
                         </span>
                       </div>
@@ -286,24 +315,24 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                   <DropdownMenuGroup>
                     <ThemeSettings />
                     <DropdownMenuItem onSelect={() => handleOpenModal('settings')}>
-                      <Settings className='size-3 mr-1.5' /> Settings
+                      <Settings className='mr-1.5 size-3' /> Settings
                       <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleOpenModal('profile')}>
-                      <SquareUser className='size-3 mr-1.5' /> Profile
+                      <SquareUser className='mr-1.5 size-3' /> Profile
                       <DropdownMenuShortcut>⇧⌘S</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   {user && (
                     <DropdownMenuItem>
-                      <LogOut className='size-3 mr-1.5' /> Log out
+                      <LogOut className='mr-1.5 size-3' /> Log out
                       <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   )}
                   {!user && (
                     <DropdownMenuItem>
-                      <LogIn className='size-3 mr-1.5' /> Sign In
+                      <LogIn className='mr-1.5 size-3' /> Sign In
                       <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   )}
@@ -323,10 +352,10 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
       </Dialog>
 
       <Dialog open={openModal === 'settings'} onOpenChange={handleCloseModal}>
-        <DialogContent className="sm:max-w-[825px] p-0 gap-0">
+        <DialogContent className="gap-0 p-0 sm:max-w-[825px]">
           <div className="flex h-[600px]">
             {/* Settings Sidebar */}
-            <div className="w-[200px] border-r border-border shrink-0">
+            <div className="border-r border-border w-[200px] shrink-0">
               <DialogHeader className="p-4 pb-2">
                 <DialogTitle>Settings</DialogTitle>
               </DialogHeader>
@@ -368,7 +397,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between items-center">
                     <Label htmlFor="auto-save">Auto-save conversations</Label>
                     <Switch id="auto-save" />
                   </div>
@@ -413,7 +442,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                     <Label htmlFor="max-tokens">Default Max Tokens</Label>
                     <Input id="max-tokens" type="number" placeholder="Enter max tokens" />
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between items-center">
                     <Label htmlFor="stream-response">Stream Response</Label>
                     <Switch id="stream-response" />
                   </div>
@@ -422,11 +451,11 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
 
               {selectedSetting === 'privacy' && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between items-center">
                     <Label htmlFor="data-collection">Allow data collection for improvement</Label>
                     <Switch id="data-collection" />
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between items-center">
                     <Label htmlFor="third-party-sharing">Share data with third parties</Label>
                     <Switch id="third-party-sharing" />
                   </div>
@@ -449,11 +478,11 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
 
               {selectedSetting === 'notifications' && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between items-center">
                     <Label htmlFor="email-notifications">Email Notifications</Label>
                     <Switch id="email-notifications" />
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between items-center">
                     <Label htmlFor="push-notifications">Push Notifications</Label>
                     <Switch id="push-notifications" />
                   </div>
@@ -478,11 +507,11 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
       </Dialog>
 
       <Dialog open={openModal === 'profile'} onOpenChange={handleCloseModal}>
-        <DialogContent className="sm:max-w-[825px] p-12 gap-0">
+        <DialogContent className="gap-0 p-12 sm:max-w-[825px]">
           <DialogHeader>
             <DialogTitle>User Profile</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="gap-4 grid py-4">
             <div className="flex items-center space-x-4">
               <Avatar className="w-20 h-20">
                 <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
@@ -534,7 +563,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex justify-between items-center">
               <Label htmlFor="public-profile">Make profile public</Label>
               <Switch id="public-profile" />
             </div>

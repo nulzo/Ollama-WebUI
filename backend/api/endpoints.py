@@ -14,20 +14,21 @@ from api.views_old import (
 )
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from api.view.message import MessageView
+from api.views.message_view import MessageViewSet
 from api.view.ollama import OllamaModels
-from api.view.auth import LoginView as Login, LogoutView as Logout, RegisterView
+from api.views.authentication_view import LoginView as Login, LogoutView as Logout, RegisterView
 from api.view.ollama import OllamaPrompts
 from api.view.openai import OpenAIChat, OpenAIModels
-from api.views import Chat
+from api.views.chat_view import ChatView
 
 router = DefaultRouter()
 
 router.register(r"assistant", AssistantViewSet)
+router.register(r'messages', MessageViewSet, basename='message')
 
 
 urlpatterns = [
-    path("chat/", Chat.as_view(), name="chat"),
+    path("chat/", ChatView.as_view(), name="chat"),
     path("conversations/", ConversationList.as_view(), name="conversation-list"),
     path("conversations/<str:pk>/", ConversationDetail.as_view(), name="conversation-detail"),
     path("messages/", MessageList.as_view(), name="message-list"),
@@ -37,7 +38,6 @@ urlpatterns = [
     path("settings/", SettingsList.as_view(), name="settings-list"),
     path("settings/<int:pk>/", SettingsDetail.as_view(), name="settings-detail"),
     path("", include(router.urls)),
-    path("chat/ollama/", MessageView.as_view(), name="chat"),
     path("models/ollama/", OllamaModels.as_view(), name="ollama_models"),
     path("ollama/default/", OllamaPrompts.as_view(), name="ollama_default_prompts"),
     path("login/", LoginView.as_view(), name="login"),
@@ -47,5 +47,4 @@ urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
     path('user/current/', CurrentUserView.as_view(), name='current_user'),
     path("models/openai/", OpenAIModels.as_view(), name="openai_models"),
-    path("chat/openai/", OpenAIChat.as_view(), name="chat_openai"),
 ]

@@ -36,7 +36,7 @@ export function ChatRoute() {
       <div className="relative flex flex-col flex-1 transition overflow-hidden">
         <ConversationArea>
           {searchParamString ? (
-            <div className="flex flex-col justify-end min-h-full">
+            <div className="flex flex-col min-h-full">
               <MessagesList
                 conversation_id={searchParamString}
                 onStreamingUpdate={handleStreamingUpdate}

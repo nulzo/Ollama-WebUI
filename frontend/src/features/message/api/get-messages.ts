@@ -34,14 +34,15 @@ export const useMessages = ({ conversation_id, queryConfig }: UseMessagesOptions
     ...queryConfig,
     enabled: Boolean(conversation_id),
     select: (data) => {
-      // Handle both array and object with data property formats
       const messages = Array.isArray(data) ? data : data?.data || [];
       return {
         data: messages,
         meta: data?.meta || {}
       };
     },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
+    staleTime: Infinity, // Keep data fresh during streaming
+    refetchOnWindowFocus: false, // Prevent unwanted refetches
+    refetchOnMount: false, // Prevent refetch on mount
+    refetchOnReconnect: false, // Prevent refetch on reconnect
   });
 };

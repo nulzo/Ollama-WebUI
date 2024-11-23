@@ -25,57 +25,67 @@ export function useConversation() {
     mutationConfig: {
       onMutate: async (variables) => {
         setIsStreaming(true);
+        
+        // Cancel any outgoing refetches
+        await queryClient.cancelQueries({
+          queryKey: ['messages', { conversation_id: searchParamString }]
+        });
+
+        // Snapshot the current messages
+        const previousMessages = queryClient.getQueryData([
+          'messages', 
+          { conversation_id: searchParamString }
+        ]);
+
+        // Optimistically update the messages cache
+        queryClient.setQueryData(
+          ['messages', { conversation_id: searchParamString }],
+          (old: any) => {
+            const existingMessages = old?.data || [];
+            return {
+              ...old,
+              data: [...existingMessages, {
+                ...variables.data,
+                id: `temp-${Date.now()}`,
+                created_at: new Date().toISOString(),
+              }]
+            };
+          }
+        );
+
+        return { previousMessages };
+      },
+      onError: (err, variables, context) => {
+        if (context?.previousMessages) {
+          queryClient.setQueryData(
+            ['messages', { conversation_id: searchParamString }],
+            context.previousMessages
+          );
+        }
+        setIsStreaming(false);
       },
       onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: ['messages']
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['conversations']
-        });
+        // Don't invalidate here - we'll handle it in the message-done event
       },
     },
   });
 
   useEffect(() => {
-    const handleConversationCreated = (event: CustomEvent) => {
-      const uuid = event.detail.uuid;
-      // First update the URL
-      setSearchParams({ c: uuid }, { replace: true });
-      
-      // Then update the queries, but don't force a refetch
-      queryClient.invalidateQueries({
-        queryKey: ['conversations'],
-        refetchType: 'none' // Don't immediately refetch
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['messages'],
-        refetchType: 'none' // Don't immediately refetch
-      });
-    };
-
     const handleMessageDone = () => {
       setIsStreaming(false);
       
-      // Use background refetch to avoid UI flicker
+      // Only refetch messages for the current conversation
       queryClient.invalidateQueries({
-        queryKey: ['messages'],
-        refetchType: 'none'
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['conversations'],
+        queryKey: ['messages', { conversation_id: searchParamString }],
         refetchType: 'none'
       });
     };
 
-    window.addEventListener('conversation-created', handleConversationCreated as EventListener);
     window.addEventListener('message-done', handleMessageDone);
-
     return () => {
-      window.removeEventListener('conversation-created', handleConversationCreated as EventListener);
       window.removeEventListener('message-done', handleMessageDone);
     };
-  }, [queryClient, setSearchParams]);
+  }, [queryClient, searchParamString]);
 
   const submitMessage = async (message: string, images: string[] = []): Promise<void> => {
     if (!message.trim()) return;
@@ -89,20 +99,15 @@ export function useConversation() {
         images: images || [],
         conversation: searchParamString || null,
       };
-
-      queryClient.setQueryData(['messages', { conversation_id: searchParamString }], (old: any) => ({
-        ...old,
-        data: [...(old?.data || []), { ...data, id: Date.now() }],
-      }));
-
+      
       await createMessageMutation({ data, queryClient });
 
-      // Add event listener for message completion
       const handleMessageDone = () => {
         setIsStreaming(false);
-        // Force refetch messages after streaming is done
+        // Use background refetch
         queryClient.invalidateQueries({
-          queryKey: ['messages', { conversation_id: searchParamString }]
+          queryKey: ['messages', { conversation_id: searchParamString }],
+          refetchType: 'none'
         });
       };
 

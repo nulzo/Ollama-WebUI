@@ -108,20 +108,20 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
   return useMutation({
     onMutate: async (variables) => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['messages', { conversation_id }] });
+      await queryClient.cancelQueries({ 
+        queryKey: ['messages', { conversation_id }],
+        exact: true 
+      });
 
-      // Snapshot the previous value
+      // Get the current messages
       const previousMessages = queryClient.getQueryData(['messages', { conversation_id }]);
 
-      // Optimistically update to the new value
+      // Update the cache with the new message while preserving existing ones
       queryClient.setQueryData(['messages', { conversation_id }], (old: any) => {
         const existingMessages = old?.data || [];
-        const messageList = Array.isArray(existingMessages) ? existingMessages : 
-                          Array.isArray(existingMessages.json) ? existingMessages.json : [];
-        
         return {
           ...old,
-          data: [...messageList, { 
+          data: [...existingMessages, {
             id: `temp-${Date.now()}`,
             role: variables.data.role,
             content: variables.data.content,
@@ -136,21 +136,17 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
 
       return { previousMessages };
     },
-
     onError: (err, variables, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousMessages) {
-        queryClient.setQueryData(['messages', { conversation_id }], context.previousMessages);
+        queryClient.setQueryData(
+          ['messages', { conversation_id }],
+          context.previousMessages
+        );
       }
     },
-
     onSettled: () => {
-      // Always refetch after error or success to ensure we have the correct data
-      queryClient.invalidateQueries({
-        queryKey: ['messages', { conversation_id }]
-      });
+      // Don't invalidate here
     },
-
     ...mutationConfig,
     mutationFn: (variables) => createMessage({ ...variables, queryClient }),
   });

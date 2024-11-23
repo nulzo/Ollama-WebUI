@@ -16,6 +16,7 @@ interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   images?: string[]; // Changed from image?: string | null
   conversation_id: string;
   modelName: string;
+  isLoading: boolean;
 }
 
 export const Message: React.FC<MessageProps> = ({
@@ -25,12 +26,21 @@ export const Message: React.FC<MessageProps> = ({
   content,
   isTyping,
   modelName,
-  images = [] // Changed from image
+  images = [], // Changed from image
+  isLoading
 }) => {
   const formattedDate = formatDate(time);
   let assistantId: number | undefined = undefined;
 
   const processedImages = Array.isArray(images) ? images : images ? [images] : [];
+
+  if (isLoading) {
+    return <div className="flex flex-col gap-2 pb-4">
+      <div className="flex flex-col gap-2 pb-4">
+        <div className="typing-indicator" />
+      </div>
+    </div>;
+  }
 
   return (
     <div className="flex flex-col gap-2 pb-4">

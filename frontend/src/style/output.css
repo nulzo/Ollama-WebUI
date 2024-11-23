@@ -1277,6 +1277,14 @@ body {
   margin-left: 1.5rem;
 }
 
+.ml-\[250px\] {
+  margin-left: 250px;
+}
+
+.ml-\[55px\] {
+  margin-left: 55px;
+}
+
 .ml-auto {
   margin-left: auto;
 }
@@ -1339,10 +1347,6 @@ body {
 
 .mt-auto {
   margin-top: auto;
-}
-
-.ms-10 {
-  margin-inline-start: 2.5rem;
 }
 
 .block {
@@ -2808,10 +2812,6 @@ body {
 .py-\[0\.2rem\] {
   padding-top: 0.2rem;
   padding-bottom: 0.2rem;
-}
-
-.pb-0 {
-  padding-bottom: 0px;
 }
 
 .pb-1 {
@@ -4568,16 +4568,16 @@ body {
     width: auto;
   }
 
+  .md\:max-w-2xl {
+    max-width: 42rem;
+  }
+
   .md\:max-w-\[420px\] {
     max-width: 420px;
   }
 
   .md\:max-w-lg {
     max-width: 32rem;
-  }
-
-  .md\:max-w-2xl {
-    max-width: 42rem;
   }
 
   .md\:grid-cols-2 {

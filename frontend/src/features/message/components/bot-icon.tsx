@@ -17,7 +17,7 @@ export const BotIcon = ({ assistantId }: BotIconProps) => {
 
   const renderIcon = () => {
     if (isLoading) {
-      return <div className="animate-pulse bg-primary-foreground w-5 h-5 rounded-full" />;
+      return <div className="bg-primary-foreground rounded-full w-5 h-5 animate-pulse" />;
     }
 
     if (assistant?.icon) {
@@ -25,20 +25,20 @@ export const BotIcon = ({ assistantId }: BotIconProps) => {
         <img
           src={assistant.icon}
           alt={assistant.display_name}
-          className="object-cover size-9 rounded-lg"
+          className="rounded-lg object-cover size-9"
         />
       );
     }
 
-    return <Origami strokeWidth="1.5" className=" m-2 size-5 text-primary-foreground" />;
+    return <Origami strokeWidth="1.5" className="m-2 text-primary-foreground size-5" />;
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <div className="relative bg-primary rounded-lg mt-1 cursor-pointer">
+        <div className="relative bg-primary mt-1 rounded-lg cursor-pointer">
           {renderIcon()}
-          <div className="absolute -right-0.5 -bottom-0.5 rounded-full h-2.5 w-2.5 bg-green-400 ring-background ring-2" />
+          <div className="-right-0.5 -bottom-0.5 absolute bg-green-400 rounded-full ring-2 ring-background w-2.5 h-2.5" />
         </div>
       </DialogTrigger>
       <AssistantCard assistantId={assistantId} onClose={handleClose} />

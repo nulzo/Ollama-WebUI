@@ -107,16 +107,14 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
 
   return useMutation({
     onMutate: async (variables) => {
-      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ 
         queryKey: ['messages', { conversation_id }],
         exact: true 
       });
 
-      // Get the current messages
       const previousMessages = queryClient.getQueryData(['messages', { conversation_id }]);
 
-      // Update the cache with the new message while preserving existing ones
+      // Update cache with new message while preserving existing ones
       queryClient.setQueryData(['messages', { conversation_id }], (old: any) => {
         const existingMessages = old?.data || [];
         return {

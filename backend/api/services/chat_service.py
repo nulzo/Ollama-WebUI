@@ -6,6 +6,7 @@ from api.repositories.message_repository import MessageRepository
 from api.providers.provider_factory import ProviderFactory
 from api.models.messages import Message
 import logging
+import base64
 
 
 class ChatService:
@@ -30,7 +31,6 @@ class ChatService:
             for image_str in images:
                 try:
                     base64_data = image_str.split(',')[1]
-                    import base64
                     image_bytes = base64.b64decode(base64_data)
                     processed_images.append(image_bytes)
                 except Exception as e:

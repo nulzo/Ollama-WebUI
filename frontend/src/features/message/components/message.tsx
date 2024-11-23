@@ -8,7 +8,6 @@ import { CopyButton } from '@/features/message/components/copy-message';
 import { Image } from './image';
 import { LikeButton } from './like-message';
 import { EnhanceButton } from './enhance-button';
-import { useAssistants } from '@/features/assistant/hooks/use-assistant';
 
 interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   username: string;
@@ -16,6 +15,7 @@ interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   isTyping: boolean;
   images?: string[]; // Changed from image?: string | null
   conversation_id: string;
+  modelName: string;
 }
 
 export const Message: React.FC<MessageProps> = ({
@@ -24,36 +24,21 @@ export const Message: React.FC<MessageProps> = ({
   time,
   content,
   isTyping,
+  modelName,
   images = [] // Changed from image
 }) => {
   const formattedDate = formatDate(time);
-  const { getAssistantIdByName, isLoading, error, getAssistantByName } = useAssistants();
   let assistantId: number | undefined = undefined;
-  let displayName: string = username;
 
   const processedImages = Array.isArray(images) ? images : images ? [images] : [];
 
-  if (isLoading) return <div>Loading assistant data...</div>;
-
-  if (role !== 'user' && !isLoading && !error && username) {
-    const assistant = getAssistantByName(username);
-    if (assistant) {
-      assistantId = assistant.id;
-      displayName = assistant.display_name || assistant.name || username;
-    }
-  }
-
-  if (role !== 'user' && !isLoading && !error && username) {
-    assistantId = getAssistantIdByName(username);
-  }
-
   return (
-    <div>
+    <div className="flex flex-col gap-2 pb-4">
       <div
-        className={`text-sm items-baseline gap-1 py-0 my-0 pb-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}
+        className={`text-sm items-baseline gap-1 py-0 my-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}
       >
-        {role !== 'user' && displayName}
-        <span className="text-[10px] font-base text-muted-foreground/50">{formattedDate}</span>
+        {role !== 'user' && modelName}
+        <span className={`font-base text-[10px] text-muted-foreground/50 ${role === 'user' ? 'pb-1 flex justify-end' : ''}`}>{formattedDate}</span>
       </div>
       {processedImages.length > 0 && (
         <div className={`flex flex-wrap gap-2 place-items-start items-center align-middle ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
@@ -70,7 +55,7 @@ export const Message: React.FC<MessageProps> = ({
       <div
         className={`flex place-items-start ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}
       >
-        <div className="pe-2 font-bold flex items-center mb-2">
+        <div className="flex items-center mb-2 font-bold pe-2">
           {role !== 'user' && <BotIcon assistantId={assistantId ?? 0} />}
         </div>
         <div className={`${role !== 'user' ? 'w-[75%] flex items-center align-middle' : ''}`}>
@@ -80,10 +65,10 @@ export const Message: React.FC<MessageProps> = ({
               : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'
               }`}
           >
-            <div className="flex flex-col w-full m-0 border-0 items-center align-middle">
+            <div className="flex flex-col items-center border-0 m-0 w-full align-middle">
               <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
               {isTyping && (
-                <div className="w-full h-4 flex items-center justify-start ps-2">
+                <div className="flex justify-start items-center w-full h-4 ps-2">
                   <div className="typing-indicator" />
                 </div>
               )}
@@ -91,8 +76,8 @@ export const Message: React.FC<MessageProps> = ({
           </div>
         </div>
       </div>
-      {role !== 'user' && (
-        <div className="ms-12 flex gap-2">
+      {role !== 'user' && !isTyping && (
+        <div className="flex gap-2 ms-12">
           <LikeButton content={content?.trim() ?? ''} />
           <CopyButton content={content?.trim() ?? ''} />
           <EnhanceButton content={content?.trim() ?? ''} />

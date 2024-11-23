@@ -25,8 +25,8 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
     };
 
     const handleMessageDone = () => {
-      setStreamContent('');
-      setIsStreaming(false);
+        setStreamContent('');
+        setIsStreaming(false);
     };
 
     window.addEventListener('message-chunk', handleMessageChunk as EventListener);
@@ -55,6 +55,7 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
           time={new Date(message.created_at).getTime()}
           isTyping={false}
           conversation_id={conversation_id}
+          modelName={message.model || 'Assistant'}
         />
       ))}
       {isStreaming && streamContent && (

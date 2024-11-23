@@ -25,7 +25,7 @@ export function useConversation() {
     mutationConfig: {
       onMutate: async (variables) => {
         setIsStreaming(true);
-        
+
         // Cancel any outgoing refetches
         await queryClient.cancelQueries({
           queryKey: ['messages', { conversation_id: searchParamString }]
@@ -33,7 +33,7 @@ export function useConversation() {
 
         // Snapshot the current messages
         const previousMessages = queryClient.getQueryData([
-          'messages', 
+          'messages',
           { conversation_id: searchParamString }
         ]);
 
@@ -41,14 +41,29 @@ export function useConversation() {
         queryClient.setQueryData(
           ['messages', { conversation_id: searchParamString }],
           (old: any) => {
-            const existingMessages = old?.data || [];
+            // Handle the case where old might be undefined
+            if (!old) return { data: [] };
+
+            // Ensure we're working with the correct data structure
+            const existingMessages = Array.isArray(old) ? old :
+              Array.isArray(old.data) ? old.data :
+                [];
+
+            const newMessage = {
+              ...variables.data,
+              id: `temp-${Date.now()}`,
+              created_at: new Date().toISOString(),
+            };
+
+            // If the old data was an array, return an array
+            if (Array.isArray(old)) {
+              return [...existingMessages, newMessage];
+            }
+
+            // Otherwise, maintain the original structure
             return {
               ...old,
-              data: [...existingMessages, {
-                ...variables.data,
-                id: `temp-${Date.now()}`,
-                created_at: new Date().toISOString(),
-              }]
+              data: [...existingMessages, newMessage]
             };
           }
         );
@@ -64,28 +79,46 @@ export function useConversation() {
         }
         setIsStreaming(false);
       },
-      onSettled: () => {
-        // Don't invalidate here - we'll handle it in the message-done event
-      },
     },
   });
 
   useEffect(() => {
-    const handleMessageDone = () => {
-      setIsStreaming(false);
-      
-      // Only refetch messages for the current conversation
+    const handleConversationCreated = (event: CustomEvent) => {
+      const uuid = event.detail.uuid;
+      setSearchParams({ c: uuid }, { replace: true });
+
       queryClient.invalidateQueries({
-        queryKey: ['messages', { conversation_id: searchParamString }],
+        queryKey: ['conversations'],
+        refetchType: 'none'
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['messages', { conversation_id: uuid }], // Update this to be specific
         refetchType: 'none'
       });
     };
 
+    const handleMessageDone = () => {
+      setIsStreaming(false);
+
+      // Update this to use the specific conversation ID
+      queryClient.invalidateQueries({
+        queryKey: ['messages', { conversation_id: searchParamString }],
+        refetchType: 'none'
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['conversations'],
+        refetchType: 'none'
+      });
+    };
+
+    window.addEventListener('conversation-created', handleConversationCreated as EventListener);
     window.addEventListener('message-done', handleMessageDone);
+
     return () => {
+      window.removeEventListener('conversation-created', handleConversationCreated as EventListener);
       window.removeEventListener('message-done', handleMessageDone);
     };
-  }, [queryClient, searchParamString]);
+  }, [queryClient, setSearchParams, searchParamString]);
 
   const submitMessage = async (message: string, images: string[] = []): Promise<void> => {
     if (!message.trim()) return;
@@ -99,22 +132,8 @@ export function useConversation() {
         images: images || [],
         conversation: searchParamString || null,
       };
-      
+
       await createMessageMutation({ data, queryClient });
-
-      const handleMessageDone = () => {
-        setIsStreaming(false);
-        // Use background refetch
-        queryClient.invalidateQueries({
-          queryKey: ['messages', { conversation_id: searchParamString }],
-          refetchType: 'none'
-        });
-      };
-
-      window.addEventListener('message-done', handleMessageDone);
-      setTimeout(() => {
-        window.removeEventListener('message-done', handleMessageDone);
-      }, 1000);
     } catch (error) {
       console.error('Error submitting message:', error);
       setIsStreaming(false);

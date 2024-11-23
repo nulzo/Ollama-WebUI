@@ -53,7 +53,10 @@ export const createMessage = async ({
             if (data === '[DONE]') {
               window.dispatchEvent(new CustomEvent('message-done'));
               queryClient.invalidateQueries({
-                queryKey: ['messages', { conversation_id: data.conversation }]
+                queryKey: ['messages']
+              });
+              queryClient.invalidateQueries({
+                queryKey: ['conversations']
               });
               return;
             }

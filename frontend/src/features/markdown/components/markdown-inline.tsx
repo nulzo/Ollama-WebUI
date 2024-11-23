@@ -43,7 +43,7 @@ const MarkdownInlineTokens: React.FC<MarkdownInlineTokensProps> = ({ id, tokens 
 
           case 'strong':
             return (
-              <strong key={key}>
+              <strong key={key} className='text-primary'>
                 <MarkdownInlineTokens id={`${key}-strong`} tokens={token.tokens} />
               </strong>
             );
@@ -55,7 +55,7 @@ const MarkdownInlineTokens: React.FC<MarkdownInlineTokensProps> = ({ id, tokens 
             );
           case 'codespan':
             return (
-              <code key={key} className="codespan cursor-pointer">
+              <code key={key} className="cursor-pointer codespan">
                 {he.escape(token.text)}
               </code>
             );

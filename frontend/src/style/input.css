@@ -41,8 +41,13 @@
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 @tailwind components;
@@ -157,6 +162,107 @@
     min-height: 28px;
   }
 
+  /* General style for all list items */
+  ol,
+  ul {
+    list-style-position: outside;
+    margin: 0;
+    padding: 0;
+  }
+
+  ol > li,
+  ul > li {
+    margin-bottom: 0.5em;
+  }
+
+  /* Style for nested lists with cascading indentation */
+  ol ol,
+  ol ul,
+  ul ol,
+  ul ul {
+    margin-left: 1.5em;
+  }
+
+  /* Ensuring uniform block display for list items */
+  ol > li,
+  ul > li {
+    display: block;
+    position: relative; /* For any pseudo-elements */
+  }
+
+  .prose ol > li::before, /* Optional: custom styling for ordered list numbers */
+  .prose ul > li::before {
+    position: absolute;
+    left: -1.5em; /* Adjust based on your layout/indentation needs */
+    min-width: 1em;
+    text-align: right;
+    color: hsl(var(--primary));
+  }
+
+  .prose ol > li::before {
+    content: counter(list-item) '.';
+    counter-increment: list-item;
+    font-weight: bold;
+    color: hsl(var(--primary));
+  }
+
+  .prose ul > li::before {
+    content: '•';
+    font-weight: bold;
+    color: hsl(var(--primary));
+  }
+
+  /* Reset the counter for each new list */
+  ol {
+    counter-reset: list-item;
+  }
+
+  /* Remove any span display flex of the li spans */
+  li > span {
+    display: block;
+    width: 100%;
+  }
+
+  /* General styles for ordered list items */
+  ol {
+    counter-reset: list-number; /* Initialize the counter for each list */
+    list-style: none; /* Remove default list styles */
+    padding-left: 0; /* Remove default padding */
+  }
+
+  /* Style individual list items */
+  ol > li {
+    counter-increment: list-number; /* Increment the counter */
+    position: relative; /* Necessary for positioning pseudo-element */
+    margin-bottom: 0.5em; /* Space between list items */
+    padding-left: 0.5em; /* Indent to make space for number */
+  }
+
+  /* Modern browser support using ::marker */
+  ol > li::marker {
+    content: counter(list-number) '. '; /* Display the counter as a list-item number */
+    font-weight: bold; /* Bold styling for the number */
+    margin-right: 0.5em; /* Space between the number and text */
+    color: hsl(var(--primary));
+  }
+
+  /* Pseudo-element fallback for broader support */
+  ol > li::before {
+    content: counter(list-number) '. '; /* Display the counter */
+    position: absolute; /* Position relative to the li */
+    left: 0; /* Adjust as necessary to match padding */
+    font-weight: bold;
+    width: 1.5em; /* Width of the number area */
+    text-align: right; /* Align right for neat appearance */
+    margin-right: 0.5em; /* Space between the number and text */
+    color: hsl(var(--primary));
+  }
+
+  /* Ensure paragraphs in lists render as expected */
+  li p {
+    margin: 0;
+  }
+
   .prose ol > li::before {
     content: counter(list-item) '.';
     counter-increment: list-item;
@@ -164,7 +270,7 @@
     min-width: 1.5em;
     margin-right: 0.5em;
     text-align: right;
-    color: hsl(var(--muted-foreground));
+    color: hsl(var(--primary));
   }
 
   ul > li::before {

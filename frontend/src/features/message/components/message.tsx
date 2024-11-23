@@ -56,7 +56,7 @@ export const Message: React.FC<MessageProps> = ({
         <span className="text-[10px] font-base text-muted-foreground/50">{formattedDate}</span>
       </div>
       {processedImages.length > 0 && (
-        <div className={`flex flex-wrap gap-2 place-items-start pt-1 ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
+        <div className={`flex flex-wrap gap-2 place-items-start items-center align-middle ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
           {processedImages.map((imageUrl, index) => (
             <Image
               key={index}
@@ -73,14 +73,14 @@ export const Message: React.FC<MessageProps> = ({
         <div className="pe-2 font-bold flex items-center mb-2">
           {role !== 'user' && <BotIcon assistantId={assistantId ?? 0} />}
         </div>
-        <div className={`${role !== 'user' ? 'max-w-[75%] min-w-[200px]' : ''}`}>
+        <div className={`${role !== 'user' ? 'w-[75%] flex items-center align-middle' : ''}`}>
           <div
             className={`px-1 ${role !== 'user'
               ? 'rounded-e-xl rounded-b-xl'
               : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'
               }`}
           >
-            <div className="flex flex-col w-full m-0 border-0">
+            <div className="flex flex-col w-full m-0 border-0 items-center align-middle">
               <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
               {isTyping && (
                 <div className="w-full h-4 flex items-center justify-start ps-2">

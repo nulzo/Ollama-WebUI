@@ -14,7 +14,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'break':
         return <div className="my-0.5" key={index} />;
       case 'hr':
-        return <hr key={index} />;
+        return <hr key={index} className='my-1' />;
       case 'blockquote':
         return (
           <blockquote key={index} className="mt-6 border-l-2 pl-6 italic">
@@ -164,7 +164,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'inlineKatex':
         return <KatexRenderer content={token.text} displayMode={false} />;
       case 'space':
-        return <div className="h-4" key={index} />;
+        return <div className="h-1" key={index} />;
       default:
         return null;
     }

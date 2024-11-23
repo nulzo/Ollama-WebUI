@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMessages } from '@/features/message/api/get-messages';
 import { useCreateMessage, CreateMessageInput } from '@/features/message/api/create-message';
 import { useModelStore } from '@/features/models/store/model-store';
@@ -27,13 +27,55 @@ export function useConversation() {
         setIsStreaming(true);
       },
       onSettled: () => {
-        // Invalidate and refetch messages when mutation is settled
         queryClient.invalidateQueries({
-          queryKey: ['messages', { conversation_id: searchParamString }]
+          queryKey: ['messages']
+        });
+        queryClient.invalidateQueries({
+          queryKey: ['conversations']
         });
       },
     },
   });
+
+  useEffect(() => {
+    const handleConversationCreated = (event: CustomEvent) => {
+      const uuid = event.detail.uuid;
+      // First update the URL
+      setSearchParams({ c: uuid }, { replace: true });
+      
+      // Then update the queries, but don't force a refetch
+      queryClient.invalidateQueries({
+        queryKey: ['conversations'],
+        refetchType: 'none' // Don't immediately refetch
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['messages'],
+        refetchType: 'none' // Don't immediately refetch
+      });
+    };
+
+    const handleMessageDone = () => {
+      setIsStreaming(false);
+      
+      // Use background refetch to avoid UI flicker
+      queryClient.invalidateQueries({
+        queryKey: ['messages'],
+        refetchType: 'none'
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['conversations'],
+        refetchType: 'none'
+      });
+    };
+
+    window.addEventListener('conversation-created', handleConversationCreated as EventListener);
+    window.addEventListener('message-done', handleMessageDone);
+
+    return () => {
+      window.removeEventListener('conversation-created', handleConversationCreated as EventListener);
+      window.removeEventListener('message-done', handleMessageDone);
+    };
+  }, [queryClient, setSearchParams]);
 
   const submitMessage = async (message: string, images: string[] = []): Promise<void> => {
     if (!message.trim()) return;

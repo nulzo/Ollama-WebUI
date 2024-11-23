@@ -633,6 +633,29 @@ math {
   margin-top: 1rem;
 }
 
+.markdown-prose ol > li::before,.markdown-prose ul > li::before {
+  /* Adjust based on your layout/indentation needs */
+  position: absolute;
+  left: -1.5em;
+  /* Adjust based on your layout/indentation needs */
+  min-width: 1em;
+  text-align: right;
+  color: hsl(var(--primary));
+}
+
+.markdown-prose ol > li::before {
+  content: counter(list-item) '.';
+  counter-increment: list-item;
+  font-weight: bold;
+  color: hsl(var(--primary));
+}
+
+.markdown-prose ul > li::before {
+  content: '•';
+  font-weight: bold;
+  color: hsl(var(--primary));
+}
+
 .markdown-prose ol > li::before {
   content: counter(list-item) '.';
   counter-increment: list-item;
@@ -640,7 +663,7 @@ math {
   min-width: 1.5em;
   margin-right: 0.5em;
   text-align: right;
-  color: hsl(var(--muted-foreground));
+  color: hsl(var(--primary));
 }
 
 .markdown-prose {
@@ -664,6 +687,112 @@ ol > li {
   margin-bottom: 0;
   margin-top: 0;
   min-height: 28px;
+}
+
+/* General style for all list items */
+
+ol,
+  ul {
+  list-style-position: outside;
+  margin: 0;
+  padding: 0;
+}
+
+ol > li,
+  ul > li {
+  margin-bottom: 0.5em;
+}
+
+/* Style for nested lists with cascading indentation */
+
+ol ol,
+  ol ul,
+  ul ol,
+  ul ul {
+  margin-left: 1.5em;
+}
+
+/* Ensuring uniform block display for list items */
+
+ol > li,
+  ul > li {
+  display: block;
+  position: relative;
+  /* For any pseudo-elements */
+}
+
+/* Reset the counter for each new list */
+
+ol {
+  counter-reset: list-item;
+}
+
+/* Remove any span display flex of the li spans */
+
+li > span {
+  display: block;
+  width: 100%;
+}
+
+/* General styles for ordered list items */
+
+ol {
+  counter-reset: list-number;
+  /* Initialize the counter for each list */
+  list-style: none;
+  /* Remove default list styles */
+  padding-left: 0;
+  /* Remove default padding */
+}
+
+/* Style individual list items */
+
+ol > li {
+  counter-increment: list-number;
+  /* Increment the counter */
+  position: relative;
+  /* Necessary for positioning pseudo-element */
+  margin-bottom: 0.5em;
+  /* Space between list items */
+  padding-left: 0.5em;
+  /* Indent to make space for number */
+}
+
+/* Modern browser support using ::marker */
+
+ol > li::marker {
+  content: counter(list-number) '. ';
+  /* Display the counter as a list-item number */
+  font-weight: bold;
+  /* Bold styling for the number */
+  margin-right: 0.5em;
+  /* Space between the number and text */
+  color: hsl(var(--primary));
+}
+
+/* Pseudo-element fallback for broader support */
+
+ol > li::before {
+  content: counter(list-number) '. ';
+  /* Display the counter */
+  position: absolute;
+  /* Position relative to the li */
+  left: 0;
+  /* Adjust as necessary to match padding */
+  font-weight: bold;
+  width: 1.5em;
+  /* Width of the number area */
+  text-align: right;
+  /* Align right for neat appearance */
+  margin-right: 0.5em;
+  /* Space between the number and text */
+  color: hsl(var(--primary));
+}
+
+/* Ensure paragraphs in lists render as expected */
+
+li p {
+  margin: 0;
 }
 
 ul > li::before {
@@ -759,21 +888,32 @@ body {
   height: 3px;
 }
 
-.typing-indicator {
-  width: 20px;
-  height: 10px;
-  position: relative;
+.streaming-message {
+  transition: height 0.1s ease-out;
+  will-change: height;
+  contain: content;
 }
 
-.typing-indicator::after {
-  content: '▋';
-  color: currentColor;
-  opacity: 0.7;
-  animation: blink 1s ease-in-out infinite;
+.message-content {
+  transition: all 0.2s ease-out;
+  opacity: 1;
+}
+
+.typing-indicator-container {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+}
+
+.message-container {
+  contain: content;
+  transform: translateZ(0);
 }
 
 @keyframes blink {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.7;
   }
 
@@ -1306,6 +1446,10 @@ body {
   height: 0px;
 }
 
+.h-1 {
+  height: 0.25rem;
+}
+
 .h-1\.5 {
   height: 0.375rem;
 }
@@ -1668,10 +1812,6 @@ body {
   min-width: 12rem;
 }
 
-.min-w-\[200px\] {
-  min-width: 200px;
-}
-
 .min-w-\[250px\] {
   min-width: 250px;
 }
@@ -1706,10 +1846,6 @@ body {
 
 .max-w-\[300px\] {
   max-width: 300px;
-}
-
-.max-w-\[75\%\] {
-  max-width: 75%;
 }
 
 .max-w-\[80\%\] {

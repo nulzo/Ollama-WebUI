@@ -31,20 +31,23 @@ export function ChatRoute() {
   }, [searchParamString, conversationId]);
 
   return (
-    <div className="transition relative w-full max-w-full flex flex-col h-screen">
+    <div className="relative flex flex-col w-full max-w-full h-screen transition">
       <ConversationAreaHeader />
-      <div className="transition relative flex flex-col flex-1 overflow-hidden">
+      <div className="relative flex flex-col flex-1 transition overflow-hidden">
         <ConversationArea>
           {searchParamString ? (
-            <>
-              <MessagesList conversation_id={searchParamString} onStreamingUpdate={handleStreamingUpdate} />
+            <div className="flex flex-col justify-end min-h-full">
+              <MessagesList
+                conversation_id={searchParamString}
+                onStreamingUpdate={handleStreamingUpdate}
+              />
               <div ref={ref} className="h-0" />
-            </>
+            </div>
           ) : (
             <ConversationDefault />
           )}
         </ConversationArea>
-        <div className="pb-4 pt-4 transition backdrop-blur">
+        <div className="backdrop-blur pt-4 pb-4 transition">
           <ChatInput onSubmit={handleSubmit} />
         </div>
       </div>

@@ -1,9 +1,11 @@
+import base64
 from typing import List, Optional
 from django.db import transaction
 from api.utils.interfaces.base_repository import BaseRepository
 from api.models.conversation.conversation import Conversation
 from api.models.messages.message import Message
 import logging
+from api.models.images.image import MessageImage
 
 
 class MessageRepository(BaseRepository[Message]):
@@ -12,18 +14,39 @@ class MessageRepository(BaseRepository[Message]):
 
     @transaction.atomic
     def create(self, data: dict) -> Message:
-        """Create a new message"""
+        """Create a new message with images"""
         try:
+            # Extract images before creating message
+            images = data.pop('images', [])
+            
             message = Message.objects.create(
                 conversation=data['conversation'],
                 content=data['content'],
                 role=data['role'],
                 model=data['model'],
                 user=data['user'],
-                images=data.get('images', [])
+                has_images=bool(images)
             )
-            self.logger.info(f"Created message {message.id} in conversation {message.conversation.uuid}")
+
+            # Process and create MessageImage instances
+            if images:
+                for index, image_data in enumerate(images):
+                    if isinstance(image_data, str) and image_data.startswith('data:'):
+                        # Split on comma and take second part (the actual base64 data)
+                        base64_data = image_data.split(',')[1]
+                        # Convert base64 to bytes
+                        binary_data = base64.b64decode(base64_data)
+                    else:
+                        binary_data = image_data
+
+                    MessageImage.objects.create(
+                        message=message,
+                        image=binary_data,
+                        order=index
+                    )
+
             return message
+            
         except Exception as e:
             self.logger.error(f"Error creating message: {str(e)}")
             raise

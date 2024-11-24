@@ -20,28 +20,15 @@ class ChatService:
         self.message_repository = MessageRepository()
         self.logger = logging.getLogger(__name__)
 
-    def process_image(self, images):
-        """Process and validate image data"""
+    def process_image(self, image_data: bytes) -> str:
+        """Process binary image data into base64 string"""
         try:
-            if not isinstance(images, list):
-                self.logger.warning(f"Expected list of images, got {type(images)}")
-                return []
-
-            processed_images = []
-            for image_str in images:
-                try:
-                    base64_data = image_str.split(',')[1]
-                    image_bytes = base64.b64decode(base64_data)
-                    processed_images.append(image_bytes)
-                except Exception as e:
-                    self.logger.warning(f"Error processing individual image: {str(e)}")
-                    continue
-
-            self.logger.info(f"Processed {len(processed_images)} images")
-            return processed_images
+            if not image_data:
+                return None
+            return base64.b64encode(image_data).decode('utf-8')
         except Exception as e:
-            self.logger.warning(f"Error processing images: {str(e)}")
-            return []
+            self.logger.error(f"Error processing image: {str(e)}")
+            return None
 
     def handle_chat(self, serializer_data, request):
         """Handle incoming chat request"""
@@ -67,7 +54,10 @@ class ChatService:
                 {
                     "role": msg.role,
                     "content": msg.content,
-                    "images": self.process_image(msg.get_images()) if msg.images else []
+                    "images": [
+                        self.process_image(img.image) 
+                        for img in msg.message_images.all()
+                    ] if msg.has_images else []
                 }
                 for msg in messages
             ]

@@ -28,37 +28,51 @@ class MessageService:
             self.logger.error(f"Error creating message: {str(e)}")
             raise ServiceError(f"Failed to create message: {str(e)}")
 
-    async def get_conversation_messages(
-            self,
-            conversation_uuid: str,
-            user
-    ) -> List[Message]:
-        """Get messages for a specific conversation"""
+    # async def get_conversation_messages(
+    #         self,
+    #         conversation_uuid: str,
+    #         user
+    # ) -> List[Message]:
+    #     """Get messages for a specific conversation"""
+    #     try:
+    #         messages = await self.repository.get_by_conversation(
+    #             conversation_uuid=conversation_uuid,
+    #             user=user
+    #         )
+    #         return messages
+    #     except Exception as e:
+    #         self.logger.error(f"Error fetching conversation messages: {str(e)}")
+    #         raise ServiceError(str(e))
+    #
+    # def get_user_messages(self, user) -> List[Message]:
+    #     """Get all messages for a user"""
+    #     try:
+    #         return self.repository.get_by_user(user)
+    #     except Exception as e:
+    #         self.logger.error(f"Error fetching user messages: {str(e)}")
+    #         raise ServiceError(str(e))
+
+    def get_message(self, message_id: int, user) -> Message:
+        """Get a single message with full details"""
         try:
-            messages = await self.repository.get_by_conversation(
-                conversation_uuid=conversation_uuid,
-                user=user
+            return Message.objects.select_related(
+                'conversation',
+                'user',
+                'model'
+            ).get(
+                id=message_id,
+                conversation__user=user
             )
-            return messages
-        except Exception as e:
-            self.logger.error(f"Error fetching conversation messages: {str(e)}")
-            raise ServiceError(str(e))
+        except Message.DoesNotExist:
+            raise ValidationError("Message not found or access denied")
 
-    async def get_user_messages(self, user) -> List[Message]:
-        """Get all messages for a user"""
-        try:
-            return await self.repository.get_by_user(user)
-        except Exception as e:
-            self.logger.error(f"Error fetching user messages: {str(e)}")
-            raise ServiceError(str(e))
+    def get_user_messages(self, user):
+        """Get messages for a user with optimized querying"""
+        return Message.objects.filter(conversation__user=user)
 
-    async def get_message(self, uuid: str, user) -> Message:
-        """Get a specific message"""
-        try:
-            message = await self.repository.get_by_uuid(uuid, user)
-            if not message:
-                raise ValidationError("Message not found")
-            return message
-        except Exception as e:
-            self.logger.error(f"Error fetching message: {str(e)}")
-            raise ServiceError(str(e))
+    def get_conversation_messages(self, conversation_uuid: str, user):
+        """Get messages for a specific conversation"""
+        return Message.objects.filter(
+            conversation__uuid=conversation_uuid,
+            conversation__user=user
+        ).select_related('conversation', 'user', 'model')

@@ -1,16 +1,16 @@
 from rest_framework import viewsets, mixins, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.http import StreamingHttpResponse
-from api.serializers.message import MessageSerializer
+from api.serializers.message import MessageSerializer, MessageListSerializer
 from api.services.message_service import MessageService
 from api.utils.exceptions import ServiceError, ValidationError
 from api.utils.pagination import StandardResultsSetPagination
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 class MessageViewSet(mixins.CreateModelMixin,
                      mixins.ListModelMixin,
@@ -24,15 +24,19 @@ class MessageViewSet(mixins.CreateModelMixin,
     retrieve: Get a specific message
     conversation: Get messages for a specific conversation
     """
+
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
-    lookup_field = 'uuid'
+    lookup_field = 'id'  # Changed from uuid to id for individual message fetching
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.message_service = MessageService()
 
     def get_serializer_class(self):
+        if self.action == 'list':
+            # Use minimal serializer for list view
+            return MessageListSerializer
         return MessageSerializer
 
     def get_queryset(self):
@@ -44,7 +48,24 @@ class MessageViewSet(mixins.CreateModelMixin,
         if conversation_uuid:
             queryset = queryset.filter(conversation__uuid=conversation_uuid)
 
-        return queryset.order_by('-created_at')
+        # Select only necessary fields for list view
+        if self.action == 'list':
+            queryset = queryset.only('id', 'role', 'created_at', 'conversation')
+
+        return queryset.order_by('created_at')
+
+    def retrieve(self, request, *args, **kwargs):
+        """Get a specific message with full details"""
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error fetching message: {str(e)}")
+            return Response(
+                {"error": "Failed to fetch message"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def create(self, request, *args, **kwargs):
         """
@@ -122,3 +143,18 @@ class MessageViewSet(mixins.CreateModelMixin,
                 {"error": "Failed to fetch messages"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+
+class MessageDetailView(APIView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.message_service = MessageService()
+
+    def get(self, request, message_id):
+        try:
+            message = self.message_service.get_message(message_id, request.user)
+            serializer = MessageSerializer(message)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error fetching message: {str(e)}")
+            return Response({"error": "Failed to fetch message"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -26,5 +26,8 @@ class MessageProcessorService:
         return {
             "role": message.role,
             "content": message.content,
-            "images": image_service.process_images(message.get_images()) if message.images else []
+            "images": [
+                image_service.process_images(img.image) 
+                for img in message.message_images.all()
+            ] if message.has_images else []
         }

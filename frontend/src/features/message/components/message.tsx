@@ -8,12 +8,13 @@ import { CopyButton } from '@/features/message/components/copy-message';
 import { Image } from './image';
 import { LikeButton } from './like-message';
 import { EnhanceButton } from './enhance-button';
+import { AsyncMessageImage } from './async-image';
 
 interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   username: string;
   time: number;
   isTyping: boolean;
-  images?: string[]; // Changed from image?: string | null
+  image_ids?: string[] | number[] | undefined;
   conversation_id: string;
   modelName: string;
   isLoading: boolean;
@@ -26,18 +27,16 @@ export const Message: React.FC<MessageProps> = ({
   content,
   isTyping,
   modelName,
-  images = [], // Changed from image
+  image_ids = [],
   isLoading
 }) => {
   const formattedDate = formatDate(time);
   let assistantId: number | undefined = undefined;
 
-  const processedImages = Array.isArray(images) ? images : images ? [images] : [];
-
   if (isLoading) {
     return <div className="flex flex-col gap-2 pb-4">
       <div className="flex flex-col gap-2 pb-4">
-        <div className="typing-indicator" />
+        
       </div>
     </div>;
   }
@@ -50,13 +49,13 @@ export const Message: React.FC<MessageProps> = ({
         {role !== 'user' && modelName}
         <span className={`font-base text-[10px] text-muted-foreground/50 ${role === 'user' ? 'pb-1 flex justify-end' : ''}`}>{formattedDate}</span>
       </div>
-      {processedImages.length > 0 && (
+      {image_ids.length > 0 && (
         <div className={`flex flex-wrap gap-2 place-items-start items-center align-middle ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
-          {processedImages.map((imageUrl, index) => (
-            <Image
-              key={index}
-              src={imageUrl}
-              images={processedImages}
+          {image_ids.map((imageId, index) => (
+            <AsyncMessageImage
+              key={imageId}
+              imageId={imageId}
+              images={image_ids}
               currentIndex={index}
             />
           ))}

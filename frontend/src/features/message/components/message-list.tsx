@@ -3,10 +3,89 @@ import { Message } from '@/features/message/components/message';
 import { StreamingMessage } from '@/features/message/components/streaming-message';
 import { useMessages } from '@/features/message/api/get-messages';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMessage } from '../api/get-message';
 
 interface MessagesListProps {
   conversation_id: string;
   onStreamingUpdate: (content: string) => void;
+}
+
+interface MessageItemProps {
+  id: string;
+  role: string;
+  conversation_id: string;
+  created_at: string;
+}
+
+function MessageItem({ id, role, conversation_id, created_at }: MessageItemProps) {
+  console.log('MessageItem props:', { id, role, conversation_id }); // Debug log
+
+  const { data: messageData, isLoading, error } = useMessage({ 
+    message_id: id,
+  });
+
+  console.log('MessageItem query result:', { 
+    messageData, 
+    isLoading, 
+    error,
+    id,
+    role,
+    conversation_id,
+    created_at
+  }); 
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="flex items-baseline gap-1 my-0 py-0 pl-6 font-semibold leading-none">
+          {role !== 'user' ? (
+            <div className="text-muted-foreground text-sm ps-11">
+              <Skeleton className="w-24 h-4" />
+            </div>
+          ) : (
+            <div className="flex justify-end w-full text-muted-foreground text-sm">
+              <Skeleton className="w-16 h-4" />
+            </div>
+          )}
+        </div>
+        <div className={`flex place-items-start ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
+          {role !== 'user' && (
+            <div className="flex items-center mb-2 font-bold pe-2">
+              <Skeleton className="rounded-full w-8 h-8" />
+            </div>
+          )}
+          <div className={role !== 'user' ? 'w-[75%]' : ''}>
+            <div className={`px-4 py-3 ${
+              role !== 'user'
+                ? 'rounded-e-xl rounded-b-xl bg-secondary/50'
+                : 'bg-primary/25 rounded-s-xl rounded-b-xl'
+            }`}>
+              <Skeleton className="w-full h-16" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !messageData) {
+    console.error('Message error:', error);
+    return null;
+  }
+
+  const message = messageData;
+
+  return (
+    <Message
+      {...message}
+      username={message.user || message.model || 'Assistant'}
+      time={new Date(created_at).getTime()}
+      isTyping={false}
+      conversation_id={conversation_id}
+      modelName={message.model || 'Assistant'}
+      isLoading={false}
+    />
+  );
 }
 
 export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesListProps) {
@@ -39,61 +118,23 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
     };
   }, [onStreamingUpdate]);
 
-  // Handle the case where data might be wrapped in a json property
-  const messages = data?.data || [];
-  const messageList = Array.isArray(messages) ? messages :
-    Array.isArray(messages.json) ? messages.json : [];
-
-
   if (isLoading) {
-    // Show skeleton loading state with message headers
-    return (
-      <div className="flex flex-col gap-4">
-        {[1, 2, 3].map((index) => (
-          <div key={index} className="flex flex-col gap-2">
-            <div className="flex items-baseline gap-1 my-0 py-0 pl-6 font-semibold leading-none">
-              {index % 2 === 0 ? (
-                <div className="text-muted-foreground text-sm ps-11">
-                  <Skeleton className="w-24 h-4" />
-                </div>
-              ) : (
-                <div className="flex justify-end w-full text-muted-foreground text-sm">
-                  <Skeleton className="w-16 h-4" />
-                </div>
-              )}
-            </div>
-            <div className={`flex place-items-start ${index % 2 === 0 ? 'justify-start' : 'justify-end ps-[25%]'}`}>
-              {index % 2 === 0 && (
-                <div className="flex items-center mb-2 font-bold pe-2">
-                  <Skeleton className="rounded-full w-8 h-8" />
-                </div>
-              )}
-              <div className={index % 2 === 0 ? 'w-[75%]' : ''}>
-                <div className={`px-4 py-3 ${index % 2 === 0
-                    ? 'rounded-e-xl rounded-b-xl bg-secondary/50'
-                    : 'bg-primary/25 rounded-s-xl rounded-b-xl'
-                  }`}>
-                  <Skeleton className="w-full h-16" />
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <LoadingSkeleton count={3} />;
   }
+
+  const messageList = data?.results || [];
+
+  console.log('MessageList data:', data);
+  
   return (
     <div className="flex flex-col gap-4">
       {messageList.map((message) => (
-        <Message
+        <MessageItem
           key={message.id}
-          {...message}
-          username={message.user || message.model || 'Assistant'}
-          time={new Date(message.created_at).getTime()}
-          isTyping={false}
+          id={message.id}
+          role={message.role}
           conversation_id={conversation_id}
-          modelName={message.model || 'Assistant'}
-          isLoading={isLoading}
+          created_at={message.created_at}
         />
       ))}
       {isStreaming && streamContent && (
@@ -103,6 +144,23 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
           conversation_id={conversation_id}
         />
       )}
+    </div>
+  );
+}
+
+function LoadingSkeleton({ count }: { count: number }) {
+  return (
+    <div className="flex flex-col gap-4">
+      {Array.from({ length: count }).map((_, index) => (
+        <div key={index}>
+          <MessageItem
+            id=""
+            role={index % 2 === 0 ? 'assistant' : 'user'}
+            conversation_id=""
+            created_at=""
+          />
+        </div>
+      ))}
     </div>
   );
 }

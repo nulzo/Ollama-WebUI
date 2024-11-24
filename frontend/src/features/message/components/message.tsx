@@ -36,29 +36,26 @@ export const Message: React.FC<MessageProps> = ({
   if (isLoading) {
     return <div className="flex flex-col gap-2 pb-4">
       <div className="flex flex-col gap-2 pb-4">
-        
+
       </div>
     </div>;
   }
 
   return (
-    <div className="flex flex-col gap-2 pb-4">
+    <div className="flex flex-col gap-1 pb-4">
       <div
-        className={`text-sm items-baseline gap-1 py-0 my-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-muted-foreground ps-11' : 'text-muted-foreground flex justify-end'}`}
+        className={`text-sm items-baseline gap-1 py-0 my-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-primary ps-11' : 'text-muted-foreground flex justify-end'}`}
       >
         {role !== 'user' && modelName}
-        <span className={`font-base text-[10px] text-muted-foreground/50 ${role === 'user' ? 'pb-1 flex justify-end' : ''}`}>{formattedDate}</span>
+        <span className={`font-base text-[10px] text-muted-foreground/50 ${role === 'user' ? 'pb-0 flex justify-end' : ''}`}>{formattedDate}</span>
       </div>
       {image_ids.length > 0 && (
         <div className={`flex flex-wrap gap-2 place-items-start items-center align-middle ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
-          {image_ids.map((imageId, index) => (
-            <AsyncMessageImage
-              key={imageId}
-              imageId={imageId}
-              images={image_ids}
-              currentIndex={index}
-            />
-          ))}
+          <AsyncMessageImage
+            imageId={image_ids[0] as number}
+            images={image_ids as number[]}
+            currentIndex={0}
+          />
         </div>
       )}
       <div

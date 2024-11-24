@@ -18,48 +18,28 @@ export const AsyncMessageImage = ({
     images = [], 
     currentIndex = 0 
   }: AsyncMessageImageProps) => {
-    const { data, isLoading, error } = useMessageImage({ 
-      image_id: imageId 
-    });
-  
-    // Safely access image data with optional chaining
-    const imageUrl = data?.data?.image;
+    const { data: mainImageData } = useMessageImage({ image_id: imageId });
     
-    // Fetch all images in parallel if we have multiple images
+    // Fetch all images in parallel
     const otherImageQueries = images
-      .filter(id => id !== imageId)
-      .map(id => useMessageImage({ image_id: id }));
+        .filter(id => id !== imageId)
+        .map(id => useMessageImage({ image_id: id }));
     
-    // Safely combine all image URLs
-    const allImageUrls = [imageUrl, ...otherImageQueries
-      .map(q => q.data?.data?.image)]
-      .filter(Boolean) as string[];
+    // Combine all image URLs
+    const allImageUrls = [
+        mainImageData?.data?.image,
+        ...otherImageQueries.map(q => q.data?.data?.image)
+    ].filter(Boolean) as string[];
     
-    if (error) {
-      return (
-        <div className="flex justify-center items-center bg-secondary w-[250px] h-[250px] text-muted-foreground">
-          Failed to load image
-        </div>
-      );
-    }
-  
-    if (isLoading) {
-      return <Skeleton className="w-[250px] h-[250px]" />;
-    }
-  
-    if (!imageUrl) {
-      return (
-        <div className="flex justify-center items-center bg-secondary w-[250px] h-[250px] text-muted-foreground">
-          No image available
-        </div>
-      );
+    if (!mainImageData?.data?.image) {
+        return <Skeleton className="w-[250px] h-[250px]" />;
     }
   
     return (
-      <Image
-        src={imageUrl}
-        images={allImageUrls}
-        currentIndex={currentIndex}
-      />
+        <Image
+            src={mainImageData.data.image}
+            images={allImageUrls}
+            currentIndex={currentIndex}
+        />
     );
   };

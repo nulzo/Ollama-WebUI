@@ -1142,6 +1142,22 @@ body {
   top: 100%;
 }
 
+.bottom-4 {
+  bottom: 1rem;
+}
+
+.bottom-6 {
+  bottom: 1.5rem;
+}
+
+.left-4 {
+  left: 1rem;
+}
+
+.left-6 {
+  left: 1.5rem;
+}
+
 .z-0 {
   z-index: 0;
 }
@@ -2600,6 +2616,22 @@ body {
   background-color: transparent;
 }
 
+.bg-black\/50 {
+  background-color: rgb(0 0 0 / 0.5);
+}
+
+.bg-white\/25 {
+  background-color: rgb(255 255 255 / 0.25);
+}
+
+.bg-primary\/50 {
+  background-color: hsl(var(--primary) / 0.5);
+}
+
+.bg-foreground\/25 {
+  background-color: hsl(var(--foreground) / 0.25);
+}
+
 .bg-gradient-to-l {
   background-image: linear-gradient(to left, var(--tw-gradient-stops));
 }
@@ -2804,6 +2836,10 @@ body {
 .py-\[0\.2rem\] {
   padding-top: 0.2rem;
   padding-bottom: 0.2rem;
+}
+
+.pb-0 {
+  padding-bottom: 0px;
 }
 
 .pb-1 {
@@ -3652,6 +3688,10 @@ body {
 
 .hover\:bg-tertiary:hover {
   background-color: hsl(var(--tertiary));
+}
+
+.hover\:bg-white\/50:hover {
+  background-color: rgb(255 255 255 / 0.5);
 }
 
 .hover\:stroke-foreground:hover {

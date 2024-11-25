@@ -9,6 +9,7 @@ from api.views_old import (
     LogoutView
 )
 from django.urls import path, include
+from api.views.agent_view import AgentViewSet
 from rest_framework.routers import DefaultRouter
 from api.views.message_view import MessageViewSet
 from api.view.ollama import OllamaModels
@@ -26,6 +27,8 @@ router.register(r'messages', MessageViewSet, basename='message')
 router.register(r'images', MessageImageViewSet, basename='images')
 router.register(r'settings', SettingsViewSet, basename='settings')
 router.register(r'providers', ProviderSettingsViewSet, basename='provider')
+router.register(r'agents', AgentViewSet, basename='agent')
+
 
 urlpatterns = [
     path("chat/", ChatView.as_view(), name="chat"),

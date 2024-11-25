@@ -20,19 +20,23 @@ interface MessageItemProps {
 function MessageItem({ id, role, conversation_id, created_at }: MessageItemProps) {
   console.log('MessageItem props:', { id, role, conversation_id }); // Debug log
 
-  const { data: messageData, isLoading, error } = useMessage({ 
+  const {
+    data: messageData,
+    isLoading,
+    error,
+  } = useMessage({
     message_id: id,
   });
 
-  console.log('MessageItem query result:', { 
-    messageData, 
-    isLoading, 
+  console.log('MessageItem query result:', {
+    messageData,
+    isLoading,
     error,
     id,
     role,
     conversation_id,
-    created_at
-  }); 
+    created_at,
+  });
 
   if (isLoading) {
     return (
@@ -48,18 +52,22 @@ function MessageItem({ id, role, conversation_id, created_at }: MessageItemProps
             </div>
           )}
         </div>
-        <div className={`flex place-items-start ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
+        <div
+          className={`flex place-items-start ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}
+        >
           {role !== 'user' && (
             <div className="flex items-center mb-2 font-bold pe-2">
               <Skeleton className="rounded-full w-8 h-8" />
             </div>
           )}
           <div className={role !== 'user' ? 'w-[75%]' : ''}>
-            <div className={`px-4 py-3 ${
-              role !== 'user'
-                ? 'rounded-e-xl rounded-b-xl bg-secondary/50'
-                : 'bg-primary/25 rounded-s-xl rounded-b-xl'
-            }`}>
+            <div
+              className={`px-4 py-3 ${
+                role !== 'user'
+                  ? 'rounded-e-xl rounded-b-xl bg-secondary/50'
+                  : 'bg-primary/25 rounded-s-xl rounded-b-xl'
+              }`}
+            >
               <Skeleton className="w-full h-16" />
             </div>
           </div>
@@ -73,16 +81,14 @@ function MessageItem({ id, role, conversation_id, created_at }: MessageItemProps
     return null;
   }
 
-  const message = messageData;
-
   return (
     <Message
-      {...message}
-      username={message.user || message.model || 'Assistant'}
+      {...messageData.data}
+      username={messageData.data.user || messageData.data.model || 'Assistant'}
       time={new Date(created_at).getTime()}
       isTyping={false}
       conversation_id={conversation_id}
-      modelName={message.model || 'Assistant'}
+      modelName={messageData.data.model || 'Assistant'}
       isLoading={false}
     />
   );
@@ -91,9 +97,30 @@ function MessageItem({ id, role, conversation_id, created_at }: MessageItemProps
 export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesListProps) {
   const { data, isLoading } = useMessages({ conversation_id });
   const [streamContent, setStreamContent] = useState('');
-  const [currentModel, setCurrentModel] = useState('');
+  const [currentModel, _] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [optimisticMessage, setOptimisticMessage] = useState<any>(null);
+
+  useEffect(() => {
+    const handleOptimisticMessage = (event: CustomEvent) => {
+      const { message } = event.detail;
+      setOptimisticMessage(message);
+    };
+
+    const handleMessageDone = () => {
+      setStreamContent('');
+      setIsStreaming(false);
+      setOptimisticMessage(null); // Clear optimistic message when done
+    };
+
+    window.addEventListener('optimistic-message', handleOptimisticMessage as EventListener);
+    window.addEventListener('message-done', handleMessageDone);
+
+    return () => {
+      window.removeEventListener('optimistic-message', handleOptimisticMessage as EventListener);
+      window.removeEventListener('message-done', handleMessageDone);
+    };
+  }, []);
 
   useEffect(() => {
     const handleMessageChunk = (event: CustomEvent) => {
@@ -103,11 +130,6 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
         onStreamingUpdate(message.content);
         setIsStreaming(true);
       }
-    };
-
-    const handleMessageSent = (event: CustomEvent) => {
-      const { message } = event.detail;
-      setOptimisticMessage(message);
     };
 
     const handleMessageDone = () => {
@@ -131,10 +153,10 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
   const messageList = data?.results || [];
 
   console.log('MessageList data:', data);
-  
+
   return (
     <div className="flex flex-col gap-4">
-      {messageList.map((message) => (
+      {messageList.map(message => (
         <MessageItem
           key={message.id}
           id={message.id}

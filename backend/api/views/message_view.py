@@ -1,3 +1,7 @@
+from datetime import datetime
+import uuid
+from django.conf import settings
+from api.utils.responses.response import api_response
 from rest_framework import viewsets, mixins, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -55,17 +59,27 @@ class MessageViewSet(mixins.CreateModelMixin,
         return queryset.order_by('created_at')
 
     def retrieve(self, request, *args, **kwargs):
-        """Get a specific message with full details"""
         try:
             instance = self.get_object()
             serializer = self.get_serializer(instance)
-            return Response(serializer.data)
+            return api_response(
+                data=serializer.data,
+                links={
+                    "self": request.build_absolute_uri(),
+                    "conversation": f"/api/conversations/{instance.conversation.uuid}/"
+                }
+            )
         except Exception as e:
             logger.error(f"Error fetching message: {str(e)}")
-            return Response(
-                {"error": "Failed to fetch message"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            return api_response(
+                error={
+                    "code": "MESSAGE_FETCH_ERROR",
+                    "message": "Failed to fetch message",
+                    "details": str(e)
+                },
+                status=500
             )
+        
 
     def create(self, request, *args, **kwargs):
         """
@@ -150,11 +164,25 @@ class MessageDetailView(APIView):
         super().__init__(**kwargs)
         self.message_service = MessageService()
 
+class MessageDetailView(APIView):
     def get(self, request, message_id):
         try:
             message = self.message_service.get_message(message_id, request.user)
             serializer = MessageSerializer(message)
-            return Response(serializer.data)
+            return api_response(
+                data=serializer.data,
+                links={
+                    "self": request.build_absolute_uri(),
+                    "conversation": f"/api/conversations/{message.conversation.uuid}/"
+                }
+            )
         except Exception as e:
             logger.error(f"Error fetching message: {str(e)}")
-            return Response({"error": "Failed to fetch message"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return api_response(
+                error={
+                    "code": "MESSAGE_FETCH_ERROR",
+                    "message": "Failed to fetch message",
+                    "details": str(e)
+                },
+                status=500
+            )

@@ -8,24 +8,25 @@ export type Prompt = {
   prompt: string;
 };
 
-export const getPrompts = (): Promise<{ prompts: Prompt[] }> => {
-  return api.get(`/ollama/default/`);
+export const getPrompts = (style?: string): Promise<{ prompts: Prompt[] }> => {
+  return api.get(`/ollama/default/${style || ''}`);
 };
 
-export const getPromptsQueryOptions = () => {
+export const getPromptsQueryOptions = (style?: string) => {
   return queryOptions({
-    queryKey: ['ollama', 'prompts'],
-    queryFn: () => getPrompts(),
+    queryKey: ['ollama', 'prompts', style],
+    queryFn: () => getPrompts(style),
   });
 };
 
 type UsePromptsOptions = {
+  style?: string;
   queryConfig?: QueryConfig<typeof getPromptsQueryOptions>;
 };
 
-export const usePrompts = ({ queryConfig }: UsePromptsOptions = {}) => {
+export const usePrompts = ({ style, queryConfig }: UsePromptsOptions = {}) => {
   return useQuery({
-    ...getPromptsQueryOptions(),
+    ...getPromptsQueryOptions(style),
     ...queryConfig,
   });
 };

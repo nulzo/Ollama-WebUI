@@ -21,16 +21,61 @@ import { ThemeSettings } from '@/features/settings/components/theme-settings';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { User, Palette } from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { BrainCircuit, Zap, Shield, Bell, Eye, MessageSquare } from 'lucide-react'
+import { ChevronRight, Server } from 'lucide-react'; // Add these imports
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useSettings, useProviderSettings } from '@/features/settings/api/get-settings';
 
+interface ProviderSettings {
+  apiKey: string;
+  endpoint?: string;
+  organizationId?: string;
+  modelOptions?: string[];
+}
+
+const providers = {
+  ollama: {
+    name: 'Ollama',
+    icon: Server,
+    settings: {
+      endpoint: 'http://localhost:11434',
+      modelOptions: ['llama2', 'mistral', 'codellama']
+    }
+  },
+  openai: {
+    name: 'OpenAI',
+    icon: Server,
+    settings: {
+      apiKey: '',
+      organizationId: '',
+      modelOptions: ['gpt-4', 'gpt-3.5-turbo']
+    }
+  },
+  azure: {
+    name: 'Azure AI',
+    icon: Server,
+    settings: {
+      apiKey: '',
+      endpoint: '',
+      modelOptions: ['gpt-4', 'gpt-35-turbo']
+    }
+  },
+  anthropic: {
+    name: 'Anthropic',
+    icon: Server,
+    settings: {
+      apiKey: '',
+      modelOptions: ['claude-3-opus', 'claude-3-sonnet']
+    }
+  }
+};
+
+type ProviderType = 'ollama' | 'openai' | 'azure' | 'anthropic';
 
 interface SidebarProps {
   conversationList?: React.ReactNode;
@@ -41,9 +86,16 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user, isLoading } = useAuth();
   const animationDuration = 0.2;
-  const [selectedSetting, setSelectedSetting] = useState('general');
   const navigate = useNavigate();
-  const [openModal, setOpenModal] = useState<string | null>(null)
+  const [openModal, setOpenModal] = useState<string | null>(null);
+  const [selectedSetting, setSelectedSetting] = useState('general');
+  const [selectedProvider, setSelectedProvider] = useState<ProviderType | null>(null);
+  const [isProvidersExpanded, setIsProvidersExpanded] = useState(false);
+  const { data: settings } = useSettings();
+  const { data: providerSettings } = useProviderSettings();
+
+  console.log(providerSettings, settings);
+
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
@@ -57,20 +109,20 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
   }
 
   return (
-      <motion.div
-        className="left-0 z-10 fixed inset-y-0 sidebar-container"
-        initial={false} // Prevent initial animation
-        animate={{
-          width: isCollapsed ? '55px' : '250px'
-        }}
-        transition={{
-          duration: animationDuration,
-          ease: "easeInOut"
-        }}
-        style={{
-          width: isCollapsed ? '55px' : '250px', // Force immediate width
-        }}
-      >
+    <motion.div
+      className="left-0 z-10 fixed inset-y-0 sidebar-container"
+      initial={false} // Prevent initial animation
+      animate={{
+        width: isCollapsed ? '55px' : '250px'
+      }}
+      transition={{
+        duration: animationDuration,
+        ease: "easeInOut"
+      }}
+      style={{
+        width: isCollapsed ? '55px' : '250px', // Force immediate width
+      }}
+    >
       <div className="flex flex-col border-alpha-200 bg-secondary border-r h-svh overflow-hidden">
         {/* Top Section */}
         <div className="relative flex items-center mt-2 p-2 pb-1">
@@ -355,152 +407,187 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
         <DialogContent className="gap-0 p-0 sm:max-w-[825px]">
           <div className="flex h-[600px]">
             {/* Settings Sidebar */}
-            <div className="border-r border-border w-[200px] shrink-0">
+            <div className="bg-secondary border-r border-border w-[200px] shrink-0">
               <DialogHeader className="p-4 pb-2">
                 <DialogTitle>Settings</DialogTitle>
               </DialogHeader>
               <div className="flex flex-col gap-1 p-2">
-                {[
-                  { value: 'general', label: 'General', icon: Settings2 },
-                  { value: 'models', label: 'Models', icon: BrainCircuit },
-                  { value: 'privacy', label: 'Privacy', icon: Shield },
-                  { value: 'notifications', label: 'Notifications', icon: Bell }
-                ].map((item) => (
-                  <Button
-                    key={item.value}
-                    variant={selectedSetting === item.value ? "secondary" : "ghost"}
-                    className="justify-start gap-2"
-                    onClick={() => setSelectedSetting(item.value)}
-                  >
-                    <item.icon className="size-4" />
-                    {item.label}
-                  </Button>
-                ))}
+                <Button
+                  variant={selectedSetting === 'general' ? "secondary" : "ghost"}
+                  className="justify-start gap-2"
+                  onClick={() => {
+                    setSelectedSetting('general');
+                    setSelectedProvider(null);
+                  }}
+                >
+                  <Settings2 className="size-4" />
+                  General
+                </Button>
+                <Collapsible
+                  open={isProvidersExpanded}
+                  onOpenChange={setIsProvidersExpanded}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant={selectedSetting === 'providers' ? "secondary" : "ghost"}
+                      className="justify-between w-full"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Server className="size-4" />
+                        Providers
+                      </div>
+                      <ChevronRight className={`size-4 transition-transform ${isProvidersExpanded ? 'rotate-90' : ''}`} />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pl-4">
+                    {Object.entries(providers).map(([key, provider]) => (
+                      <Button
+                        key={key}
+                        variant={selectedProvider === key ? "secondary" : "ghost"}
+                        className="justify-start gap-2 w-full"
+                        onClick={() => {
+                          setSelectedSetting('providers');
+                          setSelectedProvider(key as ProviderType);
+                        }}
+                      >
+                        <provider.icon className="size-4" />
+                        {provider.name}
+                      </Button>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+                <Button
+                  variant={selectedSetting === 'privacy' ? "secondary" : "ghost"}
+                  className="justify-start gap-2"
+                  onClick={() => {
+                    setSelectedSetting('privacy');
+                    setSelectedProvider(null);
+                  }}
+                >
+                  <Shield className="size-4" />
+                  Privacy
+                </Button>
+
+                <Button
+                  variant={selectedSetting === 'admin' ? "secondary" : "ghost"}
+                  className="justify-start gap-2"
+                  onClick={() => {
+                    setSelectedSetting('admin');
+                    setSelectedProvider(null);
+                  }}
+                >
+                  <Settings className="size-4" />
+                  Admin
+                </Button>
+
               </div>
             </div>
-
             {/* Content Area */}
-            <div className="flex-1 p-12 overflow-y-auto">
-              {selectedSetting === 'general' && (
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="language">Language</Label>
-                    <Select>
-                      <SelectTrigger id="language">
-                        <SelectValue placeholder="Select language" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="es">Español</SelectItem>
-                        <SelectItem value="fr">Français</SelectItem>
-                        <SelectItem value="de">Deutsch</SelectItem>
-                      </SelectContent>
-                    </Select>
+            <div className="flex flex-col w-full h-full">
+              <div className="flex-1 p-8 overflow-y-auto">
+                {selectedSetting === 'general' && (
+                  <div className="space-y-6">
+                    <div className="space-y-1">
+                      <Label>Theme</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select theme" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="light">Light</SelectItem>
+                          <SelectItem value="dark">Dark</SelectItem>
+                          <SelectItem value="system">System</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Default Model</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select default model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="gpt-4">GPT-4</SelectItem>
+                          <SelectItem value="claude-3">Claude 3</SelectItem>
+                          <SelectItem value="llama2">Llama 2</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Language</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="es">Spanish</SelectItem>
+                          <SelectItem value="fr">French</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Timezone</Label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select timezone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="utc">UTC</SelectItem>
+                          <SelectItem value="est">Eastern Time</SelectItem>
+                          <SelectItem value="pst">Pacific Time</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="auto-save">Auto-save conversations</Label>
-                    <Switch id="auto-save" />
+                )}
+                {selectedSetting === 'providers' && selectedProvider && (
+                  <div className="space-y-6">
+                    {providerSettings?.map((provider) => (
+                      provider.provider_type === selectedProvider && (
+                        <div key={provider.id} className="space-y-4">
+                          <h2 className="font-semibold text-lg">{providers[provider.provider_type].name} Settings</h2>
+                          {/* Provider specific settings */}
+                          <div className="space-y-1">
+                            <Label>Endpoint</Label>
+                            <Input
+                              placeholder="Enter endpoint URL"
+                              defaultValue={provider.endpoint}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label>API Key</Label>
+                            <Input
+                              placeholder="Enter API key"
+                              defaultValue={provider.api_key}
+                            />
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <Label>Enable Provider</Label>
+                            <Switch defaultChecked={provider.is_enabled} />
+                          </div>
+                        </div>
+                      )
+                    ))}
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="timezone">Timezone</Label>
-                    <Select>
-                      <SelectTrigger id="timezone">
-                        <SelectValue placeholder="Select timezone" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="utc">UTC</SelectItem>
-                        <SelectItem value="est">Eastern Time</SelectItem>
-                        <SelectItem value="pst">Pacific Time</SelectItem>
-                        <SelectItem value="cet">Central European Time</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                )}
+              </div>
+              <div className="bg-background p-4 border-t border-border">
+                <div className="flex justify-end gap-4">
+                  <Button variant="outline" onClick={handleCloseModal}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      // Handle settings update
+                      console.log('Updating settings...');
+                      handleCloseModal();
+                    }}
+                  >
+                    Update Settings
+                  </Button>
                 </div>
-              )}
-
-              {selectedSetting === 'models' && (
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="default-model">Default Model</Label>
-                    <Select>
-                      <SelectTrigger id="default-model">
-                        <SelectValue placeholder="Select default model" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="gpt-4">GPT-4</SelectItem>
-                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-                        <SelectItem value="claude-2">Claude 2</SelectItem>
-                        <SelectItem value="palm">PaLM</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="temperature">Default Temperature</Label>
-                    <Slider id="temperature" min={0} max={2} step={0.1} defaultValue={[0.7]} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="max-tokens">Default Max Tokens</Label>
-                    <Input id="max-tokens" type="number" placeholder="Enter max tokens" />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="stream-response">Stream Response</Label>
-                    <Switch id="stream-response" />
-                  </div>
-                </div>
-              )}
-
-              {selectedSetting === 'privacy' && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="data-collection">Allow data collection for improvement</Label>
-                    <Switch id="data-collection" />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="third-party-sharing">Share data with third parties</Label>
-                    <Switch id="third-party-sharing" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="data-retention">Data Retention Period</Label>
-                    <Select>
-                      <SelectTrigger id="data-retention">
-                        <SelectValue placeholder="Select retention period" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="30">30 days</SelectItem>
-                        <SelectItem value="90">90 days</SelectItem>
-                        <SelectItem value="180">180 days</SelectItem>
-                        <SelectItem value="365">1 year</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-
-              {selectedSetting === 'notifications' && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="email-notifications">Email Notifications</Label>
-                    <Switch id="email-notifications" />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="push-notifications">Push Notifications</Label>
-                    <Switch id="push-notifications" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="notification-frequency">Notification Frequency</Label>
-                    <Select>
-                      <SelectTrigger id="notification-frequency">
-                        <SelectValue placeholder="Select frequency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="realtime">Real-time</SelectItem>
-                        <SelectItem value="daily">Daily Digest</SelectItem>
-                        <SelectItem value="weekly">Weekly Summary</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </DialogContent>

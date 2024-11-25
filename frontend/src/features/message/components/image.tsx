@@ -79,7 +79,7 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
   return (
     <>
       <motion.div
-        whileHover={{ scale: 1.02 }}
+        whileHover={{ scale: 1.00 }}
         whileTap={{ scale: 0.98 }}
         className="relative"
       >

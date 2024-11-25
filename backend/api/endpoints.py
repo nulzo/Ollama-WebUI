@@ -2,9 +2,6 @@ from api.views_old import (
     AssistantViewSet,
     ConversationList,
     ConversationDetail,
-    MessageList,
-    SettingsList,
-    SettingsDetail,
     UserSettingsList,
     UserSettingsDetail,
     CurrentUserView,
@@ -20,13 +17,15 @@ from api.view.ollama import OllamaPrompts
 from api.view.openai import OpenAIChat, OpenAIModels
 from api.views.chat_view import ChatView
 from api.views.image_view import MessageImageViewSet
+from api.views.settings_view import ProviderSettingsViewSet, SettingsViewSet
 
 router = DefaultRouter()
 
 router.register(r"assistant", AssistantViewSet)
 router.register(r'messages', MessageViewSet, basename='message')
 router.register(r'images', MessageImageViewSet, basename='images')
-
+router.register(r'settings', SettingsViewSet, basename='settings')
+router.register(r'providers', ProviderSettingsViewSet, basename='provider')
 
 urlpatterns = [
     path("chat/", ChatView.as_view(), name="chat"),
@@ -34,8 +33,6 @@ urlpatterns = [
     path("conversations/<str:pk>/", ConversationDetail.as_view(), name="conversation-detail"),
     path("user/", UserSettingsList.as_view(), name="user-list"),
     path("user/<int:pk>/", UserSettingsDetail.as_view(), name="user-detail"),
-    path("settings/", SettingsList.as_view(), name="settings-list"),
-    path("settings/<int:pk>/", SettingsDetail.as_view(), name="settings-detail"),
     path("", include(router.urls)),
     path("models/ollama/", OllamaModels.as_view(), name="ollama_models"),
     path("ollama/default/", OllamaPrompts.as_view(), name="ollama_default_prompts"),
@@ -46,4 +43,5 @@ urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
     path('user/current/', CurrentUserView.as_view(), name='current_user'),
     path("models/openai/", OpenAIModels.as_view(), name="openai_models"),
+    path('ollama/default/<str:style>/', OllamaPrompts.as_view(), name="ollama_default_prompts_styled"),
 ]

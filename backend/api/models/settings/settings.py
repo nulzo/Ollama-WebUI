@@ -1,21 +1,17 @@
 from django.db import models
-from api.models.users.user import CustomUser
 
+class ProviderSettings(models.Model):
+    user = models.ForeignKey('api.CustomUser', on_delete=models.CASCADE)
+    provider_type = models.CharField(max_length=50)
+    api_key = models.CharField(max_length=255, blank=True)
+    endpoint = models.CharField(max_length=255, blank=True)
+    organization_id = models.CharField(max_length=255, blank=True)
+    is_enabled = models.BooleanField(default=False)
 
 class Settings(models.Model):
-    # user preferences
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-
-    # ollama preferences
-    default_ollama_model = models.CharField(max_length=250)
-    default_ollama_port = models.IntegerField(default=11434)
-    default_ollama_url = models.CharField(max_length=250, default="http://127.0.0.1")
-
-    # openai preferences
-    openai_api_key = models.CharField(max_length=100, blank=True)
-    default_open_ai_model = models.CharField(max_length=300)
-    default_open_ai_temperature = models.FloatField(default=0.7)
-    default_open_ai_max_tokens = models.IntegerField(default=500)
-
-    # theme preferences
-    theme = models.CharField(max_length=30, default="dark")
+   user = models.ForeignKey('api.CustomUser', on_delete=models.CASCADE)
+   theme = models.CharField(max_length=30, default="dark")
+   default_model = models.CharField(max_length=50, default="llama3.2:3b")
+   
+   class Meta:
+       verbose_name_plural = "Settings"

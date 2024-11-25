@@ -1,6 +1,7 @@
 from ollama import Client
 from typing import Union, List, Dict, Any
 from django.conf import settings
+import json
 
 
 class OllamaService:
@@ -19,7 +20,7 @@ class OllamaService:
 
     def get_all_models(self):
         return self._client.list()
-    
+
     def get_model(self, model_name: str):
         """
         Get details for a specific model
@@ -30,58 +31,126 @@ class OllamaService:
         except Exception as e:
             print(f"Error fetching model details: {e}")
             return None
-    
-    def get_actionable_prompts(self) -> List[Dict[str, str]]:
+
+    def get_actionable_prompts(self, style: str = '') -> List[Dict[str, str]]:
         """
         Returns a list of predefined actionable prompts with titles.
         """
-        prompt = """Generate 5 random actionable prompts exploring a wide range of topics. Each prompt should have a title and a corresponding question or instruction. The output should be in the following JSON format:
-            {
-                "prompts": [
-                    {
-                        "title": "Create a love song",
-                        "prompt": "Please create a love song for me. Provide the chords and the lyrics."
-                    },
-                    ...
-                ]
-            }
-        Ensure the prompts are diverse, engaging, and cover various subjects.
-        Ensure that the JSON output is valid.
-        Be very creative with the prompts. They should be fun and engaging, while providing novelty.
-        Ensure that the prompts are less than 20 words each.
-        Ensure that the prompts are concise and to the point.
-        ONLY reply with the JSON output.
+        style_prompts = {
+            "default": """
+                Generate 5 unique and imaginative actionable prompts spanning a wide range of creative and intellectual topics. Each prompt should have an engaging title and a clear, concise question or instruction.
+
+                The responses should be in the following JSON format:
+                {
+                    "prompts": [
+                        {
+                            "title": "Explore Future Innovations",
+                            "prompt": "What groundbreaking technologies might emerge in the next decade?"
+                        },
+                        ...
+                    ]
+                }
+            """,
+            "creative": """
+                Generate 5 creative and imaginative conversation starters that encourage innovative thinking and artistic expression.
+
+                The responses should be in the following JSON format:
+                {
+                    "prompts": [
+                        {
+                            "title": "Invent a Novel Concept",
+                            "prompt": "Can you invent a new form of artistic expression and describe it?"
+                        },
+                        ...
+                    ]
+                }
+            """,
+            "analytical": """
+                Generate 5 analytical conversation starters focused on STEM, which emphasize logical analysis, problem-solving, and critical thinking. Focus on topics like mathematics, computer science, physics, and engineering, while also focusing on programming.
+
+                The responses should be in the following JSON format:
+                {
+                    "prompts": [
+                        {
+                            "title": "How to Optimize a Sort Algorithm",
+                            "prompt": "How would you optimize the performance of a sort algorithm with large datasets?"
+                        },
+                        ...
+                    ]
+                }
+            """,
+            "inspirational": """
+                Generate 5 inspirational conversation starters that motivate, encourage personal growth, and positive thinking.
+
+                The responses should be in the following JSON format:
+                {
+                    "prompts": [
+                        {
+                            "title": "Encourage Positive Change",
+                            "prompt": "What are some small daily habits that can lead to significant personal growth over time?"
+                        },
+                        ...
+                    ]
+                }
+            """,
+            "casual": """
+                Generate 5 casual and friendly conversation starters that are relaxed, informal, and suitable for everyday chat.
+
+                The responses should be in the following JSON format:
+                {
+                    "prompts": [
+                        {
+                            "title": "Discuss Popular Trends",
+                            "prompt": "What are currently trending topics in social media and why do they resonate with people?"
+                        },
+                        ...
+                    ]
+                }
+            """
+        }
+
+
+        prompt_dialog = """\n\n
+        The title should always start with a verb (i.e. "Create", "Design", "Imagine", "Explore", etc.) and be a summary of the prompt.
+        Ensure that each prompt is phrased in less than 100 words.
+        Maintain strict JSON formatting standards for output validity.
+        The title should be at least 5 words.
+        Respond solely with the JSON output.
         """
 
-        response = self._client.chat(model="llama3.2:3b", messages=[{"role": "user", "content": prompt}], format="json")
-        # Parse the JSON response
-        import json
+        prompt = style_prompts.get(style.lower(), style_prompts["default"]) + prompt_dialog
+
+        response = self._client.chat(
+            model="llama3.2:3b",
+            messages=[{"role": "user", "content": prompt}],
+            format="json"
+        )
         try:
-            prompts = json.loads(response['message']['content'])
+            prompts = json.loads(response["message"]["content"])
             return prompts
         except Exception as e:
             # Fallback to default prompts if parsing fails
             return [
                 {
                     "title": "Explore Space Colonization",
-                    "prompt": "What are the main challenges and potential solutions for establishing a self-sustaining human colony on Mars?"
+                    "prompt": "What are the main challenges and potential solutions for establishing a self-sustaining human colony on Mars?",
                 },
                 {
                     "title": "Reinvent Education",
-                    "prompt": "Propose an innovative education system that addresses the shortcomings of traditional schooling and prepares students for the challenges of the 22nd century."
+                    "prompt": "Propose an innovative education system that addresses the shortcomings of traditional schooling and prepares students for the challenges of the 22nd century.",
                 },
                 {
                     "title": "Solve Global Hunger",
-                    "prompt": "Develop a comprehensive plan to eliminate world hunger using sustainable agriculture, technology, and policy changes."
+                    "prompt": "Develop a comprehensive plan to eliminate world hunger using sustainable agriculture, technology, and policy changes.",
                 },
                 {
                     "title": "Design Future Transportation",
-                    "prompt": "Conceptualize a revolutionary transportation system that is fast, eco-friendly, and accessible to everyone globally."
+                    "prompt": "Conceptualize a revolutionary transportation system that is fast, eco-friendly, and accessible to everyone globally.",
                 },
                 {
                     "title": "Advance Artificial Intelligence",
-                    "prompt": "What ethical considerations should guide the development of artificial general intelligence (AGI) to ensure it benefits humanity?"
-                }
+                    "prompt": "What ethical considerations should guide the development of artificial general intelligence (AGI) to ensure it benefits humanity?",
+                },
             ]
 
 

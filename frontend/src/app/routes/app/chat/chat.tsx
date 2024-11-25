@@ -47,7 +47,8 @@ export function ChatRoute() {
             <ConversationDefault />
           )}
         </ConversationArea>
-        <div className="backdrop-blur pt-4 pb-4 transition">
+        <div className="relative">
+          {/* <div className="-top-4 z-[100] absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background backdrop-blur-[1px]" /> */}
           <ChatInput onSubmit={handleSubmit} />
         </div>
       </div>

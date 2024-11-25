@@ -6,7 +6,7 @@ from api.models.messages.message import Message
 from api.serializers.message import MessageSerializer
 from api.serializers.user import UserSerializer
 from api.serializers.conversation import ConversationSerializer
-from api.serializers.settings import SettingsSerializer
+# from api.serializers.settings import SettingsSerializer
 from api.models.settings.settings import Settings
 from api.models.assistant.assistant import Assistant
 from api.serializers.assistant import AssistantSerializer
@@ -92,14 +92,14 @@ class UserSettingsDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
 
 
-class SettingsList(generics.ListCreateAPIView):
-    queryset = Settings.objects.all()
-    serializer_class = SettingsSerializer
+# class SettingsList(generics.ListCreateAPIView):
+#     queryset = Settings.objects.all()
+#     serializer_class = SettingsSerializer
 
 
-class SettingsDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Settings.objects.all()
-    serializer_class = SettingsSerializer
+# class SettingsDetail(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Settings.objects.all()
+#     serializer_class = SettingsSerializer
 
 class LoginView(APIView):
     def post(self, request):

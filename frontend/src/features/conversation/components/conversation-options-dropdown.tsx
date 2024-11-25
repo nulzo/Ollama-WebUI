@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useDeleteConversation } from '../api/delete-conversation';
-import { Pen, Pin, PinOff, Trash } from 'lucide-react';
+import { Pen, Pin, PinOff, SquareMenu, Trash } from 'lucide-react';
 import { useUpdateConversation } from '../api/update-conversation';
 
 interface ConversationOptionsDropdownProps {
@@ -37,6 +37,7 @@ export const ConversationOptionsDropdown = ({
   const deleteChat = useDeleteConversation();
   const updateChat = useUpdateConversation();
   const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
+  const [isSummarizeDialogOpen, setIsSummarizeDialogOpen] = useState(false);
   const [newName, setNewName] = useState(name);
 
   const handlePinToggle = () => {
@@ -70,15 +71,26 @@ export const ConversationOptionsDropdown = ({
     [name]
   );
 
+  const handleSummarizeOpenChange = useCallback(
+    (open: boolean) => {
+      setIsSummarizeDialogOpen(open);
+    },
+    []
+  );
+
+  const handleSummarize = () => {
+    setIsSummarizeDialogOpen(false);
+  };
+
   return (
-    <div className="flex self-center space-x-1">
+    <div className="flex space-x-1 self-center">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <DotsHorizontalIcon className="hover:stroke-primary self-center transition" />
+          <DotsHorizontalIcon className="hover:stroke-primary transition self-center" />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-[150px]" align="center" sideOffset={2} side="right">
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={handlePinToggle} className="gap-2 items-center">
+            <DropdownMenuItem onClick={handlePinToggle} className="items-center gap-2">
               {is_pinned ? (
                 <>
                   <PinOff className="size-3" /> Unpin
@@ -91,17 +103,23 @@ export const ConversationOptionsDropdown = ({
             </DropdownMenuItem>
             <DropdownMenuItem
               onSelect={() => setIsNameDialogOpen(true)}
-              className="gap-2 items-center"
+              className="items-center gap-2"
             >
               <Pen className="size-3" /> Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => setIsSummarizeDialogOpen(true)}
+              className="items-center gap-2"
+            >
+              <SquareMenu className="size-3" /> Summarize
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onSelect={() => deleteChat.mutate({ conversationID: conversationID })}
-            className="flex gap-2 items-center group focus:bg-destructive"
+            className="flex items-center gap-2 focus:bg-destructive group"
           >
-            <Trash className="size-3.5 group-hover:stroke-destructive-foreground text-destructive" />
+            <Trash className="group-hover:stroke-destructive-foreground text-destructive size-3.5" />
             <span className="group-hover:text-destructive-foreground text-destructive">Delete</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -112,8 +130,8 @@ export const ConversationOptionsDropdown = ({
           <DialogHeader>
             <DialogTitle>Rename Chat</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
+          <div className="gap-4 grid py-4">
+            <div className="items-center gap-4 grid grid-cols-4">
               <Label htmlFor="name" className="text-right">
                 Name
               </Label>
@@ -131,6 +149,29 @@ export const ConversationOptionsDropdown = ({
               Cancel
             </Button>
             <Button onClick={handleChangeName}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isSummarizeDialogOpen} onOpenChange={handleSummarizeOpenChange}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Summarize Chat</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2 py-4">
+              <div className="flex flex-col bg-muted/25 border rounded-md w-full h-72">
+                <p className="m-auto text-muted-foreground text-sm">
+                  Please press the <code className='border-primary/25 bg-primary/5 m-1 p-1 border rounded-lg text-primary'>Summarize</code> button to generate a summary ...
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => handleSummarizeOpenChange(false)}>
+              Close
+            </Button>
+            <Button onClick={handleSummarize}>Summarize</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

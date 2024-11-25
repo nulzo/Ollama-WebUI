@@ -5,7 +5,6 @@ import { Message as MessageType } from '@/features/message/types/message';
 import { BotIcon } from '@/features/message/components/bot-icon';
 import { formatDate } from '@/utils/format';
 import { CopyButton } from '@/features/message/components/copy-message';
-import { Image } from './image';
 import { LikeButton } from './like-message';
 import { EnhanceButton } from './enhance-button';
 import { AsyncMessageImage } from './async-image';
@@ -44,7 +43,7 @@ export const Message: React.FC<MessageProps> = ({
   return (
     <div className="flex flex-col gap-1 pb-4">
       <div
-        className={`text-sm items-baseline gap-1 py-0 my-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-primary ps-11' : 'text-muted-foreground flex justify-end'}`}
+        className={`text-sm items-baseline gap-1 py-0 my-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-primary ps-11 w-full' : 'text-muted-foreground flex justify-end'}`}
       >
         {role !== 'user' && modelName}
         <span className={`font-base text-[10px] text-muted-foreground/50 ${role === 'user' ? 'pb-0 flex justify-end' : ''}`}>{formattedDate}</span>
@@ -59,16 +58,16 @@ export const Message: React.FC<MessageProps> = ({
         </div>
       )}
       <div
-        className={`flex place-items-start ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}
+        className={`flex place-items-start ${role !== 'user' ? 'justify-start w-full' : 'justify-end'}`}
       >
         <div className="flex items-center mb-2 font-bold pe-2">
           {role !== 'user' && <BotIcon assistantId={assistantId ?? 0} />}
         </div>
-        <div className={`${role !== 'user' ? 'w-[75%] flex items-center align-middle' : ''}`}>
+        <div className={`${role !== 'user' ? 'w-full flex items-center align-middle' : ''}`}>
           <div
             className={`px-1 ${role !== 'user'
               ? 'rounded-e-xl rounded-b-xl'
-              : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl backdrop-blur'
+              : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl'
               }`}
           >
             <div className="flex flex-col items-center border-0 m-0 w-full align-middle">

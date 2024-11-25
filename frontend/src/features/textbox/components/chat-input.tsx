@@ -26,7 +26,7 @@ export function ChatInput({ onSubmit }: ChatInputProps) {
   };
 
   return (
-    <div className="pb-4 pt-4 transition backdrop-blur">
+    <div className="relative z-[1000] pt-1 pb-4 transition">
       <AutoResizeTextarea
         text={message}
         setText={setMessage}
@@ -36,7 +36,7 @@ export function ChatInput({ onSubmit }: ChatInputProps) {
         onRemoveImage={handleRemoveImage}
         uploadedImages={images}
       />
-      <div className="text-xs gap-1 text-muted-foreground mt-1 pb-1 flex w-full text-center justify-center">
+      <div className="flex justify-center gap-1 mt-1 pb-1 w-full text-center text-muted-foreground text-xs">
         CringeGPT <span className="italic">never</span> makes mistakes.
       </div>
     </div>

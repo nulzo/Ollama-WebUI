@@ -17,14 +17,16 @@ const promptStyles = [
 ];
 
 export const ConversationDefault = () => {
-  const { data, isLoading, isFetching, refetch, isRefetching } = usePrompts();
+  const [selectedStyle, setSelectedStyle] = useState('');
+  const { data, isLoading, isFetching, refetch, isRefetching } = usePrompts({
+    style: selectedStyle.toLowerCase(),
+  });
   const { submitMessage } = useConversation();
   const [isProcessing, setIsProcessing] = useState(false);
   const cardMap = [0, 1, 2, 3, 4];
   const [displayText, setDisplayText] = useState('CringeAI');
   const [fade, setFade] = useState(true);
   const user = useUser();
-  const [selectedStyle, setSelectedStyle] = useState('');
   const navigate = useNavigate();
 
   const handleMessage = async (message: string, image: string | null = null) => {
@@ -84,17 +86,17 @@ export const ConversationDefault = () => {
   const handlePromptClick = (prompt: string) => handleMessage(prompt);
 
   return (
-    <div className="relative mt-auto h-full flex flex-col items-center justify-center p-4 sm:p-8">
+    <div className="relative flex flex-col justify-center items-center mt-auto p-4 sm:p-8 h-full">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-center mb-8 w-full max-w-4xl"
+        className="mb-8 w-full max-w-4xl text-center"
       >
-        <div className='text-5xl font-bold flex gap-2 items-baseline justify-center'>
+        <div className='flex justify-center items-baseline gap-2 font-bold text-5xl'>
           Welcome to <div className={`text-primary transition-opacity duration-300 ${fade ? 'opacity-100' : 'opacity-0'}`}>{displayText}</div>
         </div>
-        <div className='text-muted-foreground font-semibold text-xl mt-1'>
+        <div className='mt-1 font-semibold text-muted-foreground text-xl'>
           How can I help you today{user?.data?.username ? `, ${user?.data?.username}?` : '?'}
         </div>
       </motion.div>
@@ -103,15 +105,15 @@ export const ConversationDefault = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="w-full max-w-4xl bg-secondary/50 rounded-2xl p-6 sm:p-8"
+        className="bg-secondary/50 p-6 sm:p-8 rounded-2xl w-full max-w-4xl"
       >
-        <h2 className="text-md font-semibold text-muted-foreground mb-4">Choose your conversation style</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+        <h2 className="mb-4 font-semibold text-md text-muted-foreground">Choose your conversation style</h2>
+        <div className="gap-4 grid grid-cols-2 sm:grid-cols-4 mb-10">
           {promptStyles.map((style) => (
             <Button
               key={style.name}
               variant={selectedStyle === style.name ? "default" : "outline"}
-              className="flex items-center justify-center gap-2 h-12"
+              className="flex justify-center items-center gap-2 h-12"
               onClick={() => setSelectedStyle(style.name)}
             >
               {style.icon}
@@ -120,13 +122,13 @@ export const ConversationDefault = () => {
           ))}
         </div>
 
-        <div className='flex gap-2 items-center justify-start font-base text-muted-foreground text-sm mb-4'>
-          <Flame className='size-3 text-primary' />
+        <div className='flex justify-start items-center gap-2 mb-4 font-base text-muted-foreground text-sm'>
+          <Flame className='text-primary size-3' />
           <span className="font-medium text-xs">Personalized Recommendations</span>
         </div>
 
         {(!data || isLoading || isFetching) ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
             {[1, 2, 3, 4, 5, 6].map((index) => (
               <motion.div
                 key={`skeleton-${index}`}
@@ -134,14 +136,14 @@ export const ConversationDefault = () => {
                 variants={cardVariants}
                 initial="hidden"
                 animate="visible"
-                className="h-[52px] p-4 rounded-lg bg-secondary/15 backdrop-blur-sm flex items-center"
+                className="flex items-center bg-secondary/15 backdrop-blur-sm p-4 rounded-lg h-[52px]"
               >
                 <Skeleton className="w-full h-4" />
               </motion.div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
             {data.prompts.prompts.map((item, index) => (
               <motion.div
                 key={index}
@@ -150,17 +152,17 @@ export const ConversationDefault = () => {
                 initial="hidden"
                 animate="visible"
                 onClick={() => handleMessage(item.prompt)}
-                className="group h-[52px] px-4 rounded-lg border border-secondary/50 hover:border-primary/50 bg-secondary/20 hover:bg-secondary/30 backdrop-blur-sm cursor-pointer transition-all duration-200 ease-in-out flex items-center justify-between hover:shadow-sm"
+                className="flex justify-between items-center border-secondary/50 hover:border-primary/50 bg-secondary/20 hover:bg-secondary/30 hover:shadow-sm backdrop-blur-sm px-4 border rounded-lg h-[52px] transition-all duration-200 cursor-pointer ease-in-out group"
               >
                 <div className="flex items-center gap-1 overflow-hidden">
-                  <span className="text-sm font-semibold text-primary whitespace-nowrap">
+                  <span className="font-semibold text-primary text-sm whitespace-nowrap">
                     {item.title.split(' ')[0]}
                   </span>
-                  <span className="text-sm text-muted-foreground truncate">
+                  <span className="text-muted-foreground text-sm truncate">
                     {item.title.split(' ').slice(1).join(' ')}
                   </span>
                 </div>
-                <Send className="w-3 h-3 text-primary/70 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Send className="opacity-0 group-hover:opacity-100 w-3 h-3 text-primary/70 transition-opacity" />
               </motion.div>
             ))}
 
@@ -170,9 +172,9 @@ export const ConversationDefault = () => {
               initial="hidden"
               animate="visible"
               onClick={() => refetch()}
-              className="group h-[52px] px-4 rounded-lg border border-secondary/50 hover:border-primary/50 bg-secondary/20 hover:bg-secondary/30 backdrop-blur-sm cursor-pointer transition-all duration-200 ease-in-out flex items-center justify-between hover:shadow-sm"
+              className="flex justify-between items-center border-secondary/50 hover:border-primary/50 bg-secondary/20 hover:bg-secondary/30 hover:shadow-sm backdrop-blur-sm px-4 border rounded-lg h-[52px] transition-all duration-200 cursor-pointer ease-in-out group"
             >
-              <span className="text-sm text-muted-foreground truncate">
+              <span className="text-muted-foreground text-sm truncate">
                 Regenerate Recommendations
               </span>
               <RefreshCcw className={`w-3 h-3 text-primary/70 opacity-0 group-hover:opacity-100 transition-opacity ${isFetching ? 'animate-spin' : ''}`} />

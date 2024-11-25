@@ -125,8 +125,8 @@ export default function DynamicTextarea({
 
   return (
     <TooltipProvider>
-      <div className="inset-x-0 border-spacing-2 bg-transparent mx-auto px-[75px] w-full max-w-6xl overflow-hidden">
-        <div className="relative z-10 inset-x-0 border-input border-spacing-2 focus-within:border-primary shadow-sm mx-auto border rounded-lg ring-primary/50 focus-within:ring-1 w-full max-w-6xl overflow-hidden">
+      <div className="inset-x-0 border-spacing-2 bg-transparent mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-7xl overflow-hidden">
+        <div className="relative z-10 inset-x-0 border-input border-spacing-2 focus-within:border-primary shadow-sm mx-auto border rounded-lg ring-primary/50 focus-within:ring-1 w-full overflow-hidden">
           <textarea
             ref={textareaRef}
             value={text}

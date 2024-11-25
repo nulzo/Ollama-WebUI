@@ -79,10 +79,6 @@ export function AssistantCard({ assistantId, onClose }: AssistantCardProps) {
     );
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>

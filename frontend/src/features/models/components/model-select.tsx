@@ -23,6 +23,7 @@ import { Tooltip } from '@radix-ui/react-tooltip';
 import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAssistants } from '@/features/assistant/hooks/use-assistant';
 import { Assistant } from '@/features/assistant/types/assistant';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const ModelSelect = () => {
   const [open, setOpen] = useState(false);
@@ -64,7 +65,7 @@ export const ModelSelect = () => {
   if (ollamaModels.isLoading || isLoadingAssistants) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
-        <Spinner size="lg" />
+        <Skeleton className="w-32 h-8" />
       </div>
     );
   }

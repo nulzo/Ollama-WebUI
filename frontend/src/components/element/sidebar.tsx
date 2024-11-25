@@ -94,7 +94,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
   const { data: settings } = useSettings();
   const { data: providerSettings } = useProviderSettings();
 
-  console.log(providerSettings, settings);
+  // console.log(providerSettings, settings);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);

@@ -93,6 +93,7 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
   const [streamContent, setStreamContent] = useState('');
   const [currentModel, setCurrentModel] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [optimisticMessage, setOptimisticMessage] = useState<any>(null);
 
   useEffect(() => {
     const handleMessageChunk = (event: CustomEvent) => {
@@ -102,6 +103,11 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
         onStreamingUpdate(message.content);
         setIsStreaming(true);
       }
+    };
+
+    const handleMessageSent = (event: CustomEvent) => {
+      const { message } = event.detail;
+      setOptimisticMessage(message);
     };
 
     const handleMessageDone = () => {
@@ -137,6 +143,17 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
           created_at={message.created_at}
         />
       ))}
+      {optimisticMessage && (
+        <Message
+          {...optimisticMessage}
+          username={optimisticMessage.user || 'You'}
+          time={Date.now()}
+          isTyping={false}
+          conversation_id={conversation_id}
+          modelName={optimisticMessage.model || 'You'}
+          isLoading={false}
+        />
+      )}
       {isStreaming && streamContent && (
         <StreamingMessage
           content={streamContent}

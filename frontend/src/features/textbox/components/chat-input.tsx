@@ -26,7 +26,7 @@ export function ChatInput({ onSubmit }: ChatInputProps) {
   };
 
   return (
-    <div className="relative z-[1000] pt-1 pb-4 transition">
+    <div className="relative pt-1 pb-4 transition w-full">
       <AutoResizeTextarea
         text={message}
         setText={setMessage}

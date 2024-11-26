@@ -1247,6 +1247,11 @@ body {
   margin-bottom: 1.5rem;
 }
 
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
 .-ml-4 {
   margin-left: -1rem;
 }
@@ -1357,6 +1362,10 @@ body {
 
 .mt-auto {
   margin-top: auto;
+}
+
+.mb-0 {
+  margin-bottom: 0px;
 }
 
 .block {
@@ -1840,6 +1849,10 @@ body {
 
 .w-screen {
   width: 100vw;
+}
+
+.w-\[95\%\] {
+  width: 95%;
 }
 
 .min-w-0 {
@@ -2742,6 +2755,10 @@ body {
   stroke: #fef08a;
 }
 
+.stroke-foreground {
+  stroke: hsl(var(--foreground));
+}
+
 .object-contain {
   -o-object-fit: contain;
      object-fit: contain;
@@ -3015,6 +3032,18 @@ body {
 
 .pt-8 {
   padding-top: 2rem;
+}
+
+.ps-6 {
+  padding-inline-start: 1.5rem;
+}
+
+.ps-4 {
+  padding-inline-start: 1rem;
+}
+
+.ps-5 {
+  padding-inline-start: 1.25rem;
 }
 
 .text-left {

@@ -35,58 +35,79 @@ export const Message: React.FC<MessageProps> = ({
   if (isLoading) {
     return <div className="flex flex-col gap-2 pb-4">
       <div className="flex flex-col gap-2 pb-4">
-
       </div>
     </div>;
   }
 
   return (
     <div className="flex flex-col gap-1 pb-4">
-      <div
-        className={`text-sm items-baseline gap-1 py-0 my-0 leading-none font-semibold flex place-items-start pl-6 ${role !== 'user' ? 'text-primary ps-11 w-full' : 'text-muted-foreground flex justify-end'}`}
-      >
-        {role !== 'user' && modelName}
-        <span className={`font-base text-[10px] text-muted-foreground/50 ${role === 'user' ? 'pb-0 flex justify-end' : ''}`}>{formattedDate}</span>
-      </div>
-      {image_ids.length > 0 && (
-        <div className={`flex flex-wrap gap-2 place-items-start items-center align-middle ${role !== 'user' ? 'justify-start' : 'justify-end ps-[25%]'}`}>
-          <AsyncMessageImage
-            imageId={image_ids[0] as number}
-            images={image_ids as number[]}
-            currentIndex={0}
-          />
-        </div>
-      )}
-      <div
-        className={`flex place-items-start ${role !== 'user' ? 'justify-start w-full' : 'justify-end'}`}
-      >
-        <div className="flex items-center mb-2 font-bold pe-2">
-          {role !== 'user' && <BotIcon assistantId={assistantId ?? 0} />}
-        </div>
-        <div className={`${role !== 'user' ? 'w-full flex items-center align-middle' : ''}`}>
-          <div
-            className={`px-1 ${role !== 'user'
-              ? 'rounded-e-xl rounded-b-xl'
-              : 'pt-3 px-4 bg-primary/25 rounded-s-xl rounded-b-xl'
-              }`}
-          >
-            <div className="flex flex-col items-center border-0 m-0 w-full align-middle">
-              <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
-              {isTyping && (
-                <div className="flex justify-start items-center w-full h-4 ps-2">
-                  <div className="typing-indicator" />
-                </div>
-              )}
+      {role !== 'user' ? (
+        // Bot message
+        <div className="flex flex-col w-full">
+          {/* Header with icon and name */}
+          <div className="flex items-center gap-3 mb-0 ps-5">
+            <BotIcon assistantId={assistantId ?? 0} />
+            <div className="flex items-baseline gap-2">
+              <span className="font-semibold text-primary text-sm">{modelName}</span>
+              <span className="text-[10px] text-muted-foreground/50">{formattedDate}</span>
             </div>
           </div>
+          
+          {/* Content section */}
+          <div className="w-full ps-11">
+            {image_ids.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                <AsyncMessageImage
+                  imageId={image_ids[0] as number}
+                  images={image_ids as number[]}
+                  currentIndex={0}
+                />
+              </div>
+            )}
+            <div className="px-1">
+              <div className="flex flex-col items-center border-0 m-0 w-full">
+                <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
+                {isTyping && (
+                  <div className="flex justify-start items-center w-full h-4 ps-2">
+                    <div className="typing-indicator" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          {!isTyping && (
+            <div className="flex gap-2 mt-2 ms-12">
+              <LikeButton content={content?.trim() ?? ''} />
+              <CopyButton content={content?.trim() ?? ''} />
+              <EnhanceButton content={content?.trim() ?? ''} />
+              <RefreshCw className="size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer" />
+            </div>
+          )}
         </div>
-      </div>
-      {role !== 'user' && !isTyping && (
-        <div className="flex gap-2 ms-12">
-          <LikeButton content={content?.trim() ?? ''} />
-          <CopyButton content={content?.trim() ?? ''} />
-          <EnhanceButton content={content?.trim() ?? ''} />
-          <RefreshCw className="size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer" />
+      ) : (
+        // User message (unchanged)
+        <div className="flex flex-col gap-1">
+          <div className="flex justify-end items-baseline gap-1 my-0 py-0 font-semibold text-muted-foreground text-sm leading-none">
+            <span className="pb-0 font-base text-[10px] text-muted-foreground/50">{formattedDate}</span>
+          </div>
+          {image_ids.length > 0 && (
+            <div className="flex flex-wrap justify-end gap-2 ps-[25%]">
+              <AsyncMessageImage
+                imageId={image_ids[0] as number}
+                images={image_ids as number[]}
+                currentIndex={0}
+              />
+            </div>
+          )}
+          <div className="flex justify-end">
+            <div className="bg-primary/25 px-4 pt-3 rounded-b-xl rounded-s-xl">
+              <div className="flex flex-col items-center border-0 m-0 w-full">
+                <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

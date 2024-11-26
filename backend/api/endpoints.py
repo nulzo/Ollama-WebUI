@@ -1,7 +1,5 @@
 from api.views_old import (
     AssistantViewSet,
-    ConversationList,
-    ConversationDetail,
     UserSettingsList,
     UserSettingsDetail,
     CurrentUserView,
@@ -19,6 +17,7 @@ from api.view.openai import OpenAIChat, OpenAIModels
 from api.views.chat_view import ChatView
 from api.views.image_view import MessageImageViewSet
 from api.views.settings_view import ProviderSettingsViewSet, SettingsViewSet
+from api.views.conversation_view import ConversationViewSet
 
 router = DefaultRouter()
 
@@ -28,12 +27,11 @@ router.register(r'images', MessageImageViewSet, basename='images')
 router.register(r'settings', SettingsViewSet, basename='settings')
 router.register(r'providers', ProviderSettingsViewSet, basename='provider')
 router.register(r'agents', AgentViewSet, basename='agent')
+router.register(r'conversations', ConversationViewSet, basename='conversation')
 
 
 urlpatterns = [
     path("chat/", ChatView.as_view(), name="chat"),
-    path("conversations/", ConversationList.as_view(), name="conversation-list"),
-    path("conversations/<str:pk>/", ConversationDetail.as_view(), name="conversation-detail"),
     path("user/", UserSettingsList.as_view(), name="user-list"),
     path("user/<int:pk>/", UserSettingsDetail.as_view(), name="user-detail"),
     path("", include(router.urls)),

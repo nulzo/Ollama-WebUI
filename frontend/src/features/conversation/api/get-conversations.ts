@@ -1,25 +1,28 @@
-import { queryOptions, useQuery } from '@tanstack/react-query';
-
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
-import { Conversation } from '@/features/conversation/types/conversation';
-import { Meta } from '@/types/api.ts';
+import { ConversationList } from '../types/conversation';
+import { ApiResponse } from '@/types/api';
 
-export const getConversations = (): Promise<{
-  data: Conversation[];
-  meta: Meta;
-}> => {
-  return api.get(`/conversations/`);
+export const getConversations = async (): Promise<ConversationList> => {
+    const response = await api.get<ApiResponse<ConversationList>>('/conversations/');
+    if (!response.success) {
+        throw new Error(response.error?.message || 'Failed to fetch conversations');
+    }
+    return response.data;
 };
 
-export const getConversationsQueryOptions = () => {
-  return queryOptions({
+export const getConversationsQueryOptions = () => ({
     queryKey: ['conversations'],
     queryFn: () => getConversations(),
-  });
-};
+});
 
 export const useConversations = () => {
-  return useQuery({
-    ...getConversationsQueryOptions(),
-  });
+    return useQuery({
+        ...getConversationsQueryOptions(),
+        select: (data) => data.results,
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
+    });
 };

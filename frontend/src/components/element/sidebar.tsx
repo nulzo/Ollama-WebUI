@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowUpDown, Bot, ChevronsUpDown, Image, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
+import { ArrowUpDown, Bot, ChevronLeft, ChevronsUpDown, Image, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
 import { Button } from '../ui/button';
 import { CringeLogo } from '@/assets/cringelogo';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
@@ -26,7 +26,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { BrainCircuit, Zap, Shield, Bell, Eye, MessageSquare } from 'lucide-react'
+import { Shield } from 'lucide-react'
 import { ChevronRight, Server } from 'lucide-react'; // Add these imports
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useSettings, useProviderSettings } from '@/features/settings/api/get-settings';
@@ -111,7 +111,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
   return (
     <motion.div
       className="left-0 z-10 fixed inset-y-0 sidebar-container"
-      initial={false} // Prevent initial animation
+      initial={false}
       animate={{
         width: isCollapsed ? '55px' : '250px'
       }}
@@ -120,13 +120,48 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
         ease: "easeInOut"
       }}
       style={{
-        width: isCollapsed ? '55px' : '250px', // Force immediate width
+        width: isCollapsed ? '55px' : '250px',
       }}
     >
+
       <div className="flex flex-col border-alpha-200 bg-secondary border-r h-svh overflow-hidden">
+        <div className="top-1/2 -right-2 z-[1000] absolute transform -translate-y-1/2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="z-[1000] bg-tertiary shadow-md border border-border rounded size-4"
+          >
+            {isCollapsed ? (
+              <ChevronRight className="size-3" />
+            ) : (
+              <ChevronLeft className="size-3" />
+            )}
+          </Button>
+        </div>
         {/* Top Section */}
-        <div className="relative flex items-center mt-2 p-2 pb-1">
-          <div className={`flex items-center gap-2.5 ${!isCollapsed ? 'justify-start w-[80%]' : 'justify-center w-full'}`}>
+        <div className="relative flex items-center mt-2 p-2 pb-1 h-12">
+          <span className='flex items-center gap-1 px-2 font-semibold text-foreground text-lg'>
+            <CringeLogo className="items-baseline shrink-0 size-6 stroke-foreground" />
+            {!isCollapsed && (
+              <motion.div
+                className='flex items-baseline gap-1 text-foreground text-nowrap overflow-hidden'
+                animate={{
+                  width: isCollapsed ? 0 : 'auto',
+                  opacity: isCollapsed ? 0 : 1,
+                }}
+                transition={{
+                  duration: animationDuration,
+                  ease: "easeInOut"
+                }}
+              >
+                CringeAI
+                <span className='font-light text-primary text-xs'>beta</span>
+              </motion.div>
+            )}
+          </span>
+        </div>
+        {/* <div className={`flex items-center gap-2.5 ${!isCollapsed ? 'justify-start w-[80%]' : 'justify-center w-full'}`}>
             <Button variant="default" className="relative w-full h-9">
               <div className="left-2 absolute flex items-center">
                 <CringeLogo className="shrink-0 size-6 stroke-primary-foreground" />
@@ -146,43 +181,68 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                 </motion.div>
               </div>
             </Button>
-          </div>
-          <div className="flex-1"></div>
-          {!isCollapsed && (
-            <Button variant="ghost" size="icon" onClick={toggleSidebar}>
-              <PanelRightOpen className='size-4' />
-            </Button>
-          )}
-        </div>
+          </div> */}
+
 
         {/* Main Content Area - Flex Column with Full Height */}
         <div className="flex flex-col flex-1 h-full overflow-hidden">
           {/* Action Buttons */}
           <div className="p-2">
             {/* New Chat Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
-              onClick={() => { navigate('/') }}
-            >
-              <div className="left-3 absolute flex items-center">
-                <Plus className="shrink-0 size-4" />
-                <motion.span
-                  className="ml-2 text-sm whitespace-nowrap overflow-hidden"
-                  animate={{
-                    width: isCollapsed ? 0 : 'auto',
-                    opacity: isCollapsed ? 0 : 1,
-                  }}
-                  transition={{
-                    duration: animationDuration,
-                    ease: "easeInOut"
-                  }}
+            {!isCollapsed && (
+              <div className="flex justify-center items-center w-full">
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="relative flex justify-center items-center gap-2.5 mb-2 px-2 w-full h-9 font-bold text-sm group"
+                  onClick={() => { navigate('/') }}
                 >
-                  New Chat
-                </motion.span>
+                  <div className="flex justify-center items-center">
+                    {/* <Plus className="shrink-0 size-4" /> */}
+                    <motion.span
+                      className="ml-2 text-sm whitespace-nowrap overflow-hidden"
+                      animate={{
+                        width: isCollapsed ? 0 : 'auto',
+                        opacity: isCollapsed ? 0 : 1,
+                      }}
+                      transition={{
+                        duration: animationDuration,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      New Chat
+                    </motion.span>
+                  </div>
+                </Button>
               </div>
-            </Button>
+            )}
+
+
+            {isCollapsed && (
+              <Button
+                variant="default"
+                size="icon"
+                className="relative flex justify-center gap-2.5 mb-2 w-full h-9 font-bold text-center text-sm group"
+                onClick={() => { navigate('/') }}
+              >
+                <div className="left-3 absolute flex justify-center items-center">
+                  <Plus className="shrink-0 size-4" />
+                  <motion.span
+                    className="justify-center ml-2 text-center text-sm whitespace-nowrap overflow-hidden"
+                    animate={{
+                      width: isCollapsed ? 0 : 'auto',
+                      opacity: isCollapsed ? 0 : 1,
+                    }}
+                    transition={{
+                      duration: animationDuration,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    New Chat
+                  </motion.span>
+                </div>
+              </Button>
+            )}
 
             {/* Explore Agents Button */}
             <Button
@@ -270,22 +330,9 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
           </div>
 
           {/* Scrollable Conversation List */}
-          <div className={`flex-1 overflow-y-auto min-h-0 p-2 ${!isCollapsed ? 'opacity-100' : 'hidden'}`}>
+          <div className={`flex-1 overflow-y-auto min-h-0 p-2 ${!isCollapsed ? 'opacity-100' : 'opacity-0'}`}>
             {conversationList}
           </div>
-
-          {/* Collapse Button (when collapsed) */}
-          {isCollapsed && (
-            <div className="mt-auto p-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleSidebar}
-              >
-                <PanelRightClose className='size-4' />
-              </Button>
-            </div>
-          )}
 
           {/* User Section - Fixed at Bottom */}
           <div className="p-2 border-t border-border">

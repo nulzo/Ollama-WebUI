@@ -40,7 +40,6 @@ export const useMessages = ({ conversation_id, queryConfig }: UseMessagesOptions
   return useQuery({
     ...getMessagesQueryOptions({ conversation_id }),
     ...queryConfig,
-    enabled: Boolean(conversation_id),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     refetchOnMount: false,

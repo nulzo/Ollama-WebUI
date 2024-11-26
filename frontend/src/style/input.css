@@ -39,6 +39,15 @@
   contain: content;
   transform: translateZ(0);
 }
+/* 
+.sidebar-container:hover .drag-handle {
+  background-color: hsl(var(--border));
+  opacity: 0.5;
+} */
+
+.sidebar-container .chevron-icon {
+  transition: transform 0.2s ease-out;
+}
 
 @keyframes blink {
   0%,

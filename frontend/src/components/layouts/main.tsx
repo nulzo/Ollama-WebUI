@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import { motion } from 'framer-motion';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
 import { Toaster } from "@/components/ui/sonner"
 
@@ -14,7 +13,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="flex bg-background selection:bg-primary/50 h-screen max-h-[100dvh] font-inter text-foreground overflow-hidden">
       {/* Main Content Area */}
       <div
-        className="relative flex flex-col flex-1 w-full max-w-full overflow-auto"
+        className="relative z-0 flex flex-col flex-1 w-full max-w-full overflow-auto"
         style={{
           marginLeft: isCollapsed ? '55px' : '250px',
           transition: 'margin-left 0.2s ease-in-out'

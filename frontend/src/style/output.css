@@ -905,6 +905,16 @@ body {
   transform: translateZ(0);
 }
 
+/* 
+.sidebar-container:hover .drag-handle {
+  background-color: hsl(var(--border));
+  opacity: 0.5;
+} */
+
+.sidebar-container .chevron-icon {
+  transition: transform 0.2s ease-out;
+}
+
 @keyframes blink {
   0%,
   100% {
@@ -1247,17 +1257,16 @@ body {
   margin-bottom: 1.5rem;
 }
 
-.mx-2 {
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
-}
-
 .-ml-4 {
   margin-left: -1rem;
 }
 
 .-mt-4 {
   margin-top: -1rem;
+}
+
+.mb-0 {
+  margin-bottom: 0px;
 }
 
 .mb-1 {
@@ -1362,10 +1371,6 @@ body {
 
 .mt-auto {
   margin-top: auto;
-}
-
-.mb-0 {
-  margin-bottom: 0px;
 }
 
 .block {
@@ -1821,10 +1826,6 @@ body {
   width: 75%;
 }
 
-.w-\[80\%\] {
-  width: 80%;
-}
-
 .w-\[90\%\] {
   width: 90%;
 }
@@ -1849,10 +1850,6 @@ body {
 
 .w-screen {
   width: 100vw;
-}
-
-.w-\[95\%\] {
-  width: 95%;
 }
 
 .min-w-0 {
@@ -1986,6 +1983,11 @@ body {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.translate-x-1\/2 {
+  --tw-translate-x: 50%;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
 .translate-x-\[-50\%\] {
   --tw-translate-x: -50%;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -2089,6 +2091,10 @@ body {
 
 .cursor-default {
   cursor: default;
+}
+
+.cursor-grab {
+  cursor: grab;
 }
 
 .cursor-pointer {
@@ -2715,8 +2721,26 @@ body {
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
+.from-tertiary {
+  --tw-gradient-from: hsl(var(--tertiary)) var(--tw-gradient-from-position);
+  --tw-gradient-to: hsl(var(--tertiary) / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
 .from-80\% {
   --tw-gradient-from-position: 80%;
+}
+
+.from-50\% {
+  --tw-gradient-from-position: 50%;
+}
+
+.from-60\% {
+  --tw-gradient-from-position: 60%;
+}
+
+.from-70\% {
+  --tw-gradient-from-position: 70%;
 }
 
 .to-transparent {
@@ -2731,12 +2755,12 @@ body {
   fill: hsl(var(--primary));
 }
 
-.stroke-muted-foreground {
-  stroke: hsl(var(--muted-foreground));
+.stroke-foreground {
+  stroke: hsl(var(--foreground));
 }
 
-.stroke-primary-foreground {
-  stroke: hsl(var(--primary-foreground));
+.stroke-muted-foreground {
+  stroke: hsl(var(--muted-foreground));
 }
 
 .stroke-red-200 {
@@ -2753,10 +2777,6 @@ body {
 
 .stroke-yellow-200 {
   stroke: #fef08a;
-}
-
-.stroke-foreground {
-  stroke: hsl(var(--foreground));
 }
 
 .object-contain {
@@ -2998,6 +3018,10 @@ body {
   padding-inline-start: 0.5rem;
 }
 
+.ps-5 {
+  padding-inline-start: 1.25rem;
+}
+
 .ps-8 {
   padding-inline-start: 2rem;
 }
@@ -3032,18 +3056,6 @@ body {
 
 .pt-8 {
   padding-top: 2rem;
-}
-
-.ps-6 {
-  padding-inline-start: 1.5rem;
-}
-
-.ps-4 {
-  padding-inline-start: 1rem;
-}
-
-.ps-5 {
-  padding-inline-start: 1.25rem;
 }
 
 .text-left {
@@ -3774,6 +3786,10 @@ body {
   background-color: hsl(var(--tertiary));
 }
 
+.hover\:bg-tertiary\/75:hover {
+  background-color: hsl(var(--tertiary) / 0.75);
+}
+
 .hover\:bg-white\/50:hover {
   background-color: rgb(255 255 255 / 0.5);
 }
@@ -3934,6 +3950,10 @@ body {
 
 .focus-visible\:ring-offset-background:focus-visible {
   --tw-ring-offset-color: hsl(var(--background));
+}
+
+.active\:cursor-grabbing:active {
+  cursor: grabbing;
 }
 
 .disabled\:pointer-events-none:disabled {

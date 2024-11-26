@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { ArrowUpDown, Bot, ChevronLeft, ChevronsUpDown, Image, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
+import { motion, PanInfo, useMotionValue } from 'framer-motion';
+import { AlignJustify, ArrowUpDown, Bot, ChevronLeft, ChevronsUpDown, Image, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
 import { Button } from '../ui/button';
 import { CringeLogo } from '@/assets/cringelogo';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
@@ -91,10 +91,35 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
   const [selectedSetting, setSelectedSetting] = useState('general');
   const [selectedProvider, setSelectedProvider] = useState<ProviderType | null>(null);
   const [isProvidersExpanded, setIsProvidersExpanded] = useState(false);
-  const { data: settings } = useSettings();
   const { data: providerSettings } = useProviderSettings();
 
-  // console.log(providerSettings, settings);
+  const MIN_WIDTH = 55;
+  const MAX_WIDTH = 250;
+
+  // Setup motion values
+  const width = useMotionValue(isCollapsed ? MIN_WIDTH : MAX_WIDTH);
+  const dragWidth = useMotionValue(isCollapsed ? MIN_WIDTH : MAX_WIDTH);
+
+  // Handle drag end
+  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const currentWidth = dragWidth.get();
+    const midPoint = (MAX_WIDTH + MIN_WIDTH) / 2;
+
+    if (currentWidth < midPoint) {
+      setIsCollapsed(true);
+      width.set(MIN_WIDTH);
+    } else {
+      setIsCollapsed(false);
+      width.set(MAX_WIDTH);
+    }
+  };
+
+  // Handle drag
+  const handleDrag = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, dragWidth.get() + info.delta.x));
+    dragWidth.set(newWidth);
+    width.set(newWidth);
+  };
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -110,35 +135,66 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
 
   return (
     <motion.div
-      className="left-0 z-10 fixed inset-y-0 sidebar-container"
+      className="left-0 z-[100] fixed inset-y-0 sidebar-container"
       initial={false}
       animate={{
-        width: isCollapsed ? '55px' : '250px'
+        width: isCollapsed ? MIN_WIDTH : MAX_WIDTH
+      }}
+      style={{
+        width: width
       }}
       transition={{
         duration: animationDuration,
         ease: "easeInOut"
       }}
-      style={{
-        width: isCollapsed ? '55px' : '250px',
-      }}
     >
+      <div className="relative flex flex-col border-alpha-200 bg-secondary border-r h-svh overflow-hidden">
+        <motion.div
+          className="top-1/2 right-0 z-[1000] absolute transform -translate-y-1/2 translate-x-1/2"
+          drag="x"
+          dragConstraints={{
+            left: 0,
+            right: 0
+          }}
+          dragElastic={0}
+          dragMomentum={false}
+          onDragStart={() => {
+            // Store initial width at drag start
+            dragWidth.set(width.get());
+          }}
+          onDrag={(event, info) => {
+            const THRESHOLD = 7; // pixels needed to trigger open/close
+            const initialWidth = dragWidth.get();
 
-      <div className="flex flex-col border-alpha-200 bg-secondary border-r h-svh overflow-hidden">
-        <div className="top-1/2 -right-2 z-[1000] absolute transform -translate-y-1/2">
+            // If moving right (positive delta) and sidebar is collapsed
+            if (info.delta.x > THRESHOLD && isCollapsed) {
+              setIsCollapsed(false);
+              width.set(MAX_WIDTH);
+            }
+            // If moving left (negative delta) and sidebar is expanded
+            else if (info.delta.x < -THRESHOLD && !isCollapsed) {
+              setIsCollapsed(true);
+              width.set(MIN_WIDTH);
+            }
+          }}
+          onDragEnd={() => {
+            // Reset the drag element's position
+            dragWidth.set(0);
+          }}
+          style={{
+            x: 0
+          }}
+        >
+
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="z-[1000] bg-tertiary shadow-md border border-border rounded size-4"
+            className="z-[1000] bg-background shadow-md border border-border rounded cursor-grab active:cursor-grabbing size-4"
           >
-            {isCollapsed ? (
-              <ChevronRight className="size-3" />
-            ) : (
-              <ChevronLeft className="size-3" />
-            )}
+            <AlignJustify className='size-3 stroke-foreground' strokeWidth={1} />
           </Button>
-        </div>
+        </motion.div>
         {/* Top Section */}
         <div className="relative flex items-center mt-2 p-2 pb-1 h-12">
           <span className='flex items-center gap-1 px-2 font-semibold text-foreground text-lg'>
@@ -161,27 +217,6 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
             )}
           </span>
         </div>
-        {/* <div className={`flex items-center gap-2.5 ${!isCollapsed ? 'justify-start w-[80%]' : 'justify-center w-full'}`}>
-            <Button variant="default" className="relative w-full h-9">
-              <div className="left-2 absolute flex items-center">
-                <CringeLogo className="shrink-0 size-6 stroke-primary-foreground" />
-                <motion.div
-                  className="flex items-center ml-2 text-xs whitespace-nowrap overflow-hidden"
-                  animate={{
-                    width: isCollapsed ? 0 : 'auto',
-                    opacity: isCollapsed ? 0 : 1,
-                  }}
-                  transition={{
-                    duration: animationDuration,
-                    ease: "easeInOut"
-                  }}
-                >
-                  CringeAI
-                  <span className='ml-1 font-light text-xs'>beta</span>
-                </motion.div>
-              </div>
-            </Button>
-          </div> */}
 
 
         {/* Main Content Area - Flex Column with Full Height */}

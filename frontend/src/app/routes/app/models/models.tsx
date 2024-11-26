@@ -101,7 +101,6 @@ export function ModelsRoute() {
       setSelectedAgent(null);
     } catch (error) {
       console.error('Failed to save agent:', error);
-      // TODO: Add error handling/notification
     }
   };
 
@@ -117,11 +116,11 @@ export function ModelsRoute() {
   }, [agents, searchTerm, sortBy]);
 
   return (
-    <div className="h-screen w-full p-12">
-      <div className="h-full w-full flex flex-col">
+    <div className="p-12 w-full h-screen">
+      <div className="flex flex-col w-full h-full">
         {/* Header section */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold">
+          <h1 className="font-bold text-4xl">
             {selectedAgent ? 'Edit Agent' : 'Create New Agent'}
           </h1>
           <h3 className="text-lg text-muted-foreground">
@@ -132,15 +131,15 @@ export function ModelsRoute() {
         </div>
 
         {/* Grid container that fills remaining space */}
-        <div className="flex-1 grid grid-cols-4 gap-6 min-h-0">
+        <div className="flex-1 gap-6 grid grid-cols-4 min-h-0">
           {/* Left card - always fills parent height */}
-          <div className="col-span-1 h-full">
-            <Card className="h-full flex flex-col">
+          <div className="col-span-4 lg:col-span-2 2xl:col-span-1 h-full">
+            <Card className="flex flex-col h-full">
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                   Fine-Tuned Agents
-                  <Button onClick={handleCreateNew} size="sm">
-                    <PlusCircle className="mr-2 h-4 w-4" /> New Agent
+                  <Button onClick={() => handleCreateNew()} size="sm">
+                    <PlusCircle className="mr-2 w-4 h-4" /> New Agent
                   </Button>
                 </CardTitle>
               </CardHeader>
@@ -149,7 +148,7 @@ export function ModelsRoute() {
                   <div className="space-y-4">
                     {/* Search and filter controls */}
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Search className="top-1/2 left-3 absolute w-4 h-4 text-muted-foreground transform -translate-y-1/2" />
                       <Input
                         placeholder="Search agents..."
                         value={searchTerm}
@@ -183,29 +182,28 @@ export function ModelsRoute() {
                     <ScrollArea className="h-full">
                       {isLoading ? (
                         <div className="flex justify-center p-4">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                          <div className="border-primary border-b-2 rounded-full w-8 h-8 animate-spin"></div>
                         </div>
                       ) : filteredAndSortedAgents?.length === 0 ? (
-                        <div className="text-center p-4 text-muted-foreground">No agents found</div>
+                        <div className="p-4 text-center text-muted-foreground">No agents found</div>
                       ) : (
                         filteredAndSortedAgents?.map((agent: Agent) => (
                           <div
                             key={agent.id}
-                            className={`flex items-center p-2 hover:bg-accent rounded-md cursor-pointer ${
-                              selectedAgent?.id === agent.id ? 'bg-accent' : ''
-                            }`}
+                            className={`flex items-center p-2 hover:bg-accent rounded-md cursor-pointer ${selectedAgent?.id === agent.id ? 'bg-accent' : ''
+                              }`}
                             onClick={() => {
                               setSelectedAgent(agent);
                               setIsCreating(false);
                             }}
                           >
-                            <Avatar className="h-9 w-9">
+                            <Avatar className="w-9 h-9">
                               <AvatarImage src={agent.icon} alt={agent.display_name} />
                               <AvatarFallback>{agent.display_name.charAt(0) || 'U'}</AvatarFallback>
                             </Avatar>
                             <div className="ml-3">
-                              <p className="text-sm font-medium">{agent.display_name}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="font-medium text-sm">{agent.display_name}</p>
+                              <p className="text-muted-foreground text-xs">
                                 Modified: {new Date(agent.modified_at).toLocaleDateString()}
                               </p>
                             </div>
@@ -220,8 +218,8 @@ export function ModelsRoute() {
           </div>
 
           {/* Right side - takes up 3 columns */}
-          <div className="col-span-3 h-full">
-            <Card className="h-full flex flex-col">
+          <div className="col-span-4 lg:col-span-2 2xl:col-span-3 h-full">
+            <Card className="flex flex-col h-full">
               <CardHeader>
                 <CardTitle>{isCreating ? 'Create New Agent' : 'Edit Agent'}</CardTitle>
               </CardHeader>
@@ -230,7 +228,24 @@ export function ModelsRoute() {
                   {selectedAgent ? (
                     <AgentForm
                       agent={selectedAgent}
-                      onSubmit={handleSave}
+                      onSubmit={async (formData) => {
+                        try {
+                          if (isCreating) {
+                            await createAgentMutation.mutateAsync({ 
+                              data: { ...formData, id: selectedAgent?.id } 
+                            });
+                          } else {
+                            await updateAgentMutation.mutateAsync({
+                              agentId: selectedAgent?.id ?? '',
+                              data: formData
+                            });
+                          }
+                           setIsCreating(false);
+                          setSelectedAgent(null);
+                        } catch (error) {
+                          console.error('Failed to save agent:', error);
+                        }
+                      }}
                       isLoading={createAgentMutation.isPending || updateAgentMutation.isPending}
                     />
                   ) : (

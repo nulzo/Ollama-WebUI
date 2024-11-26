@@ -1,6 +1,5 @@
 from django.db import models
-
-from api.models.users.user import CustomUser
+from api.models.models.model import Model
 
 
 class Agent(models.Model):
@@ -44,7 +43,8 @@ class Agent(models.Model):
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey('api.CustomUser', on_delete=models.CASCADE)
+    base_model = models.ForeignKey(Model, on_delete=models.CASCADE)
     
     def __str__(self):
         return self.display_name

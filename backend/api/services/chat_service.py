@@ -1,12 +1,13 @@
 import asyncio
 import json
 from django.http import StreamingHttpResponse
+from ollama import Options
 from api.serializers.message import MessageSerializer
 from api.repositories.message_repository import MessageRepository
 from api.providers.provider_factory import ProviderFactory
-from api.models.messages import Message
 import logging
 import base64
+from api.models.agent.agent import Agent
 
 
 class ChatService:
@@ -25,19 +26,37 @@ class ChatService:
         try:
             if not image_data:
                 return None
-            return base64.b64encode(image_data).decode('utf-8')
+            return base64.b64encode(image_data).decode("utf-8")
         except Exception as e:
             self.logger.error(f"Error processing image: {str(e)}")
             return None
+
+    def _agent_to_ollama_options(self, agent: Agent) -> Options:
+        """Convert agent parameters to Ollama Options"""
+        options: Options = {
+            # Runtime options
+            "seed": agent.seed,
+            "num_predict": agent.num_predict,
+            "top_k": agent.top_k,
+            "top_p": agent.top_p,
+            "tfs_z": agent.tfs_z,
+            "typical_p": agent.typical_p,
+            "repeat_last_n": agent.repeat_last_n,
+            "temperature": agent.temperature,
+            "repeat_penalty": agent.repeat_penalty,
+            "presence_penalty": agent.presence_penalty,
+            # Load time options
+            "num_ctx": agent.num_ctx,
+            "low_vram": agent.low_vram,
+            "embedding_only": agent.embedding_only,
+        }
+        return {k: v for k, v in options.items() if v is not None}
 
     def handle_chat(self, serializer_data, request):
         """Handle incoming chat request"""
         try:
             # Validate and create message
-            serializer = MessageSerializer(
-                data=serializer_data,
-                context={'request': request}
-            )
+            serializer = MessageSerializer(data=serializer_data, context={"request": request})
 
             if not serializer.is_valid():
                 self.logger.warning(f"Serializer validation failed: {serializer.errors}")
@@ -49,15 +68,16 @@ class ChatService:
             self.logger.info(f"Created message {message.id} in conversation {conversation.uuid}")
 
             # Process conversation history
-            messages = conversation.messages.all().order_by('created_at')
+            messages = conversation.messages.all().order_by("created_at")
             flattened_messages = [
                 {
                     "role": msg.role,
                     "content": msg.content,
-                    "images": [
-                        self.process_image(img.image) 
-                        for img in msg.message_images.all()
-                    ] if msg.has_images else []
+                    "images": (
+                        [self.process_image(img.image) for img in msg.message_images.all()]
+                        if msg.has_images
+                        else []
+                    ),
                 }
                 for msg in messages
             ]
@@ -65,7 +85,7 @@ class ChatService:
             # Return streaming response
             return StreamingHttpResponse(
                 self._stream_chat_response(message, conversation, flattened_messages),
-                content_type='text/event-stream'
+                content_type="text/event-stream",
             )
 
         except Exception as e:
@@ -88,7 +108,7 @@ class ChatService:
                     yield f"data: {json.dumps({'delta': {'content': chunk}})}\n\n"
                     await asyncio.sleep(0.001)
                 elif isinstance(chunk, dict):
-                    if content := chunk.get('message', {}).get('content', ''):
+                    if content := chunk.get("message", {}).get("content", ""):
                         full_content += content
                         yield f"data: {json.dumps({'delta': {'content': content}})}\n\n"
                         await asyncio.sleep(0.001)
@@ -101,8 +121,8 @@ class ChatService:
                     "content": full_content,
                     "model": message.model,
                     "user": message.user,
-                    "images": []
-                }
+                    "images": [],
+                },
             )
 
             yield f"data: {json.dumps({'done': True})}\n\n"

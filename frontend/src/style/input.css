@@ -212,11 +212,6 @@
     color: hsl(var(--primary));
   }
 
-  /* Reset the counter for each new list */
-  ol {
-    counter-reset: list-item;
-  }
-
   /* Remove any span display flex of the li spans */
   li > span {
     display: block;
@@ -225,9 +220,9 @@
 
   /* General styles for ordered list items */
   ol {
-    counter-reset: list-number; /* Initialize the counter for each list */
+    counter-reset: list-item; /* Initialize the counter for each list */
     list-style: none; /* Remove default list styles */
-    padding-left: 0; /* Remove default padding */
+    padding-left: 1em; /* Remove default padding */
   }
 
   /* Style individual list items */

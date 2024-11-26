@@ -721,12 +721,6 @@ ol > li,
   /* For any pseudo-elements */
 }
 
-/* Reset the counter for each new list */
-
-ol {
-  counter-reset: list-item;
-}
-
 /* Remove any span display flex of the li spans */
 
 li > span {
@@ -737,11 +731,11 @@ li > span {
 /* General styles for ordered list items */
 
 ol {
-  counter-reset: list-number;
+  counter-reset: list-item;
   /* Initialize the counter for each list */
   list-style: none;
   /* Remove default list styles */
-  padding-left: 0;
+  padding-left: 1em;
   /* Remove default padding */
 }
 
@@ -1190,10 +1184,6 @@ body {
   z-index: 1;
 }
 
-.col-span-1 {
-  grid-column: span 1 / span 1;
-}
-
 .col-span-2 {
   grid-column: span 2 / span 2;
 }
@@ -1255,11 +1245,6 @@ body {
 .my-6 {
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
-}
-
-.mx-1 {
-  margin-left: 0.25rem;
-  margin-right: 0.25rem;
 }
 
 .-ml-4 {
@@ -4701,6 +4686,10 @@ body {
 }
 
 @media (min-width: 1024px) {
+  .lg\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+
   .lg\:w-\[94\%\] {
     width: 94%;
   }
@@ -4751,6 +4740,14 @@ body {
 }
 
 @media (min-width: 1536px) {
+  .\32xl\:col-span-1 {
+    grid-column: span 1 / span 1;
+  }
+
+  .\32xl\:col-span-3 {
+    grid-column: span 3 / span 3;
+  }
+
   .\32xl\:w-\[96\%\] {
     width: 96%;
   }

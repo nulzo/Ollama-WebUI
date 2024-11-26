@@ -28,8 +28,8 @@ class AgentService:
 
     def update_agent(self, agent_id: int, data: dict):
         """Update agent"""
-        agent =  self.get_agent(agent_id)
-        return  self.repository.update(agent.id, data)
+        agent = self.get_agent(agent_id)
+        return self.repository.update(agent.id, data)
 
     def delete_agent(self, agent_id: int):
         """Delete agent"""

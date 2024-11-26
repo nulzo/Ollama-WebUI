@@ -16,7 +16,7 @@ class AgentRepository(BaseRepository[Agent]):
             agent = Agent.objects.create(
                 display_name=data["display_name"],
                 description=data.get("description", ""),
-                profile_picture=data.get("profile_picture", ""),
+                icon=data.get("icon", ""),
                 model=data["model"],
                 system_prompt=data.get("system_prompt", ""),
                 enabled=data.get("enabled", True),
@@ -77,7 +77,7 @@ class AgentRepository(BaseRepository[Agent]):
 
             for key, value in data.items():
                 setattr(agent, key, value)
-            agent.asave()
+            agent.save()
             return agent
         except Exception as e:
             self.logger.error(f"Error updating agent {id}: {str(e)}")
@@ -88,7 +88,7 @@ class AgentRepository(BaseRepository[Agent]):
             agent = self.get_by_id(id)
             if not agent:
                 return False
-            agent.adelete()
+            agent.delete()
             return True
         except Exception as e:
             self.logger.error(f"Error deleting agent {id}: {str(e)}")
@@ -101,7 +101,7 @@ class AgentRepository(BaseRepository[Agent]):
                 Agent(
                     display_name=data["display_name"],
                     description=data.get("description", ""),
-                    profile_picture=data.get("profile_picture", ""),
+                    icon=data.get("icon", ""),
                     model=data["model"],
                     system_prompt=data.get("system_prompt", ""),
                     enabled=data.get("enabled", True),

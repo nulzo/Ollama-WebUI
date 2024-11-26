@@ -1,10 +1,10 @@
 import json
-from typing import Union, List, AnyStr
+from typing import Optional, Union, List, AnyStr
 
 import httpx
 from api.providers import BaseProvider
 from django.conf import settings
-from ollama import Client
+from ollama import Client, Options
 
 
 class OllamaProvider(BaseProvider):
@@ -34,11 +34,16 @@ class OllamaProvider(BaseProvider):
                     except json.JSONDecodeError:
                         continue
 
-    def chat(self, model: str, messages: Union[List, AnyStr]):
+    def chat(self, model: str, messages: Union[List, AnyStr], options: Optional[Options] = None):
         """
         Sends a message to the ollama service.
         """
-        response = self._client.chat(model=model, messages=messages, stream=True)
+        response = self._client.chat(
+            model=model,
+            messages=messages,
+            options=options,
+            stream=True
+        )
         for chunk in response:
             if isinstance(chunk, bytes):
                 chunk = chunk.decode('utf-8')

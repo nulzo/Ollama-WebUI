@@ -13,7 +13,6 @@ import {
   CommandSeparator,
 } from '@/components/ui/command.tsx';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover.tsx';
-import { Spinner } from '@/components/ui/spinner';
 import { OllamaModel } from '@/types/models';
 import { useModels } from '@/features/models/api/get-models.ts';
 import { useOpenAiModels } from '@/features/models/api/get-openai-models.ts';
@@ -24,11 +23,13 @@ import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui
 import { useAssistants } from '@/features/assistant/hooks/use-assistant';
 import { Assistant } from '@/features/assistant/types/assistant';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAgents } from '@/features/agents/api/get-agents';
 
 export const ModelSelect = () => {
   const [open, setOpen] = useState(false);
   const ollamaModels = useModels({});
   const openaiModels = useOpenAiModels({});
+  const { data: agents } = useAgents();
   const { assistants, isLoading: isLoadingAssistants } = useAssistants();
 
   const { setModel, model } = useModelStore(state => ({
@@ -36,8 +37,28 @@ export const ModelSelect = () => {
     model: state.model,
   }));
 
-  const handleModelSelect = useCallback((selectedModel: OllamaModel | Assistant) => {
-    setModel(selectedModel);
+  const handleModelSelect = useCallback((selectedModel: OllamaModel | Assistant | Agent) => {
+    // If it's an agent, we need to wrap it to match the OllamaModel interface
+    if ('system_prompt' in selectedModel) {
+      setModel({
+        name: selectedModel.model, // Use model name instead of display_name
+        model: selectedModel.model,   // Include the agent's configuration
+        config: {
+          temperature: selectedModel.temperature,
+          top_k: selectedModel.top_k,
+          top_p: selectedModel.top_p,
+          repeat_penalty: selectedModel.repeat_penalty,
+          presence_penalty: selectedModel.presence_penalty,
+          frequency_penalty: selectedModel.frequency_penalty,
+          seed: selectedModel.seed,
+          num_predict: selectedModel.num_predict,
+          stop: selectedModel.stop,
+          system_prompt: selectedModel.system_prompt,
+        }
+      });
+    } else {
+      setModel(selectedModel);
+    }
     setOpen(false);
   }, [setModel]);
 
@@ -64,7 +85,7 @@ export const ModelSelect = () => {
 
   if (ollamaModels.isLoading || isLoadingAssistants) {
     return (
-      <div className="flex h-48 w-full items-center justify-center">
+      <div className="flex justify-center items-center w-full h-48">
         <Skeleton className="w-32 h-8" />
       </div>
     );
@@ -77,38 +98,40 @@ export const ModelSelect = () => {
           <button
             role="combobox"
             aria-expanded={open}
-            className="flex gap-1 text-sm font-semibold w-fit max-w-sm justify-start border-0 select-none"
+            className="flex justify-start gap-1 border-0 w-fit max-w-sm font-semibold text-sm select-none"
           >
             {model ? truncateModelName(model.name) : 'Select model...'}
-            <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            <CaretSortIcon className="opacity-50 ml-2 w-4 h-4 shrink-0" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-fit max-w-sm p-0" align="start">
+        <PopoverContent className="p-0 w-fit max-w-sm" align="start">
           <Command>
             <CommandInput placeholder="Search model..." className="h-9" />
             <CommandList>
               <CommandEmpty>No model found...</CommandEmpty>
-              {userAssistants.length > 0 && (
+              {agents && agents?.length > 0 && (
                 <CommandGroup heading="User Assistants">
-                  {userAssistants.map(assistant => (
+
+                  {agents.map(agent => (
                     <CommandItem
-                      key={assistant.id}
-                      className="min-w-[250px] max-w-[250px] w-[250px] whitespace-nowrap truncate"
-                      value={assistant.name}
-                      onSelect={() => handleModelSelect(assistant)}
+                      key={agent.id}
+                      className="w-[250px] min-w-[250px] max-w-[250px] truncate whitespace-nowrap"
+                      value={agent.display_name}
+                      onSelect={() => handleModelSelect(agent)}
                     >
-                      <span className="truncate">{truncateModelName(assistant.name)}</span>
+                      <span className="truncate">{agent.display_name}</span>
                       <CheckIcon
                         className={cn(
                           'ml-auto h-4 w-4',
-                          model?.name === assistant.name ? 'opacity-100' : 'opacity-0'
+                          model?.name === agent.display_name ? 'opacity-100' : 'opacity-0'
                         )}
                       />
                     </CommandItem>
-                  ))}
+                  )
+                  )}
                 </CommandGroup>
               )}
-              {userAssistants.length > 0 && availableOllamaModels.length > 0 && (
+              {agents && agents?.length > 0 && availableOllamaModels.length > 0 && (
                 <CommandSeparator />
               )}
               {availableOllamaModels.length > 0 && (
@@ -116,7 +139,7 @@ export const ModelSelect = () => {
                   {availableOllamaModels.map((m: OllamaModel) => (
                     <CommandItem
                       key={m.name}
-                      className="min-w-[250px] max-w-[250px] w-[250px] whitespace-nowrap truncate"
+                      className="w-[250px] min-w-[250px] max-w-[250px] truncate whitespace-nowrap"
                       value={m.name}
                       onSelect={() => handleModelSelect(m)}
                     >
@@ -137,9 +160,9 @@ export const ModelSelect = () => {
                   {openai.map((m: OllamaModel) => (
                     <CommandItem
                       key={m.id}
-                      className="min-w-[250px] max-w-[250px] w-[250px] whitespace-nowrap truncate"
+                      className="w-[250px] min-w-[250px] max-w-[250px] truncate whitespace-nowrap"
                       value={m.id}
-                      onSelect={() => {handleModelSelect(openaiToOllama(m.id))}}
+                      onSelect={() => { handleModelSelect(openaiToOllama(m.id)) }}
                     >
                       <span className="truncate">{m.id}</span>
                       <CheckIcon
@@ -161,7 +184,7 @@ export const ModelSelect = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                className="text-xs font-normal text-muted-foreground"
+                className="font-normal text-muted-foreground text-xs"
                 variant="link"
                 size="icon"
               >

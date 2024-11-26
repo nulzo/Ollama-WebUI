@@ -24,19 +24,19 @@ import { useEffect, useRef } from 'react';
 const agentFormSchema = z.object({
   // Basic Information
   icon: z.string().optional().nullable(),
-  displayName: z.string().min(2, { message: 'Display name must be at least 2 characters.' }),
+  display_name: z.string().min(2, { message: 'Display name must be at least 2 characters.' }),
   description: z.string().optional(),
   model: z.string().min(1, { message: 'Please select a model.' }),
-  systemPrompt: z.string().optional(),
+  system_prompt: z.string().optional(),
   enabled: z.boolean().default(true),
 
   // Capabilities
   files: z.boolean().default(false),
-  functionCall: z.boolean().default(false),
+  function_call: z.boolean().default(false),
   vision: z.boolean().default(false),
 
   // Basic Parameters
-  maxOutput: z.number().min(1).max(32768),
+  max_output: z.number().min(1).max(32768),
   tokens: z.number().min(1).max(32768),
 
   // Advanced Parameters
@@ -97,34 +97,34 @@ const ImageUpload = ({
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="relative">
-        <Avatar className="h-24 w-24">
+        <Avatar className="w-24 h-24">
           {value ? (
             <AvatarImage src={value} alt="Profile" />
           ) : (
             <AvatarFallback className="bg-primary/10">
-              <ImagePlus className="h-8 w-8 text-muted-foreground" />
+              <ImagePlus className="w-8 h-8 text-muted-foreground" />
             </AvatarFallback>
           )}
         </Avatar>
-        <div className="absolute -bottom-2 -right-2 flex gap-1">
+        <div className="-right-2 -bottom-2 absolute flex gap-1">
           <Button
             type="button"
             variant="outline"
             size="icon"
-            className="h-8 w-8 rounded-full shadow-lg"
+            className="shadow-lg rounded-full w-8 h-8"
             onClick={() => inputRef.current?.click()}
           >
-            <ImagePlus className="h-4 w-4" />
+            <ImagePlus className="w-4 h-4" />
           </Button>
           {value && (
             <Button
               type="button"
               variant="outline"
               size="icon"
-              className="h-8 w-8 rounded-full shadow-lg"
+              className="shadow-lg rounded-full w-8 h-8"
               onClick={handleRemoveImage}
             >
-              <X className="h-4 w-4" />
+              <X className="w-4 h-4" />
             </Button>
           )}
         </div>
@@ -151,15 +151,15 @@ export function AgentForm({
     resolver: zodResolver(agentFormSchema),
     defaultValues: {
       icon: agent?.icon,
-      displayName: agent?.display_name || '',
+      display_name: agent?.display_name || '',
       description: agent?.description || '',
       model: agent?.model || '',
-      systemPrompt: agent?.system_prompt || '',
+      system_prompt: agent?.system_prompt || '',
       enabled: agent?.enabled ?? true,
       files: agent?.files ?? false,
-      functionCall: agent?.function_call ?? false,
+      function_call: agent?.function_call ?? false,
       vision: agent?.vision ?? false,
-      maxOutput: agent?.max_output ?? 2048,
+      max_output: agent?.max_output ?? 2048,
       tokens: agent?.tokens ?? 2048,
       num_ctx: agent?.num_ctx ?? 4096,
       low_vram: agent?.low_vram ?? false,
@@ -184,15 +184,15 @@ export function AgentForm({
     if (agent) {
       form.reset({
         icon: agent.icon,
-        displayName: agent.display_name,
+        display_name: agent.display_name,
         description: agent.description,
         model: agent.model,
-        systemPrompt: agent.system_prompt,
+        system_prompt: agent.system_prompt,
         enabled: agent.enabled,
         files: agent.files,
-        functionCall: agent.function_call,
+        function_call: agent.function_call,
         vision: agent.vision,
-        maxOutput: agent.max_output,
+        max_output: agent.max_output,
         tokens: agent.tokens,
         num_ctx: agent.num_ctx,
         low_vram: agent.low_vram,
@@ -219,7 +219,7 @@ export function AgentForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         {/* Basic Information Section */}
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">Basic Information</h3>
+          <h3 className="font-medium text-lg">Basic Information</h3>
 
           <FormField
             control={form.control}
@@ -236,7 +236,7 @@ export function AgentForm({
 
           <FormField
             control={form.control}
-            name="displayName"
+            name="display_name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Display Name</FormLabel>
@@ -284,14 +284,14 @@ export function AgentForm({
 
           <FormField
             control={form.control}
-            name="systemPrompt"
+            name="system_prompt"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>System Prompt</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Enter system prompt..."
-                    className="resize-none h-32"
+                    className="h-32 resize-none"
                     {...field}
                   />
                 </FormControl>
@@ -304,14 +304,14 @@ export function AgentForm({
 
         {/* Capabilities Section */}
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">Capabilities</h3>
+          <h3 className="font-medium text-lg">Capabilities</h3>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="gap-4 grid grid-cols-2">
             <FormField
               control={form.control}
               name="enabled"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex flex-row justify-between items-center p-4 border rounded-lg">
                   <div className="space-y-0.5">
                     <FormLabel>Enabled</FormLabel>
                     <FormDescription>Enable or disable this agent.</FormDescription>
@@ -327,7 +327,7 @@ export function AgentForm({
               control={form.control}
               name="files"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex flex-row justify-between items-center p-4 border rounded-lg">
                   <div className="space-y-0.5">
                     <FormLabel>File Handling</FormLabel>
                     <FormDescription>Allow file uploads</FormDescription>
@@ -341,9 +341,9 @@ export function AgentForm({
 
             <FormField
               control={form.control}
-              name="functionCall"
+              name="function_call"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex flex-row justify-between items-center p-4 border rounded-lg">
                   <div className="space-y-0.5">
                     <FormLabel>Function Calling</FormLabel>
                     <FormDescription>Enable function calls</FormDescription>
@@ -359,7 +359,7 @@ export function AgentForm({
               control={form.control}
               name="vision"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex flex-row justify-between items-center p-4 border rounded-lg">
                   <div className="space-y-0.5">
                     <FormLabel>Vision</FormLabel>
                     <FormDescription>Enable image processing</FormDescription>
@@ -375,11 +375,11 @@ export function AgentForm({
 
         {/* Basic Parameters Section */}
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">Basic Parameters</h3>
+          <h3 className="font-medium text-lg">Basic Parameters</h3>
 
           <FormField
             control={form.control}
-            name="maxOutput"
+            name="max_output"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Max Output Tokens</FormLabel>
@@ -418,14 +418,14 @@ export function AgentForm({
 
         {/* Advanced Parameters Section */}
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">Advanced Parameters</h3>
+          <h3 className="font-medium text-lg">Advanced Parameters</h3>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="gap-4 grid grid-cols-2">
             <FormField
               control={form.control}
               name="low_vram"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex flex-row justify-between items-center p-4 border rounded-lg">
                   <div className="space-y-0.5">
                     <FormLabel>Low VRAM Mode</FormLabel>
                     <FormDescription>Optimize for low memory</FormDescription>
@@ -441,7 +441,7 @@ export function AgentForm({
               control={form.control}
               name="embedding_only"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="flex flex-row justify-between items-center p-4 border rounded-lg">
                   <div className="space-y-0.5">
                     <FormLabel>Embedding Only</FormLabel>
                     <FormDescription>Use only for embeddings</FormDescription>
@@ -494,7 +494,7 @@ export function AgentForm({
 
         {/* Generation Parameters Section */}
         <div className="space-y-6">
-          <h3 className="text-lg font-medium">Generation Parameters</h3>
+          <h3 className="font-medium text-lg">Generation Parameters</h3>
 
           <FormField
             control={form.control}
@@ -512,7 +512,7 @@ export function AgentForm({
                       onValueChange={([value]) => field.onChange(value)}
                       className="flex-1"
                     />
-                    <span className="w-12 text-sm text-muted-foreground">{field.value}</span>
+                    <span className="w-12 text-muted-foreground text-sm">{field.value}</span>
                   </div>
                 </FormControl>
                 <FormDescription>Controls randomness in the output.</FormDescription>
@@ -537,7 +537,7 @@ export function AgentForm({
                       onValueChange={([value]) => field.onChange(value)}
                       className="flex-1"
                     />
-                    <span className="w-12 text-sm text-muted-foreground">{field.value}</span>
+                    <span className="w-12 text-muted-foreground text-sm">{field.value}</span>
                   </div>
                 </FormControl>
                 <FormDescription>Nucleus sampling threshold.</FormDescription>
@@ -562,7 +562,7 @@ export function AgentForm({
                       onValueChange={([value]) => field.onChange(value)}
                       className="flex-1"
                     />
-                    <span className="w-12 text-sm text-muted-foreground">{field.value}</span>
+                    <span className="w-12 text-muted-foreground text-sm">{field.value}</span>
                   </div>
                 </FormControl>
                 <FormDescription>Limits the cumulative probability mass.</FormDescription>
@@ -587,7 +587,7 @@ export function AgentForm({
                       onValueChange={([value]) => field.onChange(value)}
                       className="flex-1"
                     />
-                    <span className="w-12 text-sm text-muted-foreground">{field.value}</span>
+                    <span className="w-12 text-muted-foreground text-sm">{field.value}</span>
                   </div>
                 </FormControl>
                 <FormDescription>Penalizes repetition in generated text.</FormDescription>
@@ -612,7 +612,7 @@ export function AgentForm({
                       onValueChange={([value]) => field.onChange(value)}
                       className="flex-1"
                     />
-                    <span className="w-12 text-sm text-muted-foreground">{field.value}</span>
+                    <span className="w-12 text-muted-foreground text-sm">{field.value}</span>
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -636,7 +636,7 @@ export function AgentForm({
                       onValueChange={([value]) => field.onChange(value)}
                       className="flex-1"
                     />
-                    <span className="w-12 text-sm text-muted-foreground">{field.value}</span>
+                    <span className="w-12 text-muted-foreground text-sm">{field.value}</span>
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -648,7 +648,7 @@ export function AgentForm({
             control={form.control}
             name="penalize_newline"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <FormItem className="flex flex-row justify-between items-center p-4 border rounded-lg">
                 <div className="space-y-0.5">
                   <FormLabel>Penalize Newlines</FormLabel>
                   <FormDescription>Apply penalty to newline tokens</FormDescription>

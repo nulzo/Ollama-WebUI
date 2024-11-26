@@ -1162,6 +1162,10 @@ body {
   top: 100%;
 }
 
+.left-2\.5 {
+  left: 0.625rem;
+}
+
 .z-0 {
   z-index: 0;
 }
@@ -1371,6 +1375,10 @@ body {
 
 .mt-auto {
   margin-top: auto;
+}
+
+.ml-8 {
+  margin-left: 2rem;
 }
 
 .block {
@@ -2777,6 +2785,10 @@ body {
 
 .stroke-yellow-200 {
   stroke: #fef08a;
+}
+
+.stroke-primary {
+  stroke: hsl(var(--primary));
 }
 
 .object-contain {

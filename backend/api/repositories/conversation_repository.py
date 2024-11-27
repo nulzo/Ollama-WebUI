@@ -53,7 +53,7 @@ class ConversationRepository(BaseRepository[Conversation]):
 
             for key, value in data.items():
                 setattr(conversation, key, value)
-            conversation.asave()
+            conversation.save()
             return conversation
         except Exception as e:
             self.logger.error(f"Error updating conversation {id}: {str(e)}")
@@ -64,7 +64,7 @@ class ConversationRepository(BaseRepository[Conversation]):
             conversation = self.get_by_id(id)
             if not conversation:
                 return False
-            conversation.adelete()
+            conversation.delete()
             return True
         except Exception as e:
             self.logger.error(f"Error deleting conversation {id}: {str(e)}")
@@ -82,7 +82,7 @@ class ConversationRepository(BaseRepository[Conversation]):
                 )
                 for data in data_list
             ]
-            return Conversation.objects.abulk_create(conversations)
+            return Conversation.objects.bulk_create(conversations)
         except Exception as e:
             self.logger.error(f"Error bulk creating conversations: {str(e)}")
             raise

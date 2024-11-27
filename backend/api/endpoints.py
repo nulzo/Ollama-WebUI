@@ -8,6 +8,7 @@ from api.views_old import (
 )
 from django.urls import path, include
 from api.views.agent_view import AgentViewSet
+from api.views.prompt_view import PromptView
 from rest_framework.routers import DefaultRouter
 from api.views.message_view import MessageViewSet
 from api.view.ollama import OllamaModels
@@ -29,14 +30,12 @@ router.register(r'providers', ProviderSettingsViewSet, basename='provider')
 router.register(r'agents', AgentViewSet, basename='agent')
 router.register(r'conversations', ConversationViewSet, basename='conversation')
 
-
 urlpatterns = [
     path("chat/", ChatView.as_view(), name="chat"),
     path("user/", UserSettingsList.as_view(), name="user-list"),
     path("user/<int:pk>/", UserSettingsDetail.as_view(), name="user-detail"),
     path("", include(router.urls)),
     path("models/ollama/", OllamaModels.as_view(), name="ollama_models"),
-    path("ollama/default/", OllamaPrompts.as_view(), name="ollama_default_prompts"),
     path("login/", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path('auth/login/', Login.as_view(), name='auth_login'),
@@ -44,5 +43,6 @@ urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='auth_register'),
     path('user/current/', CurrentUserView.as_view(), name='current_user'),
     path("models/openai/", OpenAIModels.as_view(), name="openai_models"),
-    path('ollama/default/<str:style>/', OllamaPrompts.as_view(), name="ollama_default_prompts_styled"),
+    path("prompts/", PromptView.as_view(), name="prompts"),
+    path("prompts/<str:style>/", PromptView.as_view(), name="styled_prompts"),
 ]

@@ -144,7 +144,7 @@ export const ConversationDefault = () => {
           </div>
         ) : (
           <div className="gap-3 grid grid-cols-1 sm:grid-cols-2">
-            {data.prompts.prompts.map((item, index) => (
+            {data.prompts.map((item, index) => (
               <motion.div
                 key={index}
                 custom={index}
@@ -167,7 +167,7 @@ export const ConversationDefault = () => {
             ))}
 
             <motion.div
-              custom={data.prompts.prompts.length}
+              custom={data.prompts.length}
               variants={cardVariants}
               initial="hidden"
               animate="visible"

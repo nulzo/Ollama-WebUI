@@ -1162,10 +1162,6 @@ body {
   top: 100%;
 }
 
-.left-2\.5 {
-  left: 0.625rem;
-}
-
 .z-0 {
   z-index: 0;
 }
@@ -1313,6 +1309,10 @@ body {
   margin-left: 1.5rem;
 }
 
+.ml-8 {
+  margin-left: 2rem;
+}
+
 .ml-auto {
   margin-left: auto;
 }
@@ -1375,10 +1375,6 @@ body {
 
 .mt-auto {
   margin-top: auto;
-}
-
-.ml-8 {
-  margin-left: 2rem;
 }
 
 .block {
@@ -1991,11 +1987,6 @@ body {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
-.translate-x-1\/2 {
-  --tw-translate-x: 50%;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
 .translate-x-\[-50\%\] {
   --tw-translate-x: -50%;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
@@ -2099,10 +2090,6 @@ body {
 
 .cursor-default {
   cursor: default;
-}
-
-.cursor-grab {
-  cursor: grab;
 }
 
 .cursor-pointer {
@@ -2735,20 +2722,12 @@ body {
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
-.from-80\% {
-  --tw-gradient-from-position: 80%;
-}
-
-.from-50\% {
-  --tw-gradient-from-position: 50%;
-}
-
-.from-60\% {
-  --tw-gradient-from-position: 60%;
-}
-
 .from-70\% {
   --tw-gradient-from-position: 70%;
+}
+
+.from-80\% {
+  --tw-gradient-from-position: 80%;
 }
 
 .to-transparent {
@@ -2785,10 +2764,6 @@ body {
 
 .stroke-yellow-200 {
   stroke: #fef08a;
-}
-
-.stroke-primary {
-  stroke: hsl(var(--primary));
 }
 
 .object-contain {
@@ -3962,10 +3937,6 @@ body {
 
 .focus-visible\:ring-offset-background:focus-visible {
   --tw-ring-offset-color: hsl(var(--background));
-}
-
-.active\:cursor-grabbing:active {
-  cursor: grabbing;
 }
 
 .disabled\:pointer-events-none:disabled {

@@ -1,3 +1,4 @@
+import random
 from ollama import Client
 from typing import Union, List, Dict, Any
 from django.conf import settings
@@ -32,103 +33,91 @@ class OllamaService:
             print(f"Error fetching model details: {e}")
             return None
 
-    def get_actionable_prompts(self, style: str = '') -> List[Dict[str, str]]:
+    def get_actionable_prompts(self, style: str = "") -> List[Dict[str, str]]:
         """
         Returns a list of predefined actionable prompts with titles.
         """
+        # Define possible instruction and structure variations
+        instruction_variants = [
+            "Generate 5 unique and imaginative",
+            "Create 5 diverse and engaging",
+            "Design 5 thought-provoking and varied",
+            "Formulate 5 inventive and distinct",
+        ]
+
+        prompt_structure_variants = [
+            "Each should provide an intriguing question or engaging task.",
+            "Ensure each includes a stimulating question or activity.",
+            "Include a captivating question or clear task for each.",
+            "Each should pose a curiosity-sparking question or directive.",
+        ]
+
+        # Optional instructions to inject into the prompt
+        optional_instructions = [
+            "Ensure originality and coherence in each title and prompt.",
+            "Balance between creativity and clarity in each prompt.",
+            "Incorporate elements of surprise and intellectual challenge.",
+            "Develop prompts that are both thought-provoking and accessible.",
+        ]
+
         style_prompts = {
             "default": """
-                Generate 5 unique and imaginative actionable prompts spanning a wide range of creative and intellectual topics. Each prompt should have an engaging title and a clear, concise question or instruction.
-
-                The responses should be in the following JSON format:
-                {
-                    "prompts": [
-                        {
-                            "title": "Explore Future Innovations",
-                            "prompt": "What groundbreaking technologies might emerge in the next decade?"
-                        },
-                        ...
-                    ]
-                }
+                {instruction_variant} actionable prompts spanning various intellectual dimensions. {structure_variant}
             """,
             "creative": """
-                Generate 5 creative and imaginative conversation starters that encourage innovative thinking and artistic expression.
-
-                The responses should be in the following JSON format:
-                {
-                    "prompts": [
-                        {
-                            "title": "Invent a Novel Concept",
-                            "prompt": "Can you invent a new form of artistic expression and describe it?"
-                        },
-                        ...
-                    ]
-                }
+                {instruction_variant} creative conversation starters that spark innovative artistic thinking. {structure_variant}
             """,
             "analytical": """
-                Generate 5 analytical conversation starters focused on STEM, which emphasize logical analysis, problem-solving, and critical thinking. Focus on topics like mathematics, computer science, physics, and engineering, while also focusing on programming.
-
-                The responses should be in the following JSON format:
-                {
-                    "prompts": [
-                        {
-                            "title": "How to Optimize a Sort Algorithm",
-                            "prompt": "How would you optimize the performance of a sort algorithm with large datasets?"
-                        },
-                        ...
-                    ]
-                }
+                {instruction_variant} analytical conversation initiators emphasizing STEM topics. {structure_variant}
             """,
             "inspirational": """
-                Generate 5 inspirational conversation starters that motivate, encourage personal growth, and positive thinking.
-
-                The responses should be in the following JSON format:
-                {
-                    "prompts": [
-                        {
-                            "title": "Encourage Positive Change",
-                            "prompt": "What are some small daily habits that can lead to significant personal growth over time?"
-                        },
-                        ...
-                    ]
-                }
+                {instruction_variant} inspirational prompts that drive personal growth and positivity. {structure_variant}
             """,
             "casual": """
-                Generate 5 casual and friendly conversation starters that are relaxed, informal, and suitable for everyday chat.
-
-                The responses should be in the following JSON format:
-                {
-                    "prompts": [
-                        {
-                            "title": "Discuss Popular Trends",
-                            "prompt": "What are currently trending topics in social media and why do they resonate with people?"
-                        },
-                        ...
-                    ]
-                }
-            """
+                {instruction_variant} casual conversation starters ideal for everyday discussions. {structure_variant}
+            """,
         }
 
+        # Choose random instructions to ensure diversity
+        chosen_instruction_variant = random.choice(instruction_variants)
+        chosen_structure_variant = random.choice(prompt_structure_variants)
+        chosen_optional_instructions = random.sample(
+            optional_instructions, k=2
+        )  # choose 2 optional instructions
 
-        prompt_dialog = """\n\n
-        The title should always start with a verb (i.e. "Create", "Design", "Imagine", "Explore", etc.) and be a summary of the prompt.
+        prompt_dialog = f"""
+        The title should always start with a verb (e.g., "Create", "Design", "Imagine", "Explore", etc.) and be a summary of the prompt.
         Ensure that each prompt is phrased in less than 100 words.
         Maintain strict JSON formatting standards for output validity.
         The title should be at least 5 words.
         Respond solely with the JSON output.
+        The output should be in the following format:
+        {{
+            "prompts": [
+                {{"title": "...", "prompt": "..."}},
+                {{"title": "...", "prompt": "..."}},
+                {{"title": "...", "prompt": "..."}},
+            ]
+        }}
+        {' '.join(chosen_optional_instructions)}
         """
 
-        prompt = style_prompts.get(style.lower(), style_prompts["default"]) + prompt_dialog
+        prompt_template = style_prompts.get(style.lower(), style_prompts["default"])
+        prompt = (
+            prompt_template.format(
+                instruction_variant=chosen_instruction_variant,
+                structure_variant=chosen_structure_variant,
+            )
+            + prompt_dialog
+        )
 
         response = self._client.chat(
-            model="llama3.2:3b",
-            messages=[{"role": "user", "content": prompt}],
-            format="json"
+            model="llama3.2:3b", messages=[{"role": "user", "content": prompt}], format="json"
         )
+
         try:
-            prompts = json.loads(response["message"]["content"])
-            return prompts
-        except Exception as e:
+            return json.loads(response["message"]["content"])
+        except Exception:
             # Fallback to default prompts if parsing fails
             return [
                 {

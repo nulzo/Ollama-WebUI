@@ -1,5 +1,5 @@
-import { motion, PanInfo, useMotionValue } from 'framer-motion';
-import { AlignJustify, ArrowUpDown, Bot, ChevronLeft, ChevronsUpDown, Image, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
+import { motion, useMotionValue } from 'framer-motion';
+import { ArrowUpDown, Bot, ChevronsUpDown, Image, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
 import { Button } from '../ui/button';
 import { CringeLogo } from '@/assets/cringelogo';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
@@ -20,7 +20,7 @@ import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { ThemeSettings } from '@/features/settings/components/theme-settings';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
@@ -29,14 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Shield } from 'lucide-react'
 import { ChevronRight, Server } from 'lucide-react'; // Add these imports
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useSettings, useProviderSettings } from '@/features/settings/api/get-settings';
-
-interface ProviderSettings {
-  apiKey: string;
-  endpoint?: string;
-  organizationId?: string;
-  modelOptions?: string[];
-}
+import { useProviderSettings } from '@/features/settings/api/get-settings';
 
 const providers = {
   ollama: {
@@ -82,7 +75,7 @@ interface SidebarProps {
   actions?: React.ReactNode;
 }
 
-const Sidebar = ({ conversationList, actions }: SidebarProps) => {
+const Sidebar = ({ conversationList}: SidebarProps) => {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user, isLoading } = useAuth();
   const animationDuration = 0.2;
@@ -113,7 +106,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
 
   return (
     <motion.div
-      className="left-0 z-[100] fixed inset-y-0 sidebar-container"
+      className="left-0 z-10 fixed inset-y-0 sidebar-container"
       initial={false}
       animate={{
         width: isCollapsed ? MIN_WIDTH : MAX_WIDTH
@@ -129,7 +122,6 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
       <div className="relative flex flex-col bg-secondary border-r h-svh overflow-hidden">
         {/* Top Section */}
         <div className="relative flex items-center mt-2 p-2 pb-1 h-12 align-middle">
-
           <span className='flex items-center gap-1 px-1 w-full font-semibold text-foreground text-lg'>
             <motion.div
               className="left-4 absolute"
@@ -241,7 +233,7 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
 
             {isCollapsed && (
               <Button
-                variant="default"
+                variant="ghost"
                 size="icon"
                 className="relative flex justify-center gap-2.5 mb-2 w-full h-9 font-bold text-center text-sm group"
                 onClick={() => { navigate('/') }}
@@ -647,7 +639,6 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
                   </Button>
                   <Button
                     onClick={() => {
-                      // Handle settings update
                       console.log('Updating settings...');
                       handleCloseModal();
                     }}
@@ -730,4 +721,3 @@ const Sidebar = ({ conversationList, actions }: SidebarProps) => {
 };
 
 export default Sidebar;
-

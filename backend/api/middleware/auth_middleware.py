@@ -10,6 +10,12 @@ class AuthenticationMiddleware:
     async def __call__(self, request):
         if request.path in ['/api/auth/login/', '/api/auth/logout/', '/api/auth/register/']:
             return await self.get_response(request)
+        
+        if request.method == 'OPTIONS':
+            return await self.get_response(request)
+        
+        if request.path.startswith('/api/v1/auth/'):
+            return await self.get_response(request)
 
         # Check for token in the Authorization header
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')

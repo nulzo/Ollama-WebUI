@@ -9,7 +9,7 @@ services:
         - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
         - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
         - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
-        - OLLAMA_HOST=${OLLAMA_HOST:-192.168.0.25}
+        - OLLAMA_HOST=${OLLAMA_HOST:-host.docker.internal}
         - OLLAMA_PORT=${OLLAMA_PORT:-11434}
         - OPENAI_API_KEY=${OPENAI_API_KEY}
     environment:
@@ -22,6 +22,8 @@ services:
     restart: always  # Restart the backend service always (even if it exits normally)
     ports:
       - 6969:6969  # Map port 6969 on the host to port 6969 on the container
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     # volumes:
       # We want a way to persist the database from the container to the local machine
       # - ./backend/db.sqlite3:/home/backend/db.sqlite3

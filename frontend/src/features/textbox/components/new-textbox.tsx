@@ -125,8 +125,8 @@ export default function DynamicTextarea({
 
   return (
     <TooltipProvider>
-      <div className="w-full mx-auto bg-transparent max-w-6xl inset-x-0 border-spacing-2 overflow-hidden px-[75px]">
-        <div className="mx-auto relative rounded-lg shadow-sm border border-input z-10 max-w-6xl inset-x-0 border-spacing-2 overflow-hidden ring-primary/50 focus-within:border-primary focus-within:ring-1 w-full">
+      <div className="inset-x-0 border-spacing-2 bg-transparent mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-7xl overflow-hidden">
+        <div className="relative z-10 inset-x-0 border-input border-spacing-2 focus-within:border-primary shadow-sm mx-auto border rounded-lg ring-primary/50 focus-within:ring-1 w-full overflow-hidden">
           <textarea
             ref={textareaRef}
             value={text}
@@ -134,7 +134,7 @@ export default function DynamicTextarea({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             rows={1}
-            className="placeholder:text-muted-foreground text-foreground w-full resize-none bg-transparent px-4 py-3 text-sm focus:outline-none focus:ring-0 focus:ring-none rounded-lg"
+            className="bg-transparent px-4 py-3 rounded-lg focus:ring-0 focus:ring-none w-full text-foreground text-sm placeholder:text-muted-foreground resize-none focus:outline-none"
             style={{ minHeight: '44px', maxHeight: '200px' }}
           />
           
@@ -145,25 +145,25 @@ export default function DynamicTextarea({
                   <img
                     src={image}
                     alt={`Uploaded ${index + 1}`}
-                    className="h-12 w-12 object-cover rounded"
+                    className="rounded w-12 h-12 object-cover"
                   />
                   <button
                     onClick={() => onRemoveImage(index)}
-                    className="absolute -top-1 -right-1 bg-background border rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="-top-1 -right-1 absolute bg-background opacity-0 group-hover:opacity-100 p-0.5 border rounded-full transition-opacity"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="w-3 h-3" />
                   </button>
                 </div>
               ))}
             </div>
           )}
 
-          <div className="pb-2 px-2 flex justify-between items-center">
+          <div className="flex justify-between items-center px-2 pb-2">
             <div className="flex space-x-2">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    className="h-5 w-5"
+                    className="w-5 h-5"
                     variant="ghost"
                     size="icon"
                     onClick={handleUndo}
@@ -180,7 +180,7 @@ export default function DynamicTextarea({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    className="h-5 w-5"
+                    className="w-5 h-5"
                     variant="ghost"
                     size="icon"
                     onClick={handleRedo}
@@ -197,7 +197,7 @@ export default function DynamicTextarea({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    className="h-5 w-5"
+                    className="w-5 h-5"
                     variant="ghost"
                     size="icon"
                     onClick={handleCopy}
@@ -214,7 +214,7 @@ export default function DynamicTextarea({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      className="h-5 w-5"
+                      className="w-5 h-5"
                       variant="link"
                       size="icon"
                       onClick={() => fileInputRef.current?.click()}
@@ -230,17 +230,17 @@ export default function DynamicTextarea({
             </div>
 
             <div className="flex items-center space-x-2">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 {text.length > 0 ? text.length : ''}
               </span>
               <Button
                 size="icon"
-                className="h-8 w-fit text-xs px-2"
+                className="px-2 w-fit h-8 text-xs"
                 onClick={handleSubmit}
                 disabled={!text.trim() || model.length === 0}
               >
                 Send
-                <kbd className="px-1 gap-1 rounded inline-flex justify-center items-center py-1 font-mono text-sm">
+                <kbd className="inline-flex justify-center items-center gap-1 px-1 py-1 rounded font-mono text-sm">
                   <Command className="size-2" />
                   <CornerDownLeft className="size-2" />
                 </kbd>

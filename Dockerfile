@@ -6,7 +6,7 @@ FROM nikolaik/python-nodejs:python3.11-nodejs20-slim
 # --- Configure some optional arg dependencies ---
 
 ARG INSTALL_OLLAMA=false
-ARG OLLAMA_HOST=localhost
+ARG OLLAMA_HOST=host.docker.internal
 ARG OLLAMA_PORT=11434
 ARG USE_OPEN_AI=false
 ARG OPENAI_API_KEY=""

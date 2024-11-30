@@ -18,7 +18,6 @@ class MessageProcessorService:
             for msg in all_messages
         ]
 
-        self.logger.info(f"Processed {len(flattened_messages)} messages")
         return flattened_messages
 
     def _format_message(self, message, image_service) -> dict:
@@ -26,5 +25,8 @@ class MessageProcessorService:
         return {
             "role": message.role,
             "content": message.content,
-            "images": image_service.process_images(message.get_images()) if message.images else []
+            "images": [
+                image_service.process_images(img.image) 
+                for img in message.message_images.all()
+            ] if message.has_images else []
         }

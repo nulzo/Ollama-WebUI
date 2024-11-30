@@ -26,6 +26,21 @@ export function useConversation() {
       onMutate: async (variables) => {
         setIsStreaming(true);
 
+        window.dispatchEvent(new CustomEvent('optimistic-message', {
+          detail: {
+            message: {
+              id: `temp-${Date.now()}`,
+              role: variables.data.role,
+              content: variables.data.content,
+              user: variables.data.user,
+              model: variables.data.model,
+              created_at: new Date().toISOString(),
+              conversation_uuid: searchParamString,
+              images: variables.data.images || []
+            }
+          }
+        }));
+
         // Cancel any outgoing refetches
         await queryClient.cancelQueries({
           queryKey: ['messages', { conversation_id: searchParamString }]
@@ -38,35 +53,35 @@ export function useConversation() {
         ]);
 
         // Optimistically update the messages cache
-        queryClient.setQueryData(
-          ['messages', { conversation_id: searchParamString }],
-          (old: any) => {
-            // Handle the case where old might be undefined
-            if (!old) return { data: [] };
+        // queryClient.setQueryData(
+        //   ['messages', { conversation_id: searchParamString }],
+        //   (old: any) => {
+        //     // Handle the case where old might be undefined
+        //     if (!old) return { data: [] };
 
-            // Ensure we're working with the correct data structure
-            const existingMessages = Array.isArray(old) ? old :
-              Array.isArray(old.data) ? old.data :
-                [];
+        //     // Ensure we're working with the correct data structure
+        //     const existingMessages = Array.isArray(old) ? old :
+        //       Array.isArray(old.data) ? old.data :
+        //         [];
 
-            const newMessage = {
-              ...variables.data,
-              id: `temp-${Date.now()}`,
-              created_at: new Date().toISOString(),
-            };
+        //     const newMessage = {
+        //       ...variables.data,
+        //       id: `temp-${Date.now()}`,
+        //       created_at: new Date().toISOString(),
+        //     };
 
-            // If the old data was an array, return an array
-            if (Array.isArray(old)) {
-              return [...existingMessages, newMessage];
-            }
+        //     // If the old data was an array, return an array
+        //     if (Array.isArray(old)) {
+        //       return [...existingMessages, newMessage];
+        //     }
 
-            // Otherwise, maintain the original structure
-            return {
-              ...old,
-              data: [...existingMessages, newMessage]
-            };
-          }
-        );
+        //     // Otherwise, maintain the original structure
+        //     return {
+        //       ...old,
+        //       data: [...existingMessages, newMessage]
+        //     };
+        //   }
+        // );
 
         return { previousMessages };
       },

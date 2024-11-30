@@ -5,6 +5,7 @@ from api.serializers.liked_messages import LikedMessageSerializer
 from api.models.assistant.assistant import Assistant
 from api.models.users.user import CustomUser
 from api.models.conversation.conversation import Conversation
+from api.repositories.message_repository import MessageRepository
 
 class UserField(serializers.RelatedField):
     def to_representation(self, value):
@@ -33,11 +34,17 @@ class MessageSerializer(serializers.ModelSerializer):
     user = UserField(queryset=CustomUser.objects.all())
     model = AssistantField(queryset=Assistant.objects.all())
     conversation = serializers.UUIDField(required=False, allow_null=True)
-    images = serializers.ListField(child=serializers.CharField(), required=False)
-
+    image_ids = serializers.ListField(child=serializers.IntegerField(), read_only=True)
+    images = serializers.ListField(child=serializers.CharField(), required=False, write_only=True)
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.message_repository = MessageRepository()
+        
     class Meta:
         model = Message
-        fields = "__all__"
+        fields = ['id', 'conversation', 'role', 'content', 'created_at', 
+                 'model', 'user', 'liked_by', 'has_images', 'image_ids', 'images']
 
     def validate_conversation(self, value):
         if value:
@@ -49,6 +56,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         conversation_uuid = validated_data.pop('conversation', None)
+        images = validated_data.pop('images', [])
         user = self.context['request'].user
 
         if conversation_uuid:
@@ -61,11 +69,33 @@ class MessageSerializer(serializers.ModelSerializer):
         else:
             conversation = Conversation.objects.create(user=user, name=validated_data.get('content', ''))
 
-        message = Message.objects.create(conversation=conversation, **validated_data)
+        validated_data['conversation'] = conversation
+        validated_data['has_images'] = bool(images)
+        
+        message = self.message_repository.create({
+            **validated_data,
+            'images': images
+        })
+
         return message
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['conversation_uuid'] = str(instance.conversation.uuid)
-        representation['images'] = instance.get_images()
+        if instance.has_images:
+            representation['image_ids'] = list(
+                instance.message_images.values_list('id', flat=True)
+            )
+        return representation
+
+
+class MessageListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for message lists"""
+    class Meta:
+        model = Message
+        fields = ['id', 'role', 'created_at', 'conversation']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['conversation_uuid'] = str(instance.conversation.uuid)
         return representation

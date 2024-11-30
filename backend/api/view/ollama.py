@@ -54,6 +54,7 @@ class OllamaPrompts(APIView):
         super().__init__(**kwargs)
         self.ollama_service = OllamaService()
 
-    def get(self, request):
-        prompts = self.ollama_service.get_actionable_prompts()
-        return Response({"prompts": prompts}, status=status.HTTP_200_OK)
+    def get(self, request, style=''):
+        ollama_service = OllamaService()
+        prompts = ollama_service.get_actionable_prompts(style)
+        return Response({"prompts": prompts})

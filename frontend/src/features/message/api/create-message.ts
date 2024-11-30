@@ -23,6 +23,20 @@ export const createMessage = async ({
   data: CreateMessageInput;
   queryClient: QueryClient;
 }): Promise<void> => {
+
+  window.dispatchEvent(new CustomEvent('message-sent', {
+    detail: {
+      message: {
+        role: data.role,
+        content: data.content,
+        user: data.user,
+        model: data.model,
+        created_at: new Date().toISOString(),
+        images: data.images
+      }
+    }
+  }));
+
   try {
     const response = await api.post('/chat/', data, {
       headers: {

@@ -17,4 +17,9 @@ export interface Message {
   model_id?: number;
   user_id?: number;
   image?: string;
+  liked_by?: string[];
+  has_images?: boolean;
+  conversation_uuid?: string;
+  model?: string;
+  user?: string;
 }

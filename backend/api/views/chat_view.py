@@ -23,8 +23,7 @@ class ChatView(APIView):
     def post(self, request):
         try:
             self.logger.info(f"Received chat request from user {request.user.id}")
-            self.logger.debug(f"Request data: {request.data}")
-
+            
             response = self.chat_service.handle_chat(
                 serializer_data=request.data,
                 request=request

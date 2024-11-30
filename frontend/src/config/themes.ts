@@ -88,7 +88,7 @@ export const colorThemes: Record<Color, ThemeConfig> = {
   },
   green: {
     light: {
-      primary: '162.1 66.2% 36.3%',
+      primary: '151 66% 21%',
       'primary-foreground': '355.7 100% 97.3%',
       secondary: '240 4.8% 95.9%',
       'secondary-foreground': '240 5.9% 10%',

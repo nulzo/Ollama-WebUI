@@ -49,7 +49,6 @@ class ProviderFactory:
             # Cache the provider
             self._providers[provider_name] = provider
 
-            self.logger.info(f"Created new {provider_name} provider")
             return provider
 
         except Exception as e:
@@ -65,4 +64,3 @@ class ProviderFactory:
             provider_class: The provider class to register
         """
         self._provider_classes[name] = provider_class
-        self.logger.info(f"Registered new provider class: {name}")

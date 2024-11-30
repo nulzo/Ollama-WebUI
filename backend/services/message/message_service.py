@@ -3,7 +3,7 @@ from django.http import StreamingHttpResponse
 from api.serializers.message import MessageSerializer
 from api.models.conversation.conversation import Conversation
 from services.openai.openai import OpenAIService
-from repository.message_repository import MessageRepository
+from api.repositories.message_repository import MessageRepository
 from services.ollama.ollama import OllamaService
 from api.models.messages.message import Message
 
@@ -14,7 +14,13 @@ class MessageService:
         self.openai_service = OpenAIService()
 
     def handle_user_message(self, serializer_data, request):
-        serializer = MessageSerializer(data=serializer_data, context={'request': request})
+        serializer = MessageSerializer(
+            data=serializer_data, 
+            context={
+                'request': request,
+                'images': serializer_data.get('images', [])
+            }
+        )
 
         if serializer.is_valid():
             message: Message = serializer.save()

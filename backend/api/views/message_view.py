@@ -1,16 +1,20 @@
+from datetime import datetime
+import uuid
+from django.conf import settings
+from api.utils.responses.response import api_response
 from rest_framework import viewsets, mixins, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.http import StreamingHttpResponse
-from api.serializers.message import MessageSerializer
+from api.serializers.message import MessageSerializer, MessageListSerializer
 from api.services.message_service import MessageService
 from api.utils.exceptions import ServiceError, ValidationError
 from api.utils.pagination import StandardResultsSetPagination
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 class MessageViewSet(mixins.CreateModelMixin,
                      mixins.ListModelMixin,
@@ -24,15 +28,19 @@ class MessageViewSet(mixins.CreateModelMixin,
     retrieve: Get a specific message
     conversation: Get messages for a specific conversation
     """
+
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
-    lookup_field = 'uuid'
+    lookup_field = 'id'  # Changed from uuid to id for individual message fetching
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.message_service = MessageService()
 
     def get_serializer_class(self):
+        if self.action == 'list':
+            # Use minimal serializer for list view
+            return MessageListSerializer
         return MessageSerializer
 
     def get_queryset(self):
@@ -44,7 +52,34 @@ class MessageViewSet(mixins.CreateModelMixin,
         if conversation_uuid:
             queryset = queryset.filter(conversation__uuid=conversation_uuid)
 
-        return queryset.order_by('-created_at')
+        # Select only necessary fields for list view
+        if self.action == 'list':
+            queryset = queryset.only('id', 'role', 'created_at', 'conversation')
+
+        return queryset.order_by('created_at')
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return api_response(
+                data=serializer.data,
+                links={
+                    "self": request.build_absolute_uri(),
+                    "conversation": f"/api/conversations/{instance.conversation.uuid}/"
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error fetching message: {str(e)}")
+            return api_response(
+                error={
+                    "code": "MESSAGE_FETCH_ERROR",
+                    "message": "Failed to fetch message",
+                    "details": str(e)
+                },
+                status=500
+            )
+        
 
     def create(self, request, *args, **kwargs):
         """
@@ -121,4 +156,33 @@ class MessageViewSet(mixins.CreateModelMixin,
             return Response(
                 {"error": "Failed to fetch messages"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+
+class MessageDetailView(APIView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.message_service = MessageService()
+
+class MessageDetailView(APIView):
+    def get(self, request, message_id):
+        try:
+            message = self.message_service.get_message(message_id, request.user)
+            serializer = MessageSerializer(message)
+            return api_response(
+                data=serializer.data,
+                links={
+                    "self": request.build_absolute_uri(),
+                    "conversation": f"/api/conversations/{message.conversation.uuid}/"
+                }
+            )
+        except Exception as e:
+            logger.error(f"Error fetching message: {str(e)}")
+            return api_response(
+                error={
+                    "code": "MESSAGE_FETCH_ERROR",
+                    "message": "Failed to fetch message",
+                    "details": str(e)
+                },
+                status=500
             )

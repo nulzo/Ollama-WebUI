@@ -119,44 +119,44 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
             {renderTokens(token.tokens)}
           </li>
         );
-      case 'table':
-        return (
-          <div className="rounded-xl">
-            <table className="w-[100%] min-w-2xl">
-              <thead className="">
-                <tr className="even:bg-muted m-0 p-0 border-t">
-                  {token.header.map((header: any, headerIdx: any) => (
-                    <th
-                      key={index}
-                      style={{ textAlign: token.align[headerIdx] || '' }}
-                      className="[&[align=right]]:text-right px-4 py-2 border font-bold text-left [&[align=center]]:text-center"
-                    >
-                      {renderTokens(header.tokens)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {token.rows.map((row: any, rowIdx: any) => (
-                  <tr
-                    key={`$key-${index}-row-${rowIdx}`}
-                    className="even:bg-muted/50 backdrop-blur m-0 p-0 border-t"
-                  >
-                    {(row ?? []).map((cell: any, cellIdx: any) => (
-                      <td
-                        key={`${index}-row-${rowIdx}-${cellIdx}`}
-                        style={{ textAlign: token.align[cellIdx] || '' }}
-                        className="[&[align=right]]:text-right px-4 py-2 border text-left [&[align=center]]:text-center"
+        case 'table':
+          return (
+            <div className="shadow-sm rounded-xl overflow-x-auto">
+              <table className="rounded-xl w-full min-w-5xl overflow-hidden table-auto">
+                <thead className="bg-muted/25">
+                  <tr className="m-0 p-0 border whitespace-nowrap">
+                    {token.header.map((header: any, headerIdx: number) => (
+                      <th
+                        key={`header-${headerIdx}`}
+                        style={{ textAlign: token.align[headerIdx] || '' }}
+                        className="[&[align=right]]:text-right px-3 py-2 border font-semibold text-nowrap [&[align=center]]:text-center whitespace-break-spaces"
                       >
-                        {renderTokens(cell.tokens)}
-                      </td>
+                        {renderTokens(header.tokens)}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
+                </thead>
+                <tbody>
+                  {token.rows.map((row: any, rowIdx: number) => (
+                    <tr
+                      key={`row-${rowIdx}`}
+                      className="even:bg-muted/25 m-0 p-0 border-t"
+                    >
+                      {(row ?? []).map((cell: any, cellIdx: number) => (
+                        <td
+                          key={`cell-${rowIdx}-${cellIdx}`}
+                          style={{ textAlign: token.align[cellIdx] || '' }}
+                          className="[&[align=right]]:text-right px-4 py-2 border text-nowrap [&[align=center]]:text-center whitespace-break-spaces"
+                        >
+                          {renderTokens(cell.tokens)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
       case 'html':
         return <div key={index}>{DOMPurify.sanitize(token.text)}</div>;
       case 'blockKatex':

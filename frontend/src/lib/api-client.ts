@@ -1,4 +1,3 @@
-import { useNotifications } from "@/components/notification/notification-store";
 import { env } from "@/config/env";
 import urlJoin from "url-join";
 
@@ -103,7 +102,7 @@ class ApiClient {
         method: 'POST',
         headers: this.getHeaders(config),
         credentials: 'include',
-        body: JSON.stringify(data),  // Ensure data is properly stringified
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
@@ -133,6 +132,17 @@ class ApiClient {
       body: JSON.stringify(data),
     });
 
+    await this.handleResponse(response);
+    return response.json();
+  }
+
+  async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    const response = await fetch(this.getFullURL(endpoint), {
+      method: 'PATCH',
+      headers: authRequestHeaders(),
+      credentials: 'include',
+      body: JSON.stringify(data),
+    });
     await this.handleResponse(response);
     return response.json();
   }

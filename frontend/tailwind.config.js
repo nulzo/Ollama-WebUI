@@ -21,6 +21,7 @@ module.exports = {
       fontFamily: {
         poppins: ['Poppins'],
         archivo: ['Archivo', 'sans'],
+        jetbrainsMono: ['JetBrains Mono', 'monospace'],
         sans: [
           '-apple-system',
           'BlinkMacSystemFont',

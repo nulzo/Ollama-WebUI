@@ -1,5 +1,6 @@
 from django.db import models
 from api.models.models.model import Model
+from api.models.tools.tools import Tool
 
 
 class Agent(models.Model):
@@ -45,6 +46,13 @@ class Agent(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey('api.CustomUser', on_delete=models.CASCADE)
     base_model = models.ForeignKey(Model, on_delete=models.CASCADE)
+    tool = models.ForeignKey(
+        Tool,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='agents'
+    )
     
     def __str__(self):
         return self.display_name

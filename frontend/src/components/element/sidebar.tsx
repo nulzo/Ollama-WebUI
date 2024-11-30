@@ -1,5 +1,22 @@
 import { motion, useMotionValue } from 'framer-motion';
-import { ArrowUpDown, Bot, ChevronsUpDown, Image, LogIn, LogOut, PanelRightClose, PanelRightOpen, Plus, Settings, Settings2, SquareUser } from 'lucide-react';
+import {
+  ArrowUpDown,
+  Bot,
+  ChevronDown,
+  ChevronsUpDown,
+  Code2,
+  Image,
+  LayoutGrid,
+  LogIn,
+  LogOut,
+  PanelRightClose,
+  PanelRightOpen,
+  PencilRuler,
+  Plus,
+  Settings,
+  Settings2,
+  SquareUser,
+} from 'lucide-react';
 import { Button } from '../ui/button';
 import { CringeLogo } from '@/assets/cringelogo';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
@@ -12,24 +29,62 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import avatar from "@/assets/avatar.png"
+} from '@/components/ui/dropdown-menu';
+import avatar from '@/assets/avatar.png';
 import { useAuth } from '@/features/authentication/hooks/use-auth';
 import { Input } from '../ui/input';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { ThemeSettings } from '@/features/settings/components/theme-settings';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Shield } from 'lucide-react'
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Shield } from 'lucide-react';
 import { ChevronRight, Server } from 'lucide-react'; // Add these imports
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useProviderSettings } from '@/features/settings/api/get-settings';
+import { useTools } from '@/features/tools/api';
+
+const slideAnimation = {
+  open: {
+    height: 'auto',
+    opacity: 1,
+    transition: {
+      height: {
+        type: 'spring',
+        bounce: 0,
+        duration: 0.3,
+      },
+      opacity: {
+        duration: 0.3,
+      },
+    },
+  },
+  closed: {
+    height: 0,
+    opacity: 0,
+    transition: {
+      height: {
+        type: 'spring',
+        bounce: 0,
+        duration: 0.3,
+      },
+      opacity: {
+        duration: 0.2,
+      },
+    },
+  },
+};
 
 const providers = {
   ollama: {
@@ -37,8 +92,8 @@ const providers = {
     icon: Server,
     settings: {
       endpoint: 'http://localhost:11434',
-      modelOptions: ['llama2', 'mistral', 'codellama']
-    }
+      modelOptions: ['llama2', 'mistral', 'codellama'],
+    },
   },
   openai: {
     name: 'OpenAI',
@@ -46,8 +101,8 @@ const providers = {
     settings: {
       apiKey: '',
       organizationId: '',
-      modelOptions: ['gpt-4', 'gpt-3.5-turbo']
-    }
+      modelOptions: ['gpt-4', 'gpt-3.5-turbo'],
+    },
   },
   azure: {
     name: 'Azure AI',
@@ -55,17 +110,17 @@ const providers = {
     settings: {
       apiKey: '',
       endpoint: '',
-      modelOptions: ['gpt-4', 'gpt-35-turbo']
-    }
+      modelOptions: ['gpt-4', 'gpt-35-turbo'],
+    },
   },
   anthropic: {
     name: 'Anthropic',
     icon: Server,
     settings: {
       apiKey: '',
-      modelOptions: ['claude-3-opus', 'claude-3-sonnet']
-    }
-  }
+      modelOptions: ['claude-3-opus', 'claude-3-sonnet'],
+    },
+  },
 };
 
 type ProviderType = 'ollama' | 'openai' | 'azure' | 'anthropic';
@@ -75,7 +130,7 @@ interface SidebarProps {
   actions?: React.ReactNode;
 }
 
-const Sidebar = ({ conversationList}: SidebarProps) => {
+const Sidebar = ({ conversationList }: SidebarProps) => {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const { user, isLoading } = useAuth();
   const animationDuration = 0.2;
@@ -84,7 +139,36 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
   const [selectedSetting, setSelectedSetting] = useState('general');
   const [selectedProvider, setSelectedProvider] = useState<ProviderType | null>(null);
   const [isProvidersExpanded, setIsProvidersExpanded] = useState(false);
+  const [isAgentsExpanded, setIsAgentsExpanded] = useState(false);
+  const { data: tools } = useTools();
+
   const { data: providerSettings } = useProviderSettings();
+  const [isFunctionsExpanded, setIsFunctionsExpanded] = useState(false);
+  const [savedFunctions] = useState([
+    { id: '1', name: 'get_weather', path: '/tools/get_weather' },
+    { id: '2', name: 'calculate_price', path: '/tools/calculate_price' },
+  ]);
+
+  const mockAgents = [
+    {
+      id: '1',
+      name: 'Code Assistant',
+      model: 'codellama',
+      icon: Code2,
+    },
+    {
+      id: '2',
+      name: 'Writing Helper',
+      model: 'mistral',
+      icon: PencilRuler,
+    },
+    {
+      id: '3',
+      name: 'Image Expert',
+      model: 'llama2',
+      icon: Image,
+    },
+  ];
 
   const MIN_WIDTH = 57;
   const MAX_WIDTH = 250;
@@ -97,55 +181,55 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
   };
 
   const handleOpenModal = (modal: string) => {
-    setOpenModal(modal)
-  }
+    setOpenModal(modal);
+  };
 
   const handleCloseModal = () => {
-    setOpenModal(null)
-  }
+    setOpenModal(null);
+  };
 
   return (
     <motion.div
       className="left-0 z-10 fixed inset-y-0 sidebar-container"
       initial={false}
       animate={{
-        width: isCollapsed ? MIN_WIDTH : MAX_WIDTH
+        width: isCollapsed ? MIN_WIDTH : MAX_WIDTH,
       }}
       style={{
-        width: width
+        width: width,
       }}
       transition={{
         duration: animationDuration,
-        ease: "easeInOut"
+        ease: 'easeInOut',
       }}
     >
       <div className="relative flex flex-col bg-secondary border-r h-svh overflow-hidden">
         {/* Top Section */}
         <div className="relative flex items-center mt-2 p-2 pb-1 h-12 align-middle">
-          <span className='flex items-center gap-1 px-1 w-full font-semibold text-foreground text-lg'>
+          <span className="flex items-center gap-1 px-1 w-full font-semibold text-foreground text-lg">
             <motion.div
               className="left-4 absolute"
               animate={{
-                opacity: isCollapsed ? 0 : 1
+                opacity: isCollapsed ? 0 : 1,
               }}
               transition={{
                 duration: animationDuration,
-                ease: "easeInOut"
+                ease: 'easeInOut',
               }}
             >
               <CringeLogo className="select-none shrink-0 size-6 stroke-foreground" />
             </motion.div>
 
             <motion.div
-              className="left-2 absolute w-full"  // Changed to left-3 to match other buttons
+              className="left-2 absolute w-full" // Changed to left-3 to match other buttons
               initial={{ opacity: 0 }}
               animate={{
-                opacity: isCollapsed ? 1 : 0
+                opacity: isCollapsed ? 1 : 0,
               }}
               transition={{
                 duration: animationDuration,
-                ease: "easeInOut",
-                delay: isCollapsed ? animationDuration : 0
+                ease: 'easeInOut',
+                delay: isCollapsed ? animationDuration : 0,
               }}
             >
               <Button
@@ -154,24 +238,24 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                 onClick={toggleSidebar}
                 className="relative flex justify-center items-center w-10 h-9 font-bold text-sm group"
               >
-                <PanelRightClose className='size-4 stroke-foreground' />
+                <PanelRightClose className="size-4 stroke-foreground" />
               </Button>
             </motion.div>
 
-            <div className='flex justify-between items-center gap-1 ml-8 w-full'>
+            <div className="flex justify-between items-center gap-1 ml-8 w-full">
               <motion.div
-                className='flex items-center gap-1 text-foreground text-nowrap overflow-hidden select-none'
+                className="flex items-center gap-1 text-foreground text-nowrap overflow-hidden select-none"
                 animate={{
                   width: isCollapsed ? 0 : 'auto',
                   opacity: isCollapsed ? 0 : 1,
                 }}
                 transition={{
                   duration: animationDuration,
-                  ease: "easeInOut"
+                  ease: 'easeInOut',
                 }}
               >
                 CringeAI
-                <span className='font-light text-primary text-xs'>beta</span>
+                <span className="font-light text-primary text-xs">beta</span>
               </motion.div>
 
               <motion.div
@@ -180,7 +264,7 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                 }}
                 transition={{
                   duration: animationDuration,
-                  ease: "easeInOut"
+                  ease: 'easeInOut',
                 }}
               >
                 <Button
@@ -189,13 +273,12 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                   onClick={toggleSidebar}
                   className="relative flex justify-center items-center w-10 h-9 font-bold text-sm group"
                 >
-                  <PanelRightOpen className='size-4 stroke-foreground' />
+                  <PanelRightOpen className="size-4 stroke-foreground" />
                 </Button>
               </motion.div>
             </div>
           </span>
         </div>
-
 
         {/* Main Content Area - Flex Column with Full Height */}
         <div className="flex flex-col flex-1 h-full overflow-hidden">
@@ -208,7 +291,9 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                   variant="default"
                   size="icon"
                   className="relative flex justify-center items-center gap-2.5 mb-2 px-2 w-full h-9 font-bold text-sm group"
-                  onClick={() => { navigate('/') }}
+                  onClick={() => {
+                    navigate('/');
+                  }}
                 >
                   <div className="flex justify-center items-center">
                     {/* <Plus className="shrink-0 size-4" /> */}
@@ -220,7 +305,7 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                       }}
                       transition={{
                         duration: animationDuration,
-                        ease: "easeInOut"
+                        ease: 'easeInOut',
                       }}
                     >
                       New Chat
@@ -230,13 +315,14 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
               </div>
             )}
 
-
             {isCollapsed && (
               <Button
                 variant="ghost"
                 size="icon"
                 className="relative flex justify-center gap-2.5 mb-2 w-full h-9 font-bold text-center text-sm group"
-                onClick={() => { navigate('/') }}
+                onClick={() => {
+                  navigate('/');
+                }}
               >
                 <div className="left-3 absolute flex justify-center items-center">
                   <Plus className="shrink-0 size-4" />
@@ -248,7 +334,7 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                     }}
                     transition={{
                       duration: animationDuration,
-                      ease: "easeInOut"
+                      ease: 'easeInOut',
                     }}
                   >
                     New Chat
@@ -257,37 +343,13 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
               </Button>
             )}
 
-            {/* Explore Agents Button */}
             <Button
               variant="ghost"
               size="icon"
               className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
-              onClick={() => { navigate('/models') }}
-            >
-              <div className="left-3 absolute flex items-center">
-                <Bot className="size-4" />
-                <motion.span
-                  className="ml-2 text-sm whitespace-nowrap overflow-hidden"
-                  animate={{
-                    width: isCollapsed ? 0 : 'auto',
-                    opacity: isCollapsed ? 0 : 1,
-                  }}
-                  transition={{
-                    duration: animationDuration,
-                    ease: "easeInOut"
-                  }}
-                >
-                  Fine-Tune Agents
-                </motion.span>
-              </div>
-            </Button>
-
-            {/* Download Models Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
-              onClick={() => { navigate('/cloud') }}
+              onClick={() => {
+                navigate('/cloud');
+              }}
             >
               <div className="left-3 absolute flex items-center">
                 <ArrowUpDown className="size-4" />
@@ -299,7 +361,7 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                   }}
                   transition={{
                     duration: animationDuration,
-                    ease: "easeInOut"
+                    ease: 'easeInOut',
                   }}
                 >
                   Download Models
@@ -307,12 +369,253 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
               </div>
             </Button>
 
+            {/* Explore Agents Button */}
+            <Collapsible open={isAgentsExpanded} onOpenChange={setIsAgentsExpanded}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
+                >
+                  <div className="left-3 absolute flex items-center justify-between w-[calc(100%-24px)]">
+                    <div className="flex items-center">
+                      <Bot className="size-4" />
+                      <motion.span
+                        className="ml-2 text-sm whitespace-nowrap overflow-hidden"
+                        animate={{
+                          width: isCollapsed ? 0 : 'auto',
+                          opacity: isCollapsed ? 0 : 1,
+                        }}
+                        transition={{
+                          duration: animationDuration,
+                          ease: 'easeInOut',
+                        }}
+                      >
+                        Fine-Tune Agents
+                      </motion.span>
+                    </div>
+                    <motion.div
+                      animate={{
+                        width: isCollapsed ? 0 : 'auto',
+                        opacity: isCollapsed ? 0 : 1,
+                      }}
+                      transition={{
+                        duration: animationDuration,
+                        ease: 'easeInOut',
+                      }}
+                    >
+                      <ChevronRight
+                        className={`size-3 transition-transform duration-200 ${
+                          isAgentsExpanded ? 'rotate-90' : ''
+                        }`}
+                      />
+                    </motion.div>
+                  </div>
+                </Button>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent forceMount>
+                <motion.div
+                  initial="closed"
+                  animate={isAgentsExpanded ? 'open' : 'closed'}
+                  variants={slideAnimation}
+                  className="overflow-hidden"
+                >
+                  {!isCollapsed && (
+                    <div className="relative pl-8 border-l border-primary/20 ml-4">
+                      {/* Create New Agent Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                        onClick={() => navigate('/agents')}
+                      >
+                        <motion.div
+                          className="flex items-center gap-2 text-primary hover:text-primary/80"
+                          animate={{
+                            width: isCollapsed ? 0 : 'auto',
+                            opacity: isCollapsed ? 0 : 1,
+                          }}
+                        >
+                          <Plus className="size-3 shrink-0" />
+                          <span className="text-xs font-medium">Create New Agent</span>
+                        </motion.div>
+                      </Button>
+
+                      {/* View All Agents Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                        onClick={() => navigate('/agents')}
+                      >
+                        <motion.div
+                          className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground"
+                          animate={{
+                            width: isCollapsed ? 0 : 'auto',
+                            opacity: isCollapsed ? 0 : 1,
+                          }}
+                        >
+                          <LayoutGrid className="size-3 shrink-0" />
+                          <span className="text-xs">View All Agents</span>
+                        </motion.div>
+                      </Button>
+
+                      {/* Existing Agents */}
+                      {mockAgents.map(agent => (
+                        <Button
+                          key={agent.id}
+                          variant="ghost"
+                          size="sm"
+                          className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                        >
+                          <motion.div
+                            className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground"
+                            animate={{
+                              width: isCollapsed ? 0 : 'auto',
+                              opacity: isCollapsed ? 0 : 1,
+                            }}
+                          >
+                            <agent.icon className="size-3 shrink-0" />
+                            <span className="text-xs">{agent.name}</span>
+                          </motion.div>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            <Collapsible open={isFunctionsExpanded} onOpenChange={setIsFunctionsExpanded}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
+                >
+                  <div className="left-3 absolute flex items-center justify-between w-[calc(100%-24px)]">
+                    <div className="flex items-center">
+                      <Code2 className="size-4" />
+                      <motion.span
+                        className="ml-2 text-sm whitespace-nowrap overflow-hidden"
+                        animate={{
+                          width: isCollapsed ? 0 : 'auto',
+                          opacity: isCollapsed ? 0 : 1,
+                        }}
+                        transition={{
+                          duration: animationDuration,
+                          ease: 'easeInOut',
+                        }}
+                      >
+                        Function Calling
+                      </motion.span>
+                    </div>
+                    <motion.div
+                      animate={{
+                        width: isCollapsed ? 0 : 'auto',
+                        opacity: isCollapsed ? 0 : 1,
+                      }}
+                      transition={{
+                        duration: animationDuration,
+                        ease: 'easeInOut',
+                      }}
+                    >
+                      <ChevronRight
+                        className={`size-3 transition-transform duration-200 ${
+                          isFunctionsExpanded ? 'rotate-90' : ''
+                        }`}
+                      />
+                    </motion.div>
+                  </div>
+                </Button>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent forceMount>
+                <motion.div
+                  initial="closed"
+                  animate={isFunctionsExpanded ? 'open' : 'closed'}
+                  variants={slideAnimation}
+                  className="overflow-hidden"
+                >
+                  {!isCollapsed && (
+                    <div className="relative pl-2 border-l border-muted ml-4">
+                      {/* Create New Function Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                        onClick={() => navigate('/tools/new')}
+                      >
+                        <motion.div
+                          className="flex items-center gap-2 text-primary hover:text-primary/80"
+                          animate={{
+                            width: isCollapsed ? 0 : 'auto',
+                            opacity: isCollapsed ? 0 : 1,
+                          }}
+                        >
+                          <Plus className="size-3 shrink-0" />
+                          <span className="text-xs font-medium">Create New Function</span>
+                        </motion.div>
+                      </Button>
+
+                      {/* View All Functions Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                        onClick={() => navigate('/tools')}
+                      >
+                        <motion.div
+                          className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground"
+                          animate={{
+                            width: isCollapsed ? 0 : 'auto',
+                            opacity: isCollapsed ? 0 : 1,
+                          }}
+                        >
+                          <LayoutGrid className="size-3 shrink-0" />
+                          <span className="text-xs">View All Functions</span>
+                        </motion.div>
+                      </Button>
+
+                      {/* Existing Functions */}
+                      {tools?.results?.map(tool => (
+                        <Button
+                          key={tool.id}
+                          variant="ghost"
+                          size="sm"
+                          className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                          onClick={() => navigate(`/tools/${tool.id}`)}
+                        >
+                          <motion.div
+                            className="flex items-center gap-2 font-mono text-muted-foreground group-hover:text-foreground"
+                            animate={{
+                              width: isCollapsed ? 0 : 'auto',
+                              opacity: isCollapsed ? 0 : 1,
+                            }}
+                          >
+                            <Code2 className="size-3 shrink-0" />
+                            <span className="text-xs">
+                              {tool.name}
+                              <span className="text-primary/40">()</span>
+                            </span>
+                          </motion.div>
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              </CollapsibleContent>
+            </Collapsible>
+
             {/* Download Models Button */}
-            <Button
+            {/* <Button
               variant="ghost"
               size="icon"
               className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
-              onClick={() => { navigate('/diffusion') }}
+              onClick={() => {
+                navigate('/diffusion');
+              }}
             >
               <div className="left-3 absolute flex items-center">
                 <Image className="size-4" />
@@ -324,16 +627,18 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                   }}
                   transition={{
                     duration: animationDuration,
-                    ease: "easeInOut"
+                    ease: 'easeInOut',
                   }}
                 >
                   Image Generation
                 </motion.span>
               </div>
-            </Button>
+            </Button> */}
 
             {/* Search Bar */}
-            <div className={`flex items-center px-3 gap-2.5 w-full ${!isCollapsed ? 'opacity-100' : 'hidden'}`}>
+            <div
+              className={`flex items-center px-3 gap-2.5 w-full ${!isCollapsed ? 'opacity-100' : 'hidden'}`}
+            >
               <MagnifyingGlassIcon className="size-4 stroke-muted-foreground" />
               <Input
                 className="border-0 focus-within:border-0 focus:border-0 bg-transparent px-0 hover:ring-0 focus-visible:ring-0 focus-within:ring-0 focus:ring-0 w-[75%] focus:outline-none"
@@ -343,7 +648,9 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
           </div>
 
           {/* Scrollable Conversation List */}
-          <div className={`flex-1 overflow-y-auto min-h-0 p-2 ${!isCollapsed ? 'opacity-100' : 'opacity-0'}`}>
+          <div
+            className={`flex-1 overflow-y-auto min-h-0 p-2 ${!isCollapsed ? 'opacity-100' : 'opacity-0'}`}
+          >
             {conversationList}
           </div>
 
@@ -353,7 +660,7 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
               className="w-full"
               transition={{
                 duration: animationDuration,
-                ease: "easeInOut"
+                ease: 'easeInOut',
               }}
             >
               <DropdownMenu>
@@ -372,10 +679,10 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                       }}
                       transition={{
                         duration: animationDuration,
-                        ease: "easeInOut"
+                        ease: 'easeInOut',
                       }}
                     >
-                      <img src={avatar} alt="avatar" className='rounded-lg shrink-0 size-8' />
+                      <img src={avatar} alt="avatar" className="rounded-lg shrink-0 size-8" />
                       <motion.div
                         className="flex flex-1 justify-between items-center m-2"
                         animate={{
@@ -384,21 +691,21 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                         }}
                         transition={{
                           duration: animationDuration,
-                          ease: "easeInOut"
+                          ease: 'easeInOut',
                         }}
                         style={{
                           originX: 0,
                         }}
                       >
-                        <div className='flex flex-col justify-start w-full'>
-                          <span className='flex justify-start font-semibold text-sm truncate whitespace-nowrap'>
+                        <div className="flex flex-col justify-start w-full">
+                          <span className="flex justify-start font-semibold text-sm truncate whitespace-nowrap">
                             {isLoading ? 'Loading...' : user?.username || 'Guest'}
                           </span>
-                          <span className='flex justify-start font-normal text-xs truncate whitespace-nowrap'>
+                          <span className="flex justify-start font-normal text-xs truncate whitespace-nowrap">
                             {isLoading ? 'Loading...' : user?.email || 'Guest'}
                           </span>
                         </div>
-                        <ChevronsUpDown className='mr-2 shrink-0 size-3' />
+                        <ChevronsUpDown className="mr-2 shrink-0 size-3" />
                       </motion.div>
                     </motion.div>
                   </Button>
@@ -411,7 +718,7 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                 >
                   <DropdownMenuLabel className="p-0 font-normal">
                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                      <img src={avatar} alt="avatar" className='rounded-lg shrink-0 size-8' />
+                      <img src={avatar} alt="avatar" className="rounded-lg shrink-0 size-8" />
                       <div className="flex-1 grid text-left text-sm leading-tight">
                         <span className="font-semibold truncate">
                           {isLoading ? 'Loading...' : user?.username || 'Guest'}
@@ -427,24 +734,24 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                   <DropdownMenuGroup>
                     <ThemeSettings />
                     <DropdownMenuItem onSelect={() => handleOpenModal('settings')}>
-                      <Settings className='mr-1.5 size-3' /> Settings
+                      <Settings className="mr-1.5 size-3" /> Settings
                       <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleOpenModal('profile')}>
-                      <SquareUser className='mr-1.5 size-3' /> Profile
+                      <SquareUser className="mr-1.5 size-3" /> Profile
                       <DropdownMenuShortcut>⇧⌘S</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   {user && (
                     <DropdownMenuItem>
-                      <LogOut className='mr-1.5 size-3' /> Log out
+                      <LogOut className="mr-1.5 size-3" /> Log out
                       <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   )}
                   {!user && (
                     <DropdownMenuItem>
-                      <LogIn className='mr-1.5 size-3' /> Sign In
+                      <LogIn className="mr-1.5 size-3" /> Sign In
                       <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
                     </DropdownMenuItem>
                   )}
@@ -473,7 +780,7 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
               </DialogHeader>
               <div className="flex flex-col gap-1 p-2">
                 <Button
-                  variant={selectedSetting === 'general' ? "secondary" : "ghost"}
+                  variant={selectedSetting === 'general' ? 'secondary' : 'ghost'}
                   className="justify-start gap-2"
                   onClick={() => {
                     setSelectedSetting('general');
@@ -483,27 +790,26 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                   <Settings2 className="size-4" />
                   General
                 </Button>
-                <Collapsible
-                  open={isProvidersExpanded}
-                  onOpenChange={setIsProvidersExpanded}
-                >
+                <Collapsible open={isProvidersExpanded} onOpenChange={setIsProvidersExpanded}>
                   <CollapsibleTrigger asChild>
                     <Button
-                      variant={selectedSetting === 'providers' ? "secondary" : "ghost"}
+                      variant={selectedSetting === 'providers' ? 'secondary' : 'ghost'}
                       className="justify-between w-full"
                     >
                       <div className="flex items-center gap-2">
                         <Server className="size-4" />
                         Providers
                       </div>
-                      <ChevronRight className={`size-4 transition-transform ${isProvidersExpanded ? 'rotate-90' : ''}`} />
+                      <ChevronRight
+                        className={`size-4 transition-transform ${isProvidersExpanded ? 'rotate-90' : ''}`}
+                      />
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="pl-4">
                     {Object.entries(providers).map(([key, provider]) => (
                       <Button
                         key={key}
-                        variant={selectedProvider === key ? "secondary" : "ghost"}
+                        variant={selectedProvider === key ? 'secondary' : 'ghost'}
                         className="justify-start gap-2 w-full"
                         onClick={() => {
                           setSelectedSetting('providers');
@@ -517,7 +823,7 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                   </CollapsibleContent>
                 </Collapsible>
                 <Button
-                  variant={selectedSetting === 'privacy' ? "secondary" : "ghost"}
+                  variant={selectedSetting === 'privacy' ? 'secondary' : 'ghost'}
                   className="justify-start gap-2"
                   onClick={() => {
                     setSelectedSetting('privacy');
@@ -529,7 +835,7 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                 </Button>
 
                 <Button
-                  variant={selectedSetting === 'admin' ? "secondary" : "ghost"}
+                  variant={selectedSetting === 'admin' ? 'secondary' : 'ghost'}
                   className="justify-start gap-2"
                   onClick={() => {
                     setSelectedSetting('admin');
@@ -539,7 +845,6 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                   <Settings className="size-4" />
                   Admin
                 </Button>
-
               </div>
             </div>
             {/* Content Area */}
@@ -603,32 +908,32 @@ const Sidebar = ({ conversationList}: SidebarProps) => {
                 )}
                 {selectedSetting === 'providers' && selectedProvider && (
                   <div className="space-y-6">
-                    {providerSettings?.map((provider) => (
-                      provider.provider_type === selectedProvider && (
-                        <div key={provider.id} className="space-y-4">
-                          <h2 className="font-semibold text-lg">{providers[provider.provider_type].name} Settings</h2>
-                          {/* Provider specific settings */}
-                          <div className="space-y-1">
-                            <Label>Endpoint</Label>
-                            <Input
-                              placeholder="Enter endpoint URL"
-                              defaultValue={provider.endpoint}
-                            />
+                    {providerSettings?.map(
+                      provider =>
+                        provider.provider_type === selectedProvider && (
+                          <div key={provider.id} className="space-y-4">
+                            <h2 className="font-semibold text-lg">
+                              {providers[provider.provider_type].name} Settings
+                            </h2>
+                            {/* Provider specific settings */}
+                            <div className="space-y-1">
+                              <Label>Endpoint</Label>
+                              <Input
+                                placeholder="Enter endpoint URL"
+                                defaultValue={provider.endpoint}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label>API Key</Label>
+                              <Input placeholder="Enter API key" defaultValue={provider.api_key} />
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <Label>Enable Provider</Label>
+                              <Switch defaultChecked={provider.is_enabled} />
+                            </div>
                           </div>
-                          <div className="space-y-1">
-                            <Label>API Key</Label>
-                            <Input
-                              placeholder="Enter API key"
-                              defaultValue={provider.api_key}
-                            />
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <Label>Enable Provider</Label>
-                            <Switch defaultChecked={provider.is_enabled} />
-                          </div>
-                        </div>
-                      )
-                    ))}
+                        )
+                    )}
                   </div>
                 )}
               </div>

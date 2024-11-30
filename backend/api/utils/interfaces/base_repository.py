@@ -1,31 +1,39 @@
-from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, List, Optional
+from django.db import models
 
-T = TypeVar('T')
+T = TypeVar('T', bound=models.Model)
 
+class BaseRepository(Generic[T]):
+    def __init__(self, model_class: T):
+        self.model_class = model_class
 
-class BaseRepository(ABC, Generic[T]):
-    @abstractmethod
-    async def create(self, data: dict) -> T:
-        """Create a new record"""
-        pass
+    def get_by_id(self, id: int) -> Optional[T]:
+        try:
+            return self.model_class.objects.get(id=id)
+        except self.model_class.DoesNotExist:
+            return None
 
-    @abstractmethod
-    async def get_by_id(self, id: int) -> Optional[T]:
-        """Get a record by ID"""
-        pass
+    def list(self) -> List[T]:
+        return self.model_class.objects.all()
 
-    @abstractmethod
-    async def list(self, filters: dict = None) -> List[T]:
-        """List records with optional filters"""
-        pass
+    def update(self, id: int, data: dict) -> Optional[T]:
+        try:
+            instance = self.get_by_id(id)
+            if instance:
+                for key, value in data.items():
+                    setattr(instance, key, value)
+                instance.save()
+                return instance
+            return None
+        except Exception as e:
+            raise Exception(f"Error updating {self.model_class.__name__}: {str(e)}")
 
-    @abstractmethod
-    async def update(self, id: int, data: dict) -> Optional[T]:
-        """Update a record"""
-        pass
-
-    @abstractmethod
-    async def delete(self, id: int) -> bool:
-        """Delete a record"""
-        pass
+    def delete(self, id: int) -> bool:
+        try:
+            instance = self.get_by_id(id)
+            if instance:
+                instance.delete()
+                return True
+            return False
+        except Exception as e:
+            raise Exception(f"Error deleting {self.model_class.__name__}: {str(e)}")

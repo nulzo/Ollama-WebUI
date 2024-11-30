@@ -19,6 +19,8 @@ from api.views.chat_view import ChatView
 from api.views.image_view import MessageImageViewSet
 from api.views.settings_view import ProviderSettingsViewSet, SettingsViewSet
 from api.views.conversation_view import ConversationViewSet
+from api.views.tools_view import ToolViewSet
+
 
 router = DefaultRouter()
 
@@ -29,6 +31,7 @@ router.register(r'settings', SettingsViewSet, basename='settings')
 router.register(r'providers', ProviderSettingsViewSet, basename='provider')
 router.register(r'agents', AgentViewSet, basename='agent')
 router.register(r'conversations', ConversationViewSet, basename='conversation')
+router.register(r'tools', ToolViewSet, basename='tool')
 
 urlpatterns = [
     path("chat/", ChatView.as_view(), name="chat"),

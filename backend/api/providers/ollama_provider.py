@@ -6,7 +6,7 @@ import httpx
 from api.providers import BaseProvider
 from django.conf import settings
 from ollama import Client, Options, Message
-
+from api.models.tools.tools import Tool
 logger = logging.getLogger(__name__)
 
 class OllamaProvider(BaseProvider):
@@ -16,6 +16,17 @@ class OllamaProvider(BaseProvider):
         self._client = Client(host=f"http://{_ollama_host}:{_ollama_port}")
         self.logger = logger
         super().__init__()
+
+    def _prepare_tool_for_ollama(self, tool: Tool) -> dict:
+        """Convert a Tool model instance to Ollama tool format"""
+        return {
+            'type': 'function',
+            'function': {
+                'name': tool.name,
+                'description': tool.description,
+                'parameters': tool.parameters,
+            }
+        }
 
     async def achat(self, model: str, messages: Union[List, AnyStr]):
         """

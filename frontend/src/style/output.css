@@ -1305,6 +1305,10 @@ body {
   margin-left: 0.75rem;
 }
 
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .ml-6 {
   margin-left: 1.5rem;
 }
@@ -1377,6 +1381,10 @@ body {
   margin-top: auto;
 }
 
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
 .block {
   display: block;
 }
@@ -1403,6 +1411,10 @@ body {
 
 .grid {
   display: grid;
+}
+
+.contents {
+  display: contents;
 }
 
 .hidden {
@@ -1832,6 +1844,10 @@ body {
 
 .w-\[90\%\] {
   width: 90%;
+}
+
+.w-\[calc\(100\%-24px\)\] {
+  width: calc(100% - 24px);
 }
 
 .w-fit {
@@ -2529,6 +2545,10 @@ body {
 
 .border-primary {
   border-color: hsl(var(--primary));
+}
+
+.border-primary\/20 {
+  border-color: hsl(var(--primary) / 0.2);
 }
 
 .border-primary\/25 {
@@ -3249,6 +3269,10 @@ body {
   color: hsl(var(--primary-foreground));
 }
 
+.text-primary\/40 {
+  color: hsl(var(--primary) / 0.4);
+}
+
 .text-primary\/50 {
   color: hsl(var(--primary) / 0.5);
 }
@@ -3279,6 +3303,11 @@ body {
 .text-yellow-500 {
   --tw-text-opacity: 1;
   color: rgb(234 179 8 / var(--tw-text-opacity, 1));
+}
+
+.text-gray-500 {
+  --tw-text-opacity: 1;
+  color: rgb(107 114 128 / var(--tw-text-opacity, 1));
 }
 
 .underline {
@@ -3817,6 +3846,10 @@ body {
   color: hsl(var(--primary-foreground));
 }
 
+.hover\:text-primary\/80:hover {
+  color: hsl(var(--primary) / 0.8);
+}
+
 .hover\:underline:hover {
   text-decoration-line: underline;
 }
@@ -3965,6 +3998,10 @@ body {
 
 .group:hover .group-hover\:text-destructive-foreground {
   color: hsl(var(--destructive-foreground));
+}
+
+.group:hover .group-hover\:text-foreground {
+  color: hsl(var(--foreground));
 }
 
 .group:hover .group-hover\:opacity-100 {

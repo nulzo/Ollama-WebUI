@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { AppRoot } from '@/app/routes/app/root.tsx';
 import { ProtectedRoute } from '@/lib/auth';
+import { ToolEditor } from '@/features/tools/components/tools-editor';
+import { ToolsList } from '@/features/tools/components/tools-list';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createAppRouter = (_queryClient: QueryClient) =>
@@ -44,7 +46,7 @@ export const createAppRouter = (_queryClient: QueryClient) =>
           },
         },
         {
-          path: 'models',
+          path: 'agents',
           lazy: async () => {
             const { ModelsRoute } = await import('@/app/routes/app/models');
             return { Component: ModelsRoute };
@@ -56,6 +58,23 @@ export const createAppRouter = (_queryClient: QueryClient) =>
             const { CloudRoute } = await import('@/app/routes/app/cloud');
             return { Component: CloudRoute };
           },
+        },
+        {
+          path: 'tools',
+          children: [
+            {
+              path: '',
+              element: <ToolsList />,
+            },
+            {
+              path: 'new',
+              element: <ToolEditor />,
+            },
+            {
+              path: ':toolId',
+              element: <ToolEditor />,
+            },
+          ],
         },
         {
           path: 'diffusion',

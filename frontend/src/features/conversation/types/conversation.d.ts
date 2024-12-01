@@ -29,3 +29,18 @@ export interface Message {
   role: 'user' | 'assistant' | 'system';
   created_at: string;
 }
+
+export interface Prompt {
+  title: string;
+  prompt: string;
+  style: string;
+}
+
+export interface PromptsResponse {
+  prompts: Prompt[];
+  metadata: {
+    style: string;
+    provider: string;
+    model: string | null;
+  };
+}

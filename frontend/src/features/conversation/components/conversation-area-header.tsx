@@ -2,7 +2,11 @@ import { MoonStar, SlidersHorizontal, SunIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 import { ModelSelect } from '@/features/models/components/model-select.tsx';
 import { useTheme } from '@/components/theme/theme-provider.tsx';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useModelStore } from '@/features/models/store/model-store';
+import { useModels } from '@/features/models/api/get-models';
+import { formatModels } from '@/features/models/utils/format-models';
+
 
 const ThemeToggleButton = () => {
   const { theme, setTheme } = useTheme();
@@ -34,10 +38,43 @@ const ThemeToggleButton = () => {
 };
 
 export function ConversationAreaHeader() {
+  const { model, setModel } = useModelStore();
+  const { data: modelsData } = useModels();
+  
+  const formattedModels = useMemo(() => 
+    formatModels(modelsData), 
+    [modelsData]
+  );
+
+  const handleModelSelect = (selectedValue: string) => {
+    const selectedModelData = formattedModels.find(m => m.value === selectedValue);
+
+    if (selectedModelData) {
+      setModel({
+        name: selectedModelData.label,
+        model: selectedModelData.value,
+        modified_at: new Date().toISOString(), // Since this might not be in the formatted data
+        size: 0, // You might want to get this from the original modelsData
+        digest: '', // You might want to get this from the original modelsData
+        details: {
+          parent_model: selectedModelData.details.parent_model || '',
+          format: selectedModelData.details.format || '',
+          family: selectedModelData.details.family || '',
+          families: [],
+          parameter_size: selectedModelData.details.size || '',
+          quantization_level: selectedModelData.details.quantization || ''
+        }
+      });
+    }
+  };
+  
   return (
-    <div className="sticky py-2.5 top-0 flex flex-row z-10 grow-0 px-4 gap-3 justify-between items-center col-span-4 w-full rounded-b-none bg-background/25 backdrop-blur h-14">
+    <div className="top-0 z-10 sticky flex flex-row justify-between items-center gap-3 col-span-4 bg-background/25 backdrop-blur px-4 py-2.5 rounded-b-none grow-0 w-full h-14">
       <div className="flex items-center gap-3 font-semibold text-lg ps-8">
-        <ModelSelect />
+        <ModelSelect 
+          value={model?.name}
+          onValueChange={handleModelSelect}
+        />
       </div>
       <div className="flex items-center gap-1 pe-6">
         <Button size="icon" variant="ghost">

@@ -1,7 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from api.utils.responses.response import api_response
-from api.services.prompt_service import PromptService
+from api.services.chat_service import ChatService
+from api.models.models.model import Model
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,21 +12,29 @@ class PromptView(APIView):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.prompt_service = PromptService()
+        self.chat_service = ChatService()
         self.logger = logging.getLogger(__name__)
 
     def get(self, request, style=""):
-        """
-        Get actionable prompts based on style
-        """
+        """Get prompts based on style and model"""
         try:
-            prompts = self.prompt_service.get_actionable_prompts(style)
+            # Get model from query params or use default
+            model_name = request.query_params.get('model', 'llama3.2:3b')
+
+            # Generate prompts using the chat service
+            response = self.chat_service.get_prompts(model_name, style, user_id=request.user.id)
+            
             return api_response(
-                data={"prompts": prompts},
-                links={
-                    "self": request.build_absolute_uri()
+                data={
+                    **response,
+                    "metadata": {
+                        "style": style or "default",
+                        "provider": "openai" if model_name.startswith("gpt") else "ollama",
+                        "model": model_name
+                    }
                 }
             )
+            
         except Exception as e:
             self.logger.error(f"Error generating prompts: {str(e)}")
             return api_response(

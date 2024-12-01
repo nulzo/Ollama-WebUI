@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Skeleton } from '@/components/ui/skeleton';
 import { useModels } from '@/features/models/api/get-models';
 import { useOpenAiModels } from '@/features/models/api/get-openai-models';
-import { OllamaModelData } from '@/features/models/types/models';
+import { OllamaModelData, OpenAIModelData } from '@/features/models/types/models';
 
 interface ModelSelectSimpleProps {
   value: string;
@@ -35,7 +35,11 @@ export const ModelSelectSimple = ({ value, onValueChange }: ModelSelectSimplePro
   }, []);
 
   const { availableOllamaModels, openai } = useMemo(() => ({
-    openai: openaiModels.data || [],
+    openai: openaiModels.data?.map((modelData: OpenAIModelData) => {
+      const obj: Record<string, any> = {};
+      modelData.forEach(([key, value]) => obj[key] = value);
+      return obj;
+    }) || [],
     availableOllamaModels: ollamaModels.data?.models || []
   }), [ollamaModels.data, openaiModels.data]);
 
@@ -54,13 +58,13 @@ export const ModelSelectSimple = ({ value, onValueChange }: ModelSelectSimplePro
         <button
           role="combobox"
           aria-expanded={open}
-          className="flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex justify-between items-center border-input bg-background disabled:opacity-50 px-3 py-2 border rounded-md focus:ring-2 focus:ring-ring ring-offset-background focus:ring-offset-2 w-full text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed"
         >
           {value ? truncateModelName(value) : 'Select model...'}
-          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <CaretSortIcon className="opacity-50 ml-2 w-4 h-4 shrink-0" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-full p-0">
+      <PopoverContent align="start" className="p-0 w-full">
         <Command className="w-full">
           <CommandInput placeholder="Search model..." className="h-9" />
           <CommandList>

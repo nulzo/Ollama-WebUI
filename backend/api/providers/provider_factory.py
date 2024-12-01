@@ -51,11 +51,14 @@ class ProviderFactory:
             raise ServiceError(f"Failed to create provider: {str(e)}")
 
     def update_provider_config(self, provider_name: str, user_id: int, config: Dict):
-        """
-        Update the configuration for a specific provider instance.
-        """
-        provider = self.get_provider(provider_name, user_id)
-        provider.update_config(config)
+        """Update the configuration for a specific provider instance"""
+        try:
+            provider = self.get_provider(provider_name, user_id)
+            provider.update_config(config)
+            self.logger.info(f"Updated config for provider {provider_name} (user: {user_id})")
+        except Exception as e:
+            self.logger.error(f"Error updating provider config: {str(e)}")
+            raise ServiceError(f"Failed to update provider config: {str(e)}")
 
 
 # Create a singleton instance

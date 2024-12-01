@@ -32,19 +32,30 @@ export const Message: React.FC<MessageProps> = ({
 }) => {
   const formattedDate = formatDate(time);
   let assistantId: number | undefined = undefined;
-  const { data: models } = useModels();
+  const { data: modelsData } = useModels();
 
   const isModelOnline = useMemo(() => {
-    if (!models || !modelName) return false;
-    return models.models.some(model => model.name.toLowerCase() === modelName.toLowerCase());
-  }, [models, modelName]);
+    if (!modelsData || !modelName) return false;
+    
+    // Check in Ollama models
+    const isOllamaModel = modelsData.ollama?.models.some(
+      model => model.name.toLowerCase() === modelName.toLowerCase()
+    );
+    
+    // Check in OpenAI models
+    const isOpenAIModel = modelsData.openai?.some(
+      model => model.id.toLowerCase() === modelName.toLowerCase()
+    );
+    
+    return isOllamaModel || isOpenAIModel;
+  }, [modelsData, modelName]);
 
   if (isLoading) {
     return <div className="flex flex-col gap-2 pb-4" />;
   }
 
   return (
-    <div className="flex flex-col gap-1 py-2 px-4">
+    <div className="flex flex-col gap-1 px-4 py-2">
       {role !== 'user' ? (
         // Bot message
         <div className="flex gap-3 max-w-[85%]">
@@ -58,11 +69,11 @@ export const Message: React.FC<MessageProps> = ({
 
           <div className="flex flex-col">
             <div className="flex items-baseline gap-2 mb-1">
-              <span className="font-medium text-sm text-primary">{modelName}</span>
+              <span className="font-medium text-primary text-sm">{modelName}</span>
               <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
             </div>
 
-            <div className="bg-muted/30 rounded-lg px-4 py-3">
+            <div className="bg-muted/30 px-4 py-3 rounded-lg">
               {image_ids.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   <AsyncMessageImage
@@ -73,7 +84,7 @@ export const Message: React.FC<MessageProps> = ({
                 </div>
               )}
 
-              <div className="prose prose-sm max-w-none">
+              <div className="max-w-none prose prose-sm">
                 <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
                 {isTyping && (
                   <div className="flex h-4">
@@ -111,8 +122,8 @@ export const Message: React.FC<MessageProps> = ({
               </div>
             )}
 
-            <div className="bg-primary/75 text-primary-foreground rounded-lg px-4 py-3">
-              <div className="prose prose-sm max-w-none prose-invert">
+            <div className="bg-primary/75 px-4 py-3 rounded-lg text-primary-foreground">
+              <div className="max-w-none prose-invert prose prose-sm">
                 <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
               </div>
             </div>

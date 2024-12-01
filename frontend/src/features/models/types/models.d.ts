@@ -54,3 +54,35 @@ export interface Assistant {
   default_max_tokens?: number;
   created_at?: string; // ISO date string
 }
+
+export interface ModelDetails {
+  parent_model?: string;
+  format?: string;
+  family?: string;
+  families?: string[];
+  parameter_size?: string;
+  quantization_level?: string;
+}
+
+export interface OllamaModel {
+  name: string;
+  model: string;
+  modified_at: string;
+  size: number;
+  digest: string;
+  details: ModelDetails;
+}
+
+export type OpenAIModelData = [
+  ["id", string],
+  ["created", number],
+  ["object", string],
+  ["owned_by", string]
+];
+
+export interface ProviderModels {
+  ollama: {
+      models: OllamaModel[];
+  };
+  openai: OpenAIModel[];
+}

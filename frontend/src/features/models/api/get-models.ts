@@ -1,15 +1,16 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
-
 import { api } from '@/lib/api-client';
-import { QueryConfig } from '@/lib/query.ts';
-import { Meta } from '@/types/api.ts';
-import { OllamaModelData } from '@/features/models/types/models';
+import { ProviderModels } from '@/features/models/types/models';
+import { ApiResponse } from '@/types/api';
+import { QueryConfig } from '@/lib/query';
 
-export const getModels = (): Promise<{
-  models: OllamaModelData[];
-  meta: Meta;
-}> => {
-  return api.get(`/models/ollama/`);
+
+export const getModels = async (): Promise<ProviderModels> => {
+  const response = await api.get<ApiResponse<ProviderModels>>('/models/');
+  if (!response.success) {
+    throw new Error(response.error?.message || 'Failed to fetch models');
+  }
+  return response.data;
 };
 
 export const getModelsQueryOptions = () => {
@@ -17,7 +18,6 @@ export const getModelsQueryOptions = () => {
     queryKey: ['models'],
     queryFn: () => getModels(),
     staleTime: 60 * 1000 * 5,
-    refetchInterval: 60 * 1000 * 5,
   });
 };
 
@@ -25,7 +25,7 @@ type UseModelsOptions = {
   queryConfig?: QueryConfig<typeof getModels>;
 };
 
-export const useModels = ({ queryConfig }: UseModelsOptions  = {}) => {
+export const useModels = ({ queryConfig }: UseModelsOptions = {}) => {
   return useQuery({
     ...getModelsQueryOptions(),
     ...queryConfig,

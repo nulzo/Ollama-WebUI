@@ -137,7 +137,7 @@ class ChatService:
         provider_name = "openai" if model_name.startswith("gpt") else "ollama"
         return self.provider_factory.get_provider(provider_name)
     
-    def get_prompts(self, model_name: str = "llama3.2:3b", style: str = "") -> dict:
+    def get_prompts(self, model_name: str = "llama3.2:3b", style: str = "", user_id: int = None) -> dict:
         """Get prompts for a given model and style"""
-        provider = self._get_provider(model_name)
-        return provider.get_actionable_prompts(style)
+        provider = self._get_provider(model_name, user_id)
+        return provider.get_actionable_prompts(style, user_id)

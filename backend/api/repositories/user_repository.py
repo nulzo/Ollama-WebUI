@@ -1,7 +1,7 @@
 from typing import List, Optional
 from django.db import transaction
 from api.utils.interfaces.base_repository import BaseRepository
-from api.models.users.user import CustomUser
+from api.models.auth.user import CustomUser
 from django.contrib.auth.hashers import make_password
 import logging
 

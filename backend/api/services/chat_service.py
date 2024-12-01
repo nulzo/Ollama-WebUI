@@ -8,6 +8,12 @@ from api.providers.provider_factory import ProviderFactory
 import logging
 import base64
 from api.models.agent.agent import Agent
+from api.services.prompt_service import (
+    PromptService,
+    PromptTemplateService,
+    PromptVariantService,
+    PromptBuilderService,
+)
 
 
 class ChatService:
@@ -102,7 +108,7 @@ class ChatService:
 
         try:
             # Stream provider response
-            for chunk in provider.chat(message.model.name, flattened_messages):
+            for chunk in provider.stream(message.model.name, flattened_messages):
                 if isinstance(chunk, str):
                     full_content += chunk
                     yield f"data: {json.dumps({'delta': {'content': chunk}})}\n\n"
@@ -132,12 +138,37 @@ class ChatService:
             self.logger.error(f"Streaming error: {str(e)}", exc_info=True)
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
-    def _get_provider(self, model_name: str):
+    def _get_provider(self, model_name: str, user_id: int = None):
         """Get appropriate provider based on model name"""
         provider_name = "openai" if model_name.startswith("gpt") else "ollama"
-        return self.provider_factory.get_provider(provider_name)
-    
-    def get_prompts(self, model_name: str = "llama3.2:3b", style: str = "", user_id: int = None) -> dict:
-        """Get prompts for a given model and style"""
-        provider = self._get_provider(model_name, user_id)
-        return provider.get_actionable_prompts(style, user_id)
+        return self.provider_factory.get_provider(provider_name, user_id)
+
+    def get_prompts(
+        self, model_name: str, style: str = "", count: int = 5, user_id: int = None
+    ) -> dict:
+        """
+        Get prompts based on model, style, and count
+        """
+        try:
+            # Initialize provider
+            provider = self._get_provider(model_name, user_id)
+
+            # Initialize prompt service with provider
+            prompt_service = PromptService(
+                template_service=PromptTemplateService(),
+                variant_service=PromptVariantService(),
+                builder_service=PromptBuilderService(),
+                provider=provider,
+            )
+
+            # Get prompts
+            prompts = prompt_service.get_actionable_prompts(style)
+
+            # Limit prompts to requested count
+            limited_prompts = prompts[:count] if count else prompts
+
+            return {"prompts": limited_prompts}
+
+        except Exception as e:
+            self.logger.error(f"Error generating prompts: {str(e)}")
+            raise

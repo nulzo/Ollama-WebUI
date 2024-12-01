@@ -38,13 +38,13 @@ export const Message: React.FC<MessageProps> = ({
     if (!modelsData || !modelName) return false;
     
     // Check in Ollama models
-    const isOllamaModel = modelsData.ollama?.models.some(
-      model => model.name.toLowerCase() === modelName.toLowerCase()
+    const isOllamaModel = modelsData.ollama?.models?.some(
+      model => model.name?.toLowerCase() === modelName?.toLowerCase()
     );
     
     // Check in OpenAI models
     const isOpenAIModel = modelsData.openai?.some(
-      model => model.id.toLowerCase() === modelName.toLowerCase()
+      model => model.id?.toLowerCase() === modelName?.toLowerCase()
     );
     
     return isOllamaModel || isOpenAIModel;

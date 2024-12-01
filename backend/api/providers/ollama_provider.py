@@ -5,7 +5,7 @@ import httpx
 from api.providers import BaseProvider
 from django.conf import settings
 from ollama import Client, Options, Message
-from api.models.tools.tools import Tool
+from api.models.agent.tools import Tool
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
@@ -89,38 +89,35 @@ class OllamaProvider(BaseProvider):
                     except json.JSONDecodeError:
                         continue
 
-    def slow_chat(self, model: str, messages: Union[List, AnyStr]):
-        self.logger.info(f"Sending message to ollama: {messages}")
-        response = self._client.chat(model=model, messages=messages, stream=False)
-        self.logger.info(f"Response from ollama: {response}")
-        return response
-
     def chat(
         self,
         model: str,
         messages: Union[Sequence[Message], None],
         options: Optional[Options] = None,
-        stream: Literal[bool] = True,
     ):
         """
-        Sends a message to the ollama service.
+        Sends a message to the ollama service without streaming.
         """
         self.logger.info(f"Sending message to ollama: {messages}")
-        response = self._client.chat(model=model, messages=messages, options=options, stream=stream)
+        response = self._client.chat(model=model, messages=messages, options=options, stream=False)
         self.logger.info(f"Response from ollama: {response}")
-        if not stream:
-            # For non-streaming, collect the entire response
-            print(response)
-            if isinstance(response, (str, dict)):
-                return response["message"]["content"]
 
-            # If it's a generator, consume it and join the results
-            try:
-                full_response = "".join(chunk for chunk in response)
-                return full_response
-            except Exception as e:
-                self.logger.error(f"Error consuming response: {str(e)}")
-                raise
+        # Return the content directly for non-streaming response
+        if isinstance(response, dict) and "message" in response:
+            return response["message"]["content"]
+        return response
+
+    def stream(
+        self,
+        model: str,
+        messages: Union[Sequence[Message], None],
+        options: Optional[Options] = None,
+    ):
+        """
+        Streams a response from the ollama service.
+        """
+        self.logger.info(f"Streaming message to ollama: {messages}")
+        response = self._client.chat(model=model, messages=messages, options=options, stream=True)
 
         # Streaming response handling
         for chunk in response:
@@ -130,12 +127,6 @@ class OllamaProvider(BaseProvider):
                 yield chunk["message"]["content"]
             elif isinstance(chunk, str):
                 yield chunk
-
-    def stream(self, model: str, messages: Union[List, AnyStr]):
-        """
-        Stream a response. in progress.
-        """
-        return self._client.chat(model=model, messages=messages, stream=True)
 
     def model(self): ...
 

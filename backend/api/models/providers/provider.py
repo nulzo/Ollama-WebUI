@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.signing import Signer
 
 
 class ProviderSettings(models.Model):
@@ -15,7 +16,10 @@ class ProviderSettings(models.Model):
     )
     provider_type = models.CharField(max_length=50, choices=PROVIDER_CHOICES)
     api_key = models.CharField(
-        max_length=255, null=True, blank=True, help_text="API key for the provider (if required)"
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="API key for the provider (if required)"
     )
     endpoint = models.CharField(
         max_length=255, null=True, blank=True, help_text="Custom endpoint URL (if required)"

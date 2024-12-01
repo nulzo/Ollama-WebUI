@@ -1,6 +1,6 @@
 from django.db import models
-from api.models.users.user import CustomUser
-from api.models.messages.message import Message
+from api.models.auth.user import CustomUser
+from api.models.chat.message import Message
 
 
 class DeletedMessage(models.Model):

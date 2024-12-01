@@ -11,10 +11,11 @@ from django.http import StreamingHttpResponse
 from api.serializers.message import MessageSerializer, MessageListSerializer
 from api.services.message_service import MessageService
 from api.utils.exceptions import ServiceError, ValidationError
-from api.utils.pagination import StandardResultsSetPagination
+from api.utils.pagination.paginator import StandardResultsSetPagination
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class MessageViewSet(mixins.CreateModelMixin,
                      mixins.ListModelMixin,

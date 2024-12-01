@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models.messages.liked_messages import LikedMessage
+from api.models.chat.liked_messages import LikedMessage
 
 
 class LikedMessageSerializer(serializers.ModelSerializer):

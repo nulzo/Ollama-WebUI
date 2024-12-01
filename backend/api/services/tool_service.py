@@ -2,7 +2,7 @@ import ast
 import inspect
 from typing import Dict, List, Optional
 from api.repositories.tool_repository import ToolRepository
-from api.models.tools.tools import Tool
+from api.models.agent.tools import Tool
 from api.utils.exceptions import ValidationError, ServiceError
 from django.contrib.auth import get_user_model
 import logging

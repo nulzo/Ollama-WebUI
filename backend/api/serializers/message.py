@@ -1,10 +1,10 @@
 import uuid
 from rest_framework import serializers
-from api.models.messages.message import Message
+from api.models.chat.message import Message
 from api.serializers.liked_messages import LikedMessageSerializer
-from api.models.assistant.assistant import Assistant
-from api.models.users.user import CustomUser
-from api.models.conversation.conversation import Conversation
+from api.models.chat.assistant import Assistant
+from api.models.auth.user import CustomUser
+from api.models.chat.conversation import Conversation
 from api.repositories.message_repository import MessageRepository
 
 class UserField(serializers.RelatedField):

@@ -12,6 +12,8 @@ load_dotenv()
 
 SECRET_KEY = "django-insecure-u98dn^i6(rfh=n1sl10n-ar84+5cz1c2mb-a8@$lb+qewaf&vo"
 
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
 DEBUG = True
 
 OLLAMA_SETTINGS = {

@@ -1,7 +1,7 @@
 from typing import List, Optional
 from django.db import transaction
 from api.utils.interfaces.base_repository import BaseRepository
-from api.models.conversation.conversation import Conversation
+from api.models.chat.conversation import Conversation
 import logging
 
 

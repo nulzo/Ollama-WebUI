@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models.assistant.assistant import Assistant
+from api.models.chat.assistant import Assistant
 
 
 class AssistantSerializer(serializers.ModelSerializer):

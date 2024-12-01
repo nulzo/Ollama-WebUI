@@ -3,29 +3,30 @@ from api.utils.exceptions import ServiceError
 from api.providers.base_provider import BaseProvider
 from api.providers.openai_provider import OpenAiProvider
 from api.providers.ollama_provider import OllamaProvider
+from api.models.providers.provider import ProviderSettings
 import logging
+
+from api.utils.exceptions.exceptions import ProviderException
 
 
 class ProviderFactory:
-    """
-    Factory class for creating LLM providers.
-    Manages the creation and caching of provider instances.
-    """
-
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self._providers: Dict[str, BaseProvider] = {}
+        self._providers: Dict[str, Dict[int, BaseProvider]] = (
+            {}
+        )  # Nested dict for user-specific providers
         self._provider_classes: Dict[str, Type[BaseProvider]] = {
-            'openai': OpenAiProvider,
-            'ollama': OllamaProvider
+            "openai": OpenAiProvider,
+            "ollama": OllamaProvider,
         }
 
-    def get_provider(self, provider_name: str) -> BaseProvider:
+    def get_provider(self, provider_name: str, user_id: int) -> BaseProvider:
         """
-        Get or create a provider instance by name.
+        Get or create a provider instance by name for a specific user.
 
         Args:
             provider_name: Name of the provider ('openai' or 'ollama')
+            user_id: ID of the user requesting the provider
 
         Returns:
             BaseProvider: Instance of the requested provider
@@ -34,33 +35,28 @@ class ProviderFactory:
             ServiceError: If provider name is invalid
         """
         try:
-            # Return cached provider if it exists
-            if provider_name in self._providers:
-                return self._providers[provider_name]
-
-            # Get provider class
-            if provider_name not in self._provider_classes:
-                raise ServiceError(f"Unknown provider: {provider_name}")
-
-            # Create new provider instance
-            provider_class = self._provider_classes[provider_name]
-            provider = provider_class()
-
-            # Cache the provider
-            self._providers[provider_name] = provider
-
-            return provider
+            key = f"{provider_name}_{user_id}" if user_id else provider_name
+        
+            if key not in self._providers:
+                if provider_name not in self._provider_classes:
+                    raise ProviderException(f"Unknown provider: {provider_name}")
+                
+                provider_class = self._provider_classes[provider_name]
+                self._providers[key] = provider_class()
+            
+            return self._providers[key]
 
         except Exception as e:
             self.logger.error(f"Error creating provider {provider_name}: {str(e)}")
             raise ServiceError(f"Failed to create provider: {str(e)}")
 
-    def register_provider(self, name: str, provider_class: Type[BaseProvider]):
+    def update_provider_config(self, provider_name: str, user_id: int, config: Dict):
         """
-        Register a new provider class.
+        Update the configuration for a specific provider instance.
+        """
+        provider = self.get_provider(provider_name, user_id)
+        provider.update_config(config)
 
-        Args:
-            name: Name for the provider
-            provider_class: The provider class to register
-        """
-        self._provider_classes[name] = provider_class
+
+# Create a singleton instance
+provider_factory = ProviderFactory()

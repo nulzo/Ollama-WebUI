@@ -1,4 +1,4 @@
-import { Message } from '@/types/providers/ollama';
+import { Message } from '@/types/ollama';
 
 export interface GenericModelResponse {
   name: string;

@@ -48,7 +48,7 @@ export const SidebarDropdownButton = ({
           size="icon"
           className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
         >
-          <div className="left-3 absolute flex items-center justify-between w-[calc(100%-24px)]">
+          <div className="left-3 absolute flex justify-between items-center w-[calc(100%-24px)]">
             <div className="flex items-center">
               <Icon className="size-4" />
               <motion.span
@@ -76,9 +76,8 @@ export const SidebarDropdownButton = ({
               }}
             >
               <ChevronRight
-                className={`size-3 transition-transform duration-200 ${
-                  isExpanded ? 'rotate-90' : ''
-                }`}
+                className={`size-3 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''
+                  }`}
               />
             </motion.div>
           </div>
@@ -92,7 +91,7 @@ export const SidebarDropdownButton = ({
             animate={isExpanded ? 'open' : 'closed'}
             variants={slideAnimation}
           >
-            <div className="relative pl-2 border-x-2 ml-5">{children}</div>
+            <div className="relative ml-5 pl-2 border-l">{children}</div>
           </motion.div>
         </CollapsibleContent>
       )}
@@ -112,7 +111,7 @@ export const SidebarButton = ({
     <Button
       variant={variant}
       size="icon"
-      className="relative flex justify-start gap-2.5 mb-2 w-full h-9 font-normal text-sm group"
+      className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
       onClick={onClick}
     >
       <div className="left-3 absolute flex items-center">
@@ -179,7 +178,7 @@ const SearchBar = ({ isCollapsed }: { isCollapsed: boolean }) => {
   if (isCollapsed) return null;
 
   return (
-    <div className="flex items-center px-3 gap-2.5 w-full">
+    <div className="flex items-center gap-2.5 px-3 w-full">
       <MagnifyingGlassIcon className="size-4 stroke-muted-foreground" />
       <Input
         className="border-0 focus-within:border-0 focus:border-0 bg-transparent px-0 hover:ring-0 focus-visible:ring-0 focus-within:ring-0 focus:ring-0 w-[75%] focus:outline-none"
@@ -196,14 +195,16 @@ export const SidebarActions = ({ isCollapsed, animationDuration }: SidebarAction
 
   return (
     <div className="p-2">
-      <SidebarButton
-        icon={Plus}
-        label="New Chat"
-        onClick={() => navigate('/')}
-        isCollapsed={isCollapsed}
-        animationDuration={animationDuration}
-        variant="default"
-      />
+      <div className="mb-2">
+        <SidebarButton
+          icon={Plus}
+          label="New Chat"
+          onClick={() => navigate('/')}
+          isCollapsed={isCollapsed}
+          animationDuration={animationDuration}
+          variant="default"
+        />
+      </div>
 
       <SidebarButton
         icon={ArrowUpDown}
@@ -242,23 +243,23 @@ const AgentsList = ({ mockAgents, navigate, isCollapsed }: any) => (
     <Button
       variant="ghost"
       size="sm"
-      className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+      className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
       onClick={() => navigate('/agents')}
     >
       <motion.div className="flex items-center gap-2 text-primary hover:text-primary/80">
-        <Plus className="size-3 shrink-0" />
-        <span className="text-xs font-medium">Create New Agent</span>
+        <Plus className="shrink-0 size-3" />
+        <span className="font-medium text-xs">Create New Agent</span>
       </motion.div>
     </Button>
 
     <Button
       variant="ghost"
       size="sm"
-      className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+      className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
       onClick={() => navigate('/agents')}
     >
-      <motion.div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground">
-        <LayoutGrid className="size-3 shrink-0" />
+      <motion.div className="group-hover:text-foreground flex items-center gap-2 text-muted-foreground">
+        <LayoutGrid className="shrink-0 size-3" />
         <span className="text-xs">View All Agents</span>
       </motion.div>
     </Button>
@@ -268,16 +269,16 @@ const AgentsList = ({ mockAgents, navigate, isCollapsed }: any) => (
         key={agent.id}
         variant="ghost"
         size="sm"
-        className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+        className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
       >
         <motion.div
-          className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground"
+          className="group-hover:text-foreground flex items-center gap-2 text-muted-foreground"
           animate={{
             width: isCollapsed ? 0 : 'auto',
             opacity: isCollapsed ? 0 : 1,
           }}
         >
-          <agent.icon className="size-3 shrink-0" />
+          <agent.icon className="shrink-0 size-3" />
           <span className="text-xs">{agent.name}</span>
         </motion.div>
       </Button>
@@ -290,7 +291,7 @@ const FunctionsList = ({ tools, navigate, isCollapsed }: any) => (
     <Button
       variant="ghost"
       size="sm"
-      className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+      className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
       onClick={() => navigate('/tools/new')}
     >
       <motion.div
@@ -300,19 +301,19 @@ const FunctionsList = ({ tools, navigate, isCollapsed }: any) => (
           opacity: isCollapsed ? 0 : 1,
         }}
       >
-        <Plus className="size-3 shrink-0" />
-        <span className="text-xs font-medium">Create New Function</span>
+        <Plus className="shrink-0 size-3" />
+        <span className="font-medium text-xs">Create New Function</span>
       </motion.div>
     </Button>
 
     <Button
       variant="ghost"
       size="sm"
-      className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+      className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
       onClick={() => navigate('/tools')}
     >
-      <motion.div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground">
-        <LayoutGrid className="size-3 shrink-0" />
+      <motion.div className="group-hover:text-foreground flex items-center gap-2 text-muted-foreground">
+        <LayoutGrid className="shrink-0 size-3" />
         <span className="text-xs">View All Functions</span>
       </motion.div>
     </Button>
@@ -322,11 +323,11 @@ const FunctionsList = ({ tools, navigate, isCollapsed }: any) => (
         key={tool.id}
         variant="ghost"
         size="sm"
-        className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+        className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
         onClick={() => navigate(`/tools/${tool.id}`)}
       >
-        <motion.div className="flex items-center gap-2 font-mono text-muted-foreground group-hover:text-foreground">
-          <Code2 className="size-3 shrink-0" />
+        <motion.div className="group-hover:text-foreground flex items-center gap-2 font-mono text-muted-foreground">
+          <Code2 className="shrink-0 size-3" />
           <span className="text-xs">
             {tool.name}
             <span className="text-primary/40">()</span>

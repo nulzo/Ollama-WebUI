@@ -1,4 +1,4 @@
-import { OllamaOpts } from '@/types/providers/ollama';
+import { OllamaOpts } from '@/types/ollama';
 import { Chat } from '@/types/chat';
 import { MessageError } from '@/types/error';
 

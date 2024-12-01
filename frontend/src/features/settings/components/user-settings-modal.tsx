@@ -3,10 +3,10 @@ import { Settings2, Server, Shield, Settings } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useProviderSettings } from '@/features/settings/api/get-settings';
-import { ProviderSettings } from '@/features/sidebar/components/modals/provider-settings';
-import { GeneralSettings } from '@/features/sidebar/components/modals/general-settings';
-import { PrivacySettings } from '@/features/sidebar/components/modals/privacy-settings';
-import { AdminSettings } from '@/features/sidebar/components/modals/admin-settings';
+import { ProviderSettings } from '@/features/settings/components/provider-settings';
+import { GeneralSettings } from '@/features/settings/components/general-settings';
+import { PrivacySettings } from '@/features/settings/components/privacy-settings';
+import { AdminSettings } from '@/features/settings/components/admin-settings';
 
 interface UserSettingsModalProps {
   open: boolean;

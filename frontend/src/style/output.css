@@ -721,6 +721,29 @@ ol > li,
   /* For any pseudo-elements */
 }
 
+.prose ol > li::before, /* Optional: custom styling for ordered list numbers */
+  .prose ul > li::before {
+  position: absolute;
+  left: -1.5em;
+  /* Adjust based on your layout/indentation needs */
+  min-width: 1em;
+  text-align: right;
+  color: hsl(var(--primary));
+}
+
+.prose ol > li::before {
+  content: counter(list-item) '.';
+  counter-increment: list-item;
+  font-weight: bold;
+  color: hsl(var(--primary));
+}
+
+.prose ul > li::before {
+  content: '•';
+  font-weight: bold;
+  color: hsl(var(--primary));
+}
+
 /* Remove any span display flex of the li spans */
 
 li > span {
@@ -787,6 +810,16 @@ ol > li::before {
 
 li p {
   margin: 0;
+}
+
+.prose ol > li::before {
+  content: counter(list-item) '.';
+  counter-increment: list-item;
+  font-weight: bold;
+  min-width: 1.5em;
+  margin-right: 0.5em;
+  text-align: right;
+  color: hsl(var(--primary));
 }
 
 ul > li::before {
@@ -1222,6 +1255,14 @@ body {
   margin: auto;
 }
 
+.m-4 {
+  margin: 1rem;
+}
+
+.m-3 {
+  margin: 0.75rem;
+}
+
 .-mx-1 {
   margin-left: -0.25rem;
   margin-right: -0.25rem;
@@ -1379,6 +1420,30 @@ body {
 
 .mt-auto {
   margin-top: auto;
+}
+
+.ml-5 {
+  margin-left: 1.25rem;
+}
+
+.ms-\[40px\] {
+  margin-inline-start: 40px;
+}
+
+.ms-\[45px\] {
+  margin-inline-start: 45px;
+}
+
+.ms-14 {
+  margin-inline-start: 3.5rem;
+}
+
+.mt-3 {
+  margin-top: 0.75rem;
+}
+
+.mt-5 {
+  margin-top: 1.25rem;
 }
 
 .block {
@@ -1937,6 +2002,18 @@ body {
   max-width: 24rem;
 }
 
+.max-w-\[70\%\] {
+  max-width: 70%;
+}
+
+.max-w-\[85\%\] {
+  max-width: 85%;
+}
+
+.max-w-none {
+  max-width: none;
+}
+
 .flex-1 {
   flex: 1 1 0%;
 }
@@ -2485,6 +2562,11 @@ body {
   border-bottom-width: 1px;
 }
 
+.border-x-2 {
+  border-left-width: r;
+  border-right-width: r;
+}
+
 .border-b {
   border-bottom-width: 1px;
 }
@@ -2499,6 +2581,10 @@ body {
 
 .border-l-2 {
   border-left-width: r;
+}
+
+.border-l-4 {
+  border-left-width: -;
 }
 
 .border-r {
@@ -2732,6 +2818,14 @@ body {
 
 .bg-white\/25 {
   background-color: rgb(255 255 255 / 0.25);
+}
+
+.bg-muted\/30 {
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+.bg-primary\/75 {
+  background-color: hsl(var(--primary) / 0.75);
 }
 
 .bg-gradient-to-l {
@@ -3071,6 +3165,14 @@ body {
 
 .pt-8 {
   padding-top: 2rem;
+}
+
+.ps-\[44px\] {
+  padding-inline-start: 44px;
+}
+
+.pt-5 {
+  padding-top: 1.25rem;
 }
 
 .text-left {

@@ -7,40 +7,117 @@ import { Input } from '@/components/ui/input';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { useTools } from '@/features/tools/api';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { LucideIcon } from 'lucide-react';
 
 interface SidebarActionsProps {
   isCollapsed: boolean;
   animationDuration: number;
 }
 
-// Subcomponent for the New Chat button
-const NewChatButton = ({ isCollapsed, animationDuration }: SidebarActionsProps) => {
-  const navigate = useNavigate();
+interface SidebarDropdownButtonProps {
+  icon: LucideIcon;
+  label: string;
+  children: React.ReactNode;
+  isCollapsed: boolean;
+  animationDuration: number;
+}
 
-  if (isCollapsed) {
-    return (
-      <Button
-        variant="ghost"
-        size="icon"
-        className="relative flex justify-center gap-2.5 mb-2 w-full h-9 font-bold text-center text-sm group"
-        onClick={() => navigate('/')}
-      >
-        <div className="left-3 absolute flex justify-center items-center">
-          <Plus className="shrink-0 size-4" />
-        </div>
-      </Button>
-    );
-  }
+interface SidebarButtonProps {
+  icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+  isCollapsed: boolean;
+  animationDuration: number;
+  variant?: 'default' | 'ghost';
+}
+
+export const SidebarDropdownButton = ({
+  icon: Icon,
+  label,
+  children,
+  isCollapsed,
+  animationDuration,
+}: SidebarDropdownButtonProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="flex justify-center items-center w-full">
-      <Button
-        variant="default"
-        size="icon"
-        className="relative flex justify-center items-center gap-2.5 mb-2 px-2 w-full h-9 font-bold text-sm group"
-        onClick={() => navigate('/')}
-      >
-        <div className="flex justify-center items-center">
+    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+      <CollapsibleTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
+        >
+          <div className="left-3 absolute flex items-center justify-between w-[calc(100%-24px)]">
+            <div className="flex items-center">
+              <Icon className="size-4" />
+              <motion.span
+                className="ml-2 text-sm whitespace-nowrap overflow-hidden"
+                animate={{
+                  width: isCollapsed ? 0 : 'auto',
+                  opacity: isCollapsed ? 0 : 1,
+                }}
+                transition={{
+                  duration: animationDuration,
+                  ease: 'easeInOut',
+                }}
+              >
+                {label}
+              </motion.span>
+            </div>
+            <motion.div
+              animate={{
+                width: isCollapsed ? 0 : 'auto',
+                opacity: isCollapsed ? 0 : 1,
+              }}
+              transition={{
+                duration: animationDuration,
+                ease: 'easeInOut',
+              }}
+            >
+              <ChevronRight
+                className={`size-3 transition-transform duration-200 ${
+                  isExpanded ? 'rotate-90' : ''
+                }`}
+              />
+            </motion.div>
+          </div>
+        </Button>
+      </CollapsibleTrigger>
+
+      {!isCollapsed && (
+        <CollapsibleContent>
+          <motion.div
+            initial="closed"
+            animate={isExpanded ? 'open' : 'closed'}
+            variants={slideAnimation}
+          >
+            <div className="relative pl-2 border-x-2 ml-5">{children}</div>
+          </motion.div>
+        </CollapsibleContent>
+      )}
+    </Collapsible>
+  );
+};
+
+export const SidebarButton = ({
+  icon: Icon,
+  label,
+  onClick,
+  isCollapsed,
+  animationDuration,
+  variant = 'ghost',
+}: SidebarButtonProps) => {
+  return (
+    <Button
+      variant={variant}
+      size="icon"
+      className="relative flex justify-start gap-2.5 mb-2 w-full h-9 font-normal text-sm group"
+      onClick={onClick}
+    >
+      <div className="left-3 absolute flex items-center">
+        <Icon className="shrink-0 size-4" />
+        {!isCollapsed && (
           <motion.span
             className="ml-2 text-sm whitespace-nowrap overflow-hidden"
             animate={{
@@ -52,173 +129,50 @@ const NewChatButton = ({ isCollapsed, animationDuration }: SidebarActionsProps) 
               ease: 'easeInOut',
             }}
           >
-            New Chat
+            {label}
           </motion.span>
-        </div>
-      </Button>
-    </div>
-  );
-};
-
-// Subcomponent for the Models button
-const ModelsButton = ({ isCollapsed, animationDuration }: SidebarActionsProps) => {
-  const navigate = useNavigate();
-
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
-      onClick={() => navigate('/cloud')}
-    >
-      <div className="left-3 absolute flex items-center">
-        <ArrowUpDown className="size-4" />
-        <motion.span
-          className="ml-2 text-sm whitespace-nowrap overflow-hidden"
-          animate={{
-            width: isCollapsed ? 0 : 'auto',
-            opacity: isCollapsed ? 0 : 1,
-          }}
-          transition={{
-            duration: animationDuration,
-            ease: 'easeInOut',
-          }}
-        >
-          Download Models
-        </motion.span>
+        )}
       </div>
     </Button>
   );
 };
 
-// Subcomponent for the Agents section
-const AgentsSection = ({ isCollapsed, animationDuration }: SidebarActionsProps) => {
-  const [isAgentsExpanded, setIsAgentsExpanded] = useState(false);
-  const navigate = useNavigate();
-
-  const mockAgents = [
-    { id: '1', name: 'Code Assistant', model: 'codellama', icon: Code2 },
-    { id: '2', name: 'Writing Helper', model: 'mistral', icon: Image },
-    { id: '3', name: 'Image Expert', model: 'llama2', icon: Image },
-  ];
-
-  return (
-    <Collapsible open={isAgentsExpanded} onOpenChange={setIsAgentsExpanded}>
-      <CollapsibleTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
-        >
-          <div className="left-3 absolute flex items-center justify-between w-[calc(100%-24px)]">
-            <div className="flex items-center">
-              <Bot className="size-4" />
-              <motion.span
-                className="ml-2 text-sm whitespace-nowrap overflow-hidden"
-                animate={{
-                  width: isCollapsed ? 0 : 'auto',
-                  opacity: isCollapsed ? 0 : 1,
-                }}
-                transition={{
-                  duration: animationDuration,
-                  ease: 'easeInOut',
-                }}
-              >
-                Fine-Tune Agents
-              </motion.span>
-            </div>
-            <motion.div
-              animate={{
-                width: isCollapsed ? 0 : 'auto',
-                opacity: isCollapsed ? 0 : 1,
-              }}
-              transition={{
-                duration: animationDuration,
-                ease: 'easeInOut',
-              }}
-            >
-              <ChevronRight
-                className={`size-3 transition-transform duration-200 ${
-                  isAgentsExpanded ? 'rotate-90' : ''
-                }`}
-              />
-            </motion.div>
-          </div>
-        </Button>
-      </CollapsibleTrigger>
-
-      <CollapsibleContent>
-        {!isCollapsed && (
-          <div className="relative pl-8 border-l border-primary/20 ml-4">
-            <AgentsList mockAgents={mockAgents} navigate={navigate} />
-          </div>
-        )}
-      </CollapsibleContent>
-    </Collapsible>
-  );
+const slideAnimation = {
+  open: {
+    height: 'auto',
+    opacity: 1,
+    transition: {
+      height: {
+        type: 'spring',
+        bounce: 0,
+        duration: 0.3,
+      },
+      opacity: {
+        duration: 0.3,
+      },
+    },
+  },
+  closed: {
+    height: 0,
+    opacity: 0,
+    transition: {
+      height: {
+        type: 'spring',
+        bounce: 0,
+        duration: 0.3,
+      },
+      opacity: {
+        duration: 0.2,
+      },
+    },
+  },
 };
 
-// Subcomponent for the Functions section
-const FunctionsSection = ({ isCollapsed, animationDuration }: SidebarActionsProps) => {
-  const [isFunctionsExpanded, setIsFunctionsExpanded] = useState(false);
-  const navigate = useNavigate();
-  const { data: tools } = useTools();
-
-  return (
-    <Collapsible open={isFunctionsExpanded} onOpenChange={setIsFunctionsExpanded}>
-      <CollapsibleTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
-        >
-          <div className="left-3 absolute flex items-center justify-between w-[calc(100%-24px)]">
-            <div className="flex items-center">
-              <Code2 className="size-4" />
-              <motion.span
-                className="ml-2 text-sm whitespace-nowrap overflow-hidden"
-                animate={{
-                  width: isCollapsed ? 0 : 'auto',
-                  opacity: isCollapsed ? 0 : 1,
-                }}
-                transition={{
-                  duration: animationDuration,
-                  ease: 'easeInOut',
-                }}
-              >
-                Functions
-              </motion.span>
-            </div>
-            <motion.div
-              animate={{
-                width: isCollapsed ? 0 : 'auto',
-                opacity: isCollapsed ? 0 : 1,
-              }}
-              transition={{
-                duration: animationDuration,
-                ease: 'easeInOut',
-              }}
-            >
-              <ChevronRight
-                className={`size-3 transition-transform duration-200 ${
-                  isFunctionsExpanded ? 'rotate-90' : ''
-                }`}
-              />
-            </motion.div>
-          </div>
-        </Button>
-      </CollapsibleTrigger>
-
-      <CollapsibleContent>
-        {!isCollapsed && (
-          <div className="relative pl-2 border-l border-muted ml-4">
-            <FunctionsList tools={tools} navigate={navigate} />
-          </div>
-        )}
-      </CollapsibleContent>
-    </Collapsible>
-  );
-};
+const mockAgents = [
+  { id: '1', name: 'Code Assistant', model: 'codellama', icon: Code2 },
+  { id: '2', name: 'Writing Helper', model: 'mistral', icon: Image },
+  { id: '3', name: 'Image Expert', model: 'llama2', icon: Image },
+];
 
 // Search component
 const SearchBar = ({ isCollapsed }: { isCollapsed: boolean }) => {
@@ -237,19 +191,53 @@ const SearchBar = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
 // Main SidebarActions component
 export const SidebarActions = ({ isCollapsed, animationDuration }: SidebarActionsProps) => {
+  const navigate = useNavigate();
+  const { data: tools } = useTools();
+
   return (
     <div className="p-2">
-      <NewChatButton isCollapsed={isCollapsed} animationDuration={animationDuration} />
-      <ModelsButton isCollapsed={isCollapsed} animationDuration={animationDuration} />
-      <AgentsSection isCollapsed={isCollapsed} animationDuration={animationDuration} />
-      <FunctionsSection isCollapsed={isCollapsed} animationDuration={animationDuration} />
+      <SidebarButton
+        icon={Plus}
+        label="New Chat"
+        onClick={() => navigate('/')}
+        isCollapsed={isCollapsed}
+        animationDuration={animationDuration}
+        variant="default"
+      />
+
+      <SidebarButton
+        icon={ArrowUpDown}
+        label="Download Models"
+        onClick={() => navigate('/cloud')}
+        isCollapsed={isCollapsed}
+        animationDuration={animationDuration}
+      />
+
+      <SidebarDropdownButton
+        icon={Bot}
+        label="Fine-Tune Agents"
+        isCollapsed={isCollapsed}
+        animationDuration={animationDuration}
+      >
+        <AgentsList mockAgents={mockAgents} navigate={navigate} isCollapsed={isCollapsed} />
+      </SidebarDropdownButton>
+
+      <SidebarDropdownButton
+        icon={Code2}
+        label="Functions"
+        isCollapsed={isCollapsed}
+        animationDuration={animationDuration}
+      >
+        <FunctionsList tools={tools} navigate={navigate} isCollapsed={isCollapsed} />
+      </SidebarDropdownButton>
+
       <SearchBar isCollapsed={isCollapsed} />
     </div>
   );
 };
 
 // Helper components for the lists
-const AgentsList = ({ mockAgents, navigate }) => (
+const AgentsList = ({ mockAgents, navigate, isCollapsed }: any) => (
   <>
     <Button
       variant="ghost"
@@ -282,7 +270,13 @@ const AgentsList = ({ mockAgents, navigate }) => (
         size="sm"
         className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
       >
-        <motion.div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground">
+        <motion.div
+          className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground"
+          animate={{
+            width: isCollapsed ? 0 : 'auto',
+            opacity: isCollapsed ? 0 : 1,
+          }}
+        >
           <agent.icon className="size-3 shrink-0" />
           <span className="text-xs">{agent.name}</span>
         </motion.div>
@@ -291,7 +285,7 @@ const AgentsList = ({ mockAgents, navigate }) => (
   </>
 );
 
-const FunctionsList = ({ tools, navigate }) => (
+const FunctionsList = ({ tools, navigate, isCollapsed }: any) => (
   <>
     <Button
       variant="ghost"
@@ -299,7 +293,13 @@ const FunctionsList = ({ tools, navigate }) => (
       className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
       onClick={() => navigate('/tools/new')}
     >
-      <motion.div className="flex items-center gap-2 text-primary hover:text-primary/80">
+      <motion.div
+        className="flex items-center gap-2 text-primary hover:text-primary/80"
+        animate={{
+          width: isCollapsed ? 0 : 'auto',
+          opacity: isCollapsed ? 0 : 1,
+        }}
+      >
         <Plus className="size-3 shrink-0" />
         <span className="text-xs font-medium">Create New Function</span>
       </motion.div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { ThemeSettingsModal } from '@/features/sidebar/components/modals/theme-settings-modal';
-import { UserSettingsModal } from '@/features/sidebar/components/modals/user-settings-modal';
-import { UserProfileModal } from '@/features/sidebar/components/modals/user-profile-modal';
+import { ThemeSettingsModal } from '@/features/settings/components/theme-settings-modal';
+import { UserSettingsModal } from '@/features/settings/components/user-settings-modal';
+import { UserProfileModal } from '@/features/settings/components/user-profile-modal';
 
 export type ModalType = 'theme' | 'settings' | 'profile' | null;
 

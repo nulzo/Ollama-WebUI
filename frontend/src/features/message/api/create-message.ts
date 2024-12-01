@@ -2,8 +2,6 @@ import { QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod';
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/query';
-import { getConversationQueryOptions } from '@/features/conversation/api/get-conversation';
-import { getMessageQueryOptions } from '@/features/message/api/get-message.ts';
 
 export const createMessageInputSchema = z.object({
   conversation: z.string().uuid().optional(),

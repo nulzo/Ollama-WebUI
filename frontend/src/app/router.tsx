@@ -53,6 +53,13 @@ export const createAppRouter = (_queryClient: QueryClient) =>
           },
         },
         {
+          path: 'settings',
+          lazy: async () => {
+            const { SettingsRoute } = await import('@/app/routes/app/settings');
+            return { Component: SettingsRoute };
+          },
+        },
+        {
           path: 'cloud',
           lazy: async () => {
             const { CloudRoute } = await import('@/app/routes/app/cloud');

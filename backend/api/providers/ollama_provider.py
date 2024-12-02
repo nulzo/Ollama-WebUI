@@ -1,31 +1,73 @@
 import json
 import logging
 from typing import Optional, Union, List, AnyStr, Sequence, Literal
-
 import httpx
 from api.providers import BaseProvider
 from django.conf import settings
 from ollama import Client, Options, Message
-from api.models.tools.tools import Tool
+from api.models.agent.tools import Tool
+from dataclasses import dataclass
+from urllib.parse import urlparse
+
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class OllamaConfig:
+    """Configuration for Ollama provider"""
+
+    host: str
+    port: str
+
+    @classmethod
+    def from_settings(cls) -> "OllamaConfig":
+        """Create config from Django settings"""
+        return cls(host=settings.OLLAMA_HOST, port=settings.OLLAMA_PORT)
+
+    @classmethod
+    def from_endpoint(cls, endpoint: str) -> "OllamaConfig":
+        """Create config from endpoint URL"""
+        parsed = urlparse(endpoint)
+        # Handle cases where scheme is missing
+        if not parsed.scheme:
+            parsed = urlparse(f"http://{endpoint}")
+
+        host = parsed.hostname or settings.OLLAMA_HOST
+        port = str(parsed.port) if parsed.port else settings.OLLAMA_PORT
+
+        return cls(host=host, port=port)
+
+    @property
+    def endpoint(self) -> str:
+        """Get full endpoint URL"""
+        return f"http://{self.host}:{self.port}"
+
 
 class OllamaProvider(BaseProvider):
     def __init__(self) -> None:
-        _ollama_host = settings.OLLAMA_HOST
-        _ollama_port = settings.OLLAMA_PORT
-        self._client = Client(host=f"http://{_ollama_host}:{_ollama_port}")
+        self.config = OllamaConfig.from_settings()
+        self._client = Client(host=self.config.endpoint)
         self.logger = logger
         super().__init__()
+
+    def update_config(self, config: dict) -> None:
+        """Update provider configuration"""
+        if "endpoint" in config:
+            new_config = OllamaConfig.from_endpoint(config["endpoint"])
+            if new_config.endpoint != self.config.endpoint:
+                self.config = new_config
+                self._client = Client(host=self.config.endpoint)
+                self.logger.info(f"Updated Ollama client with new endpoint: {self.config.endpoint}")
 
     def _prepare_tool_for_ollama(self, tool: Tool) -> dict:
         """Convert a Tool model instance to Ollama tool format"""
         return {
-            'type': 'function',
-            'function': {
-                'name': tool.name,
-                'description': tool.description,
-                'parameters': tool.parameters,
-            }
+            "type": "function",
+            "function": {
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": tool.parameters,
+            },
         }
 
     async def achat(self, model: str, messages: Union[List, AnyStr]):
@@ -47,43 +89,35 @@ class OllamaProvider(BaseProvider):
                     except json.JSONDecodeError:
                         continue
 
-    def slow_chat(self, model: str, messages: Union[List, AnyStr]):
-        self.logger.info(f"Sending message to ollama: {messages}")
-        response = self._client.chat(model=model, messages=messages, stream=False)
-        self.logger.info(f"Response from ollama: {response}")
-        return response
-
     def chat(
         self,
         model: str,
         messages: Union[Sequence[Message], None],
         options: Optional[Options] = None,
-        stream: Literal[bool] = True
     ):
         """
-        Sends a message to the ollama service.
+        Sends a message to the ollama service without streaming.
         """
         self.logger.info(f"Sending message to ollama: {messages}")
-        response = self._client.chat(
-            model=model,
-            messages=messages,
-            options=options,
-            stream=stream
-        )
+        response = self._client.chat(model=model, messages=messages, options=options, stream=False)
         self.logger.info(f"Response from ollama: {response}")
-        if not stream:
-            # For non-streaming, collect the entire response
-            print(response)
-            if isinstance(response, (str, dict)):
-                return response["message"]["content"]
 
-            # If it's a generator, consume it and join the results
-            try:
-                full_response = "".join(chunk for chunk in response)
-                return full_response
-            except Exception as e:
-                self.logger.error(f"Error consuming response: {str(e)}")
-                raise
+        # Return the content directly for non-streaming response
+        if isinstance(response, dict) and "message" in response:
+            return response["message"]["content"]
+        return response
+
+    def stream(
+        self,
+        model: str,
+        messages: Union[Sequence[Message], None],
+        options: Optional[Options] = None,
+    ):
+        """
+        Streams a response from the ollama service.
+        """
+        self.logger.info(f"Streaming message to ollama: {messages}")
+        response = self._client.chat(model=model, messages=messages, options=options, stream=True)
 
         # Streaming response handling
         for chunk in response:
@@ -93,12 +127,6 @@ class OllamaProvider(BaseProvider):
                 yield chunk["message"]["content"]
             elif isinstance(chunk, str):
                 yield chunk
-
-    def stream(self, model: str, messages: Union[List, AnyStr]):
-        """
-        Stream a response. in progress.
-        """
-        return self._client.chat(model=model, messages=messages, stream=True)
 
     def model(self): ...
 

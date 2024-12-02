@@ -12,10 +12,17 @@ load_dotenv()
 
 SECRET_KEY = "django-insecure-u98dn^i6(rfh=n1sl10n-ar84+5cz1c2mb-a8@$lb+qewaf&vo"
 
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
 DEBUG = True
 
-OLLAMA_PORT = os.environ.get('OLLAMA_PORT')
-OLLAMA_HOST = os.environ.get('OLLAMA_HOST')
+OLLAMA_SETTINGS = {
+    'HOST': os.environ.get('OLLAMA_HOST', 'localhost'),
+    'PORT': os.environ.get('OLLAMA_PORT', '11434'),
+}
+
+OLLAMA_PORT = OLLAMA_SETTINGS['PORT']
+OLLAMA_HOST = OLLAMA_SETTINGS['HOST']
 
 OPENAI_HOST = ""
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')

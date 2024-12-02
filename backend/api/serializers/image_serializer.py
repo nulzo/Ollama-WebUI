@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models.images.image import MessageImage
+from api.models.chat.image import MessageImage
 
 class MessageImageSerializer(serializers.ModelSerializer):
     class Meta:

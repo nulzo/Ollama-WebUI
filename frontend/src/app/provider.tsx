@@ -18,12 +18,7 @@ type AppProviderProps = {
 };
 
 export const AppProvider = ({ children }: AppProviderProps) => {
-  const [queryClient] = React.useState(
-    () =>
-      new QueryClient({
-        defaultOptions: queryConfig,
-      })
-  );
+  const queryClient = new QueryClient({ defaultOptions: queryConfig });
 
   return (
     <ThemeProvider
@@ -34,7 +29,7 @@ export const AppProvider = ({ children }: AppProviderProps) => {
     >
       <React.Suspense
         fallback={
-          <div className="flex h-screen w-screen items-center justify-center">
+          <div className="flex justify-center items-center w-screen h-screen">
             <Spinner size="md" />
           </div>
         }

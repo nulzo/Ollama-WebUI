@@ -180,7 +180,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ markdown }) =>
   }, [tokens]);
 
   return (
-    <div className="mx-auto mb-3 w-full min-w-sm md:min-w-lg lg:min-w-2xl xl:min-w-4xl max-w-sm md:max-w-lg lg:max-w-2xl xl:max-w-4xl overflow-none markdown markdown-prose">
+    <div className="mb-1 w-full overflow-none markdown markdown-prose">
       {renderedContent}
     </div>
   );

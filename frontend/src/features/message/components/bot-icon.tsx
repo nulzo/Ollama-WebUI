@@ -3,13 +3,15 @@ import { Origami } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { useAssistant } from '@/features/assistant/api/get-assistant';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface BotIconProps {
   assistantId: number;
+  isOnline?: boolean;
+  modelName?: string;
 }
 
-// erm
-export const BotIcon = ({ assistantId }: BotIconProps) => {
+export const BotIcon = ({ assistantId, isOnline, modelName }: BotIconProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { data: assistant, isLoading } = useAssistant(assistantId);
 
@@ -17,7 +19,7 @@ export const BotIcon = ({ assistantId }: BotIconProps) => {
 
   const renderIcon = () => {
     if (isLoading) {
-      return <div className="bg-primary-foreground rounded-full w-5 h-5 animate-pulse" />;
+      return <div className="bg-primary-foreground rounded-lg size-10 animate-pulse" />;
     }
 
     if (assistant?.icon) {
@@ -25,22 +27,34 @@ export const BotIcon = ({ assistantId }: BotIconProps) => {
         <img
           src={assistant.icon}
           alt={assistant.display_name}
-          className="rounded-lg object-cover size-9"
+          className="rounded-lg object-cover size-10"
         />
       );
     }
 
-    return <Origami strokeWidth="1.5" className="m-2 text-primary-foreground size-5" />;
+    return <Origami strokeWidth="1.5" className="m-2 text-primary-foreground size-6" />;
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <div className="relative bg-primary mt-1 rounded-lg cursor-pointer">
-          {renderIcon()}
-          <div className="-right-0.5 -bottom-0.5 absolute bg-green-400 rounded-full ring-2 ring-background w-2.5 h-2.5" />
-        </div>
-      </DialogTrigger>
+      <TooltipProvider>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <div className="relative bg-primary rounded-lg cursor-pointer">
+                {renderIcon()}
+                <div
+                  className={`absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full ring-2 ring-background
+                  ${isOnline ? 'bg-green-500' : 'bg-background border border-muted'}`}
+                />
+              </div>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="text-xs">
+            {modelName} is {isOnline ? 'online' : 'offline'}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <AssistantCard assistantId={assistantId} onClose={handleClose} />
     </Dialog>
   );

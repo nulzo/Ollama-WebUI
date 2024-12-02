@@ -1,6 +1,6 @@
 import { streamJSON } from '@/services/utility.ts';
 import { FetchWrapper } from '@/services/fetch.ts';
-import { Message } from '@/types/providers/ollama';
+import { Message } from '@/types/ollama';
 import { FetchConfig } from '@/types/fetch';
 import { HttpClientConfig } from '@/types/http.ts';
 

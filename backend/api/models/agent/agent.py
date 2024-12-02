@@ -1,6 +1,6 @@
 from django.db import models
-from api.models.models.model import Model
-from api.models.tools.tools import Tool
+from api.models.providers.model import Model
+from api.models.agent.tools import Tool
 
 
 class Agent(models.Model):

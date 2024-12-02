@@ -1,14 +1,14 @@
 import uuid
 from rest_framework import generics
-from api.models.users.user import CustomUser
-from api.models.conversation.conversation import Conversation
-from api.models.messages.message import Message
+from api.models.auth.user import CustomUser
+from api.models.chat.conversation import Conversation
+from api.models.chat.message import Message
 from api.serializers.message import MessageSerializer
 from api.serializers.user import UserSerializer
 from api.serializers.conversation import ConversationSerializer
 # from api.serializers.settings import SettingsSerializer
 from api.models.settings.settings import Settings
-from api.models.assistant.assistant import Assistant
+from api.models.chat.assistant import Assistant
 from api.serializers.assistant import AssistantSerializer
 from rest_framework import viewsets
 from rest_framework.authtoken.models import Token

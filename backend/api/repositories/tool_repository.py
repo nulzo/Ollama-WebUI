@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 from django.db import transaction
-from api.models.tools.tools import Tool
+from api.models.agent.tools import Tool
 from api.utils.interfaces.base_repository import BaseRepository
 from api.utils.exceptions import ValidationError
 import logging

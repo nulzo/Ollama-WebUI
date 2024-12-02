@@ -1,4 +1,4 @@
-import { OllamaOpts } from '@/types/providers/ollama';
+import { OllamaOpts } from '@/types/ollama';
 import { Model, Parameters } from '@/types/models';
 
 export type Theme = 'light' | 'dark' | 'system';

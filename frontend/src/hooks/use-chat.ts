@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ChatResponse, Message } from '@/types/providers/ollama';
+import { ChatResponse, Message } from '@/types/ollama';
 import { v4 as uuidv4 } from 'uuid';
 import { settingsService, conversationService } from '@/services/storage/client.ts';
 import { useModelStore } from '@/features/models/store/model-store';

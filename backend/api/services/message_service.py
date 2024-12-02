@@ -2,7 +2,7 @@ from typing import Dict, Any, List
 from api.repositories.message_repository import MessageRepository
 from api.utils.exceptions import ServiceError, ValidationError
 from api.serializers.message import MessageSerializer
-from api.models.messages import Message
+from api.models.chat.message import Message
 import logging
 
 

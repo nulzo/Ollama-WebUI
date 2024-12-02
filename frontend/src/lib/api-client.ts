@@ -1,3 +1,4 @@
+import { useNotifications } from "@/components/notification/notification-store";
 import { env } from "@/config/env";
 import urlJoin from "url-join";
 
@@ -56,13 +57,29 @@ class ApiClient {
   private async handleResponse(response: Response) {
     if (!response.ok) {
       let errorMessage = 'Network response was not ok';
+      let errorData;
+      
       try {
-        const errorData = await response.json();
+        errorData = await response.json();
         errorMessage = errorData.message || errorData.detail || errorMessage;
       } catch (e) {
-        // If parsing fails, use the status text
         errorMessage = response.statusText || errorMessage;
       }
+  
+      // Show toast notification
+      useNotifications.getState().addNotification({
+        type: 'error',
+        title: `Error ${response.status}`,
+        message: errorMessage,
+      });
+  
+      // Handle unauthorized access
+      if (response.status === 401) {
+        const searchParams = new URLSearchParams(window.location.search);
+        const redirectTo = searchParams.get('redirectTo') || window.location.pathname;
+        window.location.href = '/login';
+      }
+  
       throw new Error(errorMessage);
     }
     return response;

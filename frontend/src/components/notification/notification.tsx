@@ -8,10 +8,7 @@ export const Notifications = () => {
   const { toast } = useToast()
 
   return (
-    <div
-      aria-live="assertive"
-      className="top-0 right-0 left-0 z-50 fixed inset-0 flex flex-col items-end sm:items-start space-y-4 px-4 py-6 sm:p-6 pointer-events-none"
-    >
+    <>
       {notifications.map(notification => (
         <Button
           variant="outline"
@@ -28,6 +25,6 @@ export const Notifications = () => {
           {notification.title}
         </Button>
       ))}
-    </div>
+    </>
   );
 };

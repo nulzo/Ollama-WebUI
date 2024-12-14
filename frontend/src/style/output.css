@@ -1418,6 +1418,10 @@ body {
   margin-top: auto;
 }
 
+.mb-0\.5 {
+  margin-bottom: 0.125rem;
+}
+
 .block {
   display: block;
 }
@@ -2488,8 +2492,20 @@ body {
   border-bottom-left-radius: 0.75rem;
 }
 
+.rounded-tl-md {
+  border-top-left-radius: calc(var(--radius) - 2px);
+}
+
 .rounded-tl-sm {
   border-top-left-radius: calc(var(--radius) - 4px);
+}
+
+.rounded-tl {
+  border-top-left-radius: 0.25rem;
+}
+
+.rounded-tr-sm {
+  border-top-right-radius: calc(var(--radius) - 4px);
 }
 
 .border {
@@ -3157,6 +3173,10 @@ body {
   line-height: 1rem;
 }
 
+.text-\[14px\] {
+  font-size: 14px;
+}
+
 .font-bold {
   font-weight: 700;
 }
@@ -3626,12 +3646,12 @@ body {
   animation-delay: -0.3s;
 }
 
-.selection\:bg-foreground\/75 *::-moz-selection {
-  background-color: hsl(var(--foreground) / 0.75);
+.selection\:bg-primary-foreground\/50 *::-moz-selection {
+  background-color: hsl(var(--primary-foreground) / 0.5);
 }
 
-.selection\:bg-foreground\/75 *::selection {
-  background-color: hsl(var(--foreground) / 0.75);
+.selection\:bg-primary-foreground\/50 *::selection {
+  background-color: hsl(var(--primary-foreground) / 0.5);
 }
 
 .selection\:bg-primary\/50 *::-moz-selection {
@@ -3642,36 +3662,36 @@ body {
   background-color: hsl(var(--primary) / 0.5);
 }
 
-.selection\:bg-foreground *::-moz-selection {
-  background-color: hsl(var(--foreground));
+.selection\:bg-foreground\/50 *::-moz-selection {
+  background-color: hsl(var(--foreground) / 0.5);
 }
 
-.selection\:bg-foreground *::selection {
-  background-color: hsl(var(--foreground));
+.selection\:bg-foreground\/50 *::selection {
+  background-color: hsl(var(--foreground) / 0.5);
 }
 
-.selection\:bg-primary\/75 *::-moz-selection {
-  background-color: hsl(var(--primary) / 0.75);
+.selection\:bg-background\/50 *::-moz-selection {
+  background-color: hsl(var(--background) / 0.5);
 }
 
-.selection\:bg-primary\/75 *::selection {
-  background-color: hsl(var(--primary) / 0.75);
+.selection\:bg-background\/50 *::selection {
+  background-color: hsl(var(--background) / 0.5);
 }
 
-.selection\:bg-primary-foreground\/50 *::-moz-selection {
+.selection\:bg-background\/25 *::-moz-selection {
+  background-color: hsl(var(--background) / 0.25);
+}
+
+.selection\:bg-background\/25 *::selection {
+  background-color: hsl(var(--background) / 0.25);
+}
+
+.selection\:bg-primary-foreground\/50::-moz-selection {
   background-color: hsl(var(--primary-foreground) / 0.5);
 }
 
-.selection\:bg-primary-foreground\/50 *::selection {
+.selection\:bg-primary-foreground\/50::selection {
   background-color: hsl(var(--primary-foreground) / 0.5);
-}
-
-.selection\:bg-foreground\/75::-moz-selection {
-  background-color: hsl(var(--foreground) / 0.75);
-}
-
-.selection\:bg-foreground\/75::selection {
-  background-color: hsl(var(--foreground) / 0.75);
 }
 
 .selection\:bg-primary\/50::-moz-selection {
@@ -3682,28 +3702,28 @@ body {
   background-color: hsl(var(--primary) / 0.5);
 }
 
-.selection\:bg-foreground::-moz-selection {
-  background-color: hsl(var(--foreground));
+.selection\:bg-foreground\/50::-moz-selection {
+  background-color: hsl(var(--foreground) / 0.5);
 }
 
-.selection\:bg-foreground::selection {
-  background-color: hsl(var(--foreground));
+.selection\:bg-foreground\/50::selection {
+  background-color: hsl(var(--foreground) / 0.5);
 }
 
-.selection\:bg-primary\/75::-moz-selection {
-  background-color: hsl(var(--primary) / 0.75);
+.selection\:bg-background\/50::-moz-selection {
+  background-color: hsl(var(--background) / 0.5);
 }
 
-.selection\:bg-primary\/75::selection {
-  background-color: hsl(var(--primary) / 0.75);
+.selection\:bg-background\/50::selection {
+  background-color: hsl(var(--background) / 0.5);
 }
 
-.selection\:bg-primary-foreground\/50::-moz-selection {
-  background-color: hsl(var(--primary-foreground) / 0.5);
+.selection\:bg-background\/25::-moz-selection {
+  background-color: hsl(var(--background) / 0.25);
 }
 
-.selection\:bg-primary-foreground\/50::selection {
-  background-color: hsl(var(--primary-foreground) / 0.5);
+.selection\:bg-background\/25::selection {
+  background-color: hsl(var(--background) / 0.25);
 }
 
 .file\:border-0::file-selector-button {

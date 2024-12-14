@@ -68,12 +68,12 @@ export const Message: React.FC<MessageProps> = ({
           </div>
 
           <div className="flex flex-col">
-            <div className="flex items-baseline gap-2 mb-1">
+            <div className="flex items-baseline gap-2 mb-0.5 ml-1">
               <span className="font-medium text-primary text-sm">{modelName}</span>
               <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
             </div>
 
-            <div className="bg-muted/30 px-4 py-3 rounded-lg">
+            <div className="bg-muted/30 px-4 py-3 rounded-xl rounded-tl">
               {image_ids.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   <AsyncMessageImage
@@ -84,7 +84,7 @@ export const Message: React.FC<MessageProps> = ({
                 </div>
               )}
 
-              <div className="max-w-none prose prose-sm">
+              <div className="p-2 max-w-none prose prose-sm">
                 <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
                 {isTyping && (
                   <div className="flex h-4">
@@ -95,18 +95,18 @@ export const Message: React.FC<MessageProps> = ({
             </div>
 
             {!isTyping && (
-              <div className="flex gap-1.5 mt-1.5">
+              <div className="flex gap-1.5 mt-1.5 ml-2">
                 <LikeButton content={content?.trim() ?? ''} />
                 <CopyButton content={content?.trim() ?? ''} />
                 <EnhanceButton content={content?.trim() ?? ''} />
-                <RefreshCw className="size-3.5 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer" />
+                <RefreshCw className="hover:cursor-pointer hover:stroke-foreground size-3.5 stroke-muted-foreground" />
               </div>
             )}
           </div>
         </div>
       ) : (
         // User message
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-end selection:bg-background/25">
           <div className="flex items-baseline gap-2 mb-1">
             <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
           </div>
@@ -122,7 +122,7 @@ export const Message: React.FC<MessageProps> = ({
               </div>
             )}
 
-            <div className="bg-primary selection:bg-primary-foreground/50 px-4 py-3 rounded-lg text-primary-foreground">
+            <div className="bg-primary selection:bg-primary-foreground/50 px-4 py-3 rounded-xl rounded-tr-sm text-primary-foreground">
               <div className="max-w-none prose-invert prose prose-sm">
                 <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
               </div>

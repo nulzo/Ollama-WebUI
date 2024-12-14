@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/components/ui/toaster"
 
 interface AppLayoutProps {
   children: ReactNode;

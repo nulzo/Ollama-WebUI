@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageUp, Origami } from 'lucide-react';
-import { useAssistant } from '@/features/assistant/api/get-assistant';
 import { useUpdateAssistant } from '@/features/assistant/api/update-assistant';
 import { toast } from '@/components/ui/use-toast';
 
@@ -15,7 +14,6 @@ interface AssistantCardProps {
 }
 
 export function AssistantCard({ assistantId, onClose }: AssistantCardProps) {
-  const { data: assistantData, isLoading } = useAssistant(assistantId);
   const updateAssistantMutation = useUpdateAssistant();
 
   const [name, setName] = useState('');
@@ -23,15 +21,6 @@ export function AssistantCard({ assistantId, onClose }: AssistantCardProps) {
   const [description, setDescription] = useState('');
   const [avatar, setAvatar] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (assistantData) {
-      setName(assistantData.name);
-      setDisplayName(assistantData.display_name);
-      setDescription(assistantData.description || '');
-      setAvatar(assistantData.icon);
-    }
-  }, [assistantData]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -84,23 +73,23 @@ export function AssistantCard({ assistantId, onClose }: AssistantCardProps) {
       <DialogHeader>
         <DialogTitle>Edit Assistant</DialogTitle>
       </DialogHeader>
-      <div className="grid gap-4 py-4 items-center">
-        <div className="relative flex w-24 h-24 items-center justify-center mx-auto mb-8">
-          <div className="bg-primary flex justify-center items-center rounded-xl w-full h-full overflow-hidden">
+      <div className="items-center gap-4 grid py-4">
+        <div className="relative flex justify-center items-center mx-auto mb-8 w-24 h-24">
+          <div className="flex justify-center items-center bg-primary rounded-xl w-full h-full overflow-hidden">
             {avatar ? (
               <img src={avatar} alt={displayName} className="w-full h-full object-cover" />
             ) : (
-              <Origami strokeWidth="1.5" className="size-10 text-primary-foreground" />
+              <Origami strokeWidth="1.5" className="text-primary-foreground size-10" />
             )}
           </div>
           <Button
             size="icon"
             variant="outline"
-            className="absolute -bottom-2 -right-2 rounded-lg"
+            className="-right-2 -bottom-2 absolute rounded-lg"
             onClick={handleUploadClick}
             aria-label="Upload new profile picture"
           >
-            <ImageUp className="h-4 w-4" />
+            <ImageUp className="w-4 h-4" />
           </Button>
           <Input
             id="avatar-upload"
@@ -112,7 +101,7 @@ export function AssistantCard({ assistantId, onClose }: AssistantCardProps) {
           />
         </div>
 
-        <div className="grid grid-cols-4 items-center gap-4">
+        <div className="items-center gap-4 grid grid-cols-4">
           <Label className="" htmlFor="name">
             Name
           </Label>
@@ -124,7 +113,7 @@ export function AssistantCard({ assistantId, onClose }: AssistantCardProps) {
             disabled
           />
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
+        <div className="items-center gap-4 grid grid-cols-4">
           <Label className="" htmlFor="displayName">
             Display Name
           </Label>
@@ -135,7 +124,7 @@ export function AssistantCard({ assistantId, onClose }: AssistantCardProps) {
             className="col-span-3"
           />
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
+        <div className="items-center gap-4 grid grid-cols-4">
           <Label className="" htmlFor="description">
             Description
           </Label>

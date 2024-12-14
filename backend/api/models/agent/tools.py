@@ -10,12 +10,7 @@ class Tool(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
     function_content = models.TextField(
-        validators=[
-            RegexValidator(
-                regex=r"^[a-zA-Z0-9_\s\(\)\{\}\[\]:,\"\']+$",
-                message="Function content contains invalid characters",
-            )
-        ]
+        help_text="The content of the function to be executed. This should be a valid Python function."
     )
     language = models.CharField(
         max_length=20,

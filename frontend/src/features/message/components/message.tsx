@@ -122,7 +122,7 @@ export const Message: React.FC<MessageProps> = ({
               </div>
             )}
 
-            <div className="bg-primary/75 px-4 py-3 rounded-lg text-primary-foreground">
+            <div className="bg-primary selection:bg-primary-foreground/50 px-4 py-3 rounded-lg text-primary-foreground">
               <div className="max-w-none prose-invert prose prose-sm">
                 <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
               </div>

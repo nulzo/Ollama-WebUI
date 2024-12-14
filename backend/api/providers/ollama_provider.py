@@ -1,13 +1,12 @@
 import json
 import logging
-from typing import Optional, Union, List, AnyStr, Sequence, Literal
+from typing import Optional, Union, List, AnyStr, Sequence
 import httpx
 from api.providers import BaseProvider
 from django.conf import settings
 from ollama import Client, Options, Message
 from api.models.agent.tools import Tool
 from dataclasses import dataclass
-from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -16,31 +15,29 @@ logger = logging.getLogger(__name__)
 class OllamaConfig:
     """Configuration for Ollama provider"""
 
-    host: str
-    port: str
+    endpoint: str
 
     @classmethod
     def from_settings(cls) -> "OllamaConfig":
         """Create config from Django settings"""
-        return cls(host=settings.OLLAMA_HOST, port=settings.OLLAMA_PORT)
+        return cls(endpoint=settings.OLLAMA_ENDPOINT)
 
     @classmethod
     def from_endpoint(cls, endpoint: str) -> "OllamaConfig":
         """Create config from endpoint URL"""
-        parsed = urlparse(endpoint)
-        # Handle cases where scheme is missing
-        if not parsed.scheme:
-            parsed = urlparse(f"http://{endpoint}")
-
-        host = parsed.hostname or settings.OLLAMA_HOST
-        port = str(parsed.port) if parsed.port else settings.OLLAMA_PORT
-
-        return cls(host=host, port=port)
+        return cls(endpoint=endpoint)
 
     @property
     def endpoint(self) -> str:
         """Get full endpoint URL"""
-        return f"http://{self.host}:{self.port}"
+        return self._endpoint
+
+    @endpoint.setter
+    def endpoint(self, value: str) -> None:
+        """Set endpoint URL, ensuring it has a scheme"""
+        if not value.startswith(("http://", "https://")):
+            value = f"http://{value}"
+        self._endpoint = value
 
 
 class OllamaProvider(BaseProvider):

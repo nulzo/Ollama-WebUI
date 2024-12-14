@@ -1646,10 +1646,6 @@ body {
   height: 90vh;
 }
 
-.h-\[calc\(100vh-300px\)\] {
-  height: calc(100vh - 300px);
-}
-
 .h-\[var\(--radix-navigation-menu-viewport-height\)\] {
   height: var(--radix-navigation-menu-viewport-height);
 }
@@ -1774,10 +1770,6 @@ body {
   width: 75%;
 }
 
-.w-32 {
-  width: 8rem;
-}
-
 .w-4 {
   width: 1rem;
 }
@@ -1824,10 +1816,6 @@ body {
 
 .w-\[100px\] {
   width: 100px;
-}
-
-.w-\[140px\] {
-  width: 140px;
 }
 
 .w-\[150px\] {
@@ -1916,10 +1904,6 @@ body {
   min-width: 12rem;
 }
 
-.min-w-\[250px\] {
-  min-width: 250px;
-}
-
 .min-w-\[40px\] {
   min-width: 40px;
 }
@@ -1938,10 +1922,6 @@ body {
 
 .max-w-4xl {
   max-width: 56rem;
-}
-
-.max-w-\[250px\] {
-  max-width: 250px;
 }
 
 .max-w-\[300px\] {
@@ -2747,10 +2727,6 @@ body {
 
 .bg-primary\/5 {
   background-color: hsl(var(--primary) / 0.05);
-}
-
-.bg-primary\/75 {
-  background-color: hsl(var(--primary) / 0.75);
 }
 
 .bg-secondary {
@@ -3650,6 +3626,14 @@ body {
   animation-delay: -0.3s;
 }
 
+.selection\:bg-foreground\/75 *::-moz-selection {
+  background-color: hsl(var(--foreground) / 0.75);
+}
+
+.selection\:bg-foreground\/75 *::selection {
+  background-color: hsl(var(--foreground) / 0.75);
+}
+
 .selection\:bg-primary\/50 *::-moz-selection {
   background-color: hsl(var(--primary) / 0.5);
 }
@@ -3658,12 +3642,68 @@ body {
   background-color: hsl(var(--primary) / 0.5);
 }
 
+.selection\:bg-foreground *::-moz-selection {
+  background-color: hsl(var(--foreground));
+}
+
+.selection\:bg-foreground *::selection {
+  background-color: hsl(var(--foreground));
+}
+
+.selection\:bg-primary\/75 *::-moz-selection {
+  background-color: hsl(var(--primary) / 0.75);
+}
+
+.selection\:bg-primary\/75 *::selection {
+  background-color: hsl(var(--primary) / 0.75);
+}
+
+.selection\:bg-primary-foreground\/50 *::-moz-selection {
+  background-color: hsl(var(--primary-foreground) / 0.5);
+}
+
+.selection\:bg-primary-foreground\/50 *::selection {
+  background-color: hsl(var(--primary-foreground) / 0.5);
+}
+
+.selection\:bg-foreground\/75::-moz-selection {
+  background-color: hsl(var(--foreground) / 0.75);
+}
+
+.selection\:bg-foreground\/75::selection {
+  background-color: hsl(var(--foreground) / 0.75);
+}
+
 .selection\:bg-primary\/50::-moz-selection {
   background-color: hsl(var(--primary) / 0.5);
 }
 
 .selection\:bg-primary\/50::selection {
   background-color: hsl(var(--primary) / 0.5);
+}
+
+.selection\:bg-foreground::-moz-selection {
+  background-color: hsl(var(--foreground));
+}
+
+.selection\:bg-foreground::selection {
+  background-color: hsl(var(--foreground));
+}
+
+.selection\:bg-primary\/75::-moz-selection {
+  background-color: hsl(var(--primary) / 0.75);
+}
+
+.selection\:bg-primary\/75::selection {
+  background-color: hsl(var(--primary) / 0.75);
+}
+
+.selection\:bg-primary-foreground\/50::-moz-selection {
+  background-color: hsl(var(--primary-foreground) / 0.5);
+}
+
+.selection\:bg-primary-foreground\/50::selection {
+  background-color: hsl(var(--primary-foreground) / 0.5);
 }
 
 .file\:border-0::file-selector-button {
@@ -4789,10 +4829,6 @@ body {
 }
 
 @media (min-width: 1024px) {
-  .lg\:col-span-2 {
-    grid-column: span 2 / span 2;
-  }
-
   .lg\:w-\[94\%\] {
     width: 94%;
   }
@@ -4843,14 +4879,6 @@ body {
 }
 
 @media (min-width: 1536px) {
-  .\32xl\:col-span-1 {
-    grid-column: span 1 / span 1;
-  }
-
-  .\32xl\:col-span-3 {
-    grid-column: span 3 / span 3;
-  }
-
   .\32xl\:w-\[96\%\] {
     width: 96%;
   }

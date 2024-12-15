@@ -13,7 +13,7 @@ class ConversationRepository(BaseRepository[Conversation]):
     def create(self, data: dict) -> Conversation:
         """Create a new conversation"""
         try:
-            conversation = Conversation.objects.acreate(
+            conversation = Conversation.objects.create(
                 user=data['user'],
                 title=data.get('title', 'New Conversation'),
                 model=data.get('model'),
@@ -27,14 +27,14 @@ class ConversationRepository(BaseRepository[Conversation]):
 
     def get_by_id(self, id: int) -> Optional[Conversation]:
         try:
-            return Conversation.objects.aget(id=id)
+            return Conversation.objects.get(id=id)
         except Conversation.DoesNotExist:
             self.logger.warning(f"Conversation {id} not found")
             return None
 
     def get_by_uuid(self, uuid: str) -> Optional[Conversation]:
         try:
-            return Conversation.objects.aget(uuid=uuid)
+            return Conversation.objects.get(uuid=uuid)
         except Conversation.DoesNotExist:
             self.logger.warning(f"Conversation with UUID {uuid} not found")
             return None
@@ -45,9 +45,9 @@ class ConversationRepository(BaseRepository[Conversation]):
             queryset = queryset.filter(**filters)
         return queryset.order_by('-created_at').all()
 
-    def update(self, id: int, data: dict) -> Optional[Conversation]:
+    def update(self, uuid: str, data: dict) -> Optional[Conversation]:
         try:
-            conversation = self.get_by_id(id)
+            conversation = self.get_by_uuid(uuid)
             if not conversation:
                 return None
 
@@ -56,18 +56,18 @@ class ConversationRepository(BaseRepository[Conversation]):
             conversation.save()
             return conversation
         except Exception as e:
-            self.logger.error(f"Error updating conversation {id}: {str(e)}")
+            self.logger.error(f"Error updating conversation {uuid}: {str(e)}")
             return None
 
-    def delete(self, id: int) -> bool:
+    def delete(self, uuid: str) -> bool:
         try:
-            conversation = self.get_by_id(id)
+            conversation = self.get_by_uuid(uuid)
             if not conversation:
                 return False
             conversation.delete()
             return True
         except Exception as e:
-            self.logger.error(f"Error deleting conversation {id}: {str(e)}")
+            self.logger.error(f"Error deleting conversation {uuid}: {str(e)}")
             return False
 
     @transaction.atomic

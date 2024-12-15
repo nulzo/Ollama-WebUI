@@ -68,9 +68,13 @@ class ConversationViewSet(mixins.CreateModelMixin,
 
     def update(self, request, *args, **kwargs):
         try:
-            agent = self.conversation_service.update_conversation(uuid=kwargs['uuid'], user_id=request.user,
-                                                                  data=request.data)
-            serializer = self.get_serializer(agent)
+            # Fix: Pass request.user.id instead of request.user
+            conversation = self.conversation_service.update_conversation(
+                uuid=kwargs['uuid'], 
+                user_id=request.user.id,  # Changed from request.user
+                data=request.data
+            )
+            serializer = self.get_serializer(conversation)
             return api_response(
                 data=serializer.data,
                 links={
@@ -87,11 +91,11 @@ class ConversationViewSet(mixins.CreateModelMixin,
                 status=400
             )
         except Exception as e:
-            self.logger.error(f"Error updating agent: {str(e)}")
+            self.logger.error(f"Error updating conversation: {str(e)}")  # Changed error message
             return api_response(
                 error={
-                    "code": "AGENT_UPDATE_ERROR",
-                    "message": "Failed to update agent",
+                    "code": "CONVERSATION_UPDATE_ERROR",  # Changed error code
+                    "message": "Failed to update conversation",  # Changed message
                     "details": str(e)
                 },
                 status=500
@@ -180,14 +184,17 @@ class ConversationViewSet(mixins.CreateModelMixin,
 
     def destroy(self, request, *args, **kwargs):
         try:
-            self.conversation_service.delete_conversation(user_id=request.user, uuid=kwargs['uuid'])
+            self.conversation_service.delete_conversation(
+                uuid=kwargs['uuid'],
+                user_id=request.user.id
+            )
             return api_response(status=204)
         except Exception as e:
-            self.logger.error(f"Error deleting agent: {str(e)}")
+            self.logger.error(f"Error deleting conversation: {str(e)}")
             return api_response(
                 error={
-                    "code": "AGENT_DELETE_ERROR",
-                    "message": "Failed to delete agent",
+                    "code": "CONVERSATION_DELETE_ERROR",
+                    "message": "Failed to delete conversation",
                     "details": str(e)
                 },
                 status=500

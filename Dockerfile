@@ -6,8 +6,7 @@ FROM nikolaik/python-nodejs:python3.11-nodejs20-slim
 # --- Configure some optional arg dependencies ---
 
 ARG INSTALL_OLLAMA=false
-ARG OLLAMA_HOST=host.docker.internal
-ARG OLLAMA_PORT=11434
+ARG OLLAMA_ENDPOINT=http://host.docker.internal:11434
 ARG USE_OPEN_AI=false
 ARG OPENAI_API_KEY=""
 
@@ -17,7 +16,7 @@ RUN if [ "$INSTALL_OLLAMA" = "true" ]; then \
         curl -fsSL https://ollama.com/install.sh | sh && \
         # Pull the llama3.1 model by default (Gives the container something to do) \
         ollama pull llama3.1 && \
-        echo "export OLLAMA_HOST=host.docker.internal" >> /etc/environment; \
+        echo "export OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}" >> /etc/environment; \
     fi
 
 # Set the OPENAI_API_KEY environment variable if the flag is set to true
@@ -57,8 +56,7 @@ ENV DEBUG=True \
     DJANGO_SUPERUSER_EMAIL=root@root.com
 
 # Set the environment variables for Backend Ollama Service
-ENV OLLAMA_HOST=${OLLAMA_HOST}
-ENV OLLAMA_PORT=${OLLAMA_PORT}
+ENV OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -

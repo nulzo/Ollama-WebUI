@@ -1,10 +1,11 @@
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useMessages } from '@/features/message/api/get-messages';
 import { useCreateMessage, CreateMessageInput } from '@/features/message/api/create-message';
 import { useModelStore } from '@/features/models/store/model-store';
 import { useUser } from '@/lib/auth';
+import { useConversation as useGetConversation } from '@/features/conversation/api/get-conversation';
 
 
 export function useConversation() {
@@ -14,7 +15,24 @@ export function useConversation() {
   const [streamingContent, _] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const { data: user } = useUser();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const conversation = useGetConversation({
+    conversation_id: searchParamString ?? ''
+  })
+
+  if (conversation.isError) {
+    queryClient.removeQueries({
+      queryKey: ['conversation', searchParamString]
+    });
+    
+    // Navigate to home page
+    navigate('/', { replace: true });
+    
+    // Clear the search params
+    setSearchParams({}, { replace: true });
+  }
 
   const messages = useMessages({
     conversation_id: searchParamString ?? '',

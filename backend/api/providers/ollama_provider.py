@@ -1,13 +1,13 @@
 import json
 import logging
-from typing import Optional, Union, List, AnyStr, Sequence, Literal
+from typing import Dict, Optional, Union, List, AnyStr, Sequence
 import httpx
 from api.providers import BaseProvider
 from django.conf import settings
 from ollama import Client, Options, Message
 from api.models.agent.tools import Tool
 from dataclasses import dataclass
-from urllib.parse import urlparse
+from api.utils.exceptions.exceptions import ServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -16,31 +16,29 @@ logger = logging.getLogger(__name__)
 class OllamaConfig:
     """Configuration for Ollama provider"""
 
-    host: str
-    port: str
+    endpoint: str
 
     @classmethod
     def from_settings(cls) -> "OllamaConfig":
         """Create config from Django settings"""
-        return cls(host=settings.OLLAMA_HOST, port=settings.OLLAMA_PORT)
+        return cls(endpoint=settings.OLLAMA_ENDPOINT)
 
     @classmethod
     def from_endpoint(cls, endpoint: str) -> "OllamaConfig":
         """Create config from endpoint URL"""
-        parsed = urlparse(endpoint)
-        # Handle cases where scheme is missing
-        if not parsed.scheme:
-            parsed = urlparse(f"http://{endpoint}")
-
-        host = parsed.hostname or settings.OLLAMA_HOST
-        port = str(parsed.port) if parsed.port else settings.OLLAMA_PORT
-
-        return cls(host=host, port=port)
+        return cls(endpoint=endpoint)
 
     @property
     def endpoint(self) -> str:
         """Get full endpoint URL"""
-        return f"http://{self.host}:{self.port}"
+        return self._endpoint
+
+    @endpoint.setter
+    def endpoint(self, value: str) -> None:
+        """Set endpoint URL, ensuring it has a scheme"""
+        if not value.startswith(("http://", "https://")):
+            value = f"http://{value}"
+        self._endpoint = value
 
 
 class OllamaProvider(BaseProvider):
@@ -90,22 +88,83 @@ class OllamaProvider(BaseProvider):
                         continue
 
     def chat(
-        self,
-        model: str,
-        messages: Union[Sequence[Message], None],
-        options: Optional[Options] = None,
+        self, 
+        messages: List[Dict], 
+        model: str, 
+        tools: Optional[List[Tool]] = None, 
+        stream: bool = True,
+        **kwargs
     ):
         """
-        Sends a message to the ollama service without streaming.
+        Send a chat request to Ollama with optional function calling
+        
+        Args:
+            messages: List of chat messages
+            model: Name of the model to use
+            tools: Optional list of Tool objects for function calling
+            stream: Whether to stream the response
+            **kwargs: Additional arguments for Ollama
         """
-        self.logger.info(f"Sending message to ollama: {messages}")
-        response = self._client.chat(model=model, messages=messages, options=options, stream=False)
-        self.logger.info(f"Response from ollama: {response}")
+        try:
+            # Only prepare tools if they are provided
+            if tools:
+                self.logger.debug(f"Preparing {len(tools)} tools for chat")
+                kwargs['tools'] = self.tool_service.prepare_tools_for_ollama(tools)
 
-        # Return the content directly for non-streaming response
-        if isinstance(response, dict) and "message" in response:
-            return response["message"]["content"]
-        return response
+            # Make the chat request
+            response = self._client.chat(
+                model=model,
+                messages=messages,
+                stream=stream,
+                **kwargs
+            )
+
+            # For streaming responses, return directly
+            if stream:
+                return response
+
+            # Handle tool calls if present in non-streaming response
+            if isinstance(response, dict) and 'message' in response:
+                message = response['message']
+                
+                # Only process tool calls if tools were provided
+                if tools and 'tool_calls' in message:
+                    self.logger.debug("Processing tool calls from response")
+                    # Execute tools and get results
+                    tool_results = self.tool_service.handle_tool_call(
+                        message['tool_calls'],
+                        kwargs.get('user')
+                    )
+
+                    # Add results to messages
+                    messages.extend([
+                        {
+                            "role": "assistant",
+                            "content": message["content"],
+                            "tool_calls": message["tool_calls"]
+                        },
+                        {
+                            "role": "tool",
+                            "content": json.dumps(tool_results)
+                        }
+                    ])
+
+                    # Make another request with tool results
+                    return self.chat(
+                        messages=messages, 
+                        model=model, 
+                        tools=tools, 
+                        stream=stream, 
+                        **kwargs
+                    )
+
+                return message["content"]
+
+            return response
+
+        except Exception as e:
+            self.logger.error(f"Error in Ollama chat: {str(e)}")
+            raise ServiceError(f"Ollama chat failed: {str(e)}")
 
     def stream(
         self,

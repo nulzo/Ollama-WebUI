@@ -16,13 +16,7 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 DEBUG = True
 
-OLLAMA_SETTINGS = {
-    'HOST': os.environ.get('OLLAMA_HOST', 'localhost'),
-    'PORT': os.environ.get('OLLAMA_PORT', '11434'),
-}
-
-OLLAMA_PORT = OLLAMA_SETTINGS['PORT']
-OLLAMA_HOST = OLLAMA_SETTINGS['HOST']
+OLLAMA_ENDPOINT = os.environ.get('OLLAMA_ENDPOINT', 'http://localhost:11434')
 
 OPENAI_HOST = ""
 OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')

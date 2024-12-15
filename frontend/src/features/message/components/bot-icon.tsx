@@ -2,7 +2,6 @@ import { AssistantCard } from '@/features/models/components/model-card';
 import { Origami } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { useAssistant } from '@/features/assistant/api/get-assistant';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface BotIconProps {
@@ -13,25 +12,10 @@ interface BotIconProps {
 
 export const BotIcon = ({ assistantId, isOnline, modelName }: BotIconProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: assistant, isLoading } = useAssistant(assistantId);
 
   const handleClose = () => setIsOpen(false);
 
   const renderIcon = () => {
-    if (isLoading) {
-      return <div className="bg-primary-foreground rounded-lg size-10 animate-pulse" />;
-    }
-
-    if (assistant?.icon) {
-      return (
-        <img
-          src={assistant.icon}
-          alt={assistant.display_name}
-          className="rounded-lg object-cover size-10"
-        />
-      );
-    }
-
     return <Origami strokeWidth="1.5" className="m-2 text-primary-foreground size-6" />;
   };
 

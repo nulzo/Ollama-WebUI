@@ -1,7 +1,7 @@
 import React from 'react';
 import { Copy } from 'lucide-react';
 import { useClipboard } from '@/hooks/use-clipboard.ts';
-import { toast } from 'sonner';
+import { useToast } from "@/hooks/use-toast"
 
 interface CopyButtonProps {
   content: string;
@@ -9,18 +9,22 @@ interface CopyButtonProps {
 
 export const CopyButton: React.FC<{ content: string }> = ({ content }: CopyButtonProps) => {
   const { copy } = useClipboard();
+  const { toast } = useToast()
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = () => {
     copy(content);
-    toast.success('Copied to clipboard!', {
-      duration: 1500,
-    });
+    toast({
+      title: "Successfully copied to clipboard",
+      description: "You can now paste the message in your desired location",
+      duration: 5000,
+      variant: "success"
+    })
   };
 
   return (
-    <div className="relative inline-block">
+    <div className="inline-block relative">
       <Copy
-        className="size-3 stroke-muted-foreground hover:stroke-foreground hover:cursor-pointer"
+        className="hover:cursor-pointer hover:stroke-foreground size-3 stroke-muted-foreground"
         onClick={handleClick}
       />
     </div>

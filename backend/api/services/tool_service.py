@@ -1,11 +1,13 @@
 import ast
 import inspect
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from api.repositories.tool_repository import ToolRepository
 from api.models.agent.tools import Tool
 from api.utils.exceptions import ValidationError, ServiceError
 from django.contrib.auth import get_user_model
 import logging
+import json
+from api.models.auth.user import CustomUser
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -47,7 +49,7 @@ class ToolService:
         """Get all enabled tools"""
         return self.repository.get_enabled_tools()
 
-    def update_tool(self, tool_id: int, user: User, data: dict) -> Tool:
+    def update_tool(self, tool_id: int, user: 'CustomUser', data: dict) -> Tool:
         """Update a tool"""
         tool = self.get_tool(tool_id)
         
@@ -62,7 +64,7 @@ class ToolService:
 
         return self.repository.update(tool_id, data)
 
-    def delete_tool(self, tool_id: int, user: User) -> bool:
+    def delete_tool(self, tool_id: int, user: 'CustomUser') -> bool:
         """Delete a tool"""
         tool = self.get_tool(tool_id)
         
@@ -165,3 +167,165 @@ class ToolService:
         except Exception as e:
             self.logger.error(f"Error executing tool {tool.name}: {str(e)}")
             raise ServiceError(f"Failed to execute tool: {str(e)}")
+        
+    def prepare_tools_for_ollama(self, tools: List[Tool]) -> List[Dict[str, Any]]:
+        """
+        Convert Tool models to Ollama function format
+        
+        Args:
+            tools: List of Tool models to convert
+            
+        Returns:
+            List of tool definitions in Ollama format
+        """
+        try:
+            ollama_tools = []
+            for tool in tools:
+                if not tool.is_enabled:
+                    continue
+                    
+                ollama_tool = {
+                    "type": "function",
+                    "function": {
+                        "name": tool.name,
+                        "description": tool.description,
+                        "parameters": tool.parameters,
+                        "returns": tool.returns
+                    }
+                }
+                ollama_tools.append(ollama_tool)
+            return ollama_tools
+            
+        except Exception as e:
+            self.logger.error(f"Error preparing tools for Ollama: {str(e)}")
+            raise ServiceError(f"Failed to prepare tools: {str(e)}")
+
+    def execute_tool(self, tool_name: str, arguments: Dict[str, Any], user: 'CustomUser') -> Any:
+        """
+        Execute a tool with the given arguments
+        
+        Args:
+            tool_name: Name of the tool to execute
+            arguments: Arguments to pass to the tool
+            user: User executing the tool
+            
+        Returns:
+            Result of tool execution
+        """
+        try:
+            # Get the tool
+            tool = self.repository.get_by_name_and_user(tool_name, user.id)
+            if not tool:
+                raise ValidationError(f"Tool {tool_name} not found")
+            
+            if not tool.is_enabled:
+                raise ValidationError(f"Tool {tool_name} is disabled")
+
+            # Create execution environment
+            local_vars = {}
+            
+            # Execute the function content
+            exec(tool.function_content, {}, local_vars)
+            
+            # Get the function
+            func = local_vars.get(tool_name)
+            if not func:
+                raise ValidationError(f"Function {tool_name} not found in tool content")
+
+            # Validate arguments against schema
+            self._validate_arguments(arguments, tool.parameters)
+            
+            # Execute function
+            result = func(**arguments)
+            
+            # Validate return value
+            self._validate_return_value(result, tool.returns)
+            
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Error executing tool {tool_name}: {str(e)}")
+            raise ServiceError(f"Failed to execute tool: {str(e)}")
+
+    def handle_tool_call(self, tool_calls: List[Dict[str, Any]], user: 'CustomUser') -> List[Dict[str, Any]]:
+        """
+        Handle tool calls from Ollama
+        
+        Args:
+            tool_calls: List of tool calls from Ollama
+            user: User making the request
+            
+        Returns:
+            List of tool results
+        """
+        try:
+            results = []
+            for tool_call in tool_calls:
+                tool_name = tool_call["function"]["name"]
+                arguments = json.loads(tool_call["function"]["arguments"])
+                
+                try:
+                    result = self.execute_tool(tool_name, arguments, user)
+                    results.append({
+                        "tool_call_id": tool_call["id"],
+                        "name": tool_name,
+                        "result": result
+                    })
+                except Exception as e:
+                    results.append({
+                        "tool_call_id": tool_call["id"],
+                        "name": tool_name,
+                        "error": str(e)
+                    })
+                    
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error handling tool calls: {str(e)}")
+            raise ServiceError(f"Failed to handle tool calls: {str(e)}")
+
+    def _validate_arguments(self, arguments: Dict[str, Any], schema: Dict[str, Any]):
+        """Validate arguments against JSON schema"""
+        try:
+            # Check required parameters
+            required = schema.get("required", [])
+            for param in required:
+                if param not in arguments:
+                    raise ValidationError(f"Missing required parameter: {param}")
+                    
+            # Validate types
+            properties = schema.get("properties", {})
+            for param, value in arguments.items():
+                if param in properties:
+                    expected_type = properties[param]["type"]
+                    self._validate_type(value, expected_type, param)
+                    
+        except Exception as e:
+            raise ValidationError(f"Invalid arguments: {str(e)}")
+
+    def _validate_return_value(self, value: Any, schema: Dict[str, Any]):
+        """Validate return value against JSON schema"""
+        try:
+            expected_type = schema.get("type", "string")
+            self._validate_type(value, expected_type, "return value")
+            
+        except Exception as e:
+            raise ValidationError(f"Invalid return value: {str(e)}")
+
+    def _validate_type(self, value: Any, expected_type: str, name: str):
+        """Validate value against expected type"""
+        type_mapping = {
+            "string": str,
+            "integer": int,
+            "number": (int, float),
+            "boolean": bool,
+            "array": list,
+            "object": dict
+        }
+        
+        if expected_type in type_mapping:
+            expected_python_type = type_mapping[expected_type]
+            if not isinstance(value, expected_python_type):
+                raise ValidationError(
+                    f"Invalid type for {name}: expected {expected_type}, got {type(value).__name__}"
+                )

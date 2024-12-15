@@ -24,7 +24,17 @@ export const updateConversation = ({
   data: updateConversationInput;
   conversationID: string;
 }): Promise<Conversation> => {
-  return api.patch(`/conversations/${conversationID}/`, data);
+  // Transform camelCase to snake_case
+  const transformedData = {
+    created_at: data.createdAt,
+    is_pinned: data.is_pinned,
+    is_hidden: data.isHidden,
+    updated_at: data.updatedAt,
+    name: data.name,
+    user_id: data.userId,
+  };
+  
+  return api.patch(`/conversations/${conversationID}/`, transformedData);
 };
 
 type UseUpdateConversationOptions = {
@@ -39,7 +49,7 @@ export const useUpdateConversation = ({ mutationConfig }: UseUpdateConversationO
   return useMutation({
     onSuccess: (data, ...args) => {
       queryClient.refetchQueries({
-        queryKey: getConversationsQueryOptions(data.uuid).queryKey,
+        queryKey: getConversationsQueryOptions().queryKey,
       });
       onSuccess?.(data, ...args);
     },

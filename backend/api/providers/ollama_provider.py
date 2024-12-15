@@ -1,12 +1,13 @@
 import json
 import logging
-from typing import Optional, Union, List, AnyStr, Sequence
+from typing import Dict, Optional, Union, List, AnyStr, Sequence
 import httpx
 from api.providers import BaseProvider
 from django.conf import settings
 from ollama import Client, Options, Message
 from api.models.agent.tools import Tool
 from dataclasses import dataclass
+from api.utils.exceptions.exceptions import ServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -87,22 +88,83 @@ class OllamaProvider(BaseProvider):
                         continue
 
     def chat(
-        self,
-        model: str,
-        messages: Union[Sequence[Message], None],
-        options: Optional[Options] = None,
+        self, 
+        messages: List[Dict], 
+        model: str, 
+        tools: Optional[List[Tool]] = None, 
+        stream: bool = True,
+        **kwargs
     ):
         """
-        Sends a message to the ollama service without streaming.
+        Send a chat request to Ollama with optional function calling
+        
+        Args:
+            messages: List of chat messages
+            model: Name of the model to use
+            tools: Optional list of Tool objects for function calling
+            stream: Whether to stream the response
+            **kwargs: Additional arguments for Ollama
         """
-        self.logger.info(f"Sending message to ollama: {messages}")
-        response = self._client.chat(model=model, messages=messages, options=options, stream=False)
-        self.logger.info(f"Response from ollama: {response}")
+        try:
+            # Only prepare tools if they are provided
+            if tools:
+                self.logger.debug(f"Preparing {len(tools)} tools for chat")
+                kwargs['tools'] = self.tool_service.prepare_tools_for_ollama(tools)
 
-        # Return the content directly for non-streaming response
-        if isinstance(response, dict) and "message" in response:
-            return response["message"]["content"]
-        return response
+            # Make the chat request
+            response = self._client.chat(
+                model=model,
+                messages=messages,
+                stream=stream,
+                **kwargs
+            )
+
+            # For streaming responses, return directly
+            if stream:
+                return response
+
+            # Handle tool calls if present in non-streaming response
+            if isinstance(response, dict) and 'message' in response:
+                message = response['message']
+                
+                # Only process tool calls if tools were provided
+                if tools and 'tool_calls' in message:
+                    self.logger.debug("Processing tool calls from response")
+                    # Execute tools and get results
+                    tool_results = self.tool_service.handle_tool_call(
+                        message['tool_calls'],
+                        kwargs.get('user')
+                    )
+
+                    # Add results to messages
+                    messages.extend([
+                        {
+                            "role": "assistant",
+                            "content": message["content"],
+                            "tool_calls": message["tool_calls"]
+                        },
+                        {
+                            "role": "tool",
+                            "content": json.dumps(tool_results)
+                        }
+                    ])
+
+                    # Make another request with tool results
+                    return self.chat(
+                        messages=messages, 
+                        model=model, 
+                        tools=tools, 
+                        stream=stream, 
+                        **kwargs
+                    )
+
+                return message["content"]
+
+            return response
+
+        except Exception as e:
+            self.logger.error(f"Error in Ollama chat: {str(e)}")
+            raise ServiceError(f"Ollama chat failed: {str(e)}")
 
     def stream(
         self,

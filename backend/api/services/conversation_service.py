@@ -31,9 +31,9 @@ class ConversationService:
     def update_conversation(self, uuid: str, user_id: int, data: dict):
         """Update a conversation"""
         conversation = self.get_conversation(uuid, user_id)
-        return self.repository.update(conversation.id, data)
+        return self.repository.update(uuid, data)
 
     def delete_conversation(self, uuid: str, user_id: int):
         """Delete a conversation"""
         conversation = self.get_conversation(uuid, user_id)
-        return self.repository.delete(conversation.id)
+        return self.repository.delete(uuid)

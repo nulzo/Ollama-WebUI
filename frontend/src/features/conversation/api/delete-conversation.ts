@@ -25,6 +25,11 @@ export const useDeleteConversation = ({ mutationConfig }: UseDeleteConversationO
       });
       onSuccess?.(...args);
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: getConversationsQueryOptions().queryKey,
+      });
+    },
     ...restConfig,
     mutationFn: deleteConversation,
   });

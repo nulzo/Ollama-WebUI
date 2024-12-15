@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLogin } from '@/lib/auth';
-import { toast } from 'sonner';
+import { useToast } from '@/components/ui/use-toast';
 
 // Define schema with both username and password
 const FormSchema = z.object({
@@ -24,6 +24,7 @@ export const LoginRoute = () => {
   const login = useLogin();
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -37,27 +38,29 @@ export const LoginRoute = () => {
     try {
       await login.mutateAsync(data);
       
-      toast.success('Login successful', {
-        duration: 1500,
+      toast({
+        title: "Success",
+        description: "Login successful",
       });
   
-      // Get the redirect URL from the location state or default to '/'
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Login failed', {
-        duration: 1500,
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Login failed",
       });
     }
   }
 
   return (
-    <main className="text-foreground bg-background font-inter selection:bg-primary/50 max-h-[100dvh] overflow-auto flex flex-col h-screen min-h-full place-items-center px-6 py-24 sm:py-32 lg:px-8">
+    <main className="flex flex-col place-items-center bg-background selection:bg-primary/50 px-6 lg:px-8 py-24 sm:py-32 h-screen min-h-full max-h-[100dvh] font-inter text-foreground overflow-auto">
       <img src={logo} className="size-24" />
-      <p className="font-semibold text-4xl mt-2">CringeGPT™</p>
-      <p className="text-muted-foreground mt-1">An Open Source Software provided by CringeAI</p>
-      <div className="pt-8 w-[325px] flex justify-center flex-col">
+      <p className="mt-2 font-semibold text-4xl">CringeGPT™</p>
+      <p className="mt-1 text-muted-foreground">An Open Source Software provided by CringeAI</p>
+      <div className="flex flex-col justify-center pt-8 w-[325px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
             <FormField
@@ -84,7 +87,7 @@ export const LoginRoute = () => {
                 </FormItem>
               )}
             />
-            <div className="flex justify-end pt-4 gap-1">
+            <div className="flex justify-end gap-1 pt-4">
               <Button className="w-full">Sign In</Button>
             </div>
             <div className="flex justify-end gap-1">
@@ -94,7 +97,7 @@ export const LoginRoute = () => {
             </div>
           </form>
         </Form>
-        <div className="flex pt-2 text-sm gap-1 text-center justify-center">
+        <div className="flex justify-center gap-1 pt-2 text-center text-sm">
           <p className="text-muted-foreground">Don't have an account?</p>
           <Link to="/register" className="text-sm hover:underline">
             Create an Account

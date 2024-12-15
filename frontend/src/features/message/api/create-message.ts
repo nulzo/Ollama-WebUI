@@ -9,7 +9,7 @@ export const createMessageInputSchema = z.object({
   content: z.string(),
   model: z.string(),
   user: z.string().nullable().optional(),
-  images: z.string().optional(),
+  images: z.array(z.string()).optional(),
 });
 
 export type CreateMessageInput = z.infer<typeof createMessageInputSchema>;

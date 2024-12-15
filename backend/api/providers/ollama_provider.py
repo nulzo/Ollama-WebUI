@@ -92,7 +92,7 @@ class OllamaProvider(BaseProvider):
         messages: List[Dict], 
         model: str, 
         tools: Optional[List[Tool]] = None, 
-        stream: bool = True,
+        stream: bool = False,
         **kwargs
     ):
         """

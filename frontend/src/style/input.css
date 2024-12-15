@@ -17,17 +17,6 @@
   height: 3px;
 }
 
-.streaming-message {
-  transition: height 0.1s ease-out;
-  will-change: height;
-  contain: content;
-}
-
-.message-content {
-  transition: all 0.2s ease-out;
-  opacity: 1;
-}
-
 .typing-indicator-container {
   height: 20px;
   display: flex;
@@ -35,15 +24,13 @@
   padding-left: 8px;
 }
 
-.message-container {
-  contain: content;
-  transform: translateZ(0);
+
+.messages-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  justify-content: flex-end;
 }
-/* 
-.sidebar-container:hover .drag-handle {
-  background-color: hsl(var(--border));
-  opacity: 0.5;
-} */
 
 .sidebar-container .chevron-icon {
   transition: transform 0.2s ease-out;
@@ -145,7 +132,7 @@
   }
 
   .markdown-prose {
-    @apply prose whitespace-pre-line;
+    @apply whitespace-pre-line prose;
   }
 
   .markdown a {
@@ -265,6 +252,10 @@
   /* Ensure paragraphs in lists render as expected */
   li p {
     margin: 0;
+  }
+
+  .image-modal {
+    z-index: 99999;
   }
 
   .prose ol > li::before {

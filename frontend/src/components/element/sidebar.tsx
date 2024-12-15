@@ -377,7 +377,7 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                   size="icon"
                   className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
                 >
-                  <div className="left-3 absolute flex items-center justify-between w-[calc(100%-24px)]">
+                  <div className="left-3 absolute flex justify-between items-center w-[calc(100%-24px)]">
                     <div className="flex items-center">
                       <Bot className="size-4" />
                       <motion.span
@@ -422,12 +422,12 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                   className="overflow-hidden"
                 >
                   {!isCollapsed && (
-                    <div className="relative pl-8 border-l border-primary/20 ml-4">
+                    <div className="relative border-primary/20 ml-4 pl-8 border-l">
                       {/* Create New Agent Button */}
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                        className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
                         onClick={() => navigate('/agents')}
                       >
                         <motion.div
@@ -437,8 +437,8 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                             opacity: isCollapsed ? 0 : 1,
                           }}
                         >
-                          <Plus className="size-3 shrink-0" />
-                          <span className="text-xs font-medium">Create New Agent</span>
+                          <Plus className="shrink-0 size-3" />
+                          <span className="font-medium text-xs">Create New Agent</span>
                         </motion.div>
                       </Button>
 
@@ -446,17 +446,17 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                        className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
                         onClick={() => navigate('/agents')}
                       >
                         <motion.div
-                          className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground"
+                          className="group-hover:text-foreground flex items-center gap-2 text-muted-foreground"
                           animate={{
                             width: isCollapsed ? 0 : 'auto',
                             opacity: isCollapsed ? 0 : 1,
                           }}
                         >
-                          <LayoutGrid className="size-3 shrink-0" />
+                          <LayoutGrid className="shrink-0 size-3" />
                           <span className="text-xs">View All Agents</span>
                         </motion.div>
                       </Button>
@@ -467,16 +467,16 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                           key={agent.id}
                           variant="ghost"
                           size="sm"
-                          className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                          className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
                         >
                           <motion.div
-                            className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground"
+                            className="group-hover:text-foreground flex items-center gap-2 text-muted-foreground"
                             animate={{
                               width: isCollapsed ? 0 : 'auto',
                               opacity: isCollapsed ? 0 : 1,
                             }}
                           >
-                            <agent.icon className="size-3 shrink-0" />
+                            <agent.icon className="shrink-0 size-3" />
                             <span className="text-xs">{agent.name}</span>
                           </motion.div>
                         </Button>
@@ -494,7 +494,7 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                   size="icon"
                   className="relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm group"
                 >
-                  <div className="left-3 absolute flex items-center justify-between w-[calc(100%-24px)]">
+                  <div className="left-3 absolute flex justify-between items-center w-[calc(100%-24px)]">
                     <div className="flex items-center">
                       <Code2 className="size-4" />
                       <motion.span
@@ -539,12 +539,12 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                   className="overflow-hidden"
                 >
                   {!isCollapsed && (
-                    <div className="relative pl-2 border-l border-muted ml-4">
+                    <div className="relative border-muted ml-4 pl-2 border-l">
                       {/* Create New Function Button */}
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                        className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
                         onClick={() => navigate('/tools/new')}
                       >
                         <motion.div
@@ -554,8 +554,8 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                             opacity: isCollapsed ? 0 : 1,
                           }}
                         >
-                          <Plus className="size-3 shrink-0" />
-                          <span className="text-xs font-medium">Create New Function</span>
+                          <Plus className="shrink-0 size-3" />
+                          <span className="font-medium text-xs">Create New Function</span>
                         </motion.div>
                       </Button>
 
@@ -563,17 +563,17 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                        className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
                         onClick={() => navigate('/tools')}
                       >
                         <motion.div
-                          className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground"
+                          className="group-hover:text-foreground flex items-center gap-2 text-muted-foreground"
                           animate={{
                             width: isCollapsed ? 0 : 'auto',
                             opacity: isCollapsed ? 0 : 1,
                           }}
                         >
-                          <LayoutGrid className="size-3 shrink-0" />
+                          <LayoutGrid className="shrink-0 size-3" />
                           <span className="text-xs">View All Functions</span>
                         </motion.div>
                       </Button>
@@ -584,17 +584,17 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                           key={tool.id}
                           variant="ghost"
                           size="sm"
-                          className="relative flex justify-start items-center w-full h-8 pl-2 text-sm group"
+                          className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
                           onClick={() => navigate(`/tools/${tool.id}`)}
                         >
                           <motion.div
-                            className="flex items-center gap-2 font-mono text-muted-foreground group-hover:text-foreground"
+                            className="group-hover:text-foreground flex items-center gap-2 font-mono text-muted-foreground"
                             animate={{
                               width: isCollapsed ? 0 : 'auto',
                               opacity: isCollapsed ? 0 : 1,
                             }}
                           >
-                            <Code2 className="size-3 shrink-0" />
+                            <Code2 className="shrink-0 size-3" />
                             <span className="text-xs">
                               {tool.name}
                               <span className="text-primary/40">()</span>
@@ -711,7 +711,7 @@ const Sidebar = ({ conversationList }: SidebarProps) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="z-20 rounded-lg w-[200px]"
+                  className="z-10 rounded-lg w-[200px]"
                   side="right"
                   align="end"
                   sideOffset={4}

@@ -1,9 +1,12 @@
 import base64
+from datetime import datetime
 from typing import List, Optional
 from django.db import transaction
 from api.utils.interfaces.base_repository import BaseRepository
 from api.models.chat.conversation import Conversation
 from api.models.chat.message import Message
+from django.core.files.base import ContentFile
+
 import logging
 from api.models.chat.image import MessageImage
 
@@ -18,6 +21,7 @@ class MessageRepository(BaseRepository[Message]):
         try:
             # Extract images before creating message
             images = data.pop('images', [])
+            self.logger.info(f"Processing message with {len(images)} images")
             
             message = Message.objects.create(
                 conversation=data['conversation'],
@@ -27,24 +31,39 @@ class MessageRepository(BaseRepository[Message]):
                 user=data['user'],
                 has_images=bool(images)
             )
-
+            
             # Process and create MessageImage instances
             if images:
                 for index, image_data in enumerate(images):
-                    if isinstance(image_data, str) and image_data.startswith('data:'):
-                        # Split on comma and take second part (the actual base64 data)
-                        base64_data = image_data.split(',')[1]
-                        # Convert base64 to bytes
-                        binary_data = base64.b64decode(base64_data)
-                    else:
-                        binary_data = image_data
-
-                    MessageImage.objects.create(
-                        message=message,
-                        image=binary_data,
-                        order=index
-                    )
-
+                    try:
+                        if isinstance(image_data, str) and image_data.startswith('data:'):
+                            self.logger.debug(f"Processing image {index} for message {message.id}")
+                            format, imgstr = image_data.split(';base64,')
+                            ext = format.split('/')[-1].lower()
+                            if ext == 'jpeg':
+                                ext = 'jpg'
+                            
+                            filename = f"message_{message.id}_{index}_{datetime.now().timestamp()}.{ext}"
+                            
+                            # Create ContentFile from base64 data
+                            image_content = ContentFile(
+                                base64.b64decode(imgstr),
+                                name=filename
+                            )
+                            
+                            # Create MessageImage instance
+                            MessageImage.objects.create(
+                                message=message,
+                                image=image_content,
+                                order=index
+                            )
+                            self.logger.info(f"Successfully created image {index} for message {message.id}")
+                        else:
+                            self.logger.warning(f"Invalid image data format for message {message.id}: {image_data[:100]}...")
+                    except Exception as e:
+                        self.logger.error(f"Error processing image {index} for message {message.id}: {str(e)}")
+                        continue
+            
             return message
             
         except Exception as e:

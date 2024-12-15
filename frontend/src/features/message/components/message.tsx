@@ -9,15 +9,16 @@ import { LikeButton } from './like-message';
 import { EnhanceButton } from './enhance-button';
 import { AsyncMessageImage } from './async-image';
 import { useModels } from '@/features/models/api/get-models';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   username: string;
   time: number;
-  isTyping: boolean;
+  isTyping?: boolean;
   image_ids?: string[] | number[] | undefined;
   conversation_id: string;
   modelName: string;
-  isLoading: boolean;
+  isLoading?: boolean;
 }
 
 export const Message: React.FC<MessageProps> = ({
@@ -31,18 +32,15 @@ export const Message: React.FC<MessageProps> = ({
   isLoading,
 }) => {
   const formattedDate = formatDate(time);
-  let assistantId: number | undefined = undefined;
   const { data: modelsData } = useModels();
 
   const isModelOnline = useMemo(() => {
     if (!modelsData || !modelName) return false;
     
-    // Check in Ollama models
     const isOllamaModel = modelsData.ollama?.models?.some(
       model => model.name?.toLowerCase() === modelName?.toLowerCase()
     );
     
-    // Check in OpenAI models
     const isOpenAIModel = modelsData.openai?.some(
       model => model.id?.toLowerCase() === modelName?.toLowerCase()
     );
@@ -51,8 +49,34 @@ export const Message: React.FC<MessageProps> = ({
   }, [modelsData, modelName]);
 
   if (isLoading) {
-    return <div className="flex flex-col gap-2 pb-4" />;
+    return (
+      <div className="flex flex-col gap-1 px-4 py-2">
+        <div className={`flex ${role !== 'user' ? 'gap-3 max-w-[85%]' : 'flex-col items-end'}`}>
+          {role !== 'user' && (
+            <div className="flex items-start mb-0">
+              <Skeleton className="rounded-full size-8" />
+            </div>
+          )}
+          <div className="flex flex-col">
+            <div className="flex items-baseline gap-2 mb-0.5 ml-1">
+              <Skeleton className="w-24 h-4" />
+              <Skeleton className="w-16 h-3" />
+            </div>
+            <div className={`px-4 py-3 rounded-xl ${
+              role !== 'user' 
+                ? 'bg-muted/30 rounded-tl' 
+                : 'bg-primary rounded-tr-sm'
+            }`}>
+              <Skeleton className="w-[300px] h-16" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
+
+  const messageContent = content?.trim() || '';
+  const showActions = !isTyping && !isLoading && role === 'assistant';
 
   return (
     <div className="flex flex-col gap-1 px-4 py-2">
@@ -61,7 +85,7 @@ export const Message: React.FC<MessageProps> = ({
         <div className="flex gap-3 max-w-[85%]">
           <div className="flex items-start mb-0">
             <BotIcon
-              assistantId={assistantId ?? 0}
+              assistantId={0}
               isOnline={isModelOnline}
               modelName={modelName}
             />
@@ -85,7 +109,11 @@ export const Message: React.FC<MessageProps> = ({
               )}
 
               <div className="p-2 max-w-none prose prose-sm">
-                <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
+                {messageContent ? (
+                  <MarkdownRenderer markdown={messageContent} />
+                ) : (
+                  <div className="h-6" /> // Placeholder for empty content
+                )}
                 {isTyping && (
                   <div className="flex h-4">
                     <div className="typing-indicator" />
@@ -94,11 +122,11 @@ export const Message: React.FC<MessageProps> = ({
               </div>
             </div>
 
-            {!isTyping && (
+            {showActions && (
               <div className="flex gap-1.5 mt-1.5 ml-2">
-                <LikeButton content={content?.trim() ?? ''} />
-                <CopyButton content={content?.trim() ?? ''} />
-                <EnhanceButton content={content?.trim() ?? ''} />
+                <LikeButton content={messageContent} />
+                <CopyButton content={messageContent} />
+                <EnhanceButton content={messageContent} />
                 <RefreshCw className="hover:cursor-pointer hover:stroke-foreground size-3.5 stroke-muted-foreground" />
               </div>
             )}
@@ -124,7 +152,11 @@ export const Message: React.FC<MessageProps> = ({
 
             <div className="bg-primary selection:bg-background/40 px-4 py-3 rounded-xl rounded-tr-sm text-primary-foreground">
               <div className="max-w-none prose-invert prose prose-sm">
-                <MarkdownRenderer markdown={content?.trim() ?? 'ERROR'} />
+                {messageContent ? (
+                  <MarkdownRenderer markdown={messageContent} />
+                ) : (
+                  <div className="h-6" /> // Placeholder for empty content
+                )}
               </div>
             </div>
           </div>

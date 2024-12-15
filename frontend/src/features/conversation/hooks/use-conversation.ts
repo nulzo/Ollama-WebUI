@@ -26,11 +26,7 @@ export function useConversation() {
     queryClient.removeQueries({
       queryKey: ['conversation', searchParamString]
     });
-    
-    // Navigate to home page
     navigate('/', { replace: true });
-    
-    // Clear the search params
     setSearchParams({}, { replace: true });
   }
 
@@ -44,19 +40,21 @@ export function useConversation() {
       onMutate: async (variables) => {
         setIsStreaming(true);
 
+        // Create optimistic message
+        const optimisticMessage = {
+          id: `temp-${Date.now()}`,
+          role: variables.data.role,
+          content: variables.data.content,
+          user: variables.data.user,
+          model: variables.data.model,
+          created_at: new Date().toISOString(),
+          conversation_uuid: searchParamString,
+          images: variables.data.images || []
+        };
+
+        // Dispatch optimistic message event
         window.dispatchEvent(new CustomEvent('optimistic-message', {
-          detail: {
-            message: {
-              id: `temp-${Date.now()}`,
-              role: variables.data.role,
-              content: variables.data.content,
-              user: variables.data.user,
-              model: variables.data.model,
-              created_at: new Date().toISOString(),
-              conversation_uuid: searchParamString,
-              images: variables.data.images || []
-            }
-          }
+          detail: { message: optimisticMessage }
         }));
 
         // Cancel any outgoing refetches
@@ -71,39 +69,22 @@ export function useConversation() {
         ]);
 
         // Optimistically update the messages cache
-        // queryClient.setQueryData(
-        //   ['messages', { conversation_id: searchParamString }],
-        //   (old: any) => {
-        //     // Handle the case where old might be undefined
-        //     if (!old) return { data: [] };
+        queryClient.setQueryData(
+          ['messages', { conversation_id: searchParamString }],
+          (old: any) => {
+            if (!old) return { messages: [optimisticMessage] };
 
-        //     // Ensure we're working with the correct data structure
-        //     const existingMessages = Array.isArray(old) ? old :
-        //       Array.isArray(old.data) ? old.data :
-        //         [];
-
-        //     const newMessage = {
-        //       ...variables.data,
-        //       id: `temp-${Date.now()}`,
-        //       created_at: new Date().toISOString(),
-        //     };
-
-        //     // If the old data was an array, return an array
-        //     if (Array.isArray(old)) {
-        //       return [...existingMessages, newMessage];
-        //     }
-
-        //     // Otherwise, maintain the original structure
-        //     return {
-        //       ...old,
-        //       data: [...existingMessages, newMessage]
-        //     };
-        //   }
-        // );
+            return {
+              ...old,
+              messages: [...(old.messages || []), optimisticMessage]
+            };
+          }
+        );
 
         return { previousMessages };
       },
       onError: (err, variables, context) => {
+        // Revert optimistic update on error
         if (context?.previousMessages) {
           queryClient.setQueryData(
             ['messages', { conversation_id: searchParamString }],
@@ -112,6 +93,12 @@ export function useConversation() {
         }
         setIsStreaming(false);
       },
+      onSettled: () => {
+        // Invalidate queries after mutation is settled
+        queryClient.invalidateQueries({
+          queryKey: ['messages', { conversation_id: searchParamString }]
+        });
+      }
     },
   });
 
@@ -125,7 +112,7 @@ export function useConversation() {
         refetchType: 'none'
       });
       queryClient.invalidateQueries({
-        queryKey: ['messages', { conversation_id: uuid }], // Update this to be specific
+        queryKey: ['messages', { conversation_id: uuid }],
         refetchType: 'none'
       });
     };
@@ -133,7 +120,6 @@ export function useConversation() {
     const handleMessageDone = () => {
       setIsStreaming(false);
 
-      // Update this to use the specific conversation ID
       queryClient.invalidateQueries({
         queryKey: ['messages', { conversation_id: searchParamString }],
         refetchType: 'none'
@@ -157,7 +143,7 @@ export function useConversation() {
     if (!message.trim()) return;
 
     try {
-      const data: CreateMessageInput = {
+      const data = {
         role: 'user',
         content: message,
         model: model?.name || 'llama3.2:3b',

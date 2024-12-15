@@ -1,13 +1,14 @@
 import asyncio
 import json
+import traceback
 from django.http import StreamingHttpResponse
 from ollama import Options
 from api.serializers.message import MessageSerializer
 from api.repositories.message_repository import MessageRepository
 from api.providers.provider_factory import ProviderFactory
 import logging
-import base64
 from api.models.agent.agent import Agent
+from asgiref.sync import sync_to_async
 from api.services.prompt_service import (
     PromptService,
     PromptTemplateService,
@@ -27,15 +28,22 @@ class ChatService:
         self.message_repository = MessageRepository()
         self.logger = logging.getLogger(__name__)
 
-    def process_image(self, image_data: bytes) -> str:
-        """Process binary image data into base64 string"""
-        try:
-            if not image_data:
-                return None
-            return base64.b64encode(image_data).decode("utf-8")
-        except Exception as e:
-            self.logger.error(f"Error processing image: {str(e)}")
-            return None
+    def _process_message_images(self, message):
+        """Convert message images to bytes for Ollama"""
+        if not message.has_images:
+            return []
+            
+        images = []
+        for message_image in message.message_images.all():
+            try:
+                # Read the image file into bytes
+                message_image.image.seek(0)  # Ensure we're at the start of the file
+                image_bytes = message_image.image.read()
+                images.append(image_bytes)
+            except Exception as e:
+                self.logger.error(f"Error processing image for message {message.id}: {str(e)}")
+                continue
+        return images
 
     def _agent_to_ollama_options(self, agent: Agent) -> Options:
         """Convert agent parameters to Ollama Options"""
@@ -73,24 +81,15 @@ class ChatService:
             conversation = message.conversation
             self.logger.info(f"Created message {message.id} in conversation {conversation.uuid}")
 
-            # Process conversation history
-            messages = conversation.messages.all().order_by("created_at")
-            flattened_messages = [
-                {
-                    "role": msg.role,
-                    "content": msg.content,
-                    "images": (
-                        [self.process_image(img.image) for img in msg.message_images.all()]
-                        if msg.has_images
-                        else []
-                    ),
-                }
-                for msg in messages
-            ]
+            # Get model information
+            model_info = {
+                "name": message.model.name,
+                "display_name": message.model.display_name
+            }
 
-            # Return streaming response
+            # Return streaming response with initial data
             return StreamingHttpResponse(
-                self._stream_chat_response(message, conversation, flattened_messages),
+                self._stream_chat_response(message, conversation, model_info),
                 content_type="text/event-stream",
             )
 
@@ -98,29 +97,48 @@ class ChatService:
             self.logger.error(f"Chat handling error: {str(e)}", exc_info=True)
             return {"errors": str(e)}
 
-    async def _stream_chat_response(self, message, conversation, flattened_messages):
+    async def _stream_chat_response(self, message, conversation, model_info):
         """Stream the chat response from the provider"""
         full_content = ""
         provider = self._get_provider(message.model.name)
 
-        # Send initial conversation UUID
-        yield f"data: {json.dumps({'conversation_uuid': str(conversation.uuid)})}\n\n"
+        # Send initial data including conversation UUID and model info
+        initial_data = {
+            'conversation_uuid': str(conversation.uuid),
+            'model': model_info,
+            'message_id': message.id,
+            'type': 'init'
+        }
+        yield f"data: {json.dumps(initial_data)}\n\n"
 
         try:
+            # Process conversation history
+            messages = await sync_to_async(list)(conversation.messages.all().order_by("created_at"))
+            flattened_messages = [
+                {
+                    "role": msg.role,
+                    "content": msg.content,
+                    "images": await sync_to_async(self._process_message_images)(msg)
+                }
+                for msg in messages
+            ]
+
             # Stream provider response
+            self.logger.info(f"Streaming message to ollama: {flattened_messages}")
+            
             for chunk in provider.stream(message.model.name, flattened_messages):
                 if isinstance(chunk, str):
                     full_content += chunk
-                    yield f"data: {json.dumps({'delta': {'content': chunk}})}\n\n"
+                    yield f"data: {json.dumps({'delta': {'content': chunk}, 'type': 'content'})}\n\n"
                     await asyncio.sleep(0.001)
                 elif isinstance(chunk, dict):
                     if content := chunk.get("message", {}).get("content", ""):
                         full_content += content
-                        yield f"data: {json.dumps({'delta': {'content': content}})}\n\n"
+                        yield f"data: {json.dumps({'delta': {'content': content}, 'type': 'content'})}\n\n"
                         await asyncio.sleep(0.001)
 
-            await asyncio.to_thread(
-                self.message_repository.create,
+            # Create assistant's response message
+            response_message = await sync_to_async(self.message_repository.create)(
                 {
                     "conversation": conversation,
                     "role": "assistant",
@@ -131,12 +149,18 @@ class ChatService:
                 },
             )
 
-            yield f"data: {json.dumps({'done': True})}\n\n"
+            # Send completion data
+            completion_data = {
+                'type': 'done',
+                'message_id': response_message.id,
+                'done': True
+            }
+            yield f"data: {json.dumps(completion_data)}\n\n"
             yield "data: [DONE]\n\n"
 
         except Exception as e:
-            self.logger.error(f"Streaming error: {str(e)}", exc_info=True)
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            self.logger.error(f"Streaming error: {str(e)}\n{traceback.format_exc()}")
+            yield f"data: {json.dumps({'error': str(e), 'type': 'error'})}\n\n"
 
     def _get_provider(self, model_name: str, user_id: int = None):
         """Get appropriate provider based on model name"""

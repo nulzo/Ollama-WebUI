@@ -4,6 +4,7 @@ import { StreamingMessage } from '@/features/message/components/streaming-messag
 import { useMessages } from '@/features/message/api/get-messages';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMessage } from '../api/get-message';
+import useScrollToEnd from '@/hooks/use-scroll-to-end';
 
 interface MessagesListProps {
   conversation_id: string;
@@ -100,6 +101,7 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
   const [currentModel, _] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [optimisticMessage, setOptimisticMessage] = useState<any>(null);
+  const ref = useScrollToEnd(data?.results ?? [], streamContent);
 
   useEffect(() => {
     const handleOptimisticMessage = (event: CustomEvent) => {
@@ -152,37 +154,33 @@ export function MessagesList({ conversation_id, onStreamingUpdate }: MessagesLis
 
   const messageList = data?.results || [];
 
-  console.log('MessageList data:', data);
-
   return (
-    <div className="flex flex-col gap-4">
-      {messageList.map(message => (
-        <MessageItem
-          key={message.id}
-          id={message.id}
-          role={message.role}
-          conversation_id={conversation_id}
-          created_at={message.created_at}
-        />
-      ))}
-      {optimisticMessage && (
-        <Message
-          {...optimisticMessage}
-          username={optimisticMessage.user || 'You'}
-          time={Date.now()}
-          isTyping={false}
-          conversation_id={conversation_id}
-          modelName={optimisticMessage.model || 'You'}
-          isLoading={false}
-        />
-      )}
-      {isStreaming && streamContent && (
-        <StreamingMessage
-          content={streamContent}
-          model={currentModel}
-          conversation_id={conversation_id}
-        />
-      )}
+    <div className="flex flex-col h-full">
+      {/* This wrapper ensures content stays at bottom */}
+      <div className="flex flex-col flex-1 justify-end min-h-full">
+        <div className="flex flex-col gap-4">
+          {messageList.map(message => (
+            <MessageItem
+              key={message.id}
+              id={message.id}
+              role={message.role}
+              conversation_id={conversation_id}
+              created_at={message.created_at}
+            />
+          ))}
+          {optimisticMessage && (
+            <Message {...optimisticMessage} />
+          )}
+          {isStreaming && streamContent && (
+            <StreamingMessage
+              content={streamContent}
+              model={currentModel}
+              conversation_id={conversation_id}
+            />
+          )}
+        </div>
+        <div ref={ref} className="h-0" />
+      </div>
     </div>
   );
 }

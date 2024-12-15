@@ -53,6 +53,16 @@ class MessageSerializer(serializers.ModelSerializer):
             except ValueError:
                 raise serializers.ValidationError("Invalid UUID format")
         return None
+    
+    def validate_images(self, value):
+        """Validate that all images are valid base64 strings"""
+        if not value:
+            return value
+            
+        for image in value:
+            if not isinstance(image, str) or not image.startswith('data:'):
+                raise serializers.ValidationError("Invalid image format. Must be base64 data URL")
+        return value
 
     def create(self, validated_data):
         conversation_uuid = validated_data.pop('conversation', None)

@@ -11,7 +11,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 export function ChatRoute() {
   const { conversationId, messages, submitMessage } = useConversation();
   const [streamingContent, setStreamingContent] = useState('');
-  const ref = useScrollToEnd(messages.data?.data ?? [], streamingContent);
+  console.log('messages', messages);
+  const ref = useScrollToEnd(messages.data?.results ?? [], streamingContent);
   const [searchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
   const navigate = useNavigate();
@@ -41,7 +42,6 @@ export function ChatRoute() {
                 conversation_id={searchParamString}
                 onStreamingUpdate={handleStreamingUpdate}
               />
-              <div ref={ref} className="h-0" />
             </div>
           ) : (
             <ConversationDefault />

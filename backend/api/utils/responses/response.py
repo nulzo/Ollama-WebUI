@@ -1,7 +1,9 @@
-from datetime import datetime
 import uuid
-from rest_framework.response import Response
+from datetime import datetime
+
 from django.conf import settings
+from rest_framework.response import Response
+
 
 def api_response(data=None, error=None, status=200, request=None, pagination=None, links=None):
     response_data = {
@@ -9,9 +11,9 @@ def api_response(data=None, error=None, status=200, request=None, pagination=Non
         "meta": {
             "timestamp": datetime.now().isoformat(),
             "request_id": str(uuid.uuid4()),
-            "version": "1.0"
+            "version": "1.0",
         },
-        "status": status
+        "status": status,
     }
 
     if data is not None:
@@ -21,7 +23,7 @@ def api_response(data=None, error=None, status=200, request=None, pagination=Non
         response_data["error"] = {
             "code": error.get("code", "UNKNOWN_ERROR"),
             "message": error.get("message", "An unknown error occurred"),
-            "details": error.get("details") if settings.DEBUG else None
+            "details": error.get("details") if settings.DEBUG else None,
         }
 
     if pagination:

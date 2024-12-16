@@ -1,7 +1,9 @@
 import uuid
-from api.models.chat.message import Message
+
 from django.db import models
-from django.db.models import Prefetch, Count, Q
+from django.db.models import Count, Prefetch, Q
+
+from api.models.chat.message import Message
 
 
 class ConversationManager(models.Manager):
@@ -40,6 +42,6 @@ class Conversation(models.Model):
         indexes = [
             models.Index(
                 fields=["user_id", "deleted_at", "-updated_at"],
-                name="conv_user_deleted_updated_idx"
+                name="conv_user_deleted_updated_idx",
             )
         ]

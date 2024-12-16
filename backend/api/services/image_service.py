@@ -16,8 +16,7 @@ class ImageService:
             if not images:
                 return None
             return [
-                f"data:image/jpeg;base64,{base64.b64encode(img).decode('utf-8')}"
-                for img in images
+                f"data:image/jpeg;base64,{base64.b64encode(img).decode('utf-8')}" for img in images
             ]
         except Exception as e:
             self.logger.warning(f"Error processing image: {str(e)}")
@@ -27,7 +26,7 @@ class ImageService:
         """Process a single image string into bytes"""
         try:
             # Split on comma and take second part (the actual base64 data)
-            base64_data = image_str.split(',')[1]
+            base64_data = image_str.split(",")[1]
             # Convert base64 to bytes
             return base64.b64decode(base64_data)
         except Exception as e:

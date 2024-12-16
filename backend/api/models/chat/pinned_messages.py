@@ -1,4 +1,5 @@
 from django.db import models
+
 from api.models.auth.user import CustomUser
 from api.models.chat.message import Message
 

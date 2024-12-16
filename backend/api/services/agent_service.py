@@ -1,6 +1,7 @@
+import logging
+
 from api.repositories.agent_repository import AgentRepository
 from api.utils.exceptions import NotFoundException
-import logging
 
 
 class AgentService:
@@ -14,17 +15,17 @@ class AgentService:
 
     def get_agent(self, agent_id: int):
         """Get agent by ID"""
-        agent =  self.repository.get_by_id(agent_id)
+        agent = self.repository.get_by_id(agent_id)
         if not agent:
             raise NotFoundException("Agent not found")
         return agent
 
     def list_agents(self, user_id: int = None):
         """List agents"""
-        filters = {'enabled': True}
+        filters = {"enabled": True}
         if user_id:
-            filters['user_id'] = user_id
-        return  self.repository.list(filters)
+            filters["user_id"] = user_id
+        return self.repository.list(filters)
 
     def update_agent(self, agent_id: int, data: dict):
         """Update agent"""
@@ -33,5 +34,5 @@ class AgentService:
 
     def delete_agent(self, agent_id: int):
         """Delete agent"""
-        agent =  self.get_agent(agent_id)
-        return  self.repository.delete(agent.id)
+        agent = self.get_agent(agent_id)
+        return self.repository.delete(agent.id)

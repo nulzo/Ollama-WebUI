@@ -1,22 +1,23 @@
 import uuid
-from rest_framework import generics
-from api.models.auth.user import CustomUser
-from api.models.chat.conversation import Conversation
-from api.models.chat.message import Message
-from api.serializers.message import MessageSerializer
-from api.serializers.user import UserSerializer
-from api.serializers.conversation import ConversationSerializer
-# from api.serializers.settings import SettingsSerializer
-from api.models.settings.settings import Settings
-from api.models.chat.assistant import Assistant
-from api.serializers.assistant import AssistantSerializer
-from rest_framework import viewsets
+
+from django.contrib.auth import authenticate
+from rest_framework import generics, status, viewsets
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
-from django.contrib.auth import authenticate
-from rest_framework.permissions import IsAuthenticated
+
+from api.models.auth.user import CustomUser
+from api.models.chat.assistant import Assistant
+from api.models.chat.conversation import Conversation
+from api.models.chat.message import Message
+
+# from api.serializers.settings import SettingsSerializer
+from api.models.settings.settings import Settings
+from api.serializers.assistant import AssistantSerializer
+from api.serializers.conversation import ConversationSerializer
+from api.serializers.message import MessageSerializer
+from api.serializers.user import UserSerializer
 
 
 class AssistantViewSet(viewsets.ModelViewSet):
@@ -36,7 +37,7 @@ class ConversationList(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        return Response({'uuid': response.data['uuid']}, status=status.HTTP_201_CREATED)
+        return Response({"uuid": response.data["uuid"]}, status=status.HTTP_201_CREATED)
 
 
 class ConversationDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -63,13 +64,13 @@ class MessageList(generics.ListCreateAPIView):
         return queryset
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer = self.get_serializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         message = serializer.save()
         headers = self.get_success_headers(serializer.data)
 
-        response_data = MessageSerializer(message, context={'request': request}).data
-        response_data['conversation_uuid'] = str(message.conversation.uuid)
+        response_data = MessageSerializer(message, context={"request": request}).data
+        response_data["conversation_uuid"] = str(message.conversation.uuid)
 
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -101,15 +102,17 @@ class UserSettingsDetail(generics.RetrieveUpdateDestroyAPIView):
 #     queryset = Settings.objects.all()
 #     serializer_class = SettingsSerializer
 
+
 class LoginView(APIView):
     def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
+        username = request.data.get("username")
+        password = request.data.get("password")
         user = authenticate(username=username, password=password)
         if user:
             token, _ = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key})
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"token": token.key})
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -117,12 +120,13 @@ class LogoutView(APIView):
     def post(self, request):
         request.user.auth_token.delete()
         return Response(status=status.HTTP_200_OK)
-    
+
 
 class CurrentUserView(generics.RetrieveAPIView):
     """
     Retrieve the currently authenticated user.
     """
+
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
 

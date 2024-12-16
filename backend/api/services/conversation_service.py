@@ -1,6 +1,7 @@
+import logging
+
 from api.repositories.conversation_repository import ConversationRepository
 from api.utils.exceptions import NotFoundException
-import logging
 
 
 class ConversationService:
@@ -11,7 +12,7 @@ class ConversationService:
     def create_conversation(self, user, data: dict):
         """Create a new conversation"""
         try:
-            data['user'] = user
+            data["user"] = user
             return self.repository.create(data)
         except Exception as e:
             self.logger.error(f"Error creating conversation: {str(e)}")
@@ -19,7 +20,7 @@ class ConversationService:
 
     def get_user_conversations(self, user_id: int):
         """Get all conversations for a user"""
-        return self.repository.list({'user_id': user_id})
+        return self.repository.list({"user_id": user_id})
 
     def get_conversation(self, uuid: str, user_id: int):
         """Get a specific conversation"""

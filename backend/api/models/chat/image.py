@@ -1,8 +1,10 @@
-from django.db import models
-from api.models.chat.message import Message
-from api.models.base import BaseModel
-from django.conf import settings
 import os
+
+from django.conf import settings
+from django.db import models
+
+from api.models.base import BaseModel
+from api.models.chat.message import Message
 
 
 class MessageImage(BaseModel):

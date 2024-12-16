@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, Union, List, AnyStr
+from typing import AnyStr, AsyncGenerator, List, Union
 
 
 class BaseProvider(ABC):

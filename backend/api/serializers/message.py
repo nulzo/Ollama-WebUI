@@ -1,11 +1,14 @@
 import uuid
+
 from rest_framework import serializers
-from api.models.chat.message import Message
-from api.serializers.liked_messages import LikedMessageSerializer
-from api.models.chat.assistant import Assistant
+
 from api.models.auth.user import CustomUser
+from api.models.chat.assistant import Assistant
 from api.models.chat.conversation import Conversation
+from api.models.chat.message import Message
 from api.repositories.message_repository import MessageRepository
+from api.serializers.liked_messages import LikedMessageSerializer
+
 
 class UserField(serializers.RelatedField):
     def to_representation(self, value):
@@ -16,6 +19,7 @@ class UserField(serializers.RelatedField):
             return CustomUser.objects.get(username=data)
         except CustomUser.DoesNotExist:
             raise serializers.ValidationError("User does not exist")
+
 
 class AssistantField(serializers.RelatedField):
     def to_representation(self, value):
@@ -29,6 +33,7 @@ class AssistantField(serializers.RelatedField):
             assistant = Assistant.objects.create(name=data)
             return assistant
 
+
 class MessageSerializer(serializers.ModelSerializer):
     liked_by = LikedMessageSerializer(many=True, read_only=True)
     user = UserField(queryset=CustomUser.objects.all())
@@ -36,15 +41,26 @@ class MessageSerializer(serializers.ModelSerializer):
     conversation = serializers.UUIDField(required=False, allow_null=True)
     image_ids = serializers.ListField(child=serializers.IntegerField(), read_only=True)
     images = serializers.ListField(child=serializers.CharField(), required=False, write_only=True)
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.message_repository = MessageRepository()
-        
+
     class Meta:
         model = Message
-        fields = ['id', 'conversation', 'role', 'content', 'created_at', 
-                 'model', 'user', 'liked_by', 'has_images', 'image_ids', 'images']
+        fields = [
+            "id",
+            "conversation",
+            "role",
+            "content",
+            "created_at",
+            "model",
+            "user",
+            "liked_by",
+            "has_images",
+            "image_ids",
+            "images",
+        ]
 
     def validate_conversation(self, value):
         if value:
@@ -53,59 +69,57 @@ class MessageSerializer(serializers.ModelSerializer):
             except ValueError:
                 raise serializers.ValidationError("Invalid UUID format")
         return None
-    
+
     def validate_images(self, value):
         """Validate that all images are valid base64 strings"""
         if not value:
             return value
-            
+
         for image in value:
-            if not isinstance(image, str) or not image.startswith('data:'):
+            if not isinstance(image, str) or not image.startswith("data:"):
                 raise serializers.ValidationError("Invalid image format. Must be base64 data URL")
         return value
 
     def create(self, validated_data):
-        conversation_uuid = validated_data.pop('conversation', None)
-        images = validated_data.pop('images', [])
-        user = self.context['request'].user
+        conversation_uuid = validated_data.pop("conversation", None)
+        images = validated_data.pop("images", [])
+        user = self.context["request"].user
 
         if conversation_uuid:
             try:
                 conversation = Conversation.objects.get(uuid=conversation_uuid, user=user)
             except Conversation.DoesNotExist:
-                raise serializers.ValidationError({
-                    "conversation": "Conversation not found or you do not have permission."
-                })
+                raise serializers.ValidationError(
+                    {"conversation": "Conversation not found or you do not have permission."}
+                )
         else:
-            conversation = Conversation.objects.create(user=user, name=validated_data.get('content', ''))
+            conversation = Conversation.objects.create(
+                user=user, name=validated_data.get("content", "")
+            )
 
-        validated_data['conversation'] = conversation
-        validated_data['has_images'] = bool(images)
-        
-        message = self.message_repository.create({
-            **validated_data,
-            'images': images
-        })
+        validated_data["conversation"] = conversation
+        validated_data["has_images"] = bool(images)
+
+        message = self.message_repository.create({**validated_data, "images": images})
 
         return message
-    
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['conversation_uuid'] = str(instance.conversation.uuid)
+        representation["conversation_uuid"] = str(instance.conversation.uuid)
         if instance.has_images:
-            representation['image_ids'] = list(
-                instance.message_images.values_list('id', flat=True)
-            )
+            representation["image_ids"] = list(instance.message_images.values_list("id", flat=True))
         return representation
 
 
 class MessageListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for message lists"""
+
     class Meta:
         model = Message
-        fields = ['id', 'role', 'created_at', 'conversation']
+        fields = ["id", "role", "created_at", "conversation"]
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['conversation_uuid'] = str(instance.conversation.uuid)
+        representation["conversation_uuid"] = str(instance.conversation.uuid)
         return representation

@@ -1,8 +1,10 @@
-from typing import List, Optional
-from django.db import transaction
-from api.utils.interfaces.base_repository import BaseRepository
-from api.models.chat.conversation import Conversation
 import logging
+from typing import List, Optional
+
+from django.db import transaction
+
+from api.models.chat.conversation import Conversation
+from api.utils.interfaces.base_repository import BaseRepository
 
 
 class ConversationRepository(BaseRepository[Conversation]):
@@ -14,12 +16,14 @@ class ConversationRepository(BaseRepository[Conversation]):
         """Create a new conversation"""
         try:
             conversation = Conversation.objects.create(
-                user=data['user'],
-                title=data.get('title', 'New Conversation'),
-                model=data.get('model'),
-                system_prompt=data.get('system_prompt', '')
+                user=data["user"],
+                title=data.get("title", "New Conversation"),
+                model=data.get("model"),
+                system_prompt=data.get("system_prompt", ""),
             )
-            self.logger.info(f"Created conversation {conversation.uuid} for user {conversation.user.id}")
+            self.logger.info(
+                f"Created conversation {conversation.uuid} for user {conversation.user.id}"
+            )
             return conversation
         except Exception as e:
             self.logger.error(f"Error creating conversation: {str(e)}")
@@ -43,7 +47,7 @@ class ConversationRepository(BaseRepository[Conversation]):
         queryset = Conversation.objects.all()
         if filters:
             queryset = queryset.filter(**filters)
-        return queryset.order_by('-created_at').all()
+        return queryset.order_by("-created_at").all()
 
     def update(self, uuid: str, data: dict) -> Optional[Conversation]:
         try:
@@ -75,10 +79,10 @@ class ConversationRepository(BaseRepository[Conversation]):
         try:
             conversations = [
                 Conversation(
-                    user=data['user'],
-                    title=data.get('title', 'New Conversation'),
-                    model=data.get('model'),
-                    system_prompt=data.get('system_prompt', '')
+                    user=data["user"],
+                    title=data.get("title", "New Conversation"),
+                    model=data.get("model"),
+                    system_prompt=data.get("system_prompt", ""),
                 )
                 for data in data_list
             ]
@@ -92,7 +96,7 @@ class ConversationRepository(BaseRepository[Conversation]):
         try:
             updated_conversations = []
             for data in data_list:
-                if conv_id := data.get('id'):
+                if conv_id := data.get("id"):
                     if updated_conv := self.update(conv_id, data):
                         updated_conversations.append(updated_conv)
             return updated_conversations
@@ -102,4 +106,4 @@ class ConversationRepository(BaseRepository[Conversation]):
 
     def get_user_conversations(self, user_id: int) -> List[Conversation]:
         """Get all conversations for a specific user"""
-        return self.list({'user_id': user_id})
+        return self.list({"user_id": user_id})

@@ -1,6 +1,7 @@
-from api.repositories.user_repository import UserRepository
-from api.core.exceptions import NotFoundException, ValidationError
 import logging
+
+from api.core.exceptions import NotFoundException, ValidationError
+from api.repositories.user_repository import UserRepository
 
 
 class UserService:
@@ -10,9 +11,9 @@ class UserService:
 
     async def create_user(self, data: dict):
         """Create a new user"""
-        if await self.repository.get_by_email(data['email']):
+        if await self.repository.get_by_email(data["email"]):
             raise ValidationError("Email already exists")
-        if await self.repository.get_by_username(data['username']):
+        if await self.repository.get_by_username(data["username"]):
             raise ValidationError("Username already exists")
 
         return await self.repository.create(data)

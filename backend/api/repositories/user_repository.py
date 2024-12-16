@@ -1,9 +1,11 @@
-from typing import List, Optional
-from django.db import transaction
-from api.utils.interfaces.base_repository import BaseRepository
-from api.models.auth.user import CustomUser
-from django.contrib.auth.hashers import make_password
 import logging
+from typing import List, Optional
+
+from django.contrib.auth.hashers import make_password
+from django.db import transaction
+
+from api.models.auth.user import CustomUser
+from api.utils.interfaces.base_repository import BaseRepository
 
 
 class UserRepository(BaseRepository[CustomUser]):
@@ -15,16 +17,16 @@ class UserRepository(BaseRepository[CustomUser]):
         """Create a new user"""
         try:
             # Hash password if provided
-            if password := data.get('password'):
-                data['password'] = make_password(password)
+            if password := data.get("password"):
+                data["password"] = make_password(password)
 
             user = await CustomUser.objects.acreate(
-                username=data['username'],
-                email=data['email'],
-                password=data['password'],
-                first_name=data.get('first_name', ''),
-                last_name=data.get('last_name', ''),
-                is_active=data.get('is_active', True)
+                username=data["username"],
+                email=data["email"],
+                password=data["password"],
+                first_name=data.get("first_name", ""),
+                last_name=data.get("last_name", ""),
+                is_active=data.get("is_active", True),
             )
             self.logger.info(f"Created user {user.id}")
             return user
@@ -50,7 +52,7 @@ class UserRepository(BaseRepository[CustomUser]):
         queryset = CustomUser.objects.all()
         if filters:
             queryset = queryset.filter(**filters)
-        return await queryset.order_by('username').all()
+        return await queryset.order_by("username").all()
 
     async def update(self, id: int, data: dict) -> Optional[CustomUser]:
         try:
@@ -59,8 +61,8 @@ class UserRepository(BaseRepository[CustomUser]):
                 return None
 
             # Hash password if it's being updated
-            if password := data.get('password'):
-                data['password'] = make_password(password)
+            if password := data.get("password"):
+                data["password"] = make_password(password)
 
             for key, value in data.items():
                 setattr(user, key, value)
@@ -86,16 +88,16 @@ class UserRepository(BaseRepository[CustomUser]):
         try:
             users = []
             for data in data_list:
-                if password := data.get('password'):
-                    data['password'] = make_password(password)
+                if password := data.get("password"):
+                    data["password"] = make_password(password)
                 users.append(
                     CustomUser(
-                        username=data['username'],
-                        email=data['email'],
-                        password=data['password'],
-                        first_name=data.get('first_name', ''),
-                        last_name=data.get('last_name', ''),
-                        is_active=data.get('is_active', True)
+                        username=data["username"],
+                        email=data["email"],
+                        password=data["password"],
+                        first_name=data.get("first_name", ""),
+                        last_name=data.get("last_name", ""),
+                        is_active=data.get("is_active", True),
                     )
                 )
             return await CustomUser.objects.abulk_create(users)
@@ -108,7 +110,7 @@ class UserRepository(BaseRepository[CustomUser]):
         try:
             updated_users = []
             for data in data_list:
-                if user_id := data.get('id'):
+                if user_id := data.get("id"):
                     if updated_user := await self.update(user_id, data):
                         updated_users.append(updated_user)
             return updated_users

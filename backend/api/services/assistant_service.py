@@ -1,6 +1,7 @@
+import logging
+
 from api.repositories.assistant_repository import AssistantRepository
 from api.utils.exceptions import NotFoundException
-import logging
 
 
 class AssistantService:
@@ -21,9 +22,9 @@ class AssistantService:
 
     async def list_assistants(self, user_id: int = None):
         """List assistants"""
-        filters = {'is_active': True}
+        filters = {"is_active": True}
         if user_id:
-            filters['user_id'] = user_id
+            filters["user_id"] = user_id
         return await self.repository.list(filters)
 
     async def update_assistant(self, assistant_id: int, data: dict):

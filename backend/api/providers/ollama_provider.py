@@ -1,13 +1,14 @@
 import json
 import logging
-from typing import Dict, Optional, Union, List, AnyStr, Sequence
-import httpx
-from api.providers import BaseProvider
-from django.conf import settings
-from ollama import Client, Options, Message
-from api.models.agent.tools import Tool
 from dataclasses import dataclass
-from typing import Generator
+from typing import AnyStr, Dict, Generator, List, Optional, Sequence, Union
+
+import httpx
+from django.conf import settings
+from ollama import Client, Message, Options
+
+from api.models.agent.tools import Tool
+from api.providers import BaseProvider
 from api.utils.exceptions.exceptions import ServiceError
 
 logger = logging.getLogger(__name__)
@@ -89,16 +90,16 @@ class OllamaProvider(BaseProvider):
                         continue
 
     def chat(
-        self, 
-        messages: List[Dict], 
-        model: str, 
-        tools: Optional[List[Tool]] = None, 
+        self,
+        messages: List[Dict],
+        model: str,
+        tools: Optional[List[Tool]] = None,
         stream: bool = False,
-        **kwargs
+        **kwargs,
     ):
         """
         Send a chat request to Ollama with optional function calling
-        
+
         Args:
             messages: List of chat messages
             model: Name of the model to use
@@ -110,53 +111,42 @@ class OllamaProvider(BaseProvider):
             # Only prepare tools if they are provided
             if tools:
                 self.logger.debug(f"Preparing {len(tools)} tools for chat")
-                kwargs['tools'] = self.tool_service.prepare_tools_for_ollama(tools)
+                kwargs["tools"] = self.tool_service.prepare_tools_for_ollama(tools)
 
             # Make the chat request
-            response = self._client.chat(
-                model=model,
-                messages=messages,
-                stream=stream,
-                **kwargs
-            )
+            response = self._client.chat(model=model, messages=messages, stream=stream, **kwargs)
 
             # For streaming responses, return directly
             if stream:
                 return response
 
             # Handle tool calls if present in non-streaming response
-            if isinstance(response, dict) and 'message' in response:
-                message = response['message']
-                
+            if isinstance(response, dict) and "message" in response:
+                message = response["message"]
+
                 # Only process tool calls if tools were provided
-                if tools and 'tool_calls' in message:
+                if tools and "tool_calls" in message:
                     self.logger.debug("Processing tool calls from response")
                     # Execute tools and get results
                     tool_results = self.tool_service.handle_tool_call(
-                        message['tool_calls'],
-                        kwargs.get('user')
+                        message["tool_calls"], kwargs.get("user")
                     )
 
                     # Add results to messages
-                    messages.extend([
-                        {
-                            "role": "assistant",
-                            "content": message["content"],
-                            "tool_calls": message["tool_calls"]
-                        },
-                        {
-                            "role": "tool",
-                            "content": json.dumps(tool_results)
-                        }
-                    ])
+                    messages.extend(
+                        [
+                            {
+                                "role": "assistant",
+                                "content": message["content"],
+                                "tool_calls": message["tool_calls"],
+                            },
+                            {"role": "tool", "content": json.dumps(tool_results)},
+                        ]
+                    )
 
                     # Make another request with tool results
                     return self.chat(
-                        messages=messages, 
-                        model=model, 
-                        tools=tools, 
-                        stream=stream, 
-                        **kwargs
+                        messages=messages, model=model, tools=tools, stream=stream, **kwargs
                     )
 
                 return message["content"]
@@ -168,22 +158,16 @@ class OllamaProvider(BaseProvider):
             raise ServiceError(f"Ollama chat failed: {str(e)}")
 
     def stream(
-        self,
-        model: str,
-        messages: list,
-        options: Optional[Options] = None
+        self, model: str, messages: list, options: Optional[Options] = None
     ) -> Generator[str, None, None]:
         """
         Streams a response from the ollama service.
         """
         self.logger.info(f"Starting Ollama stream for model: {model}")
-        
+
         try:
             response = self._client.chat(
-                model=model,
-                messages=messages,
-                options=options,
-                stream=True
+                model=model, messages=messages, options=options, stream=True
             )
 
             for chunk in response:
@@ -196,11 +180,8 @@ class OllamaProvider(BaseProvider):
 
         except Exception as e:
             self.logger.error(f"Error in Ollama stream: {str(e)}")
-            yield json.dumps({
-                'error': str(e),
-                'status': 'error'
-            })
-            
+            yield json.dumps({"error": str(e), "status": "error"})
+
     def model(self): ...
 
     def models(self):

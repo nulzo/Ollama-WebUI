@@ -1,14 +1,15 @@
 import base64
+import logging
 from datetime import datetime
 from typing import List, Optional
-from django.db import transaction
-from api.utils.interfaces.base_repository import BaseRepository
-from api.models.chat.conversation import Conversation
-from api.models.chat.message import Message
-from django.core.files.base import ContentFile
 
-import logging
+from django.core.files.base import ContentFile
+from django.db import transaction
+
+from api.models.chat.conversation import Conversation
 from api.models.chat.image import MessageImage
+from api.models.chat.message import Message
+from api.utils.interfaces.base_repository import BaseRepository
 
 
 class MessageRepository(BaseRepository[Message]):
@@ -20,52 +21,55 @@ class MessageRepository(BaseRepository[Message]):
         """Create a new message with images"""
         try:
             # Extract images before creating message
-            images = data.pop('images', [])
+            images = data.pop("images", [])
             self.logger.info(f"Processing message with {len(images)} images")
-            
+
             message = Message.objects.create(
-                conversation=data['conversation'],
-                content=data['content'],
-                role=data['role'],
-                model=data['model'],
-                user=data['user'],
-                has_images=bool(images)
+                conversation=data["conversation"],
+                content=data["content"],
+                role=data["role"],
+                model=data["model"],
+                user=data["user"],
+                has_images=bool(images),
             )
-            
+
             # Process and create MessageImage instances
             if images:
                 for index, image_data in enumerate(images):
                     try:
-                        if isinstance(image_data, str) and image_data.startswith('data:'):
+                        if isinstance(image_data, str) and image_data.startswith("data:"):
                             self.logger.debug(f"Processing image {index} for message {message.id}")
-                            format, imgstr = image_data.split(';base64,')
-                            ext = format.split('/')[-1].lower()
-                            if ext == 'jpeg':
-                                ext = 'jpg'
-                            
-                            filename = f"message_{message.id}_{index}_{datetime.now().timestamp()}.{ext}"
-                            
-                            # Create ContentFile from base64 data
-                            image_content = ContentFile(
-                                base64.b64decode(imgstr),
-                                name=filename
+                            format, imgstr = image_data.split(";base64,")
+                            ext = format.split("/")[-1].lower()
+                            if ext == "jpeg":
+                                ext = "jpg"
+
+                            filename = (
+                                f"message_{message.id}_{index}_{datetime.now().timestamp()}.{ext}"
                             )
-                            
+
+                            # Create ContentFile from base64 data
+                            image_content = ContentFile(base64.b64decode(imgstr), name=filename)
+
                             # Create MessageImage instance
                             MessageImage.objects.create(
-                                message=message,
-                                image=image_content,
-                                order=index
+                                message=message, image=image_content, order=index
                             )
-                            self.logger.info(f"Successfully created image {index} for message {message.id}")
+                            self.logger.info(
+                                f"Successfully created image {index} for message {message.id}"
+                            )
                         else:
-                            self.logger.warning(f"Invalid image data format for message {message.id}: {image_data[:100]}...")
+                            self.logger.warning(
+                                f"Invalid image data format for message {message.id}: {image_data[:100]}..."
+                            )
                     except Exception as e:
-                        self.logger.error(f"Error processing image {index} for message {message.id}: {str(e)}")
+                        self.logger.error(
+                            f"Error processing image {index} for message {message.id}: {str(e)}"
+                        )
                         continue
-            
+
             return message
-            
+
         except Exception as e:
             self.logger.error(f"Error creating message: {str(e)}")
             raise
@@ -91,7 +95,7 @@ class MessageRepository(BaseRepository[Message]):
         queryset = Message.objects.all()
         if filters:
             queryset = queryset.filter(**filters)
-        return queryset.order_by('created_at').all()
+        return queryset.order_by("created_at").all()
 
     def update(self, id: int, data: dict) -> Optional[Message]:
         """Update a message"""
@@ -126,12 +130,12 @@ class MessageRepository(BaseRepository[Message]):
         try:
             messages = [
                 Message(
-                    conversation=data['conversation'],
-                    content=data['content'],
-                    role=data['role'],
-                    model=data['model'],
-                    user=data['user'],
-                    images=data.get('images', [])
+                    conversation=data["conversation"],
+                    content=data["content"],
+                    role=data["role"],
+                    model=data["model"],
+                    user=data["user"],
+                    images=data.get("images", []),
                 )
                 for data in data_list
             ]
@@ -146,7 +150,7 @@ class MessageRepository(BaseRepository[Message]):
         try:
             updated_messages = []
             for data in data_list:
-                if message_id := data.get('id'):
+                if message_id := data.get("id"):
                     if updated_message := self.update(message_id, data):
                         updated_messages.append(updated_message)
             return updated_messages
@@ -156,7 +160,7 @@ class MessageRepository(BaseRepository[Message]):
 
     def get_conversation_messages(self, conversation_id: int) -> List[Message]:
         """Get all messages for a conversation ordered by creation time"""
-        return self.list({'conversation_id': conversation_id})
+        return self.list({"conversation_id": conversation_id})
 
     def get_conversation_by_uuid(self, uuid: str) -> Optional[Conversation]:
         """Get a conversation by its UUID"""

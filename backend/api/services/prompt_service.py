@@ -1,7 +1,8 @@
 import json
-import random
-from typing import List, Dict, Optional, Any
 import logging
+import random
+from typing import Any, Dict, List, Optional
+
 from api.utils.exceptions.exceptions import ProviderException, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ class PromptVariantService:
                 "Balance between creativity and clarity in each prompt.",
                 "Incorporate elements of surprise and intellectual challenge.",
                 "Develop prompts that are both thought-provoking and accessible.",
-            ]
+            ],
         }
 
 
@@ -61,7 +62,7 @@ class PromptBuilderService:
         Build the complete prompt dialog with formatting instructions
         """
         base_prompt = template.format(**variants)
-        
+
         formatting_instructions = """
         The title should always start with a verb (e.g., "Create", "Design", "Imagine", "Explore", etc.) and be a summary of the prompt.
         Ensure that each prompt is phrased in less than 100 words.
@@ -77,11 +78,12 @@ class PromptBuilderService:
             ]
         }
         """
-        
+
         if "optional_instructions" in variants:
             formatting_instructions += f"\n{variants['optional_instructions']}"
-            
+
         return base_prompt + formatting_instructions
+
 
 class PromptService:
     def __init__(
@@ -112,7 +114,9 @@ class PromptService:
             chosen_variants = {
                 "instruction_variant": random.choice(all_variants["instruction_variants"]),
                 "structure_variant": random.choice(all_variants["structure_variants"]),
-                "optional_instructions": " ".join(random.sample(all_variants["optional_instructions"], k=2))
+                "optional_instructions": " ".join(
+                    random.sample(all_variants["optional_instructions"], k=2)
+                ),
             }
 
             # Build the complete prompt
@@ -122,7 +126,7 @@ class PromptService:
             # Format messages for the provider
             messages = [
                 {"role": "system", "content": prompt_dialog},
-                {"role": "user", "content": "Generate the prompts as specified."}
+                {"role": "user", "content": "Generate the prompts as specified."},
             ]
 
             # Get response from provider
@@ -180,4 +184,3 @@ class PromptService:
             },
         ]
         return default_prompts
-    

@@ -1,11 +1,14 @@
-from django.db import IntegrityError
-from api.models.providers.provider import ProviderSettings
-from api.serializers.provider_settings_serializer import ProviderSettingsSerializer
-from api.providers.provider_factory import provider_factory
-from api.utils.exceptions import ServiceError, ValidationError
 import logging
 
+from django.db import IntegrityError
+
+from api.models.providers.provider import ProviderSettings
+from api.providers.provider_factory import provider_factory
+from api.serializers.provider_settings_serializer import ProviderSettingsSerializer
+from api.utils.exceptions import ServiceError, ValidationError
+
 logger = logging.getLogger(__name__)
+
 
 class ProviderSettingsService:
     def __init__(self):
@@ -24,7 +27,7 @@ class ProviderSettingsService:
 
             instance = serializer.save(user=user)
             self._update_provider_config(instance)
-            
+
             return serializer.data
 
         except IntegrityError as e:
@@ -38,18 +41,14 @@ class ProviderSettingsService:
         """Update provider settings"""
         try:
             instance = ProviderSettings.objects.get(id=provider_id, user=user)
-            serializer = ProviderSettingsSerializer(
-                instance,
-                data=data,
-                partial=True
-            )
-            
+            serializer = ProviderSettingsSerializer(instance, data=data, partial=True)
+
             if not serializer.is_valid():
                 raise ValidationError(serializer.errors)
 
             instance = serializer.save()
             self._update_provider_config(instance)
-            
+
             return serializer.data
 
         except ProviderSettings.DoesNotExist:

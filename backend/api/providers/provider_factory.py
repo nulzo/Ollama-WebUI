@@ -1,11 +1,11 @@
-from typing import Dict, Type
-from api.utils.exceptions import ServiceError
-from api.providers.base_provider import BaseProvider
-from api.providers.openai_provider import OpenAiProvider
-from api.providers.ollama_provider import OllamaProvider
-from api.models.providers.provider import ProviderSettings
 import logging
+from typing import Dict, Type
 
+from api.models.providers.provider import ProviderSettings
+from api.providers.base_provider import BaseProvider
+from api.providers.ollama_provider import OllamaProvider
+from api.providers.openai_provider import OpenAiProvider
+from api.utils.exceptions import ServiceError
 from api.utils.exceptions.exceptions import ProviderException
 
 
@@ -36,14 +36,14 @@ class ProviderFactory:
         """
         try:
             key = f"{provider_name}_{user_id}" if user_id else provider_name
-        
+
             if key not in self._providers:
                 if provider_name not in self._provider_classes:
                     raise ProviderException(f"Unknown provider: {provider_name}")
-                
+
                 provider_class = self._provider_classes[provider_name]
                 self._providers[key] = provider_class()
-            
+
             return self._providers[key]
 
         except Exception as e:

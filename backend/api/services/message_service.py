@@ -1,9 +1,10 @@
-from typing import Dict, Any, List
-from api.repositories.message_repository import MessageRepository
-from api.utils.exceptions import ServiceError, ValidationError
-from api.serializers.message import MessageSerializer
-from api.models.chat.message import Message
 import logging
+from typing import Any, Dict, List
+
+from api.models.chat.message import Message
+from api.repositories.message_repository import MessageRepository
+from api.serializers.message import MessageSerializer
+from api.utils.exceptions import ServiceError, ValidationError
 
 
 class MessageService:
@@ -16,7 +17,7 @@ class MessageService:
     async def create_message(self, data: Dict[str, Any], user) -> Message:
         """Create a new message"""
         try:
-            serializer = MessageSerializer(data=data, context={'user': user})
+            serializer = MessageSerializer(data=data, context={"user": user})
             if not serializer.is_valid():
                 raise ValidationError(serializer.errors)
 
@@ -55,13 +56,8 @@ class MessageService:
     def get_message(self, message_id: int, user) -> Message:
         """Get a single message with full details"""
         try:
-            return Message.objects.select_related(
-                'conversation',
-                'user',
-                'model'
-            ).get(
-                id=message_id,
-                conversation__user=user
+            return Message.objects.select_related("conversation", "user", "model").get(
+                id=message_id, conversation__user=user
             )
         except Message.DoesNotExist:
             raise ValidationError("Message not found or access denied")
@@ -73,6 +69,5 @@ class MessageService:
     def get_conversation_messages(self, conversation_uuid: str, user):
         """Get messages for a specific conversation"""
         return Message.objects.filter(
-            conversation__uuid=conversation_uuid,
-            conversation__user=user
-        ).select_related('conversation', 'user', 'model')
+            conversation__uuid=conversation_uuid, conversation__user=user
+        ).select_related("conversation", "user", "model")

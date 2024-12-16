@@ -1,8 +1,10 @@
-from typing import List, Optional
-from django.db import transaction
-from api.utils.interfaces.base_repository import BaseRepository
-from api.models.agent.agent import Agent
 import logging
+from typing import List, Optional
+
+from django.db import transaction
+
+from api.models.agent.agent import Agent
+from api.utils.interfaces.base_repository import BaseRepository
 
 
 class AgentRepository(BaseRepository[Agent]):

@@ -1,8 +1,10 @@
-from typing import List, Optional
-from django.db import transaction
-from api.utils.interfaces.base_repository import BaseRepository
-from api.models.chat.assistant import Assistant
 import logging
+from typing import List, Optional
+
+from django.db import transaction
+
+from api.models.chat.assistant import Assistant
+from api.utils.interfaces.base_repository import BaseRepository
 
 
 class AssistantRepository(BaseRepository[Assistant]):
@@ -14,12 +16,12 @@ class AssistantRepository(BaseRepository[Assistant]):
         """Create a new assistant"""
         try:
             assistant = await Assistant.objects.acreate(
-                name=data['name'],
-                description=data.get('description', ''),
-                model=data['model'],
-                instructions=data.get('instructions', ''),
-                user=data.get('user'),  # Optional user association
-                is_active=data.get('is_active', True)
+                name=data["name"],
+                description=data.get("description", ""),
+                model=data["model"],
+                instructions=data.get("instructions", ""),
+                user=data.get("user"),  # Optional user association
+                is_active=data.get("is_active", True),
             )
             self.logger.info(f"Created assistant {assistant.id}")
             return assistant
@@ -45,7 +47,7 @@ class AssistantRepository(BaseRepository[Assistant]):
         queryset = Assistant.objects.all()
         if filters:
             queryset = queryset.filter(**filters)
-        return await queryset.order_by('name').all()
+        return await queryset.order_by("name").all()
 
     async def update(self, id: int, data: dict) -> Optional[Assistant]:
         try:
@@ -77,12 +79,12 @@ class AssistantRepository(BaseRepository[Assistant]):
         try:
             assistants = [
                 Assistant(
-                    name=data['name'],
-                    description=data.get('description', ''),
-                    model=data['model'],
-                    instructions=data.get('instructions', ''),
-                    user=data.get('user'),
-                    is_active=data.get('is_active', True)
+                    name=data["name"],
+                    description=data.get("description", ""),
+                    model=data["model"],
+                    instructions=data.get("instructions", ""),
+                    user=data.get("user"),
+                    is_active=data.get("is_active", True),
                 )
                 for data in data_list
             ]
@@ -96,7 +98,7 @@ class AssistantRepository(BaseRepository[Assistant]):
         try:
             updated_assistants = []
             for data in data_list:
-                if assistant_id := data.get('id'):
+                if assistant_id := data.get("id"):
                     if updated_assistant := await self.update(assistant_id, data):
                         updated_assistants.append(updated_assistant)
             return updated_assistants
@@ -107,8 +109,8 @@ class AssistantRepository(BaseRepository[Assistant]):
     # Additional helper methods
     async def get_user_assistants(self, user_id: int) -> List[Assistant]:
         """Get all assistants for a specific user"""
-        return await self.list({'user_id': user_id})
+        return await self.list({"user_id": user_id})
 
     async def get_active_assistants(self) -> List[Assistant]:
         """Get all active assistants"""
-        return await self.list({'is_active': True})
+        return await self.list({"is_active": True})

@@ -1,7 +1,8 @@
 from django.core.cache import cache
 from django.http import HttpResponseTooManyRequests
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.response import Response
+
 
 class RateLimitMiddleware:
     def __init__(self, get_response):

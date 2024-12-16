@@ -1,9 +1,11 @@
 import base64
-from typing import Union, List, AnyStr
-from api.providers import BaseProvider
+import logging
+from typing import AnyStr, List, Union
+
 from django.conf import settings
 from openai import Client
-import logging
+
+from api.providers import BaseProvider
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +24,7 @@ class OpenAiProvider(BaseProvider):
         processed_messages = self._process_messages(messages)
 
         response = self._client.chat.completions.create(
-            model=model,
-            messages=processed_messages,
-            stream=False
+            model=model, messages=processed_messages, stream=False
         )
 
         return response.choices[0].message.content
@@ -36,9 +36,7 @@ class OpenAiProvider(BaseProvider):
         processed_messages = self._process_messages(messages)
 
         response = self._client.chat.completions.create(
-            model=model,
-            messages=processed_messages,
-            stream=True
+            model=model, messages=processed_messages, stream=True
         )
 
         buffer = ""

@@ -1,7 +1,9 @@
-from typing import TypeVar, Generic, List, Optional
+from typing import Generic, List, Optional, TypeVar
+
 from django.db import models
 
-T = TypeVar('T', bound=models.Model)
+T = TypeVar("T", bound=models.Model)
+
 
 class BaseRepository(Generic[T]):
     def __init__(self, model_class: T):

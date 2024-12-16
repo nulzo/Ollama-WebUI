@@ -1,9 +1,11 @@
-from django.db import models
-from api.models.chat.assistant import Assistant
-from api.models.auth.user import CustomUser
-from api.models.base import BaseModel, BaseManager
-from django.core.exceptions import ValidationError
 import logging
+
+from django.core.exceptions import ValidationError
+from django.db import models
+
+from api.models.auth.user import CustomUser
+from api.models.base import BaseManager, BaseModel
+from api.models.chat.assistant import Assistant
 
 logger = logging.getLogger(__name__)
 

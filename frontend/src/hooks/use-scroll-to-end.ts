@@ -1,6 +1,9 @@
 import { useEffect, useRef, RefObject } from 'react';
 
-const useScrollToEnd = (messages: unknown[], streamingContent?: string): RefObject<HTMLDivElement> => {
+const useScrollToEnd = (
+  messages: unknown[],
+  streamingContent?: string
+): RefObject<HTMLDivElement> => {
   const ref = useRef<HTMLDivElement>(null);
 
   // Immediate scroll on conversation change

@@ -13,6 +13,7 @@ interface DynamicTextareaProps {
   uploadedImages: string[];
   placeholder?: string;
   maxLength?: number;
+  disabled?: boolean;
 }
 
 export default function DynamicTextarea({
@@ -25,6 +26,7 @@ export default function DynamicTextarea({
   text,
   model,
   uploadedImages,
+  disabled,
 }: DynamicTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,7 +61,7 @@ export default function DynamicTextarea({
     if (!items) return;
 
     const imageItems = Array.from(items).filter(item => item.type.startsWith('image/'));
-    
+
     for (const item of imageItems) {
       const file = item.getAsFile();
       if (file) {
@@ -86,9 +88,7 @@ export default function DynamicTextarea({
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    const base64Images = await Promise.all(
-      files.map(file => convertFileToBase64(file))
-    );
+    const base64Images = await Promise.all(files.map(file => convertFileToBase64(file)));
     onImageUpload(base64Images);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -134,10 +134,11 @@ export default function DynamicTextarea({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             rows={1}
-            className="bg-transparent px-4 py-3 rounded-lg focus:ring-0 focus:ring-none w-full text-foreground text-sm placeholder:text-muted-foreground resize-none focus:outline-none"
+            className="bg-transparent px-4 py-3 rounded-lg focus:ring-0 focus:ring-none w-full text-foreground text-sm placeholder:text-muted-foreground focus:outline-none resize-none"
             style={{ minHeight: '44px', maxHeight: '200px' }}
+            disabled={disabled}
           />
-          
+
           {uploadedImages.length > 0 && (
             <div className="flex flex-wrap gap-2 px-4 pb-2">
               {uploadedImages.map((image, index) => (
@@ -196,12 +197,7 @@ export default function DynamicTextarea({
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    className="w-5 h-5"
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleCopy}
-                  >
+                  <Button className="w-5 h-5" variant="ghost" size="icon" onClick={handleCopy}>
                     <Copy className="size-3" />
                   </Button>
                 </TooltipTrigger>

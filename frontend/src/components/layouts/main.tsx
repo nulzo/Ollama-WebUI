@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from '@/components/ui/toaster';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -16,7 +16,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         className="relative z-0 flex flex-col flex-1 w-full max-w-full overflow-auto"
         style={{
           marginLeft: isCollapsed ? '55px' : '250px',
-          transition: 'margin-left 0.2s ease-in-out'
+          transition: 'margin-left 0.2s ease-in-out',
         }}
       >
         <div className="w-full h-full overflow-auto">

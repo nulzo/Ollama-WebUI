@@ -14,7 +14,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
       case 'break':
         return <div className="my-0.5" key={index} />;
       case 'hr':
-        return <hr key={index} className='my-1' />;
+        return <hr key={index} className="my-1" />;
       case 'blockquote':
         return (
           <blockquote key={index} className="mt-6 pl-6 border-l-2 italic">
@@ -119,44 +119,41 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
             {renderTokens(token.tokens)}
           </li>
         );
-        case 'table':
-          return (
-            <div className="shadow-sm rounded-xl overflow-x-auto">
-              <table className="rounded-xl w-full min-w-5xl overflow-hidden table-auto">
-                <thead className="bg-muted/25">
-                  <tr className="m-0 p-0 border whitespace-nowrap">
-                    {token.header.map((header: any, headerIdx: number) => (
-                      <th
-                        key={`header-${headerIdx}`}
-                        style={{ textAlign: token.align[headerIdx] || '' }}
-                        className="[&[align=right]]:text-right px-3 py-2 border font-semibold text-nowrap [&[align=center]]:text-center whitespace-break-spaces"
+      case 'table':
+        return (
+          <div className="shadow-sm rounded-xl overflow-x-auto">
+            <table className="rounded-xl w-full min-w-5xl overflow-hidden table-auto">
+              <thead className="bg-muted/25">
+                <tr className="m-0 p-0 border whitespace-nowrap">
+                  {token.header.map((header: any, headerIdx: number) => (
+                    <th
+                      key={`header-${headerIdx}`}
+                      style={{ textAlign: token.align[headerIdx] || '' }}
+                      className="[&[align=right]]:text-right px-3 py-2 border font-semibold text-nowrap [&[align=center]]:text-center whitespace-break-spaces"
+                    >
+                      {renderTokens(header.tokens)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {token.rows.map((row: any, rowIdx: number) => (
+                  <tr key={`row-${rowIdx}`} className="even:bg-muted/25 m-0 p-0 border-t">
+                    {(row ?? []).map((cell: any, cellIdx: number) => (
+                      <td
+                        key={`cell-${rowIdx}-${cellIdx}`}
+                        style={{ textAlign: token.align[cellIdx] || '' }}
+                        className="[&[align=right]]:text-right px-4 py-2 border text-nowrap [&[align=center]]:text-center whitespace-break-spaces"
                       >
-                        {renderTokens(header.tokens)}
-                      </th>
+                        {renderTokens(cell.tokens)}
+                      </td>
                     ))}
                   </tr>
-                </thead>
-                <tbody>
-                  {token.rows.map((row: any, rowIdx: number) => (
-                    <tr
-                      key={`row-${rowIdx}`}
-                      className="even:bg-muted/25 m-0 p-0 border-t"
-                    >
-                      {(row ?? []).map((cell: any, cellIdx: number) => (
-                        <td
-                          key={`cell-${rowIdx}-${cellIdx}`}
-                          style={{ textAlign: token.align[cellIdx] || '' }}
-                          className="[&[align=right]]:text-right px-4 py-2 border text-nowrap [&[align=center]]:text-center whitespace-break-spaces"
-                        >
-                          {renderTokens(cell.tokens)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          );
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
       case 'html':
         return <div key={index}>{DOMPurify.sanitize(token.text)}</div>;
       case 'blockKatex':
@@ -171,19 +168,14 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
   });
 };
 
-
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ markdown }) => {
   const tokens = useTokens(markdown);
-  
+
   const renderedContent = useMemo(() => {
     return renderTokens(tokens);
   }, [tokens]);
 
-  return (
-    <div className="mb-1 w-full overflow-none markdown markdown-prose">
-      {renderedContent}
-    </div>
-  );
+  return <div className="mb-1 w-full overflow-none markdown markdown-prose">{renderedContent}</div>;
 });
 
 export default MarkdownRenderer;

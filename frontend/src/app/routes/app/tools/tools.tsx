@@ -28,7 +28,7 @@ export function ToolsRoute() {
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [functionName, setFunctionName] = useState('');
   const [monacoTheme, setMonacoTheme] = useState('custom-light');
-  
+
   const DEFAULT_FUNCTION_TEMPLATE = `# Ollama Function Calling requires Google-style docstrings for proper function parsing
 # A Google-style docstring includes:
 #   1. A brief description of the function

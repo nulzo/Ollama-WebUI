@@ -3,7 +3,7 @@ import { ChatResponse, Message } from '@/types/ollama';
 import { v4 as uuidv4 } from 'uuid';
 import { settingsService, conversationService } from '@/services/storage/client.ts';
 import { useModelStore } from '@/features/models/store/model-store';
-import { useCreateConversation } from '@/features/conversation/api/create-conversation';
+import { useCreateConversation } from '@/features/chat/api/create-conversation.ts';
 
 export function useChat() {
   const { model, setModel } = useModelStore();

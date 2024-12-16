@@ -1,6 +1,6 @@
-import { useNotifications } from "@/components/notification/notification-store";
-import { env } from "@/config/env";
-import urlJoin from "url-join";
+import { useNotifications } from '@/components/notification/notification-store';
+import { env } from '@/config/env';
+import urlJoin from 'url-join';
 
 type RequestConfig = {
   headers?: Record<string, string>;
@@ -11,7 +11,7 @@ type RequestConfig = {
 
 function authRequestHeaders(): Headers {
   const headers = new Headers({
-    'Accept': 'application/json',
+    Accept: 'application/json',
     'Content-Type': 'application/json',
   });
 
@@ -40,15 +40,15 @@ class ApiClient {
   private getHeaders(config: RequestConfig = {}): Headers {
     const isStreaming = config.headers?.Accept === 'text/event-stream';
     const headers = new Headers({
-      'Content-Type': 'application/json',  // Default content type
-      'Accept': isStreaming ? 'text/event-stream' : 'application/json',
+      'Content-Type': 'application/json', // Default content type
+      Accept: isStreaming ? 'text/event-stream' : 'application/json',
       ...config.headers,
     });
 
     // Add auth token if available
     const token = localStorage.getItem('authToken');
     if (token) {
-        headers.set('Authorization', `Token ${token}`);
+      headers.set('Authorization', `Token ${token}`);
     }
 
     return headers;
@@ -58,28 +58,28 @@ class ApiClient {
     if (!response.ok) {
       let errorMessage = 'Network response was not ok';
       let errorData;
-      
+
       try {
         errorData = await response.json();
         errorMessage = errorData.message || errorData.detail || errorMessage;
       } catch (e) {
         errorMessage = response.statusText || errorMessage;
       }
-  
+
       // Show toast notification
       useNotifications.getState().addNotification({
         type: 'error',
         title: `Error ${response.status}`,
         message: errorMessage,
       });
-  
+
       // Handle unauthorized access
       if (response.status === 401) {
         const searchParams = new URLSearchParams(window.location.search);
         const redirectTo = searchParams.get('redirectTo') || window.location.pathname;
         window.location.href = '/login';
       }
-  
+
       throw new Error(errorMessage);
     }
     return response;
@@ -87,10 +87,10 @@ class ApiClient {
 
   private getFullURL(endpoint: string): string {
     // Ensure baseURL is a valid URL by checking if it starts with http/https
-    const base = this.baseURL.startsWith('http') 
-      ? this.baseURL 
+    const base = this.baseURL.startsWith('http')
+      ? this.baseURL
       : `${window.location.origin}/${this.baseURL}`;
-      
+
     // Remove any double slashes (except after http:// or https://)
     return urlJoin(base, endpoint).replace(/([^:]\/)\/+/g, '$1');
   }
@@ -175,19 +175,59 @@ class ApiClient {
     return response.json();
   }
 
-  async streamChat(endpoint: string, data?: unknown): Promise<ReadableStream<Uint8Array>> {
-    const response = await fetch(this.getFullURL(endpoint), {
-      method: 'POST',
-      headers: {
-        ...authRequestHeaders(),
-        'Accept': 'text/event-stream',
-      },
-      credentials: 'include',
-      body: JSON.stringify(data),
-    });
+  async streamCompletion(
+    endpoint: string,
+    data?: unknown,
+    onChunk: (chunk: string) => void,
+    signal?: AbortSignal
+  ): Promise<void> {
+    try {
+      const response = await fetch(this.getFullURL('/chat/'), {
+        method: 'POST',
+        headers: this.getHeaders({ headers: { Accept: 'text/event-stream' } }),
+        credentials: 'include',
+        body: JSON.stringify(data),
+        signal,
+      });
 
-    await this.handleResponse(response);
-    return response.body!;
+      if (!response.ok) {
+        console.error('Response status:', response.status);
+        console.error('Response headers:', Object.fromEntries(response.headers));
+        const errorText = await response.text();
+        console.error('Response body:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      while (reader) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.delta?.content) {
+                onChunk(data.delta.content);
+              }
+            } catch (e) {
+              console.error('Error parsing SSE data:', e);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw error;
+      }
+      console.error('Stream error:', error);
+      throw error;
+    }
   }
 }
 

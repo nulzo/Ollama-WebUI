@@ -4,7 +4,7 @@ import { ThemeProvider } from '@/components/theme/theme-provider.tsx';
 import * as React from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from '@/components/ui/toaster';
 import { MainErrorFallback } from '@/components/errors/error-fallback.tsx';
 import { Notifications } from '@/components/notification/notification';
 import { Spinner } from '@/components/ui/spinner';
@@ -35,16 +35,16 @@ export const AppProvider = ({ children }: AppProviderProps) => {
       >
         <SidebarProvider>
           <ErrorBoundary FallbackComponent={MainErrorFallback}>
-              <HelmetProvider>
-                <QueryClientProvider client={queryClient}>
-                  <AuthProvider>
-                    {import.meta.env.DEV && <ReactQueryDevtools />}
-                    {children}
-                    <Toaster />
-                    <Notifications />
-                  </AuthProvider>
-                </QueryClientProvider>
-              </HelmetProvider>
+            <HelmetProvider>
+              <QueryClientProvider client={queryClient}>
+                <AuthProvider>
+                  {import.meta.env.DEV && <ReactQueryDevtools />}
+                  {children}
+                  <Toaster />
+                  <Notifications />
+                </AuthProvider>
+              </QueryClientProvider>
+            </HelmetProvider>
           </ErrorBoundary>
         </SidebarProvider>
       </React.Suspense>

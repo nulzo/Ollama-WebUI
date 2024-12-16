@@ -39,7 +39,7 @@ export const RegisterRoute = () => {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       await register.mutateAsync(data);
-      
+
       toast({
         title: 'Registration successful',
         description: 'Your account has been created successfully.',
@@ -102,7 +102,9 @@ export const RegisterRoute = () => {
               )}
             />
             <div className="flex justify-end pt-4 gap-1">
-              <Button className="w-full" type="submit">Create Account</Button>
+              <Button className="w-full" type="submit">
+                Create Account
+              </Button>
             </div>
           </form>
         </Form>

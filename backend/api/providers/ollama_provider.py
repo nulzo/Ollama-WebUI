@@ -7,6 +7,7 @@ from django.conf import settings
 from ollama import Client, Options, Message
 from api.models.agent.tools import Tool
 from dataclasses import dataclass
+from typing import Generator
 from api.utils.exceptions.exceptions import ServiceError
 
 logger = logging.getLogger(__name__)
@@ -169,24 +170,37 @@ class OllamaProvider(BaseProvider):
     def stream(
         self,
         model: str,
-        messages: Union[Sequence[Message], None],
-        options: Optional[Options] = None,
-    ):
+        messages: list,
+        options: Optional[Options] = None
+    ) -> Generator[str, None, None]:
         """
         Streams a response from the ollama service.
         """
-        self.logger.info(f"Streaming message to ollama: {messages}")
-        response = self._client.chat(model=model, messages=messages, options=options, stream=True)
+        self.logger.info(f"Starting Ollama stream for model: {model}")
+        
+        try:
+            response = self._client.chat(
+                model=model,
+                messages=messages,
+                options=options,
+                stream=True
+            )
 
-        # Streaming response handling
-        for chunk in response:
-            if isinstance(chunk, bytes):
-                chunk = chunk.decode("utf-8")
-            if isinstance(chunk, dict) and "message" in chunk and "content" in chunk["message"]:
-                yield chunk["message"]["content"]
-            elif isinstance(chunk, str):
-                yield chunk
+            for chunk in response:
+                if isinstance(chunk, bytes):
+                    chunk = chunk.decode("utf-8")
+                if isinstance(chunk, dict) and "message" in chunk:
+                    yield chunk["message"].get("content", "")
+                elif isinstance(chunk, str):
+                    yield chunk
 
+        except Exception as e:
+            self.logger.error(f"Error in Ollama stream: {str(e)}")
+            yield json.dumps({
+                'error': str(e),
+                'status': 'error'
+            })
+            
     def model(self): ...
 
     def models(self):

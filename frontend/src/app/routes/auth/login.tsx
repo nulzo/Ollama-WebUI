@@ -37,20 +37,20 @@ export const LoginRoute = () => {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       await login.mutateAsync(data);
-      
+
       toast({
-        title: "Success",
-        description: "Login successful",
+        title: 'Success',
+        description: 'Login successful',
       });
-  
+
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     } catch (error) {
       console.error('Login error:', error);
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Login failed",
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Login failed',
       });
     }
   }

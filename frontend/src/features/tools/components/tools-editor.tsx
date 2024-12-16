@@ -101,7 +101,7 @@ export function ToolEditor() {
         docstring: '',
         parameters: {},
         returns: {},
-        is_enabled: true
+        is_enabled: true,
       };
 
       if (toolId) {
@@ -122,7 +122,7 @@ export function ToolEditor() {
           description: 'Function created successfully',
         });
       }
-      
+
       setIsSaveDialogOpen(false);
       navigate('/tools');
     } catch (error) {

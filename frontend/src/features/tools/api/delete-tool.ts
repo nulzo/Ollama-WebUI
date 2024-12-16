@@ -15,7 +15,7 @@ export const deleteTool = async ({ toolId }: DeleteToolInput): Promise<void> => 
 
 export const useDeleteTool = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: deleteTool,
     onSuccess: () => {

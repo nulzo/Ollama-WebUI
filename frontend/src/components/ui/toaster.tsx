@@ -1,4 +1,4 @@
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from '@/hooks/use-toast';
 import {
   Toast,
   ToastClose,
@@ -6,11 +6,11 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-} from "@/components/ui/toast"
-import { AnimatePresence } from "framer-motion"
+} from '@/components/ui/toast';
+import { AnimatePresence } from 'framer-motion';
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { toasts } = useToast();
 
   return (
     <ToastProvider>
@@ -20,9 +20,7 @@ export function Toaster() {
             <Toast key={id} duration={duration} {...props}>
               <div className="gap-1 grid">
                 {title && <ToastTitle>{title}</ToastTitle>}
-                {description && (
-                  <ToastDescription>{description}</ToastDescription>
-                )}
+                {description && <ToastDescription>{description}</ToastDescription>}
               </div>
               {action}
               <ToastClose />
@@ -32,5 +30,5 @@ export function Toaster() {
       </div>
       <ToastViewport />
     </ToastProvider>
-  )
+  );
 }

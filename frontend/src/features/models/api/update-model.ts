@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/query';
-import { Conversation } from '@/features/conversation/types/conversation';
+import { Conversation } from '@/features/chat/types/conversation';
 import { getModelQueryOptions } from './get-model';
 
 export const updateModelInputSchema = z.object({

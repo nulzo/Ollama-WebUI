@@ -1,24 +1,19 @@
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useModels } from "@/features/models/api/get-models";
-import { useMemo, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useModels } from '@/features/models/api/get-models';
+import { useMemo, useState } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import { formatModels } from '../utils/format-models';
-
 
 interface ModelSelectProps {
   value?: string;
@@ -29,10 +24,7 @@ export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
   const [open, setOpen] = useState(false);
   const { data: modelsData, isLoading } = useModels();
 
-  const formattedModels = useMemo(() => 
-    formatModels(modelsData), 
-    [modelsData]
-  );
+  const formattedModels = useMemo(() => formatModels(modelsData), [modelsData]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -44,9 +36,7 @@ export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
           className="justify-between w-full"
           disabled={isLoading}
         >
-          {value
-            ? formattedModels.find((model) => model.value === value)?.label
-            : "Select model..."}
+          {value ? formattedModels.find(model => model.value === value)?.label : 'Select model...'}
           <ChevronsUpDown className="opacity-50 ml-2 w-4 h-4 shrink-0" />
         </Button>
       </PopoverTrigger>
@@ -58,19 +48,19 @@ export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
             <CommandGroup heading="Ollama Models">
               {formattedModels
                 .filter(model => model.provider === 'ollama')
-                .map((model) => (
+                .map(model => (
                   <CommandItem
                     key={model.value}
                     value={model.value}
-                    onSelect={(currentValue) => {
+                    onSelect={currentValue => {
                       onValueChange(currentValue);
                       setOpen(false);
                     }}
                   >
                     <Check
                       className={cn(
-                        "mr-2 h-4 w-4",
-                        value === model.value ? "opacity-100" : "opacity-0"
+                        'mr-2 h-4 w-4',
+                        value === model.value ? 'opacity-100' : 'opacity-0'
                       )}
                     />
                     <div className="flex flex-col gap-1">
@@ -99,19 +89,19 @@ export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
             <CommandGroup heading="OpenAI Models">
               {formattedModels
                 .filter(model => model.provider === 'openai')
-                .map((model) => (
+                .map(model => (
                   <CommandItem
                     key={model.value}
                     value={model.value}
-                    onSelect={(currentValue) => {
+                    onSelect={currentValue => {
                       onValueChange(currentValue);
                       setOpen(false);
                     }}
                   >
                     <Check
                       className={cn(
-                        "mr-2 h-4 w-4",
-                        value === model.value ? "opacity-100" : "opacity-0"
+                        'mr-2 h-4 w-4',
+                        value === model.value ? 'opacity-100' : 'opacity-0'
                       )}
                     />
                     <div className="flex flex-col gap-1">

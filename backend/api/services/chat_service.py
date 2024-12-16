@@ -7,6 +7,8 @@ from api.serializers.message import MessageSerializer
 from api.repositories.message_repository import MessageRepository
 from api.providers.provider_factory import ProviderFactory
 import logging
+from threading import Event
+from typing import Generator
 from api.models.agent.agent import Agent
 from asgiref.sync import sync_to_async
 from api.services.prompt_service import (
@@ -27,6 +29,7 @@ class ChatService:
         self.provider_factory = ProviderFactory()
         self.message_repository = MessageRepository()
         self.logger = logging.getLogger(__name__)
+        self._cancel_event = Event()
 
     def _process_message_images(self, message):
         """Convert message images to bytes for Ollama"""
@@ -161,6 +164,98 @@ class ChatService:
         except Exception as e:
             self.logger.error(f"Streaming error: {str(e)}\n{traceback.format_exc()}")
             yield f"data: {json.dumps({'error': str(e), 'type': 'error'})}\n\n"
+            
+    def generate_response(self, serializer_data: dict, user) -> Generator[str, None, None]:
+        # Reset cancel event for new generation
+        self._cancel_event.clear()
+        generation_id = id(self)
+
+        try:
+            # Validate and create message
+            serializer = MessageSerializer(data=serializer_data, context={"user": user})
+            if not serializer.is_valid():
+                yield json.dumps({
+                    'error': serializer.errors,
+                    'status': 'error'
+                })
+                return
+
+            # Save initial message
+            message = serializer.save()
+            conversation = message.conversation
+            self.logger.info(f"Created message {message.id} in conversation {conversation.uuid}")
+
+            # Send initial data
+            yield json.dumps({
+                'conversation_uuid': str(conversation.uuid),
+                'model': {
+                    'name': message.model.name,
+                    'display_name': message.model.display_name
+                },
+                'message_id': message.id,
+                'status': 'init'
+            })
+
+            # Get provider and process messages
+            provider = self._get_provider(message.model.name)
+            messages = list(conversation.messages.all().order_by("created_at"))
+            
+            flattened_messages = [
+                {
+                    "role": msg.role,
+                    "content": msg.content,
+                    "images": self._process_message_images(msg)
+                }
+                for msg in messages
+            ]
+
+            # Stream the response
+            full_content = ""
+            tokens_generated = 0
+            
+            for chunk in provider.stream(message.model.name, flattened_messages):
+                if self._cancel_event.is_set():
+                    self.logger.info(f"Generation {generation_id} cancelled after {tokens_generated} tokens")
+                    yield json.dumps({
+                        'content': ' [Generation cancelled]',
+                        'status': 'cancelled'
+                    })
+                    return
+
+                if isinstance(chunk, (str, dict)):
+                    content = chunk if isinstance(chunk, str) else chunk.get("message", {}).get("content", "")
+                    if content:
+                        full_content += content
+                        tokens_generated += 1
+                        yield json.dumps({
+                            'content': content,
+                            'status': 'generating'
+                        })
+
+            # Create assistant's response message
+            response_message = self.message_repository.create({
+                "conversation": conversation,
+                "role": "assistant",
+                "content": full_content,
+                "model": message.model,
+                "user": user,
+                "images": [],
+            })
+
+            # Send completion data
+            yield json.dumps({
+                'status': 'done',
+                'message_id': response_message.id,
+                'done': True
+            })
+
+        except Exception as e:
+            self.logger.error(f"Error in generation {generation_id}: {str(e)}")
+            yield json.dumps({
+                'error': str(e),
+                'status': 'error'
+            })
+
 
     def _get_provider(self, model_name: str, user_id: int = None):
         """Get appropriate provider based on model name"""

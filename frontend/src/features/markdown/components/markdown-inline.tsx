@@ -43,7 +43,7 @@ const MarkdownInlineTokens: React.FC<MarkdownInlineTokensProps> = ({ id, tokens 
 
           case 'strong':
             return (
-              <strong key={key} className='text-primary'>
+              <strong key={key} className="text-primary">
                 <MarkdownInlineTokens id={`${key}-strong`} tokens={token.tokens} />
               </strong>
             );

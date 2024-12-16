@@ -4,7 +4,6 @@ import { ProviderModels } from '@/features/models/types/models';
 import { ApiResponse } from '@/types/api';
 import { QueryConfig } from '@/lib/query';
 
-
 export const getModels = async (): Promise<ProviderModels> => {
   const response = await api.get<ApiResponse<ProviderModels>>('/models/');
   if (!response.success) {

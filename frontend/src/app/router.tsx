@@ -48,8 +48,8 @@ export const createAppRouter = (_queryClient: QueryClient) =>
         {
           path: 'agents',
           lazy: async () => {
-            const { ModelsRoute } = await import('@/app/routes/app/models');
-            return { Component: ModelsRoute };
+            const { AgentsRoute } = await import('@/app/routes/app/agents');
+            return { Component: AgentsRoute };
           },
         },
         {
@@ -75,7 +75,10 @@ export const createAppRouter = (_queryClient: QueryClient) =>
             },
             {
               path: 'new',
-              element: <ToolEditor />,
+              lazy: async () => {
+                const { ToolsRoute } = await import('@/app/routes/app/tools');
+                return { Component: ToolsRoute };
+              },
             },
             {
               path: ':toolId',

@@ -28,7 +28,7 @@ export const formatOllamaModel = (model: OllamaModel): FormattedModel => ({
     size: model.details.parameter_size,
     format: model.details.format,
     quantization: model.details.quantization_level,
-  }
+  },
 });
 
 export const formatOpenAIModel = (modelData: OpenAIModelData): FormattedModel => {
@@ -38,8 +38,8 @@ export const formatOpenAIModel = (modelData: OpenAIModelData): FormattedModel =>
     label: model.id as string,
     provider: 'openai',
     details: {
-      owner: model.owned_by as string
-    }
+      owner: model.owned_by as string,
+    },
   };
 };
 
@@ -48,6 +48,6 @@ export const formatModels = (modelsData?: ProviderModels): FormattedModel[] => {
 
   return [
     ...(modelsData.ollama?.models?.map(formatOllamaModel) ?? []),
-    ...(modelsData.openai?.map(formatOpenAIModel) ?? [])
+    ...(modelsData.openai?.map(formatOpenAIModel) ?? []),
   ];
 };

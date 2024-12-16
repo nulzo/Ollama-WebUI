@@ -11,9 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useDeleteConversation } from '@/features/conversation/api/delete-conversation';
+import { useDeleteConversation } from '@/features/chat/api/delete-conversation.ts';
 // import { useCloneConversation } from '@/features/conversation/api/clone-conversation';
-import { Conversation } from '@/features/conversation/types/conversation';
+import { Conversation } from '@/features/chat/types/conversation';
 
 interface ConversationItemProps {
   conversation: Conversation;

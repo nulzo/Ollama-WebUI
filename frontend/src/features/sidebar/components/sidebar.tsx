@@ -14,7 +14,7 @@ interface SidebarProps {
 export const Sidebar = ({ conversationList }: SidebarProps) => {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const animationDuration = 0.2;
-  
+
   const MIN_WIDTH = 57;
   const MAX_WIDTH = 250;
   const width = useMotionValue(isCollapsed ? MIN_WIDTH : MAX_WIDTH);
@@ -33,30 +33,21 @@ export const Sidebar = ({ conversationList }: SidebarProps) => {
       }}
     >
       <div className="relative flex flex-col bg-secondary border-r h-svh overflow-hidden">
-        <SidebarHeader 
-          isCollapsed={isCollapsed} 
+        <SidebarHeader
+          isCollapsed={isCollapsed}
           toggleSidebar={() => setIsCollapsed(!isCollapsed)}
           animationDuration={animationDuration}
         />
 
         <div className="flex flex-col flex-1 h-full overflow-hidden">
-          <SidebarActions 
-            isCollapsed={isCollapsed}
-            animationDuration={animationDuration}
-          />
+          <SidebarActions isCollapsed={isCollapsed} animationDuration={animationDuration} />
 
-          <SidebarConversationList 
-            isCollapsed={isCollapsed}
-            conversationList={conversationList}
-          />
+          <SidebarConversationList isCollapsed={isCollapsed} conversationList={conversationList} />
 
-          <SidebarUserSection 
-            isCollapsed={isCollapsed}
-            animationDuration={animationDuration}
-          />
+          <SidebarUserSection isCollapsed={isCollapsed} animationDuration={animationDuration} />
         </div>
       </div>
-      
+
       <SidebarModals />
     </motion.div>
   );

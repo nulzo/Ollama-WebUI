@@ -6,7 +6,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Toaster } from '@/components/ui/toaster';
 import { Sidebar } from '@/features/sidebar/components/sidebar';
 import { AppLayout } from '@/components/layouts/main';
-import { ConversationList } from '@/features/conversation/components/conversation-list';
+import { ConversationList } from '@/features/chat/components/message-list/conversation-list.tsx';
 
 export const AppRoot = () => {
   const location = useLocation();

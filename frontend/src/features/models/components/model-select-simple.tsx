@@ -34,19 +34,26 @@ export const ModelSelectSimple = ({ value, onValueChange }: ModelSelectSimplePro
     }
   }, []);
 
-  const { availableOllamaModels, openai } = useMemo(() => ({
-    openai: openaiModels.data?.map((modelData: OpenAIModelData) => {
-      const obj: Record<string, any> = {};
-      modelData.forEach(([key, value]) => obj[key] = value);
-      return obj;
-    }) || [],
-    availableOllamaModels: ollamaModels.data?.models || []
-  }), [ollamaModels.data, openaiModels.data]);
+  const { availableOllamaModels, openai } = useMemo(
+    () => ({
+      openai:
+        openaiModels.data?.map((modelData: OpenAIModelData) => {
+          const obj: Record<string, any> = {};
+          modelData.forEach(([key, value]) => (obj[key] = value));
+          return obj;
+        }) || [],
+      availableOllamaModels: ollamaModels.data?.models || [],
+    }),
+    [ollamaModels.data, openaiModels.data]
+  );
 
-  const handleSelect = useCallback((modelName: string) => {
-    onValueChange(modelName);
-    setOpen(false);
-  }, [onValueChange]);
+  const handleSelect = useCallback(
+    (modelName: string) => {
+      onValueChange(modelName);
+      setOpen(false);
+    },
+    [onValueChange]
+  );
 
   if (ollamaModels.isLoading || openaiModels.isLoading) {
     return <Skeleton className="w-full h-10" />;
@@ -72,11 +79,7 @@ export const ModelSelectSimple = ({ value, onValueChange }: ModelSelectSimplePro
             {availableOllamaModels.length > 0 && (
               <CommandGroup heading="Ollama Models">
                 {availableOllamaModels.map((m: OllamaModelData) => (
-                  <CommandItem
-                    key={m.name}
-                    value={m.name}
-                    onSelect={() => handleSelect(m.name)}
-                  >
+                  <CommandItem key={m.name} value={m.name} onSelect={() => handleSelect(m.name)}>
                     <span className="truncate">{truncateModelName(m.name)}</span>
                     <CheckIcon
                       className={cn(
@@ -88,17 +91,11 @@ export const ModelSelectSimple = ({ value, onValueChange }: ModelSelectSimplePro
                 ))}
               </CommandGroup>
             )}
-            {availableOllamaModels.length > 0 && openai.length > 0 && (
-              <CommandSeparator />
-            )}
+            {availableOllamaModels.length > 0 && openai.length > 0 && <CommandSeparator />}
             {openai.length > 0 && (
               <CommandGroup heading="OpenAI Models">
-                {openai.map((m) => (
-                  <CommandItem
-                    key={m.id}
-                    value={m.id}
-                    onSelect={() => handleSelect(m.id)}
-                  >
+                {openai.map(m => (
+                  <CommandItem key={m.id} value={m.id} onSelect={() => handleSelect(m.id)}>
                     <span className="truncate">{m.id}</span>
                     <CheckIcon
                       className={cn(

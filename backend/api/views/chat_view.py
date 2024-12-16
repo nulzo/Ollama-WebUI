@@ -12,55 +12,55 @@ logger = logging.getLogger(__name__)
 
 
 class ChatView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
     renderer_classes = [EventStreamRenderer]
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.chat_service = ChatService()
-        self.logger = logging.getLogger(__name__)
 
     def post(self, request):
         try:
-            self.logger.info(f"Received chat request from user {request.user.id}")
+            client_ip = request.META.get('REMOTE_ADDR')
+            logger.info(f"Received chat request from user {request.user.id}")
             
-            response = self.chat_service.handle_chat(
-                serializer_data=request.data,
-                request=request
+            def stream_response():
+                try:
+                    for chunk in self.chat_service.generate_response(
+                        serializer_data=request.data,
+                        user=request.user
+                    ):
+                        yield f"data: {chunk}\n\n"
+                except GeneratorExit:
+                    self.logger.warning(f"Client disconnected - User: {request.user.id} | IP: {client_ip}")
+                    self.chat_service.cancel_generation()
+                    raise
+
+            response = StreamingHttpResponse(
+                streaming_content=stream_response(),
+                content_type='text/event-stream'
             )
-
-            if isinstance(response, dict):
-                if "errors" in response:
-                    self.logger.warning(f"Validation error: {response}")
-                    return Response(
-                        response,
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                return Response(response)
-
-            # Configure streaming response
-            if isinstance(response, StreamingHttpResponse):
-                response["X-Accel-Buffering"] = "no"
-                response["Cache-Control"] = "no-cache"
-                response["Connection"] = "keep-alive"
-                return response
-
-            return Response(response)
+            
+            response["X-Accel-Buffering"] = "no"
+            response["Cache-Control"] = "no-cache"
+            response["Connection"] = "keep-alive"
+            
+            return response
 
         except ValidationError as e:
-            self.logger.warning(f"Validation error: {str(e)}")
+            logger.warning(f"Validation error: {str(e)}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
         except ServiceError as e:
-            self.logger.error(f"Service error: {str(e)}")
+            logger.error(f"Service error: {str(e)}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
         except Exception as e:
-            self.logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+            logger.error(f"Unexpected error: {str(e)}", exc_info=True)
             return Response(
                 {"error": "An unexpected error occurred"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -71,13 +71,13 @@ class ChatView(APIView):
             models = self.chat_service.get_available_models()
             return Response(models)
         except ServiceError as e:
-            self.logger.error(f"Error fetching models: {str(e)}")
+            logger.error(f"Error fetching models: {str(e)}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
         except Exception as e:
-            self.logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+            logger.error(f"Unexpected error: {str(e)}", exc_info=True)
             return Response(
                 {"error": "An unexpected error occurred"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

@@ -9,7 +9,11 @@ interface SidebarHeaderProps {
   animationDuration: number;
 }
 
-export const SidebarHeader = ({ isCollapsed, toggleSidebar, animationDuration }: SidebarHeaderProps) => {
+export const SidebarHeader = ({
+  isCollapsed,
+  toggleSidebar,
+  animationDuration,
+}: SidebarHeaderProps) => {
   return (
     <div className="relative flex items-center mt-2 p-2 pb-1 h-12 align-middle">
       <span className="flex items-center gap-1 px-1 w-full font-semibold text-foreground text-lg">

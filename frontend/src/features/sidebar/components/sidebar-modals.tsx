@@ -12,20 +12,11 @@ export const SidebarModals = () => {
 
   return (
     <>
-      <ThemeSettingsModal 
-        open={openModal === 'theme'} 
-        onOpenChange={handleCloseModal} 
-      />
-      
-      <UserSettingsModal 
-        open={openModal === 'settings'} 
-        onOpenChange={handleCloseModal} 
-      />
-      
-      <UserProfileModal 
-        open={openModal === 'profile'} 
-        onOpenChange={handleCloseModal} 
-      />
+      <ThemeSettingsModal open={openModal === 'theme'} onOpenChange={handleCloseModal} />
+
+      <UserSettingsModal open={openModal === 'settings'} onOpenChange={handleCloseModal} />
+
+      <UserProfileModal open={openModal === 'profile'} onOpenChange={handleCloseModal} />
     </>
   );
 };

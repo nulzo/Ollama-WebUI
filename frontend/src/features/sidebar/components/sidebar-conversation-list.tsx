@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ConversationItem } from '@/features/sidebar/components/convertsation-item';
-import { useConversations } from '@/features/conversation/api/get-conversations';
+import { useConversations } from '@/features/chat/api/get-conversations.ts';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface SidebarConversationListProps {

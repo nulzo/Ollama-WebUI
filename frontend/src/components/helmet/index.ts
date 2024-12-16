@@ -1,1 +1,1 @@
-export * from '@/components/helmet/index';
+export * from '@/components/helmet/helmet.tsx';

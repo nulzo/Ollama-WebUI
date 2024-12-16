@@ -6,55 +6,55 @@ import { Meta } from '@/types/api.ts';
 import { ProviderSettings, UserSettings } from '@/features/settings/types/settings';
 
 export const getSettings = (): Promise<{
-    settings: UserSettings;
-    meta: Meta;
+  settings: UserSettings;
+  meta: Meta;
 }> => {
-    return api.get(`/settings/`);
+  return api.get(`/settings/`);
 };
 
 export const getSettingsQueryOptions = () => {
-    return queryOptions({
-        queryKey: ['settings'],
-        queryFn: () => getSettings(),
-        staleTime: 60 * 1000 * 5,
-        refetchInterval: 60 * 1000 * 5,
-    });
+  return queryOptions({
+    queryKey: ['settings'],
+    queryFn: () => getSettings(),
+    staleTime: 60 * 1000 * 5,
+    refetchInterval: 60 * 1000 * 5,
+  });
 };
 
 type UseSettingsOptions = {
-    queryConfig?: QueryConfig<typeof getSettings>;
+  queryConfig?: QueryConfig<typeof getSettings>;
 };
 
 export const useSettings = ({ queryConfig }: UseSettingsOptions = {}) => {
-    return useQuery({
-        ...getSettingsQueryOptions(),
-        ...queryConfig,
-    });
+  return useQuery({
+    ...getSettingsQueryOptions(),
+    ...queryConfig,
+  });
 };
 
 export const getProviderSettings = (): Promise<{
-    providers: ProviderSettings[];
-    meta: Meta;
+  providers: ProviderSettings[];
+  meta: Meta;
 }> => {
-    return api.get(`/providers/`);
+  return api.get(`/providers/`);
 };
 
 export const getProviderSettingsQueryOptions = () => {
-    return queryOptions({
-        queryKey: ['providers'],
-        queryFn: () => getProviderSettings(),
-        staleTime: 60 * 1000 * 5,
-        refetchInterval: 60 * 1000 * 5,
-    });
+  return queryOptions({
+    queryKey: ['providers'],
+    queryFn: () => getProviderSettings(),
+    staleTime: 60 * 1000 * 5,
+    refetchInterval: 60 * 1000 * 5,
+  });
 };
 
 type UseProviderSettingsOptions = {
-    queryConfig?: QueryConfig<typeof getProviderSettings>;
+  queryConfig?: QueryConfig<typeof getProviderSettings>;
 };
 
 export const useProviderSettings = ({ queryConfig }: UseProviderSettingsOptions = {}) => {
-    return useQuery({
-        ...getProviderSettingsQueryOptions(),
-        ...queryConfig,
-    });
+  return useQuery({
+    ...getProviderSettingsQueryOptions(),
+    ...queryConfig,
+  });
 };

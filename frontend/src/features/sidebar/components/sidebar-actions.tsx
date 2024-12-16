@@ -76,8 +76,9 @@ export const SidebarDropdownButton = ({
               }}
             >
               <ChevronRight
-                className={`size-3 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''
-                  }`}
+                className={`size-3 transition-transform duration-200 ${
+                  isExpanded ? 'rotate-90' : ''
+                }`}
               />
             </motion.div>
           </div>

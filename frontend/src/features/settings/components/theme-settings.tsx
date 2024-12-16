@@ -3,7 +3,12 @@ import { useTheme } from '@/components/theme/theme-provider';
 import { Check, Settings2 } from 'lucide-react';
 import { colorThemes } from '@/config/themes';
 import { cn } from '@/lib/utils';
-import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function ThemeSettings() {
   const { color, setColor, theme } = useTheme();
@@ -11,7 +16,7 @@ export function ThemeSettings() {
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>
-        <Settings2 className='size-3 mr-1.5' /> Theme
+        <Settings2 className="size-3 mr-1.5" /> Theme
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent className="p-2">
         <div className="flex gap-2 flex-wrap w-[200px]">
@@ -26,11 +31,13 @@ export function ThemeSettings() {
                   'h-8 w-8 p-0 rounded-lg',
                   isActive && 'border border-primary ring-1 ring-primary'
                 )}
-                style={{
-                  '--theme-primary': `hsl(${
-                    theme === 'dark' ? value.dark.primary : value.light.primary
-                  })`,
-                } as React.CSSProperties}
+                style={
+                  {
+                    '--theme-primary': `hsl(${
+                      theme === 'dark' ? value.dark.primary : value.light.primary
+                    })`,
+                  } as React.CSSProperties
+                }
               >
                 <span
                   className={cn(

@@ -1,110 +1,109 @@
-"use client"
+'use client';
 
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Slider } from "@/components/ui/slider"
-import { Switch } from "@/components/ui/switch"
+import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Loader2, Settings, User, Bot, ChevronUp, ChevronDown, ImageIcon, X } from 'lucide-react'
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Loader2, Settings, User, Bot, ChevronUp, ChevronDown, ImageIcon, X } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const samplers = [
-  "Euler a",
-  "Euler",
-  "LMS",
-  "Heun",
-  "DPM",
-  "DPM2 a",
-  "DPM++ 2S a",
-  "DPM++ 2M",
-  "DPM ++ SDE",
-  "DPM fast",
-  "DPM adaptive",
-  "LMS Karras",
-  "DPM2 a Karras",
-  "DPM++ 2S a Karras",
-  "DPM++ 2M Karras",
-  "DPM++ SDE Karras",
-  "DDIM",
-  "PLMS",
-  "UniPC",
-]
+  'Euler a',
+  'Euler',
+  'LMS',
+  'Heun',
+  'DPM',
+  'DPM2 a',
+  'DPM++ 2S a',
+  'DPM++ 2M',
+  'DPM ++ SDE',
+  'DPM fast',
+  'DPM adaptive',
+  'LMS Karras',
+  'DPM2 a Karras',
+  'DPM++ 2S a Karras',
+  'DPM++ 2M Karras',
+  'DPM++ SDE Karras',
+  'DDIM',
+  'PLMS',
+  'UniPC',
+];
 
 interface Message {
-  type: 'user' | 'bot'
-  content: string
-  negativePrompt?: string
-  image?: string
-  referenceImage?: string
+  type: 'user' | 'bot';
+  content: string;
+  negativePrompt?: string;
+  image?: string;
+  referenceImage?: string;
 }
 
 export function DiffusionRoute() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState("")
-  const [negativePrompt, setNegativePrompt] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [showNegativePrompt, setShowNegativePrompt] = useState(false)
-  const [referenceImage, setReferenceImage] = useState<string | null>(null)
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [negativePrompt, setNegativePrompt] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showNegativePrompt, setShowNegativePrompt] = useState(false);
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
 
   // Advanced settings
-  const [steps, setSteps] = useState(50)
-  const [seed, setSeed] = useState(-1)
-  const [samplerName, setSamplerName] = useState("Euler a")
-  const [width, setWidth] = useState(512)
-  const [height, setHeight] = useState(512)
-  const [cfgScale, setCfgScale] = useState(7)
-  const [restoreFaces, setRestoreFaces] = useState(false)
-  const [enableHr, setEnableHr] = useState(false)
+  const [steps, setSteps] = useState(50);
+  const [seed, setSeed] = useState(-1);
+  const [samplerName, setSamplerName] = useState('Euler a');
+  const [width, setWidth] = useState(512);
+  const [height, setHeight] = useState(512);
+  const [cfgScale, setCfgScale] = useState(7);
+  const [restoreFaces, setRestoreFaces] = useState(false);
+  const [enableHr, setEnableHr] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-  useEffect(scrollToBottom, [messages])
+  useEffect(scrollToBottom, [messages]);
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
-  }, [input])
+  }, [input]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim()) return
+    e.preventDefault();
+    if (!input.trim()) return;
 
-    setIsLoading(true)
-    setError("")
-    setMessages(prev => [...prev, { type: 'user', content: input, negativePrompt, referenceImage: referenceImage || undefined }])
-    setInput("")
-    setNegativePrompt("")
-    setReferenceImage(null)
+    setIsLoading(true);
+    setError('');
+    setMessages(prev => [
+      ...prev,
+      { type: 'user', content: input, negativePrompt, referenceImage: referenceImage || undefined },
+    ]);
+    setInput('');
+    setNegativePrompt('');
+    setReferenceImage(null);
 
     try {
       // Replace this with your actual API call
-      const response = await fetch("/api/generate-image", {
-        method: "POST",
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           prompt: input,
@@ -119,31 +118,34 @@ export function DiffusionRoute() {
           enable_hr: enableHr,
           reference_image: referenceImage,
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to generate image")
+        throw new Error('Failed to generate image');
       }
 
-      const data = await response.json()
-      setMessages(prev => [...prev, { type: 'bot', content: input, negativePrompt, image: data.image }])
+      const data = await response.json();
+      setMessages(prev => [
+        ...prev,
+        { type: 'bot', content: input, negativePrompt, image: data.image },
+      ]);
     } catch (err) {
-      setError("An error occurred while generating the image. Please try again.")
+      setError('An error occurred while generating the image. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setReferenceImage(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setReferenceImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -171,7 +173,7 @@ export function DiffusionRoute() {
                     type="number"
                     className="col-span-2"
                     value={width}
-                    onChange={(e) => setWidth(Number(e.target.value))}
+                    onChange={e => setWidth(Number(e.target.value))}
                     min={64}
                     max={2048}
                     step={64}
@@ -184,7 +186,7 @@ export function DiffusionRoute() {
                     type="number"
                     className="col-span-2"
                     value={height}
-                    onChange={(e) => setHeight(Number(e.target.value))}
+                    onChange={e => setHeight(Number(e.target.value))}
                     min={64}
                     max={2048}
                     step={64}
@@ -197,7 +199,7 @@ export function DiffusionRoute() {
                     type="number"
                     className="col-span-2"
                     value={steps}
-                    onChange={(e) => setSteps(Number(e.target.value))}
+                    onChange={e => setSteps(Number(e.target.value))}
                     min={1}
                     max={150}
                   />
@@ -209,7 +211,7 @@ export function DiffusionRoute() {
                     type="number"
                     className="col-span-2"
                     value={seed}
-                    onChange={(e) => setSeed(Number(e.target.value))}
+                    onChange={e => setSeed(Number(e.target.value))}
                     min={-1}
                   />
                 </div>
@@ -221,7 +223,7 @@ export function DiffusionRoute() {
                     max={30}
                     step={0.1}
                     value={[cfgScale]}
-                    onValueChange={(value) => setCfgScale(value[0])}
+                    onValueChange={value => setCfgScale(value[0])}
                     className="col-span-2"
                   />
                 </div>
@@ -232,7 +234,7 @@ export function DiffusionRoute() {
                       <SelectValue placeholder="Select a sampler" />
                     </SelectTrigger>
                     <SelectContent>
-                      {samplers.map((sampler) => (
+                      {samplers.map(sampler => (
                         <SelectItem key={sampler} value={sampler}>
                           {sampler}
                         </SelectItem>
@@ -249,11 +251,7 @@ export function DiffusionRoute() {
                   <Label htmlFor="restoreFaces">Restore Faces</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch
-                    id="enableHr"
-                    checked={enableHr}
-                    onCheckedChange={setEnableHr}
-                  />
+                  <Switch id="enableHr" checked={enableHr} onCheckedChange={setEnableHr} />
                   <Label htmlFor="enableHr">Enable High Res</Label>
                 </div>
               </div>
@@ -266,22 +264,16 @@ export function DiffusionRoute() {
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`flex ${
-              message.type === 'user' ? 'justify-end' : 'justify-start'
-            }`}
+            className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
               className={`flex items-start space-x-2 ${
-                message.type === 'user'
-                  ? 'flex-row-reverse space-x-reverse'
-                  : 'flex-row'
+                message.type === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'
               }`}
             >
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  message.type === 'user'
-                    ? 'bg-blue-500'
-                    : 'bg-green-500'
+                  message.type === 'user' ? 'bg-blue-500' : 'bg-green-500'
                 }`}
               >
                 {message.type === 'user' ? (
@@ -330,7 +322,7 @@ export function DiffusionRoute() {
             <Textarea
               ref={textareaRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={e => setInput(e.target.value)}
               placeholder="Describe the image you want to generate..."
               className="pr-10 min-h-[100px] resize-none overflow-hidden"
               rows={1}
@@ -393,17 +385,13 @@ export function DiffusionRoute() {
               )}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Generate"
-              )}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Generate'}
             </Button>
           </div>
           {showNegativePrompt && (
             <Textarea
               value={negativePrompt}
-              onChange={(e) => setNegativePrompt(e.target.value)}
+              onChange={e => setNegativePrompt(e.target.value)}
               placeholder="Describe what you don't want in the image..."
               className="w-full resize-none"
             />
@@ -412,5 +400,5 @@ export function DiffusionRoute() {
         {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
       </footer>
     </div>
-  )
+  );
 }

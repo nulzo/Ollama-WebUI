@@ -20,11 +20,13 @@ export function SettingsModal() {
 
   return (
     <>
-      <DropdownMenuItem onSelect={(e) => {
-        e.preventDefault();
-        setOpen(true);
-      }}>
-        <Settings className='size-3 mr-1.5' /> Settings
+      <DropdownMenuItem
+        onSelect={e => {
+          e.preventDefault();
+          setOpen(true);
+        }}
+      >
+        <Settings className="size-3 mr-1.5" /> Settings
       </DropdownMenuItem>
 
       <Dialog open={open} onOpenChange={setOpen}>

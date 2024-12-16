@@ -74,15 +74,15 @@ export interface OllamaModel {
 }
 
 export type OpenAIModelData = [
-  ["id", string],
-  ["created", number],
-  ["object", string],
-  ["owned_by", string]
+  ['id', string],
+  ['created', number],
+  ['object', string],
+  ['owned_by', string],
 ];
 
 export interface ProviderModels {
   ollama: {
-      models: OllamaModel[];
+    models: OllamaModel[];
   };
   openai: OpenAIModel[];
 }

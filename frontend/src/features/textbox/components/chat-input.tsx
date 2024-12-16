@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import AutoResizeTextarea from '@/features/textbox/components/new-textbox';
+import AutoResizeTextarea from './new-textbox';
 import { useModelStore } from '@/features/models/store/model-store';
 
 interface ChatInputProps {
   onSubmit: (message: string, images: string[]) => void;
+  disabled?: boolean;
 }
 
-export function ChatInput({ onSubmit }: ChatInputProps) {
+export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const { model } = useModelStore(state => ({ model: state.model }));
 
   const handleSubmit = () => {
+    if (!message.trim() && images.length === 0) return;
     onSubmit(message, images);
     setMessage('');
     setImages([]);
@@ -26,7 +28,7 @@ export function ChatInput({ onSubmit }: ChatInputProps) {
   };
 
   return (
-    <div className="relative pt-1 pb-4 transition w-full">
+    <div className="relative pt-1 pb-4 w-full transition">
       <AutoResizeTextarea
         text={message}
         setText={setMessage}
@@ -35,9 +37,10 @@ export function ChatInput({ onSubmit }: ChatInputProps) {
         onImageUpload={handleImageUpload}
         onRemoveImage={handleRemoveImage}
         uploadedImages={images}
+        disabled={disabled}
       />
       <div className="flex justify-center gap-1 mt-1 pb-1 w-full text-center text-muted-foreground text-xs">
-        CringeGPT <span className="italic">never</span> makes mistakes.
+        Model: {model?.name || 'Default'}
       </div>
     </div>
   );

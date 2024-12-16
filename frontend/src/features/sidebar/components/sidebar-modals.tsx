@@ -3,7 +3,7 @@ import { ThemeSettingsModal } from '@/features/settings/components/theme-setting
 import { UserSettingsModal } from '@/features/settings/components/user-settings-modal';
 import { UserProfileModal } from '@/features/settings/components/user-profile-modal';
 
-export type ModalType = 'theme' | 'settings' | 'profile' | null;
+type ModalType = 'theme' | 'settings' | 'profile' | null;
 
 export const SidebarModals = () => {
   const [openModal, setOpenModal] = useState<ModalType>(null);

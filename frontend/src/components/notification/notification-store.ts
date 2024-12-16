@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { create } from 'zustand';
 
-export type Notification = {
+type Notification = {
   id: string;
   type: 'info' | 'warning' | 'success' | 'error';
   title: string;

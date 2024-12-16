@@ -5,7 +5,7 @@ import { Tool } from '@/features/tools/types/tool';
 import { CreateToolInput } from '@/features/tools/api/create-tool';
 import { getToolsQueryOptions } from '@/features/tools/api/get-tools';
 
-export type UpdateToolInput = Partial<CreateToolInput>;
+type UpdateToolInput = Partial<CreateToolInput>;
 
 export const updateTool = ({
   toolId,

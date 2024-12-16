@@ -1,4 +1,3 @@
-import { AssistantCard } from '@/features/models/components/model-card.tsx';
 import { Origami } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog.tsx';
@@ -44,7 +43,7 @@ export const BotIcon = ({ assistantId, isOnline, modelName }: BotIconProps) => {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      <AssistantCard assistantId={assistantId} onClose={handleClose} />
+      {/*  THIS IS WHERE THE MODEL INFORMATION CARD WILL GO */}
     </Dialog>
   );
 };

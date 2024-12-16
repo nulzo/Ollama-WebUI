@@ -7,7 +7,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-Django = "^5.0.4"
 djangorestframework = "^3.15.1"
 python-dotenv = "^1.0.1"
 django-cors-headers = "^4.3.1"
@@ -20,6 +19,7 @@ django-rest-auth = "^0.9.5"
 openai = "^1.52.0"
 uvicorn = "^0.32.0"
 django-cryptography = "^1.1"
+django = "^5.1.4"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
@@ -37,6 +37,7 @@ autobahn = "^23.6.2"
 coverage = "^7.6.9"
 bandit = "^1.8.0"
 vulture = "^2.14"
+pip-audit = "^2.7.3"
 
 [tool.black]
 line-length = 100

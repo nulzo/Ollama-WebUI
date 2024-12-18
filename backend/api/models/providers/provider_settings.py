@@ -1,9 +1,9 @@
-from django.conf import settings
-from django.core.signing import Signer
 from django.db import models
+from api.models.base import BaseModel
+from api.models.auth.user import CustomUser
 
 
-class ProviderSettings(models.Model):
+class ProviderSettings(BaseModel):
     PROVIDER_CHOICES = [
         ("ollama", "Ollama"),
         ("openai", "OpenAI"),
@@ -11,9 +11,7 @@ class ProviderSettings(models.Model):
         ("azure", "Azure OpenAI"),
     ]
 
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="provider_settings"
-    )
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="provider_settings")
     provider_type = models.CharField(max_length=50, choices=PROVIDER_CHOICES)
     api_key = models.CharField(
         max_length=255, null=True, blank=True, help_text="API key for the provider (if required)"
@@ -27,8 +25,6 @@ class ProviderSettings(models.Model):
     is_enabled = models.BooleanField(
         default=True, help_text="Whether this provider is enabled for the user"
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ["user", "provider_type"]

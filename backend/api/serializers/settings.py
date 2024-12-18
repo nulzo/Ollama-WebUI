@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
 from api.models.settings.settings import Settings
-from api.serializers.provider_settings_serializer import \
-    ProviderSettingsSerializer
+from api.serializers.provider_settings_serializer import ProviderSettingsSerializer
 
 
 class SettingsSerializer(serializers.ModelSerializer):

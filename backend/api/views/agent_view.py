@@ -1,136 +1,58 @@
-import logging
-from datetime import datetime
-
-from django.conf import settings
-from rest_framework import mixins, viewsets
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 
-from api.models.agent.agent import Agent
-from api.serializers.agent_serializer import AgentSerializer
 from api.services.agent_service import AgentService
-from api.utils.exceptions import ServiceError, ValidationError
-from api.utils.pagination import StandardResultsSetPagination
+from api.utils.exceptions import ValidationError, NotFoundException
 from api.utils.responses.response import api_response
 
-logger = logging.getLogger(__name__)
 
-
-class AgentViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
-    """
-    ViewSet for handling agent operations.
-
-    list: Get all agents for the authenticated user
-    create: Create a new agent
-    retrieve: Get a specific agent
-    update: Update an agent
-    destroy: Delete an agent
-    """
-
+class AgentViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = AgentSerializer
-    pagination_class = StandardResultsSetPagination
-    lookup_field = "id"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.agent_service = AgentService()
-        self.logger = logging.getLogger(__name__)
+        self.service = AgentService()
 
-    def get_queryset(self):
-        return self.agent_service.list_agents(self.request.user.id)
-
-    def list(self, request, *args, **kwargs):
+    def list(self, request):
+        """List all agents for the authenticated user"""
         try:
-            agents = self.get_queryset()
-            serializer = self.get_serializer(agents, many=True)
-            return api_response(data=serializer.data, links={"self": request.build_absolute_uri()})
+            agents = self.service.list_agents(request.user.id)
+            return api_response(data=agents)
         except Exception as e:
-            self.logger.error(f"Error listing agents: {str(e)}")
-            return api_response(
-                error={
-                    "code": "AGENT_LIST_ERROR",
-                    "message": "Failed to list agents",
-                    "details": str(e),
-                },
-                status=500,
-            )
+            return api_response(error={"code": "FETCH_ERROR", "message": str(e)}, status=500)
 
-    def create(self, request, *args, **kwargs):
+    def retrieve(self, request, pk=None):
+        """Get a specific agent"""
         try:
-            data = request.data
-            data["user"] = request.user
-            agent = self.agent_service.create_agent(data)
-            serializer = self.get_serializer(agent)
-            return api_response(
-                data=serializer.data, links={"self": request.build_absolute_uri()}, status=201
-            )
+            agent = self.service.get_agent(pk)
+            return api_response(data=agent)
+        except NotFoundException as e:
+            return api_response(error={"code": "NOT_FOUND", "message": str(e)}, status=404)
+
+    def create(self, request):
+        """Create a new agent"""
+        try:
+            data = {**request.data, "user": request.user}
+            agent = self.service.create_agent(data)
+            return api_response(data=agent, status=201)
         except ValidationError as e:
-            self.logger.warning(f"Validation error: {str(e)}")
             return api_response(error={"code": "VALIDATION_ERROR", "message": str(e)}, status=400)
-        except Exception as e:
-            self.logger.error(f"Error creating agent: {str(e)}")
-            return api_response(
-                error={
-                    "code": "AGENT_CREATE_ERROR",
-                    "message": "Failed to create agent",
-                    "details": str(e),
-                },
-                status=500,
-            )
 
-    def retrieve(self, request, *args, **kwargs):
+    def update(self, request, pk=None):
+        """Update an agent"""
         try:
-            agent = self.agent_service.get_agent(kwargs["id"])
-            serializer = self.get_serializer(agent)
-            return api_response(data=serializer.data, links={"self": request.build_absolute_uri()})
-        except Exception as e:
-            self.logger.error(f"Error retrieving agent: {str(e)}")
-            return api_response(
-                error={
-                    "code": "AGENT_FETCH_ERROR",
-                    "message": "Failed to fetch agent",
-                    "details": str(e),
-                },
-                status=500,
-            )
-
-    def update(self, request, *args, **kwargs):
-        try:
-            agent = self.agent_service.update_agent(kwargs["id"], request.data)
-            serializer = self.get_serializer(agent)
-            return api_response(data=serializer.data, links={"self": request.build_absolute_uri()})
+            agent = self.service.update_agent(pk, request.data)
+            return api_response(data=agent)
         except ValidationError as e:
-            self.logger.warning(f"Validation error: {str(e)}")
             return api_response(error={"code": "VALIDATION_ERROR", "message": str(e)}, status=400)
-        except Exception as e:
-            self.logger.error(f"Error updating agent: {str(e)}")
-            return api_response(
-                error={
-                    "code": "AGENT_UPDATE_ERROR",
-                    "message": "Failed to update agent",
-                    "details": str(e),
-                },
-                status=500,
-            )
+        except NotFoundException as e:
+            return api_response(error={"code": "NOT_FOUND", "message": str(e)}, status=404)
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request, pk=None):
+        """Delete an agent"""
         try:
-            self.agent_service.delete_agent(kwargs["pk"])
+            self.service.delete_agent(pk)
             return api_response(status=204)
-        except Exception as e:
-            self.logger.error(f"Error deleting agent: {str(e)}")
-            return api_response(
-                error={
-                    "code": "AGENT_DELETE_ERROR",
-                    "message": "Failed to delete agent",
-                    "details": str(e),
-                },
-                status=500,
-            )
+        except NotFoundException as e:
+            return api_response(error={"code": "NOT_FOUND", "message": str(e)}, status=404)

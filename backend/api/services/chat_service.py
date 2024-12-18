@@ -14,9 +14,12 @@ from api.providers.provider_factory import ProviderFactory
 from api.repositories.message_repository import MessageRepository
 from api.serializers.message import MessageSerializer
 from api.services.knowledge_service import KnowledgeService
-from api.services.prompt_service import (PromptBuilderService, PromptService,
-                                         PromptTemplateService,
-                                         PromptVariantService)
+from api.services.prompt_service import (
+    PromptBuilderService,
+    PromptService,
+    PromptTemplateService,
+    PromptVariantService,
+)
 
 
 class ChatService:

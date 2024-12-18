@@ -178,38 +178,34 @@ class KnowledgeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 request=request,
             )
-            
-    @action(detail=True, methods=['get'])
+
+    @action(detail=True, methods=["get"])
     def embeddings(self, request, pk=None):
         """Get embeddings for a specific knowledge document"""
         try:
-            embeddings = self.service.get_embeddings(
-                knowledge_id=pk,
-                user_id=request.user.id
-            )
+            embeddings = self.service.get_embeddings(knowledge_id=pk, user_id=request.user.id)
             return api_response(
                 data={
                     "knowledge_id": pk,
-                    "embeddings": embeddings.tolist() if hasattr(embeddings, 'tolist') else embeddings
+                    "embeddings": (
+                        embeddings.tolist() if hasattr(embeddings, "tolist") else embeddings
+                    ),
                 },
-                request=request
+                request=request,
             )
         except NotFoundException as e:
             return api_response(
-                error={
-                    "code": "KNOWLEDGE_NOT_FOUND",
-                    "message": str(e)
-                },
+                error={"code": "KNOWLEDGE_NOT_FOUND", "message": str(e)},
                 status=status.HTTP_404_NOT_FOUND,
-                request=request
+                request=request,
             )
         except Exception as e:
             return api_response(
                 error={
                     "code": "EMBEDDING_FETCH_ERROR",
                     "message": "Failed to fetch embeddings",
-                    "details": str(e)
+                    "details": str(e),
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                request=request
+                request=request,
             )

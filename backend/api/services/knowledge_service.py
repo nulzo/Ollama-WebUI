@@ -15,22 +15,18 @@ class KnowledgeService:
         self.repository = KnowledgeRepository()
         self.logger = logging.getLogger(__name__)
         self.ollama_client = Client(host=settings.OLLAMA_ENDPOINT)
-        
+
         # Initialize ChromaDB with new client configuration
         self.chroma_client = chromadb.PersistentClient(
             path=settings.CHROMA_PERSIST_DIR,
-            settings=Settings(
-                anonymized_telemetry=False,
-                allow_reset=False,
-                is_persistent=True
-            )
+            settings=Settings(anonymized_telemetry=False, allow_reset=False, is_persistent=True),
         )
-        
+
         # Create or get collection with updated configuration
         self.collection = self.chroma_client.get_or_create_collection(
             name="knowledge_embeddings",
             metadata={"hnsw:space": "cosine"},
-            embedding_function=None  # We're using Ollama for embeddings
+            embedding_function=None,  # We're using Ollama for embeddings
         )
 
     def create_knowledge(self, data: dict, user):
@@ -125,7 +121,7 @@ class KnowledgeService:
         """Generate embedding using Ollama"""
         try:
             response = self.ollama_client.embeddings(model=settings.EMBEDDING_MODEL, prompt=text)
-            return response['embedding']
+            return response["embedding"]
         except Exception as e:
             self.logger.error(f"Error generating embedding: {str(e)}")
             raise
@@ -223,36 +219,35 @@ class KnowledgeService:
         try:
             # First verify ownership
             knowledge = self.get_knowledge(knowledge_id, user_id)
-            
+
             # Get embeddings from ChromaDB
-            result = self.collection.get(
-                ids=[str(knowledge_id)],
-                include=['embeddings']
-            )
-            
+            result = self.collection.get(ids=[str(knowledge_id)], include=["embeddings"])
+
             # Handle numpy array properly
-            if result and 'embeddings' in result and len(result['embeddings']) > 0:
+            if result and "embeddings" in result and len(result["embeddings"]) > 0:
                 # Convert numpy array to list and get first embedding
-                embeddings = result['embeddings'][0]
-                return embeddings.tolist() if hasattr(embeddings, 'tolist') else embeddings
-                
+                embeddings = result["embeddings"][0]
+                return embeddings.tolist() if hasattr(embeddings, "tolist") else embeddings
+
             # If no embeddings found, generate new ones
             embedding = self._generate_embedding(knowledge.content)
-            
+
             # Store in ChromaDB
             self.collection.upsert(
                 ids=[str(knowledge_id)],
                 embeddings=[embedding],
                 documents=[knowledge.content],
-                metadatas=[{
-                    "user_id": str(user_id),
-                    "name": knowledge.name,
-                    "identifier": knowledge.identifier
-                }]
+                metadatas=[
+                    {
+                        "user_id": str(user_id),
+                        "name": knowledge.name,
+                        "identifier": knowledge.identifier,
+                    }
+                ],
             )
-            
+
             return embedding
-            
+
         except Exception as e:
             self.logger.error(f"Error getting embeddings for knowledge {knowledge_id}: {str(e)}")
             raise

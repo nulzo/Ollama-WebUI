@@ -1,38 +1,59 @@
-import logging
-
+from typing import Dict, List
+from django.core.exceptions import ValidationError
+from api.models.agent.agent import Agent, AgentProvider, AgentModel
 from api.repositories.agent_repository import AgentRepository
-from api.utils.exceptions import NotFoundException
+from api.providers.provider_factory import ProviderFactory
+from api.services.provider_settings_service import ProviderSettingsService
 
 
 class AgentService:
     def __init__(self):
         self.repository = AgentRepository()
-        self.logger = logging.getLogger(__name__)
+        self.provider_settings_service = ProviderSettingsService()
+        self.provider_factory = ProviderFactory()
 
-    def create_agent(self, data: dict):
-        """Create a new agent"""
-        return self.repository.create(data)
+    def create_agent(self, data: Dict) -> Agent:
+        # Validate provider and model
+        provider = AgentProvider.objects.get(id=data["provider_id"])
+        model = AgentModel.objects.get(id=data["model_id"])
 
-    def get_agent(self, agent_id: int):
-        """Get agent by ID"""
-        agent = self.repository.get_by_id(agent_id)
-        if not agent:
-            raise NotFoundException("Agent not found")
-        return agent
+        # Get provider settings
+        settings = self.provider_settings_service.get_provider_settings(
+            data["user"].id, provider.name
+        )
 
-    def list_agents(self, user_id: int = None):
-        """List agents"""
-        filters = {"enabled": True}
-        if user_id:
-            filters["user_id"] = user_id
-        return self.repository.list(filters)
+        # Get provider implementation
+        provider_impl = self.provider_factory.create_provider(settings)
 
-    def update_agent(self, agent_id: int, data: dict):
-        """Update agent"""
+        # Validate parameters
+        if not provider_impl.validate_model_parameters(model.name, data.get("parameters", {})):
+            raise ValidationError("Invalid parameters for selected model")
+
+        # Create agent
+        return self.repository.create(
+            {
+                "display_name": data["display_name"],
+                "description": data.get("description"),
+                "icon": data.get("icon"),
+                "provider": provider,
+                "model": model,
+                "system_prompt": data.get("system_prompt"),
+                "parameters": data.get("parameters", {}),
+                "enabled": data.get("enabled", True),
+                "user": data["user"],
+            }
+        )
+
+    def get_agent(self, agent_id: int) -> Agent:
+        return self.repository.get_by_id(agent_id)
+
+    def list_agents(self, user_id: int) -> List[Agent]:
+        return self.repository.get_by_user(user_id)
+
+    def update_agent(self, agent_id: int, data: Dict) -> Agent:
         agent = self.get_agent(agent_id)
-        return self.repository.update(agent.id, data)
+        return self.repository.update(agent, data)
 
-    def delete_agent(self, agent_id: int):
-        """Delete agent"""
+    def delete_agent(self, agent_id: int) -> bool:
         agent = self.get_agent(agent_id)
-        return self.repository.delete(agent.id)
+        return self.repository.delete(agent)

@@ -11,6 +11,7 @@ from api.models.auth.user import CustomUser
 from api.models.chat.assistant import Assistant
 from api.models.chat.conversation import Conversation
 from api.models.chat.message import Message
+
 # from api.serializers.settings import SettingsSerializer
 from api.models.settings.settings import Settings
 from api.serializers.assistant import AssistantSerializer

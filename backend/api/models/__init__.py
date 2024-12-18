@@ -9,7 +9,7 @@ from api.models.chat.liked_messages import LikedMessage
 from api.models.chat.message import Message
 from api.models.chat.pinned_messages import PinnedMessage
 from api.models.providers.model import Model
-from api.models.providers.provider import ProviderSettings
+from api.models.providers.provider_settings import ProviderSettings
 from api.models.settings.settings import Settings
 
 __all__ = [

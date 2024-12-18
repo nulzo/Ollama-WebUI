@@ -1,10 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-from api.models.providers.provider import ProviderSettings
-from api.models.settings.settings import Settings
 
 
 class CustomUser(AbstractUser):
@@ -16,19 +11,3 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.name
-
-
-@receiver(post_save, sender=CustomUser)
-def create_user_settings(sender, instance, created, **kwargs):
-    if created:
-        Settings.objects.create(user=instance)
-
-        default_providers = [
-            {"provider_type": "ollama", "is_enabled": True, "endpoint": "http://localhost:11434"},
-            {"provider_type": "openai", "is_enabled": False},
-            {"provider_type": "azure", "is_enabled": False},
-            {"provider_type": "anthropic", "is_enabled": False},
-        ]
-
-        for provider in default_providers:
-            ProviderSettings.objects.create(user=instance, **provider)

@@ -4,11 +4,9 @@ from django.db import IntegrityError
 from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from api.models.providers.provider import ProviderSettings
 from api.models.settings.settings import Settings
 from api.providers.provider_factory import provider_factory
-from api.serializers.provider_settings_serializer import \
-    ProviderSettingsSerializer
+from api.serializers.provider_settings_serializer import ProviderSettingsSerializer
 from api.serializers.settings import SettingsSerializer
 from api.services.settings_service import ProviderSettingsService
 from api.utils.exceptions import ServiceError, ValidationError

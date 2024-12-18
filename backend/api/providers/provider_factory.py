@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Type
 
-from api.models.providers.provider import ProviderSettings
+from api.models.providers.provider_settings import ProviderSettings
 from api.providers.base_provider import BaseProvider
 from api.providers.ollama_provider import OllamaProvider
 from api.providers.openai_provider import OpenAiProvider

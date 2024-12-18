@@ -9,6 +9,7 @@ from api.utils.exceptions import NotFoundException, ServiceError
 from api.providers.provider_factory import ProviderFactory
 from api.serializers.provider_settings_serializer import ProviderSettingsSerializer
 
+
 class ProviderSettingsService:
     def __init__(self):
         self.repository = ProviderSettingsRepository()
@@ -40,11 +41,11 @@ class ProviderSettingsService:
                 raise ValidationError(serializer.errors)
 
             # Create settings
-            settings = self.repository.create({**serializer.validated_data, 'user_id': user_id})
-            
+            settings = self.repository.create({**serializer.validated_data, "user_id": user_id})
+
             # Update provider configuration
             self._update_provider_config(settings)
-            
+
             return self._sanitize_settings(settings)
 
         except IntegrityError as e:
@@ -69,10 +70,10 @@ class ProviderSettingsService:
 
             # Update settings
             settings = self.repository.update(settings, serializer.validated_data)
-            
+
             # Update provider configuration
             self._update_provider_config(settings)
-            
+
             return self._sanitize_settings(settings)
 
         except ValidationError:
@@ -91,24 +92,17 @@ class ProviderSettingsService:
     def create_default_settings(self, user_id: int) -> List[Dict]:
         """Create default provider settings for a new user"""
         default_providers = [
-            {
-                "provider_type": "ollama",
-                "is_enabled": True,
-                "endpoint": "http://localhost:11434"
-            },
+            {"provider_type": "ollama", "is_enabled": True, "endpoint": "http://localhost:11434"},
             {"provider_type": "openai", "is_enabled": False},
             {"provider_type": "anthropic", "is_enabled": False},
             {"provider_type": "azure", "is_enabled": False},
         ]
-        
+
         settings = []
         for provider in default_providers:
-            setting = self.repository.create({
-                **provider,
-                'user_id': user_id
-            })
+            setting = self.repository.create({**provider, "user_id": user_id})
             settings.append(self._sanitize_settings(setting))
-        
+
         return settings
 
     def _update_provider_config(self, settings: ProviderSettings) -> None:
@@ -121,7 +115,7 @@ class ProviderSettingsService:
                     "api_key": settings.api_key,
                     "endpoint": settings.endpoint,
                     "organization_id": settings.organization_id,
-                }
+                },
             )
         except Exception as e:
             self.logger.error(f"Error updating provider config: {str(e)}")

@@ -17,9 +17,10 @@ DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 DEBUG = True
 
-OLLAMA_ENDPOINT = os.environ.get("OLLAMA_ENDPOINT", "http://localhost:11434")
+OLLAMA_ENDPOINT = os.environ.get("OLLAMA_ENDPOINT", "http://192.168.0.25:11434")
 
 OPENAI_HOST = ""
+
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 ALLOWED_HOSTS = [
@@ -31,6 +32,16 @@ ALLOWED_HOSTS = [
     "http://192.168.0.90:6969",
     "192.168.0.90",
 ]
+
+CHROMA_PERSIST_DIR = "data/chromadb"
+
+CHROMA_SETTINGS = {
+    "allow_reset": False,
+    "is_persistent": True,
+    "anonymized_telemetry": False,
+}
+
+EMBEDDING_MODEL = "nomic-embed-text"
 
 CORS_ALLOW_CREDENTIALS = True
 

@@ -13,12 +13,10 @@ from api.models.agent.agent import Agent
 from api.providers.provider_factory import ProviderFactory
 from api.repositories.message_repository import MessageRepository
 from api.serializers.message import MessageSerializer
-from api.services.prompt_service import (
-    PromptBuilderService,
-    PromptService,
-    PromptTemplateService,
-    PromptVariantService,
-)
+from api.services.knowledge_service import KnowledgeService
+from api.services.prompt_service import (PromptBuilderService, PromptService,
+                                         PromptTemplateService,
+                                         PromptVariantService)
 
 
 class ChatService:
@@ -30,8 +28,26 @@ class ChatService:
     def __init__(self):
         self.provider_factory = ProviderFactory()
         self.message_repository = MessageRepository()
+        self.knowledge_service = KnowledgeService()
         self.logger = logging.getLogger(__name__)
         self._cancel_event = Event()
+
+    async def _prepare_context(self, message_content: str, user_id: int) -> str:
+        """Prepare knowledge context for the message"""
+        try:
+            relevant_docs = self.knowledge_service.find_relevant_context(message_content, user_id)
+
+            if not relevant_docs:
+                return ""
+
+            context = "Relevant context:\n\n"
+            for doc in relevant_docs:
+                context += f"---\n{doc['content']}\n"
+            return context
+
+        except Exception as e:
+            self.logger.error(f"Error preparing context: {str(e)}")
+            return ""
 
     def _process_message_images(self, message):
         """Convert message images to bytes for Ollama"""
@@ -116,14 +132,27 @@ class ChatService:
         try:
             # Process conversation history
             messages = await sync_to_async(list)(conversation.messages.all().order_by("created_at"))
-            flattened_messages = [
-                {
-                    "role": msg.role,
-                    "content": msg.content,
-                    "images": await sync_to_async(self._process_message_images)(msg),
-                }
-                for msg in messages
-            ]
+
+            # Get context for the last user message
+            context = await self._prepare_context(message.content, conversation.user.id)
+
+            flattened_messages = []
+
+            # Add system context if available
+            if context:
+                flattened_messages.append({"role": "system", "content": context})
+
+            # Add conversation messages
+            flattened_messages.extend(
+                [
+                    {
+                        "role": msg.role,
+                        "content": msg.content,
+                        "images": await sync_to_async(self._process_message_images)(msg),
+                    }
+                    for msg in messages
+                ]
+            )
 
             # Stream provider response
             self.logger.info(f"Streaming message to ollama: {flattened_messages}")
@@ -138,7 +167,6 @@ class ChatService:
                         full_content += content
                         yield f"data: {json.dumps({'delta': {'content': content}, 'type': 'content'})}\n\n"
                         await asyncio.sleep(0.001)
-
             # Create assistant's response message
             response_message = await sync_to_async(self.message_repository.create)(
                 {
@@ -202,7 +230,6 @@ class ChatService:
                 }
                 for msg in messages
             ]
-
             # Stream the response
             full_content = ""
             tokens_generated = 0
@@ -237,7 +264,6 @@ class ChatService:
                     "images": [],
                 }
             )
-
             # Send completion data
             yield json.dumps({"status": "done", "message_id": response_message.id, "done": True})
 

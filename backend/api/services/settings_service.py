@@ -4,7 +4,8 @@ from django.db import IntegrityError
 
 from api.models.providers.provider import ProviderSettings
 from api.providers.provider_factory import provider_factory
-from api.serializers.provider_settings_serializer import ProviderSettingsSerializer
+from api.serializers.provider_settings_serializer import \
+    ProviderSettingsSerializer
 from api.utils.exceptions import ServiceError, ValidationError
 
 logger = logging.getLogger(__name__)

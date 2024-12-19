@@ -87,7 +87,7 @@ EXPOSE "$PORT"
 RUN poetry run python manage.py makemigrations
 RUN poetry run python manage.py migrate
 RUN poetry run python manage.py createsuperuser --noinput
-RUN poetry run python manage.py loaddata default_agents
+# RUN poetry run python manage.py loaddata default_agents
 
 # Start the Django backend server on port 6969.
 # Running this command with "0.0.0.0:PORT" allows us to tell Docker that

@@ -14,7 +14,9 @@ interface DynamicTextareaProps {
   placeholder?: string;
   maxLength?: number;
   disabled?: boolean;
+  onKeyDown?: (e: React.KeyboardEvent) => void;
 }
+
 
 export default function DynamicTextarea({
   placeholder = 'Message CringeGPT ...',
@@ -27,6 +29,7 @@ export default function DynamicTextarea({
   model,
   uploadedImages,
   disabled,
+  onKeyDown
 }: DynamicTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -74,6 +77,8 @@ export default function DynamicTextarea({
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
       handleSubmit();
+    } else {
+      onKeyDown?.(event);
     }
   };
 

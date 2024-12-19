@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { mockPrompts, CustomPrompt } from '@/features/chat/data/mock-prompts';
+import { PromptSuggestions } from '@/features/chat/components/prompts/prompt-suggestions';
 import AutoResizeTextarea from './new-textbox';
 import { useModelStore } from '@/features/models/store/model-store';
 
@@ -10,7 +12,68 @@ interface ChatInputProps {
 export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<CustomPrompt[]>([]);
+  const [promptIndex, setPromptIndex] = useState(-1);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const { model } = useModelStore(state => ({ model: state.model }));
+
+  // Reset selected index when suggestions change
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [suggestions]);
+
+  useEffect(() => {
+    const match = message.match(/\/(\w*)$/);
+    if (match) {
+      const query = match[1].toLowerCase();
+      const filtered = mockPrompts.filter((prompt) => 
+        prompt.title.toLowerCase().includes(query) || 
+        prompt.command.toLowerCase().includes(query)
+      );
+      setSuggestions(filtered);
+      setPromptIndex(message.lastIndexOf('/'));
+    } else {
+      setSuggestions([]);
+      setPromptIndex(-1);
+    }
+  }, [message]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+        break;
+      case 'Enter':
+        if (!e.ctrlKey && !e.metaKey && suggestions.length > 0) {
+          e.preventDefault();
+          if (suggestions[selectedIndex]) {
+            handlePromptSelect(suggestions[selectedIndex]);
+          }
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setSuggestions([]);
+        break;
+    }
+  };
+
+  const handlePromptSelect = (prompt: CustomPrompt) => {
+    if (promptIndex === -1) return;
+    
+    const before = message.slice(0, promptIndex);
+    const after = message.slice(message.indexOf(' ', promptIndex) + 1 || message.length);
+    const newText = `${before}${prompt.content}${after}`;
+    setMessage(newText);
+    setSuggestions([]);
+  };
 
   const handleSubmit = () => {
     if (!message.trim() && images.length === 0) return;
@@ -28,7 +91,19 @@ export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className="relative pt-1 pb-4 w-full transition">
+    <div className="relative w-full transition">
+      {suggestions.length > 0 && (
+          <div className="mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-7xl">
+            <PromptSuggestions
+              isOpen={suggestions.length > 0}
+              onClose={() => setSuggestions([])}
+              onSelect={handlePromptSelect}
+              searchTerm={message.slice(promptIndex + 1)}
+              prompts={suggestions}
+              selectedIndex={selectedIndex}
+            />
+          </div>
+        )}
       <AutoResizeTextarea
         text={message}
         setText={setMessage}
@@ -38,10 +113,8 @@ export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
         onRemoveImage={handleRemoveImage}
         uploadedImages={images}
         disabled={disabled}
+        onKeyDown={handleKeyDown}
       />
-      <div className="flex justify-center gap-1 mt-1 pb-1 w-full text-center text-muted-foreground text-xs">
-        Model: {model?.name || 'Default'}
-      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from api.models.agent.tools import Tool
-from api.serializers.user import UserSerializer
+from features.authentication.serializers.user_serializer import UserSerializer
 
 
 class ToolSerializer(serializers.ModelSerializer):

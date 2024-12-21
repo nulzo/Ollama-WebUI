@@ -13,11 +13,10 @@ from api.models.chat.conversation import Conversation
 from api.models.chat.message import Message
 
 # from api.serializers.settings import SettingsSerializer
-from api.models.settings.settings import Settings
 from api.serializers.assistant import AssistantSerializer
-from api.serializers.conversation import ConversationSerializer
-from api.serializers.message import MessageSerializer
-from api.serializers.user import UserSerializer
+from features.conversations.serializers.conversation import ConversationSerializer
+from features.conversations.serializers.message import MessageSerializer
+from features.authentication.serializers.user_serializer import UserSerializer
 
 
 class AssistantViewSet(viewsets.ModelViewSet):

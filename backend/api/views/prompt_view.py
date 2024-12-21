@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from api.serializers.prompt_serializer import PromptRequestSerializer
-from api.services.chat_service import ChatService
+from features.completions.services.chat_service import ChatService
 from api.utils.responses.response import api_response
 
 logger = logging.getLogger(__name__)

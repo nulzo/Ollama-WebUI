@@ -2,8 +2,8 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
-from api.serializers.knowledge import KnowledgeSerializer
-from api.services.knowledge_service import KnowledgeService
+from features.knowledge.serializers.knowledge_serializer import KnowledgeSerializer
+from features.knowledge.services.knowledge_service import KnowledgeService
 from api.utils.exceptions import NotFoundException
 from api.utils.responses.response import api_response
 

@@ -4,7 +4,6 @@ import { ConversationOptionsDropdown } from './conversation-options-dropdown.tsx
 import { useSearchParams } from 'react-router-dom';
 
 function ChatItem({ chat, uuid, updateURL }: any) {
-  console.log(chat, uuid);
   return (
     <div className="relative hover:bg-tertiary/75 rounded-lg group">
       <button

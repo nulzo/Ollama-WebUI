@@ -1,8 +1,5 @@
 import logging
-import uuid
-from datetime import datetime
 
-from django.conf import settings
 from django.http import StreamingHttpResponse
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -10,8 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.serializers.message import MessageListSerializer, MessageSerializer
-from api.services.message_service import MessageService
+from features.conversations.serializers.message import MessageListSerializer, MessageSerializer
+from features.conversations.services.message_service import MessageService
 from api.utils.exceptions import ServiceError, ValidationError
 from api.utils.pagination.paginator import StandardResultsSetPagination
 from api.utils.responses.response import api_response

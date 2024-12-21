@@ -1,18 +1,15 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views.agent_view import AgentViewSet
 from api.views.authentication_view import LoginView as Login
 from api.views.authentication_view import LogoutView as Logout
 from api.views.authentication_view import RegisterView
-from api.views.chat_view import ChatView
-from api.views.conversation_view import ConversationViewSet
+from features.completions.views import ChatView
 from api.views.image_view import MessageImageViewSet
 from api.views.knowledge_view import KnowledgeViewSet
-from api.views.message_view import MessageViewSet
 from api.views.models_view import ModelsViewSet
 from api.views.prompt_view import PromptView
-from api.views.settings_view import ProviderSettingsViewSet, SettingsViewSet
+from api.views.settings_view import SettingsViewSet
 from api.views.tools_view import ToolViewSet
 from api.views.provider_settings_view import ProviderSettingsViewSet
 from api.views.agent_view import AgentViewSet
@@ -29,11 +26,9 @@ from api.views.custom_prompt import CustomPromptViewSet
 router = DefaultRouter()
 
 router.register(r"assistant", AssistantViewSet)
-router.register(r"messages", MessageViewSet, basename="message")
 router.register(r"images", MessageImageViewSet, basename="images")
 router.register(r"settings", SettingsViewSet, basename="settings")
 router.register(r"providers", ProviderSettingsViewSet, basename="provider")
-router.register(r"conversations", ConversationViewSet, basename="conversation")
 router.register(r"tools", ToolViewSet, basename="tool")
 router.register(r"models", ModelsViewSet, basename="models")
 router.register(r"knowledge", KnowledgeViewSet, basename="knowledge")

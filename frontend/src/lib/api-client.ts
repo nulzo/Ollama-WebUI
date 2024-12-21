@@ -176,8 +176,7 @@ class ApiClient {
   }
 
   async streamCompletion(
-    endpoint: string,
-    data?: unknown,
+    data: unknown,
     onChunk: (chunk: string) => void,
     signal?: AbortSignal
   ): Promise<void> {
@@ -189,7 +188,6 @@ class ApiClient {
         body: JSON.stringify(data),
         signal,
       });
-
       if (!response.ok) {
         console.error('Response status:', response.status);
         console.error('Response headers:', Object.fromEntries(response.headers));
@@ -197,17 +195,13 @@ class ApiClient {
         console.error('Response body:', errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-
       while (reader) {
         const { done, value } = await reader.read();
         if (done) break;
-
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n');
-
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {

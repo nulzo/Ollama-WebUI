@@ -1,6 +1,6 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useMessages } from '@/features/chat/api/get-messages.ts';
 import { useModelStore } from '@/features/models/store/model-store.ts';
 import { useUser } from '@/lib/auth.tsx';
@@ -15,6 +15,8 @@ export function useConversation() {
   const { data: user } = useUser();
   const queryClient = useQueryClient();
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [localMessages, setLocalMessages] = useState<any[]>([]);
+  const [assistantMessage, setAssistantMessage] = useState<string>('');
 
   const messages = useMessages({
     conversation_id: searchParamString ?? '',
@@ -30,50 +32,71 @@ export function useConversation() {
   const submitMessage = async (message: string, images: string[] = []): Promise<void> => {
     if (!message.trim()) return;
 
+    console.log(message);
+
     try {
+      const userMessage = {
+        data: {
+          id: Date.now().toString(),
+          role: 'user',
+          content: message,
+          created_at: new Date().toISOString(),
+          model: model?.name || 'llama3.2:3b',
+          user: user?.id,
+          liked_by: [],
+          has_images: images.length > 0,
+          conversation: searchParamString || null,
+        },
+      };
+      setLocalMessages(prev => [...prev, userMessage]);
       setIsStreaming(true);
       abortControllerRef.current = new AbortController();
-
-      const messageData = {
-        role: 'user',
-        content: message,
-        model: model?.name || 'llama3.2:3b',
-        user: user?.username,
-        images: images,
-        conversation: searchParamString || null,
-      };
-
       await api.streamCompletion(
-        messageData,
+        userMessage.data,
         (chunk: string) => {
-          setStreamingContent(prev => prev + chunk);
+          setLocalMessages(prev => {
+            const newMessages = [...prev];
+            const assistantMsg = newMessages.find(m => m.data.role === 'assistant');
+            if (assistantMsg) {
+              assistantMsg.data.content += chunk;
+            }
+            return newMessages;
+          });
         },
         abortControllerRef.current.signal
       );
-
-      // Invalidate queries after completion
       await queryClient.invalidateQueries({
         queryKey: ['messages', { conversation_id: searchParamString }],
       });
     } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('Generation cancelled');
+      if (error instanceof Error && error.name === 'AbortError') {
+        setLocalMessages(prev => {
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (lastMessage.data.role === 'assistant') {
+            lastMessage.data.content += ' [cancelled]';
+          }
+          return newMessages;
+        });
       } else {
         console.error('Error submitting message:', error);
       }
     } finally {
       setStreamingContent('');
       setIsStreaming(false);
+      setLocalMessages([]);
       abortControllerRef.current = null;
     }
   };
 
   return {
-    conversationId: searchParamString,
+    conversation: searchParamString,
     messages,
     submitMessage,
     cancelGeneration,
     streamingContent,
     isStreaming,
+    localMessages,
+    assistantMessage,
   };
 }

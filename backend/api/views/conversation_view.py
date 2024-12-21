@@ -3,8 +3,8 @@ import logging
 from rest_framework import mixins, viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from api.serializers.conversation import ConversationSerializer
-from api.services.conversation_service import ConversationService
+from features.conversations.serializers.conversation import ConversationSerializer
+from features.conversations.services.conversation_service import ConversationService
 from api.utils.exceptions import ValidationError
 from api.utils.pagination import StandardResultsSetPagination
 from api.utils.responses.response import api_response

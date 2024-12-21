@@ -31,9 +31,9 @@ class Message(BaseModel):
     )
     role = models.CharField(max_length=25, choices=ROLE_CHOICES, db_index=True)
     content = models.TextField()
-    model = models.ForeignKey(Assistant, on_delete=models.PROTECT, null=True, blank=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     has_images = models.BooleanField(default=False)
+    model = models.CharField(max_length=120)
 
     def clean(self):
         if self.role == "user" and not self.user:

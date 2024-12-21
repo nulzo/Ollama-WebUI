@@ -82,27 +82,31 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
   };
 
   return (
-    <div className="relative flex flex-col h-screen">
-      <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto">
-        <MessagesList
-          conversation_id={conversation_id}
-          streamingContent={streamingContent}
-          isStreaming={isStreaming}
-        />
-        <div ref={messagesEndRef} />
-      </div>
-
+    <div className="relative flex flex-col h-full">
+     <div 
+       ref={containerRef} 
+       onScroll={handleScroll} 
+       className="flex-1 min-h-0 overflow-y-auto"
+     >
+       <div className="flex flex-col h-full">
+         <MessagesList
+           conversation_id={conversation_id}
+           streamingContent={streamingContent}
+           isStreaming={isStreaming}
+         />
+         <div ref={messagesEndRef} />
+       </div>
+     </div>
       <div className="right-0 bottom-0 left-0 absolute">
-        <div className="-top-16 left-1/2 z-10 absolute transform -translate-x-1/2">
-          <ScrollToBottomButton isVisible={showScrollButton} onClick={scrollToBottom} />
-        </div>
-
+       <div className="-top-16 left-1/2 z-10 absolute transform -translate-x-1/2">
+         <ScrollToBottomButton isVisible={showScrollButton} onClick={scrollToBottom} />
+       </div>
         {isStreaming && (
-          <div className="-top-16 right-4 z-10 absolute">
-            <CancelButton onClick={cancelGeneration} />
-          </div>
-        )}
-      </div>
-    </div>
+         <div className="-top-16 right-4 z-10 absolute">
+           <CancelButton onClick={cancelGeneration} />
+         </div>
+       )}
+     </div>
+   </div>
   );
 }

@@ -1,0 +1,82 @@
+[
+    {
+      "model": "api.conversation",
+      "pk": "550e8400-e29b-41d4-a716-446655440000",
+      "fields": {
+        "user": 1,
+        "name": "Welcome Conversation",
+        "is_pinned": false,
+        "is_hidden": false,
+        "created_at": "2024-03-20T00:00:00Z",
+        "updated_at": "2024-03-20T00:00:00Z"
+      }
+    },
+    {
+      "model": "api.message",
+      "pk": 1,
+      "fields": {
+        "conversation": "550e8400-e29b-41d4-a716-446655440000",
+        "role": "user",
+        "content": "Hi! I'm new here. What can you help me with?",
+        "model": "claude-3-opus-20240229",
+        "user": 1,
+        "has_images": false,
+        "created_at": "2024-03-20T00:00:00Z",
+        "updated_at": "2024-03-20T00:00:00Z"
+      }
+    },
+    {
+      "model": "api.message",
+      "pk": 2,
+      "fields": {
+        "conversation": "550e8400-e29b-41d4-a716-446655440000",
+        "role": "assistant",
+        "content": "Welcome! I'm Claude, and I'm here to help you with a wide range of tasks. I can assist with:\n\n1. Writing and analysis\n2. Coding and technical questions\n3. Math and problem-solving\n4. Research and information gathering\n5. Creative projects\n\nFeel free to ask me anything, and I'll do my best to help you!",
+        "model": "claude-3-opus-20240229",
+        "user": null,
+        "has_images": false,
+        "created_at": "2024-03-20T00:00:01Z",
+        "updated_at": "2024-03-20T00:00:01Z"
+      }
+    },
+    {
+      "model": "api.conversation",
+      "pk": "550e8400-e29b-41d4-a716-446655440001",
+      "fields": {
+        "user": 1,
+        "name": "Coding Example",
+        "is_pinned": false,
+        "is_hidden": false,
+        "created_at": "2024-03-20T00:00:00Z",
+        "updated_at": "2024-03-20T00:00:00Z"
+      }
+    },
+    {
+      "model": "api.message",
+      "pk": 3,
+      "fields": {
+        "conversation": "550e8400-e29b-41d4-a716-446655440001",
+        "role": "user",
+        "content": "Can you show me how to write a simple Python function that calculates the Fibonacci sequence?",
+        "model": "claude-3-opus-20240229",
+        "user": 1,
+        "has_images": false,
+        "created_at": "2024-03-20T00:00:00Z",
+        "updated_at": "2024-03-20T00:00:00Z"
+      }
+    },
+    {
+      "model": "api.message",
+      "pk": 4,
+      "fields": {
+        "conversation": "550e8400-e29b-41d4-a716-446655440001",
+        "role": "assistant",
+        "content": "Here's a simple Python function to calculate the Fibonacci sequence:\n\n```python\ndef fibonacci(n):\n    if n <= 0:\n        return []\n    elif n == 1:\n        return [0]\n    \n    sequence = [0, 1]\n    while len(sequence) < n:\n        sequence.append(sequence[-1] + sequence[-2])\n    \n    return sequence\n\n# Example usage:\nprint(fibonacci(10))  # [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]\n```\n\nThis function:\n1. Takes a number 'n' as input\n2. Returns the first n numbers of the Fibonacci sequence\n3. Handles edge cases (n ≤ 0 and n = 1)\n\nWould you like me to explain how it works in detail?",
+        "model": "claude-3-opus-20240229",
+        "user": null,
+        "has_images": false,
+        "created_at": "2024-03-20T00:00:01Z",
+        "updated_at": "2024-03-20T00:00:01Z"
+      }
+    }
+  ]

@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import dataclass
+from threading import Event
 from typing import AnyStr, Dict, Generator, List, Optional, Sequence, Union
 
 import httpx
@@ -47,6 +48,7 @@ class OllamaProvider(BaseProvider):
     def __init__(self) -> None:
         self.config = OllamaConfig.from_settings()
         self._client = Client(host=self.config.endpoint)
+        self._cancel_event = Event()
         self.logger = logger
         super().__init__()
 
@@ -146,7 +148,11 @@ class OllamaProvider(BaseProvider):
 
                     # Make another request with tool results
                     return self.chat(
-                        messages=messages, model=model, tools=tools, stream=stream, **kwargs
+                        messages=messages,
+                        model=model,
+                        tools=tools,
+                        stream=stream,
+                        **kwargs
                     )
 
                 return message["content"]
@@ -163,24 +169,44 @@ class OllamaProvider(BaseProvider):
         """
         Streams a response from the ollama service.
         """
+        self._cancel_event.clear()
         self.logger.info(f"Starting Ollama stream for model: {model}")
+        generation_id = id(self)
+        tokens_generated = 0
 
         try:
             response = self._client.chat(
-                model=model, messages=messages, options=options, stream=True
+                model=model,
+                messages=messages,
+                options=options,
+                stream=True
             )
-
+            
             for chunk in response:
-                if isinstance(chunk, bytes):
-                    chunk = chunk.decode("utf-8")
-                if isinstance(chunk, dict) and "message" in chunk:
-                    yield chunk["message"].get("content", "")
-                elif isinstance(chunk, str):
-                    yield chunk
+                if self._cancel_event.is_set():
+                    self.logger.info(f"Generation {generation_id} was cancelled after {tokens_generated} tokens")
+                    yield json.dumps({
+                        'content': ' [Generation cancelled]',
+                        'status': 'cancelled'
+                    })
+                    return
+
+                if 'message' in chunk and 'content' in chunk['message']:
+                    content = chunk['message']['content']
+                    tokens_generated += 1
+                    yield json.dumps({
+                        'content': content,
+                        'status': 'generating'
+                    })
 
         except Exception as e:
-            self.logger.error(f"Error in Ollama stream: {str(e)}")
-            yield json.dumps({"error": str(e), "status": "error"})
+            self.logger.error(f"Error in generation {generation_id}: {str(e)}")
+            yield json.dumps({
+                'error': str(e),
+                'status': 'error'
+            })
+        finally:
+            self.logger.info(f"Generation {generation_id} completed with {tokens_generated} tokens generated")
 
     def model(self): ...
 

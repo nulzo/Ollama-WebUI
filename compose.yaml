@@ -2,6 +2,7 @@
 services:
   # Backend service (Django REST framework)
   backend:
+    tty: true
     container_name: backend
     build: 
       context: ./backend  # Build the backend service using the Dockerfile in the ./backend directory

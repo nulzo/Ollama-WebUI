@@ -117,12 +117,22 @@ module.exports = {
           '0%': { transform: 'translateX(0)', opacity: 1 },
           '100%': { transform: 'translateX(100%)', opacity: 0 },
         },
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        bounce: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'toast-in': 'toast-in 0.5s ease-in-out forwards',
         'toast-out': 'toast-out 0.5s ease-in-out forwards',
+        fadeIn: 'fadeIn 0.3s ease-out forwards',
+        bounce: 'bounce 0.6s infinite',
       },
     },
   },

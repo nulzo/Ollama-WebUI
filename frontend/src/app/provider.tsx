@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { queryConfig } from '@/lib/query';
 import { AuthProvider } from '@/features/authentication/components/auth-provider';
 import { SidebarProvider } from '@/features/sidebar/components/sidebar-context';
+import { ChatProvider } from '@/features/chat/stores/chat-context';
 
 type AppProviderProps = {
   children: React.ReactNode;
@@ -37,12 +38,14 @@ export const AppProvider = ({ children }: AppProviderProps) => {
           <ErrorBoundary FallbackComponent={MainErrorFallback}>
             <HelmetProvider>
               <QueryClientProvider client={queryClient}>
-                <AuthProvider>
-                  {import.meta.env.DEV && <ReactQueryDevtools />}
-                  {children}
-                  <Toaster />
-                  <Notifications />
-                </AuthProvider>
+                <ChatProvider>
+                  <AuthProvider>
+                    {import.meta.env.DEV && <ReactQueryDevtools />}
+                    {children}
+                    <Toaster />
+                    <Notifications />
+                  </AuthProvider>
+                </ChatProvider>
               </QueryClientProvider>
             </HelmetProvider>
           </ErrorBoundary>

@@ -11,8 +11,11 @@ from ollama import Options
 
 from api.models.agent.agent import Agent
 from api.providers.provider_factory import ProviderFactory
+from api.models.chat.conversation import Conversation
 from features.conversations.repositories.message_repository import MessageRepository
 from features.conversations.serializers.message import MessageSerializer
+from api.models.auth.user import CustomUser
+from django.contrib.auth import get_user_model
 from features.knowledge.services.knowledge_service import KnowledgeService
 from api.services.prompt_service import (
     PromptBuilderService,
@@ -21,6 +24,7 @@ from api.services.prompt_service import (
     PromptVariantService,
 )
 
+logger = logging.getLogger(__name__)
 
 class ChatService:
     """
@@ -192,94 +196,120 @@ class ChatService:
             self.logger.error(f"Streaming error: {str(e)}\n{traceback.format_exc()}")
             yield f"data: {json.dumps({'error': str(e), 'type': 'error'})}\n\n"
 
-    def generate_response(self, serializer_data: dict, user) -> Generator[str, None, None]:
-        # Reset cancel event for new generation
-        self._cancel_event.clear()
+    def generate_response(self, data: dict, user) -> Generator[str, None, None]:
+        """Generate streaming response for chat"""
         generation_id = id(self)
-        self.logger.info(f"Starting LLM generation {generation_id} for message")
+        self._cancel_event.clear()
+        
+        print("DATA: ", data)
 
         try:
-            # Validate and create message
-            serializer = MessageSerializer(data=serializer_data, context={"user": user})
-            if not serializer.is_valid():
-                yield json.dumps({"error": serializer.errors, "status": "error"})
+            # Try to get conversation or create new one if not provided
+            conversation = None
+            if conversation_uuid := data.get('conversation_uuid'):
+                try:
+                    conversation = Conversation.objects.get(uuid=conversation_uuid)
+                except Conversation.DoesNotExist:
+                    logger.info(f"Conversation {conversation_uuid} not found, creating new conversation")
+                    conversation = None
+
+            if not conversation:
+                # Create new conversation
+                conversation = Conversation.objects.create(
+                    user=user if isinstance(user, CustomUser) else CustomUser.objects.get(id=user),
+                    name="New Conversation"
+                )
+                # Send conversation UUID as first chunk
+                yield json.dumps({
+                    'conversation_uuid': str(conversation.uuid),
+                    'status': 'created'
+                })
+            logger.info(f"Created new conversation {conversation.uuid} for user {user.id}")
+
+            
+            try:
+                if isinstance(user, int):
+                    user = CustomUser.objects.get(id=user)
+                elif isinstance(data.get('user'), int):
+                    user = CustomUser.objects.get(id=data['user'])
+            except CustomUser.DoesNotExist:
+                error_msg = "User not found"
+                logger.error(f"Error in generation {generation_id}: {error_msg}")
+                yield json.dumps({
+                    'error': error_msg,
+                    'status': 'error'
+                })
                 return
+            
+            # Create the user's message with conversation instance
+            user_message = self.message_repository.create({
+                'conversation': conversation,  # Pass the conversation instance instead of UUID
+                'content': data.get('content', ''),
+                'role': 'user',
+                'user': user,
+                'model': data.get('model', 'llama3.2:3b'),
+                'images': data.get('images', [])
+            })
 
-            # Save initial message
-            message = serializer.save()
-            conversation = message.conversation
-            self.logger.info(f"Created message {message.id} in conversation {conversation.uuid}")
+            print("USER MESSAGE: ", user_message)
 
-            # Send initial data
-            yield json.dumps(
+            # If new conversation, send UUID back
+            if not data.get('conversation_uuid'):
+                yield json.dumps({
+                    'conversation_uuid': user_message.conversation.uuid,
+                    'status': 'created'
+                })
+
+            # Get the appropriate provider
+            provider = self._get_provider(data.get('model', 'llama3.2:3b'))
+            
+            # Process conversation history
+            messages = list(user_message.conversation.messages.all().order_by('created_at'))
+            
+            if user_message not in messages:
+                messages.append(user_message)
+            
+            # Format messages for provider
+            formatted_messages = [
                 {
-                    "conversation_uuid": str(conversation.uuid),
-                    "model": {
-                        "name": message.model,
-                        "display_name": message.model,
-                    },
-                    "message_id": str(message.id),
-                    "status": "init",
-                }
-            )
-
-            # Get provider and process messages
-            provider = self._get_provider(message.model)
-            messages = list(conversation.messages.all().order_by("created_at"))
-
-            flattened_messages = [
-                {
-                    "role": msg.role,
-                    "content": msg.content,
-                    "images": self._process_message_images(msg),
+                    'role': msg.role,
+                    'content': msg.content,
+                    'images': self._process_message_images(msg),
                 }
                 for msg in messages
             ]
+            
+            print("Formatted messages:", formatted_messages)
+
             # Stream the response
             full_content = ""
-            tokens_generated = 0
+            for chunk in provider.stream(data.get('model', 'llama3.2:3b'), formatted_messages):
+                if isinstance(chunk, str):
+                    chunk_data = json.loads(chunk)
+                    full_content += chunk_data.get('content', '')
+                    yield json.dumps(chunk_data) + '\n'
 
-            for chunk in provider.stream(message.model, flattened_messages):
-                if self._cancel_event.is_set():
-                    self.logger.info(
-                        f"Generation {generation_id} cancelled after {tokens_generated} tokens"
-                    )
-                    yield json.dumps({"content": " [Generation cancelled]", "status": "cancelled"})
-                    return
-
-                if isinstance(chunk, (str, dict)):
-                    content = chunk if isinstance(chunk, str) else chunk.get("message", {}).get("content", "")
-                    if content:
-                        full_content += content
-                        # Format the response as expected by frontend
-                        yield json.dumps({
-                            "delta": {"content": content},
-                            "status": "generating"
-                        })
-
-            # Create assistant's response message
-            response_message = self.message_repository.create(
-                {
-                    "conversation": conversation,
-                    "role": "assistant",
-                    "content": full_content,
-                    "model": message.model,
-                    "user": user,
-                    "images": [],
-                }
-            )
-            # Send completion data
-            yield json.dumps({
-                "delta": {"content": ""},
-                "status": "done",
-                "message_id": str(response_message.id),
-                "done": True,
-            })
+            # Update final message content if not cancelled
+            if not self._cancel_event.is_set():
+                assistant_message = self.message_repository.create({
+                    'conversation': conversation,
+                    'content': full_content,  # Use accumulated content
+                    'role': 'assistant',
+                    'user': user,
+                    'model': data.get('model', 'llama3.2:3b')
+                })
+                yield json.dumps({
+                    'status': 'done',
+                    'message_id': assistant_message.id
+                })
 
         except Exception as e:
-            self.logger.error(f"Error in generation {generation_id}: {str(e)}")
-            yield json.dumps({"error": str(e), "status": "error"})
-
+            logger.error(f"Error in generation {generation_id}: {str(e)}\n{traceback.format_exc()}")
+            yield json.dumps({
+                'error': str(e),
+                'status': 'error'
+            })
+            
     def _get_provider(self, model_name: str, user_id: int = None):
         """Get appropriate provider based on model name"""
         provider_name = "openai" if model_name.startswith("gpt") else "ollama"
@@ -314,3 +344,7 @@ class ChatService:
         except Exception as e:
             self.logger.error(f"Error generating prompts: {str(e)}")
             raise
+        
+    def cancel_generation(self):
+        """Mark the current generation as cancelled"""
+        self._cancel_event.set()

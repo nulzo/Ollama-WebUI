@@ -7,6 +7,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useModels } from '@/features/models/api/get-models';
@@ -20,11 +21,60 @@ interface ModelSelectProps {
   onValueChange: (value: string) => void;
 }
 
+type Model = {
+  value: string;
+  label: string;
+  provider: string;
+  details: Record<string, string>;
+};
+
 export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const { data: modelsData, isLoading } = useModels();
 
-  const formattedModels = useMemo(() => formatModels(modelsData), [modelsData]);
+  const formattedModels: Model[] = useMemo(() => {
+    if (!modelsData) return [];
+    try {
+      return formatModels(modelsData);
+    } catch (error) {
+      console.error('Error formatting models:', error);
+      return [];
+    }
+  }, [modelsData]);
+  
+  const filteredModels = useMemo(() => {
+    if (!search) return formattedModels;
+    return formattedModels.filter(model => 
+      model.label.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [formattedModels, search]);
+  
+  const openaiModels = useMemo(() => 
+    filteredModels.filter(model => model.provider === 'openai'), 
+    [filteredModels]
+  );
+  
+  const ollamaModels = useMemo(() => 
+    filteredModels.filter(model => model.provider === 'ollama'), 
+    [filteredModels]
+  );
+
+  if (isLoading) {
+    return (
+      <Button variant="outline" className="w-full" disabled>
+        Loading models...
+      </Button>
+    );
+  }
+
+  if (!formattedModels.length) {
+    return (
+      <Button variant="outline" className="w-full" disabled>
+        No models available
+      </Button>
+    );
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -34,90 +84,69 @@ export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
           role="combobox"
           aria-expanded={open}
           className="justify-between w-full"
-          disabled={isLoading}
         >
           {value ? formattedModels.find(model => model.value === value)?.label : 'Select model...'}
           <ChevronsUpDown className="opacity-50 ml-2 w-4 h-4 shrink-0" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-full">
-        <Command>
-          <CommandInput placeholder="Search models..." />
-          <CommandEmpty>No model found.</CommandEmpty>
-          <ScrollArea className="h-[300px]">
-            <CommandGroup heading="Ollama Models">
-              {formattedModels
-                .filter(model => model.provider === 'ollama')
-                .map(model => (
-                  <CommandItem
-                    key={model.value}
-                    value={model.value}
-                    onSelect={currentValue => {
-                      onValueChange(currentValue);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        value === model.value ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    <div className="flex flex-col gap-1">
-                      <span>{model.label}</span>
-                      <div className="flex gap-1">
-                        {'size' in model.details && (
-                          <Badge variant="outline" className="text-xs">
-                            {model.details.size}
-                          </Badge>
+      <PopoverContent className="p-0 w-full" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Search models..." 
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList>
+            <CommandEmpty>No model found.</CommandEmpty>
+            <ScrollArea className="h-[300px]">
+              {ollamaModels.length > 0 && (
+                <CommandGroup heading="Ollama Models">
+                  {ollamaModels.map(model => (
+                    <CommandItem
+                      key={model.value}
+                      value={model.value}
+                      onSelect={currentValue => {
+                        onValueChange(currentValue);
+                        setOpen(false);
+                        setSearch('');
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          value === model.value ? 'opacity-100' : 'opacity-0'
                         )}
-                        {'format' in model.details && (
-                          <Badge variant="outline" className="text-xs">
-                            {model.details.format}
-                          </Badge>
+                      />
+                      {model.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+              {openaiModels.length > 0 && (
+                <CommandGroup heading="OpenAI Models">
+                  {openaiModels.map(model => (
+                    <CommandItem
+                      key={model.value}
+                      value={model.value}
+                      onSelect={currentValue => {
+                        onValueChange(currentValue);
+                        setOpen(false);
+                        setSearch('');
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          value === model.value ? 'opacity-100' : 'opacity-0'
                         )}
-                        {'quantization' in model.details && (
-                          <Badge variant="outline" className="text-xs">
-                            {model.details.quantization}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </CommandItem>
-                ))}
-            </CommandGroup>
-            <CommandGroup heading="OpenAI Models">
-              {formattedModels
-                .filter(model => model.provider === 'openai')
-                .map(model => (
-                  <CommandItem
-                    key={model.value}
-                    value={model.value}
-                    onSelect={currentValue => {
-                      onValueChange(currentValue);
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        value === model.value ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    <div className="flex flex-col gap-1">
-                      <span>{model.label}</span>
-                      <div className="flex gap-1">
-                        {'owner' in model.details && (
-                          <Badge variant="outline" className="text-xs">
-                            {model.details.owner}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </CommandItem>
-                ))}
-            </CommandGroup>
-          </ScrollArea>
+                      />
+                      {model.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              )}
+            </ScrollArea>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>

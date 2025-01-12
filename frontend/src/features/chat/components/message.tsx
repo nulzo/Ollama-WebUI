@@ -111,10 +111,12 @@ export const Message: React.FC<MessageProps> = ({
                   <div className="h-6" /> // Placeholder for empty content
                 )}
                 {isTyping && (
-                  <div className="flex h-4">
-                    <div className="typing-indicator" />
-                  </div>
-                )}
+                    <div className="flex items-center space-x-1 ml-2 h-6">
+                      <div className="bg-gray-400 rounded-full w-2 h-2 animate-bounce [animation-delay:-0.3s]" />
+                      <div className="bg-gray-400 rounded-full w-2 h-2 animate-bounce [animation-delay:-0.15s]" />
+                      <div className="bg-gray-400 rounded-full w-2 h-2 animate-bounce" />
+                    </div>
+                  )}
               </div>
             </div>
 
@@ -148,10 +150,10 @@ export const Message: React.FC<MessageProps> = ({
 
             <div className="bg-primary selection:bg-background/40 px-4 py-3 rounded-xl rounded-tr-sm text-primary-foreground">
               <div className="max-w-none prose-invert prose prose-sm">
-                {messageContent ? (
+                {messageContent.length > 0 ? (
                   <MarkdownRenderer markdown={messageContent} />
                 ) : (
-                  <div className="h-6" /> // Placeholder for empty content
+                  <div className="h-6">{modelName} is loading...</div>
                 )}
               </div>
             </div>

@@ -1,14 +1,15 @@
-import { usePrompts } from '../../api/get-default-prompts.ts';
-import { ChatInput } from '@/features/textbox/components/chat-input.tsx';
-import { useConversation } from '../../hooks/use-conversation.ts';
+import { usePrompts } from '../../api/get-default-prompts';
+import { ChatInput } from '@/features/textbox/components/chat-input';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { Skeleton } from '@/components/ui/skeleton.tsx';
+import { useEffect, useState, useRef } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Flame, RefreshCcw, Send } from 'lucide-react';
-import { useUser } from '@/lib/auth.tsx';
+import { useUser } from '@/lib/auth';
 import { Sparkles, Brain, Lightbulb, Coffee } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button.tsx';
+import { Button } from '@/components/ui/button';
+import { useMutation } from '@tanstack/react-query';
+import { api } from '@/lib/api-client';
 
 const promptStyles = [
   { name: 'Creative', icon: <Sparkles className="w-4 h-4" /> },
@@ -17,31 +18,117 @@ const promptStyles = [
   { name: 'Casual', icon: <Coffee className="w-4 h-4" /> },
 ];
 
+interface Message {
+  content: string;
+  role: 'user' | 'assistant';
+  created_at: string;
+}
+
 export const ConversationDefault = () => {
   const [selectedStyle, setSelectedStyle] = useState('');
-  const { data, isLoading, isFetching, refetch, isRefetching } = usePrompts({
+  const { data, isLoading, isFetching, refetch } = usePrompts({
     style: selectedStyle.toLowerCase(),
   });
-  const { submitMessage } = useConversation();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const cardMap = [0, 1, 2, 3, 4];
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [displayText, setDisplayText] = useState('CringeAI');
   const [fade, setFade] = useState(true);
+  
+  const abortControllerRef = useRef<AbortController | null>(null);
   const user = useUser();
   const navigate = useNavigate();
 
-  const handleMessage = async (message: string, image: string | null = null) => {
-    if (isProcessing) return;
+  const mutation = useMutation({
+    mutationFn: async (message: string) => {
+      setIsGenerating(true);
+      abortControllerRef.current = new AbortController();
 
-    try {
-      setIsProcessing(true);
-      await submitMessage(message, image);
-    } catch (err) {
-      console.error('Failed to create conversation and submit message:', err);
-    } finally {
-      setIsProcessing(false);
+      // Add user message
+      setMessages(prev => [...prev, {
+        content: message,
+        role: 'user',
+        created_at: new Date().toISOString()
+      }]);
+
+      // Add empty assistant message
+      setMessages(prev => [...prev, {
+        content: '',
+        role: 'assistant',
+        created_at: new Date().toISOString()
+      }]);
+
+      try {
+        await api.streamCompletion(
+          {
+            content: message,
+          },
+          (chunk) => {
+            setMessages(prev => {
+              const newMessages = [...prev];
+              const lastMessage = newMessages[newMessages.length - 1];
+              if (lastMessage.role === 'assistant') {
+                newMessages[newMessages.length - 1] = {
+                  ...lastMessage,
+                  content: lastMessage.content + chunk
+                };
+              }
+              return newMessages;
+            });
+          },
+          abortControllerRef.current.signal
+        );
+      } finally {
+        setIsGenerating(false);
+        abortControllerRef.current = null;
+      }
+    },
+    onError: (error) => {
+      if (error.name === 'AbortError') {
+        setMessages(prev => {
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (lastMessage.role === 'assistant') {
+            newMessages[newMessages.length - 1] = {
+              ...lastMessage,
+              content: lastMessage.content + ' [cancelled]'
+            };
+          }
+          return newMessages;
+        });
+      } else {
+        console.error('Chat error:', error);
+        setMessages(prev => [
+          ...prev,
+          {
+            content: 'Sorry, there was an error processing your request.',
+            role: 'assistant',
+            created_at: new Date().toISOString()
+          }
+        ]);
+      }
+      setIsGenerating(false);
     }
+  });
+
+  const handleMessage = (message: string) => {
+    if (isGenerating) return;
+    mutation.mutate(message);
   };
+
+  useEffect(() => {
+    const handleConversationCreated = (event: CustomEvent) => {
+      const uuid = event.detail.uuid;
+      navigate(`/?c=${uuid}`, { replace: true });
+    };
+
+    window.addEventListener('conversation-created', handleConversationCreated as EventListener);
+    return () => {
+      window.removeEventListener(
+        'conversation-created',
+        handleConversationCreated as EventListener
+      );
+    };
+  }, [navigate]);
 
   useEffect(() => {
     const handleConversationCreated = (event: CustomEvent) => {

@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
 import { useSidebar } from '@/features/sidebar/components/sidebar-context';
-import { Toaster } from '@/components/ui/toaster';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -21,7 +20,6 @@ export function AppLayout({ children }: AppLayoutProps) {
       >
         <div className="w-full h-full overflow-auto">
           {children}
-          <Toaster />
         </div>
       </div>
     </div>

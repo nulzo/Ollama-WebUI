@@ -5,6 +5,7 @@ from api.models.chat.message import Message
 from features.conversations.repositories.message_repository import MessageRepository
 from features.conversations.serializers.message import MessageSerializer
 from api.utils.exceptions import ServiceError, ValidationError
+from threading import Event
 
 
 class MessageService:
@@ -13,6 +14,7 @@ class MessageService:
     def __init__(self):
         self.repository = MessageRepository()
         self.logger = logging.getLogger(__name__)
+        self._cancel_event = Event()
 
     async def create_message(self, data: Dict[str, Any], user) -> Message:
         """Create a new message"""

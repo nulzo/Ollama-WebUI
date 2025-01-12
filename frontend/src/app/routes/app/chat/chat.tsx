@@ -1,4 +1,3 @@
-// frontend/src/app/routes/app/chat/chat.tsx
 import { ConversationArea } from '@/features/chat/components/chat-area/conversation-area.tsx';
 import { ConversationAreaHeader } from '@/features/chat/components/chat-area/conversation-area-header.tsx';
 import { ChatContainer } from '@/features/chat/components/chat-container.tsx';
@@ -7,22 +6,21 @@ import { ChatInput } from '@/features/textbox/components/chat-input';
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useConversation } from '@/features/chat/hooks/use-conversation.ts';
+import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
 
 export function ChatRoute() {
-  const { conversationId, submitMessage, isStreaming } = useConversation();
+  const { conversation } = useConversation();
+  const { mutation, isGenerating } = useChatMutation(conversation || undefined);
+
   const [searchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (searchParamString && searchParamString !== conversationId) {
+    if (searchParamString && searchParamString !== conversation) {
       navigate(`/?c=${searchParamString}`);
     }
-  }, [searchParamString, conversationId]);
-
-  const handleSubmit = (message: string, images: string[] | undefined) => {
-    submitMessage(message, images);
-  };
+  }, [searchParamString, conversation]);
 
   return (
     <div className="relative flex flex-col w-full max-w-full h-screen transition">
@@ -39,8 +37,8 @@ export function ChatRoute() {
             <ConversationDefault />
           )}
         </ConversationArea>
-        <div className="bg-background p-4 border-t">
-          <ChatInput onSubmit={handleSubmit} disabled={isStreaming} />
+        <div className="bg-background mt-1 p-4">
+          <ChatInput onSubmit={(content) => mutation.mutate(content)} disabled={isGenerating} />
         </div>
       </div>
     </div>

@@ -84,14 +84,18 @@ COPY . .
 # Expose the port to the container
 EXPOSE "$PORT"
 
+# Copy fixtures
+COPY api/fixtures/default_conversations.json ./api/fixtures/
+
+# Run migrations and load fixtures
 RUN poetry run python manage.py makemigrations
 RUN poetry run python manage.py migrate
 RUN poetry run python manage.py createsuperuser --noinput
-# RUN poetry run python manage.py loaddata default_agents
+RUN poetry run python manage.py loaddata default_conversations
 
 # Start the Django backend server on port 6969.
 # Running this command with "0.0.0.0:PORT" allows us to tell Docker that
 # we want this application to be exposed through the Docker DNS bridge.
 # It allows our application to be seen *outside* of Docker, and gives us 
 # the ability to run it via localhost on our main machine.
-CMD ["poetry", "run", "uvicorn", "settings.asgi:application", "--host", "0.0.0.0", "--port", "6969"]
+CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:6969"]

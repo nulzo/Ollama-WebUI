@@ -10,7 +10,7 @@
 
 export interface Message {
   id?: number;
-  conversation_id: string; // Make this required
+  conversation_uuid: string;
   role?: string;
   content: string;
   created_at?: string;

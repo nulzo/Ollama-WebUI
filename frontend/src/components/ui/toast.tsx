@@ -51,22 +51,36 @@ const Toast = React.forwardRef<
     }
 >(({ className, variant, duration = 5000, onOpenChange, ...props }, ref) => {
   const [progress, setProgress] = React.useState(0);
+  const progressRef = React.useRef<number>(0);
+  const progressTimerRef = React.useRef<number>();
 
   React.useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress(oldProgress => {
-        const newProgress = oldProgress + 100 / (duration / 100);
-        if (newProgress >= 100) {
-          clearInterval(timer);
-          // Trigger toast removal when progress reaches 100%
-          onOpenChange?.(false);
-          return 100;
-        }
-        return newProgress;
-      });
-    }, 100);
+    const startTime = Date.now();
+    const endTime = startTime + duration;
 
-    return () => clearInterval(timer);
+    const updateProgress = () => {
+      const now = Date.now();
+      const remaining = endTime - now;
+      const newProgress = ((duration - remaining) / duration) * 100;
+
+      if (newProgress >= 100) {
+        setProgress(100);
+        onOpenChange?.(false);
+        return;
+      }
+
+      progressRef.current = newProgress;
+      setProgress(newProgress);
+      progressTimerRef.current = window.setTimeout(updateProgress, 10);
+    };
+
+    progressTimerRef.current = window.setTimeout(updateProgress, 10);
+
+    return () => {
+      if (progressTimerRef.current) {
+        window.clearTimeout(progressTimerRef.current);
+      }
+    };
   }, [duration, onOpenChange]);
 
   return (
@@ -88,7 +102,7 @@ const Toast = React.forwardRef<
           className="bottom-0 left-0 absolute bg-white/20 h-1"
           style={{
             width: `${progress}%`,
-            transition: 'width 100ms linear',
+            transition: 'width 10ms linear',
           }}
         />
       </motion.div>

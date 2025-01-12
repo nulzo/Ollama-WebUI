@@ -45,9 +45,12 @@ export const formatOpenAIModel = (modelData: OpenAIModelData): FormattedModel =>
 
 export const formatModels = (modelsData?: ProviderModels): FormattedModel[] => {
   if (!modelsData) return [];
-
-  return [
-    ...(modelsData.ollama?.models?.map(formatOllamaModel) ?? []),
-    ...(modelsData.openai?.map(formatOpenAIModel) ?? []),
-  ];
+   const formattedModels: FormattedModel[] = [];
+   if (modelsData.ollama?.models) {
+    formattedModels.push(...modelsData.ollama.models.map(formatOllamaModel));
+  }
+  if (modelsData.openai) {
+    formattedModels.push(...modelsData.openai.map(formatOpenAIModel));
+  }
+  return formattedModels;
 };

@@ -4,6 +4,7 @@ import { useAuth } from '@/features/authentication/hooks/use-auth';
 import { useRef } from 'react';
 import { useChatContext } from '../stores/chat-context';
 import { useNavigate } from 'react-router-dom';
+import { useModelStore } from '@/features/models/store/model-store';
 
 export function useChatMutation(conversation_id?: string) {
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -11,10 +12,12 @@ export function useChatMutation(conversation_id?: string) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { setStreamingMessages, setIsGenerating, isGenerating } = useChatContext();
-
+  const model = useModelStore(state => state.model);
+  
   const mutation = useMutation({
     mutationFn: async (message: string) => {
       if (!user) throw new Error('Authentication required');
+      if (!model) throw new Error('No model selected');
 
       setIsGenerating(true);
       abortControllerRef.current = new AbortController();
@@ -25,7 +28,7 @@ export function useChatMutation(conversation_id?: string) {
           {
             role: 'user',
             content: message,
-            model: 'llama3.2:3b',
+            model: model?.name,
             liked_by: [],
             has_images: false,
             conversation_uuid: conversation_id,
@@ -35,7 +38,7 @@ export function useChatMutation(conversation_id?: string) {
           {
             role: 'assistant',
             content: '',
-            model: 'llama3.2:3b',
+            model: model?.name,
             liked_by: [],
             has_images: false,
             conversation_uuid: conversation_id,
@@ -52,7 +55,7 @@ export function useChatMutation(conversation_id?: string) {
             conversation_uuid: conversation_id,
             role: 'user',
             user: user?.id,
-            model: 'llama3.2:3b',
+            model: model?.name,
             images: [],
           },
           chunk => {
@@ -68,7 +71,7 @@ export function useChatMutation(conversation_id?: string) {
                 {
                   role: 'assistant',
                   content: '',
-                  model: 'llama3.2:3b',
+                  model: model?.name,
                   liked_by: [],
                   has_images: false,
                   conversation_uuid: newConversationId,
@@ -112,11 +115,7 @@ export function useChatMutation(conversation_id?: string) {
             queryClient.invalidateQueries({ queryKey: ['conversations'] }),
             queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: currentConversationId }] })
           ]);
-          
-          // Only clear streaming messages after queries have updated
-          setTimeout(() => {
-            setStreamingMessages([]);
-          }, 100);
+          setStreamingMessages([]);
         }
       }
     },

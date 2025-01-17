@@ -1,12 +1,10 @@
 import React, { useMemo, useEffect, useState, useRef } from 'react';
 import MarkdownRenderer from '@/features/markdown/components/markdown.tsx';
-import { ChevronUp, Copy, Heart, RefreshCw, Sparkle } from 'lucide-react';
+import { Copy, Heart, RefreshCw } from 'lucide-react';
 import { Message as MessageType } from '@/features/chat/types/message';
 import { BotIcon } from '@/features/chat/components/bot-icon.tsx';
 import { formatDate } from '@/utils/format.ts';
-import { CopyButton } from '@/features/chat/components/copy-message.tsx';
-import { LikeButton } from './like-message.tsx';
-import { EnhanceButton } from './enhance-button.tsx';
+import { motion, useMotionValue, animate } from 'framer-motion';
 import { AsyncMessageImage } from './async-image.tsx';
 import { useModels } from '@/features/models/api/get-models.ts';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
@@ -31,9 +29,10 @@ interface MessageProps extends Omit<MessageType, 'conversation_id'> {
 export const Message = React.memo<MessageProps>(
   ({ username, role, time, content, isTyping, modelName, image_ids = [], isLoading }) => {
     const [displayedContent, setDisplayedContent] = useState('');
-    const previousContentRef = useRef(content || '');
     const formattedDate = formatDate(time);
     const { data: modelsData } = useModels();
+    const progress = useMotionValue(0);
+    const previousContentRef = useRef(content || '');
     const { copy } = useClipboard();
 
     const isModelOnline = useMemo(() => {
@@ -58,10 +57,18 @@ export const Message = React.memo<MessageProps>(
       }
 
       if (content !== previousContentRef.current) {
-        const newChunk = content.slice(previousContentRef.current.length);
-        if (newChunk) {
-          setDisplayedContent(prev => prev + newChunk);
-        }
+        const newContent = content;
+        const targetLength = newContent.length;
+
+        // Animate the progress value from current to target length
+        animate(progress, targetLength, {
+          type: 'tween',
+          duration: 0.5, // Adjust this for speed
+          ease: 'linear',
+          onUpdate: latest => {
+            setDisplayedContent(newContent.slice(0, Math.floor(latest)));
+          },
+        });
       }
       previousContentRef.current = content;
     }, [content, isTyping]);
@@ -175,7 +182,7 @@ export const Message = React.memo<MessageProps>(
                           variant="link"
                           size="icon"
                           className="w-7 text-muted-foreground hover:text-foreground"
-                  >
+                        >
                           <RefreshCw className="w-3.5 h-3.5" />
                         </Button>
                       </TooltipTrigger>
@@ -224,13 +231,13 @@ export const Message = React.memo<MessageProps>(
               )}
 
               <div className="bg-primary selection:bg-background/40 px-4 py-3 rounded-xl rounded-tr-sm text-primary-foreground">
-                <div className="max-w-none prose-invert prose prose-sm">
+                <motion.div className="max-w-none prose-invert prose prose-sm">
                   {messageContent.length > 0 ? (
                     <MarkdownRenderer markdown={messageContent} />
                   ) : (
                     <Skeleton className="w-[300px] h-16" />
                   )}
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>

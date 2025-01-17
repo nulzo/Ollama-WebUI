@@ -81,6 +81,7 @@ export function useChatMutation(conversation_id?: string) {
 
               // Route to the new conversation
               navigate(`/?c=${newConversationId}`);
+              queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: newConversationId }] })
               return;
             }
 

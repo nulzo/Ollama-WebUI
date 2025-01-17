@@ -7,10 +7,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useLogin } from '@/lib/auth';
-import { useToast } from '@/components/ui/use-toast';
+import { useAuthLogin } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
 
-// Define schema with both username and password
 const FormSchema = z.object({
   username: z.string().min(2, {
     message: 'Username must be at least 2 characters.',
@@ -21,7 +20,7 @@ const FormSchema = z.object({
 });
 
 export const LoginRoute = () => {
-  const login = useLogin();
+  const login = useAuthLogin();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -37,7 +36,7 @@ export const LoginRoute = () => {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       await login.mutateAsync(data);
-
+      
       toast({
         title: 'Success',
         description: 'Login successful',

@@ -37,7 +37,7 @@ export function ChatRoute() {
             <ConversationDefault />
           )}
         </ConversationArea>
-        <div className="bg-background mt-1 p-4">
+        <div className="bg-background p-4">
           <ChatInput onSubmit={(content) => mutation.mutate(content)} disabled={isGenerating} />
         </div>
       </div>

@@ -1474,10 +1474,6 @@ body {
   height: 4rem;
 }
 
-.h-2 {
-  height: 0.5rem;
-}
-
 .h-2\.5 {
   height: 0.625rem;
 }
@@ -1638,10 +1634,6 @@ body {
   width: 4rem;
 }
 
-.w-2 {
-  width: 0.5rem;
-}
-
 .w-2\.5 {
   width: 0.625rem;
 }
@@ -1761,6 +1753,14 @@ body {
 
 .w-screen {
   width: 100vw;
+}
+
+.w-1\/2 {
+  width: 50%;
+}
+
+.w-3\/4 {
+  width: 75%;
 }
 
 .min-w-0 {
@@ -1898,22 +1898,6 @@ body {
 
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-    animation-timing-function: cubic-bezier(0.8,0,1,1);
-  }
-
-  50% {
-    transform: translateY(-4px);
-    animation-timing-function: cubic-bezier(0,0,0.2,1);
-  }
-}
-
-.animate-bounce {
-  animation: bounce 0.6s infinite;
 }
 
 @keyframes fade {
@@ -2433,11 +2417,6 @@ body {
 .bg-gray-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(243 244 246 / var(--tw-bg-opacity, 1));
-}
-
-.bg-gray-400 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(156 163 175 / var(--tw-bg-opacity, 1));
 }
 
 .bg-green-500 {
@@ -3311,14 +3290,6 @@ body {
 
 .ease-in-out {
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.\[animation-delay\:-0\.15s\] {
-  animation-delay: -0.15s;
-}
-
-.\[animation-delay\:-0\.3s\] {
-  animation-delay: -0.3s;
 }
 
 .selection\:bg-background\/25 *::-moz-selection {

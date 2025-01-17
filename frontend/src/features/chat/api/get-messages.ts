@@ -1,26 +1,17 @@
-import { queryOptions, useInfiniteQuery, useQueries, useQuery } from '@tanstack/react-query';
-
+import { infiniteQueryOptions, useInfiniteQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client.ts';
-import { QueryConfig } from '@/lib/query.ts';
-import { getMessage } from './get-message';
 import { Message } from '@/types/message';
+import { useMemo } from 'react';
+import { useCallback } from 'react';
 
-interface PaginatedResults {
-  id: string;
-  role: string;
-  created_at: string;
-  conversation: string;
-  conversation_uuid: string;
+interface Pagination {
+  page: number;
+  totalPages: number;
+  hasMore: boolean;
+  total: number;
 }
 
-interface PaginatedResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: PaginatedResults[];
-}
-
-interface ApiResponse {
+interface MessagesResponse {
   success: boolean;
   meta: {
     timestamp: string;
@@ -29,61 +20,85 @@ interface ApiResponse {
   };
   status: number;
   data: Message[];
+  pagination: Pagination;
   links: {
     self: string;
+    next: string | null;
+    previous: string | null;
   };
-};
+}
 
-export const getMessages = (conversation_id: string, next: string | null = null): Promise<PaginatedResponse> => {
-  return api.get(`/messages/`, {
+export const getMessages = ({
+  conversation_id,
+  page = 1,
+  limit = 10
+}: {
+  conversation_id: string;
+  page?: number;
+  limit?: number;
+}): Promise<MessagesResponse> => {
+  return api.get('/messages/', {
     conversation: conversation_id,
-    next: next,
+    page: page.toString(),
+    limit: limit.toString()
   });
 };
 
-export const getMessagesQueryOptions = ({ conversation_id }: { conversation_id?: string } = {}) => {
-  return queryOptions({
-    queryKey: conversation_id ? ['messages', { conversation_id }] : ['messages'],
-    queryFn: ({ pageParam }) => getMessages(conversation_id ?? '', pageParam),
+export const getInfiniteMessagesQueryOptions = (conversation_id: string) => {
+  return infiniteQueryOptions({
+    queryKey: ['messages', { conversation_id }],
+    queryFn: ({ pageParam = 1 }) => {
+      return getMessages({ 
+        conversation_id, 
+        page: pageParam as number 
+      });
+    },
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.pagination.hasMore) return undefined;
+      return lastPage.pagination.page + 1;
+    },
+    initialPageParam: 1,
   });
-};
-
-type UseMessagesOptions = {
-  conversation_id?: string;
-  queryConfig?: QueryConfig<typeof getMessages>;
 };
 
 export const useMessages = ({ conversation_id }: { conversation_id?: string }) => {
-  const messagesQuery = useInfiniteQuery({
+  const queryResult = useInfiniteQuery({
     queryKey: ['messages', { conversation_id }],
-    queryFn: ({ pageParam }) => getMessages(conversation_id ?? '', pageParam),
-    initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => {
-      const selfLink = lastPage.links?.self;
-      const nextParam = selfLink ? new URLSearchParams(selfLink.split('?')[1]).get('next') : null;
-      return nextParam === 'null' ? undefined : nextParam;
+    queryFn: ({ pageParam = 1 }) => {
+      return getMessages({ 
+        conversation_id: conversation_id ?? '', 
+        page: pageParam as number 
+      });
     },
     enabled: Boolean(conversation_id),
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.pagination.hasMore) return undefined;
+      return lastPage.pagination.page + 1;
+    },
+    initialPageParam: 1,
+    select: useCallback((data: any) => ({
+      ...data,
+      pages: [...data.pages].reverse().map((page: any) => ({
+        ...page,
+        data: [...page.data].reverse()
+      }))
+    }), [])  // Memoize the select function
   });
-   const messages = messagesQuery.data?.pages.flatMap(page => 
-    page?.data?.results.map(message => ({
-      data: {
-        id: message.id,
-        role: message.role,
-        content: message.content,
-        created_at: message.created_at,
-        model: message.model,
-        liked_by: message.liked_by,
-        has_images: message.has_images,
-        conversation_uuid: message.conversation_uuid
-      }
-    }))
-  ) ?? [];
-   return {
+
+  // Memoize the flattened messages array
+  const messages = useMemo(() => 
+    queryResult.data?.pages.flatMap((page: any) => 
+      page.data.map((message: any) => ({
+        ...message
+      }))
+    ) ?? []
+  , [queryResult.data]);
+
+  return {
     messages,
-    isLoading: messagesQuery.isLoading,
-    fetchNextPage: messagesQuery.fetchNextPage,
-    hasNextPage: messagesQuery.hasNextPage,
-    isFetchingNextPage: messagesQuery.isFetchingNextPage
+    isLoading: queryResult.isLoading,
+    fetchNextPage: queryResult.fetchNextPage,
+    hasNextPage: queryResult.hasNextPage,
+    isFetchingNextPage: queryResult.isFetchingNextPage
   };
 };

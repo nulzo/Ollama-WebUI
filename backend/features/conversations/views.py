@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 
 from features.conversations.serializers.message import MessageListSerializer, MessageSerializer
 from features.conversations.services.message_service import MessageService
@@ -187,6 +188,26 @@ class ConversationViewSet(
                 status=500,
             )
 
+class MessagePagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'limit'
+    max_page_size = 100
+
+    def get_paginated_response(self, data):
+        return api_response(
+            data=data,
+            pagination={
+                "page": self.page.number,
+                "totalPages": self.page.paginator.num_pages,
+                "hasMore": self.page.has_next(),
+                "total": self.page.paginator.count
+            },
+            links={
+                "self": self.request.build_absolute_uri(),
+                "next": self.get_next_link(),
+                "previous": self.get_previous_link(),
+            }
+        )
 
 class MessageViewSet(
     mixins.CreateModelMixin,
@@ -204,8 +225,8 @@ class MessageViewSet(
     """
 
     permission_classes = [IsAuthenticated]
-    pagination_class = StandardResultsSetPagination
-    lookup_field = "id"  # Changed from uuid to id for individual message fetching
+    pagination_class = MessagePagination
+    lookup_field = "id"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -227,21 +248,25 @@ class MessageViewSet(
         if self.action == "list":
             queryset = queryset.only("id", "role", "created_at", "conversation")
 
-        return queryset.order_by("created_at")
+        # Order by created_at descending to get the most recent messages first
+        return queryset.order_by("-created_at")
 
 
     def list(self, request, *args, **kwargs):
         """Get message list"""
         try:
             queryset = self.get_queryset()
-            page = self.paginate_queryset(queryset)
-            serializer = self.get_serializer(page, many=True)
+            page = self.paginate_queryset(queryset)    
+                    
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
             
-            paginated_data = self.get_paginated_response(serializer.data).data
-            
+            # If pagination is disabled, return standard response
+            serializer = self.get_serializer(queryset, many=True)
             return api_response(
-                data=paginated_data,
-                links={"self": request.build_absolute_uri()},
+                data=serializer.data,
+                links={"self": request.build_absolute_uri()}
             )
 
         except Exception as e:

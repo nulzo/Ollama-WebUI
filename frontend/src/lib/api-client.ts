@@ -9,6 +9,12 @@ type RequestConfig = {
   maxBodyLength?: number;
 };
 
+interface StreamChunk {
+  content?: string;
+  status?: 'generating' | 'cancelled' | 'error';
+  error?: string;
+}
+
 function authRequestHeaders(): Headers {
   const headers = new Headers({
     Accept: 'application/json',
@@ -177,7 +183,7 @@ class ApiClient {
 
   async streamCompletion(
     data: unknown,
-    onChunk: (chunk: string) => void,
+    onChunk: (chunk: string | StreamChunk) => void,
     signal?: AbortSignal
   ): Promise<void> {
     try {
@@ -213,12 +219,8 @@ class ApiClient {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
-              const data = JSON.parse(line.slice(6));
-              if (data.content) {
-                onChunk(data.content);
-              } else if (data.delta?.content) {
-                onChunk(data.delta.content);
-              }
+              const data: StreamChunk = JSON.parse(line.slice(6));
+              onChunk(data);
             } catch (e) {
               console.error('Error parsing SSE data:', e);
             }
@@ -234,6 +236,7 @@ class ApiClient {
     }
   }
 }
+
 
 export const api = new ApiClient(urlJoin(env.BACKEND_API_VERSION));
 

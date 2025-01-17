@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/features/authentication/hooks/use-auth';
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useChatContext } from '../stores/chat-context';
 
 export function useChatMutation(conversation_id?: string) {
@@ -9,6 +9,20 @@ export function useChatMutation(conversation_id?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { setStreamingMessages, setIsGenerating, isGenerating } = useChatContext();
+
+  const updateStreamingMessage = useCallback((newContent: string) => {
+    setStreamingMessages(prev => {
+      const newMessages = [...prev];
+      const lastMessage = newMessages[newMessages.length - 1];
+      if (lastMessage?.role === 'assistant') {
+        newMessages[newMessages.length - 1] = {
+          ...lastMessage,
+          content: lastMessage.content + newContent,
+        };
+      }
+      return newMessages;
+    });
+  }, []);
 
   const mutation = useMutation({
     mutationFn: async (message: string) => {
@@ -51,14 +65,16 @@ export function useChatMutation(conversation_id?: string) {
             images: [],
           },
           chunk => {
-            console.log(chunk)
+            // Parse the chunk as JSON
+            const parsedChunk = typeof chunk === 'string' ? JSON.parse(chunk) : chunk;
+            
             setStreamingMessages(prev => {
               const newMessages = [...prev];
               const lastMessage = newMessages[newMessages.length - 1];
               if (lastMessage?.role === 'assistant') {
                 newMessages[newMessages.length - 1] = {
                   ...lastMessage,
-                  content: lastMessage.content + chunk,
+                  content: lastMessage.content + (parsedChunk.content || ''),
                 };
               }
               return newMessages;

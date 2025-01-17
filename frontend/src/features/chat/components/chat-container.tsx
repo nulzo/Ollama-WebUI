@@ -82,17 +82,21 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     if (containerRef.current) {
       lastScrollPositionRef.current = containerRef.current.scrollTop;
     }
-    
+
     // Load the messages
     await fetchNextPage();
   };
 
   // Only auto-scroll for new messages at bottom
   useEffect(() => {
-    if (shouldAutoScroll && containerRef.current && (streamingMessages.length > 0 || isGenerating)) {
+    if (
+      shouldAutoScroll &&
+      containerRef.current &&
+      (streamingMessages.length > 0 || isGenerating)
+    ) {
       containerRef.current.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   }, [streamingMessages, isGenerating, shouldAutoScroll]);
@@ -102,9 +106,9 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
 
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
     const distanceFromBottom = Math.abs(scrollTop);
-    
+
     // Show load more button when near top and more messages exist
-    if (Math.abs(scrollTop) > (scrollHeight - clientHeight - 200) && hasNextPage) {
+    if (Math.abs(scrollTop) > scrollHeight - clientHeight - 200 && hasNextPage) {
       setShowLoadMore(true);
     } else {
       setShowLoadMore(false);
@@ -116,61 +120,55 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     setShowScrollButton(!isNearBottom);
   }, [hasNextPage]);
 
-  const messagesList = useMemo(() => (
-    <div className="flex flex-col gap-2 px-4 py-2">
-      {/* Load More Button */}
-      {showLoadMore && (
-        <div className="flex justify-center py-4">
-          <Button
-            variant="outline"
-            onClick={() => fetchNextPage()}  // Use our new handler
-            disabled={isFetchingNextPage}
-            className="flex items-center gap-2"
-          >
-            {isFetchingNextPage ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Loading...
-              </>
-            ) : (
-              <>
-                <ChevronUp className="w-4 h-4" />
-                Load older messages
-              </>
-            )}
-          </Button>
-        </div>
-      )}
-      
-      {allMessages.map((message, index) => (
-        <Message
-          key={message.id || index}
-          content={message.content}
-          role={message.role}
-          time={new Date(message.created_at).getTime()}
-          username={message.role === 'user' ? 'You' : 'Assistant'}
-          modelName={message.model || 'claude-3-opus-20240229'}
-          conversation_id={conversation_id}
-          image_ids={message.image_ids || []}
-          isTyping={
-            isGenerating &&
-            index === allMessages.length - 1 &&
-            message.role === 'assistant'
-          }
-          isLoading={false}
-        />
-      ))}
-    </div>
-  ), [allMessages, isGenerating, showLoadMore, isFetchingNextPage, fetchNextPage]);
-
   return (
     <div className="relative flex flex-col h-full">
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex flex-col-reverse flex-1 overflow-y-auto scroll-smooth"
+        className="flex flex-col-reverse flex-1 [overflow-anchor:none] overflow-y-auto scroll-smooth"
       >
-        {messagesList}
+        <div className="flex flex-col gap-2 px-4 py-2">
+          {/* Load More Button */}
+          {showLoadMore && (
+            <div className="flex justify-center py-4">
+              <Button
+                variant="outline"
+                onClick={() => fetchNextPage()} // Use our new handler
+                disabled={isFetchingNextPage}
+                className="flex items-center gap-2"
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp className="w-4 h-4" />
+                    Load older messages
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
+          {allMessages.map((message, index) => (
+            <Message
+              key={message.id || index}
+              content={message.content}
+              role={message.role}
+              time={new Date(message.created_at).getTime()}
+              username={message.role === 'user' ? 'You' : 'Assistant'}
+              modelName={message.model || 'claude-3-opus-20240229'}
+              conversation_id={conversation_id}
+              image_ids={message.image_ids || []}
+              isTyping={
+                isGenerating && index === allMessages.length - 1 && message.role === 'assistant'
+              }
+              isLoading={false}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="right-0 bottom-0 left-0 absolute pointer-events-none">

@@ -3292,6 +3292,10 @@ body {
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.\[overflow-anchor\:none\] {
+  overflow-anchor: none;
+}
+
 .selection\:bg-background\/25 *::-moz-selection {
   background-color: hsl(var(--background) / 0.25);
 }

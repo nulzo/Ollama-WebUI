@@ -45,17 +45,31 @@ class ApiClient {
 
   private getHeaders(config: RequestConfig = {}): Headers {
     const isStreaming = config.headers?.Accept === 'text/event-stream';
-    const headers = new Headers({
-      'Content-Type': 'application/json', // Default content type
-      Accept: isStreaming ? 'text/event-stream' : 'application/json',
-      ...config.headers,
-    });
+    const headers = new Headers();
+
+    // Set default headers
+    headers.set('Content-Type', 'application/json');
+    headers.set('Accept', isStreaming ? 'text/event-stream' : 'application/json');
+
+    // Add any custom headers from config
+    if (config.headers) {
+      Object.entries(config.headers).forEach(([key, value]) => {
+        headers.set(key, value);
+      });
+    }
 
     // Add auth token if available
     const token = localStorage.getItem('authToken');
     if (token) {
       headers.set('Authorization', `Token ${token}`);
     }
+
+    // For debugging, convert Headers to plain object and log everything
+    console.log('Debug Auth:', {
+      token: token,
+      headers: Object.fromEntries(headers.entries()),
+      isStreaming: isStreaming
+  });
 
     return headers;
   }
@@ -189,14 +203,16 @@ class ApiClient {
     try {
       const response = await fetch(this.getFullURL('/chat/completion/'), {
         method: 'POST',
-        headers: {
-          ...this.getHeaders(),
-          'Content-Type': 'application/json',
-        },
+        headers: this.getHeaders({
+            headers: {
+                Accept: 'text/event-stream',
+                'Content-Type': 'application/json',
+            }
+        }),
         credentials: 'include',
         body: JSON.stringify(data),
         signal,
-      });
+    });
 
       if (!response.ok) {
         console.error('Response status:', response.status);
@@ -208,14 +224,14 @@ class ApiClient {
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-      
+
       while (reader) {
         const { done, value } = await reader.read();
         if (done) break;
 
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n');
-        
+
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
@@ -236,7 +252,6 @@ class ApiClient {
     }
   }
 }
-
 
 export const api = new ApiClient(urlJoin(env.BACKEND_API_VERSION));
 

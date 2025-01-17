@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState, useRef } from 'react';
 import MarkdownRenderer from '@/features/markdown/components/markdown.tsx';
-import { RefreshCw } from 'lucide-react';
+import { ChevronUp, Copy, Heart, RefreshCw, Sparkle } from 'lucide-react';
 import { Message as MessageType } from '@/features/chat/types/message';
 import { BotIcon } from '@/features/chat/components/bot-icon.tsx';
 import { formatDate } from '@/utils/format.ts';
@@ -10,6 +10,13 @@ import { EnhanceButton } from './enhance-button.tsx';
 import { AsyncMessageImage } from './async-image.tsx';
 import { useModels } from '@/features/models/api/get-models.ts';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import { TooltipContent } from '@/components/ui/tooltip.tsx';
+import { TooltipTrigger } from '@/components/ui/tooltip.tsx';
+import { Tooltip } from '@/components/ui/tooltip.tsx';
+import { DotsHorizontalIcon } from '@radix-ui/react-icons';
+import { TooltipProvider } from '@/components/ui/tooltip.tsx';
+import { useClipboard } from '@/hooks/use-clipboard.ts';
 
 interface MessageProps extends Omit<MessageType, 'conversation_id'> {
   username: string;
@@ -27,6 +34,7 @@ export const Message = React.memo<MessageProps>(
     const previousContentRef = useRef(content || '');
     const formattedDate = formatDate(time);
     const { data: modelsData } = useModels();
+    const { copy } = useClipboard();
 
     const isModelOnline = useMemo(() => {
       if (!modelsData || !modelName) return false;
@@ -93,7 +101,7 @@ export const Message = React.memo<MessageProps>(
         {role !== 'user' ? (
           // Bot message
           <div className="flex gap-3 max-w-[85%]">
-            <div className="flex items-start mb-0">
+            <div className="flex flex-col items-center mb-0">
               <BotIcon assistantId={0} isOnline={isModelOnline} modelName={modelName} />
             </div>
 
@@ -124,18 +132,82 @@ export const Message = React.memo<MessageProps>(
               </div>
 
               {showActions && (
-                <div className="flex gap-1.5 mt-1.5 ml-2">
-                  <LikeButton content={messageContent} />
-                  <CopyButton content={messageContent} />
-                  <EnhanceButton content={messageContent} />
-                  <RefreshCw className="hover:cursor-pointer hover:stroke-foreground size-3.5 stroke-muted-foreground" />
+                <div className="flex mt-0 rounded-lg w-fit">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button
+                          variant="link"
+                          size="icon"
+                          className="w-7 text-muted-foreground hover:text-red-600"
+                        >
+                          <Heart className="w-3.5 h-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Like message</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button
+                          variant="link"
+                          size="icon"
+                          onClick={() => copy(content)}
+                          className="w-7 text-muted-foreground hover:text-foreground"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Copy message</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button
+                          variant="link"
+                          size="icon"
+                          className="w-7 text-muted-foreground hover:text-foreground"
+                  >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Regenerate message</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Button
+                          variant="link"
+                          size="icon"
+                          className="w-7 text-muted-foreground hover:text-foreground"
+                        >
+                          <DotsHorizontalIcon className="w-3.5 h-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>More actions</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               )}
             </div>
           </div>
         ) : (
           // User message
-          <div className="flex flex-col items-end selection:bg-background/25">
+          <div className="flex flex-col items-end selection:bg-muted-foreground">
             <div className="flex items-baseline gap-2 mb-1">
               <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
             </div>

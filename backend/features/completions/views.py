@@ -10,12 +10,13 @@ from api.utils.responses.response import api_response
 from features.completions.services.chat_service import ChatService
 from api.utils.exceptions import ServiceError, ValidationError
 from api.utils.renderers import EventStreamRenderer
+from rest_framework.permissions import IsAuthenticated
 
 logger = logging.getLogger(__name__)
 
 
 class ChatView(APIView):
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
     renderer_classes = [EventStreamRenderer]
     
     def __init__(self, **kwargs):
@@ -25,6 +26,17 @@ class ChatView(APIView):
     def post(self, request):
         
         try:
+            logger.info(f"Request user: {request.user}")
+            logger.info(f"Auth header: {request.headers.get('Authorization')}")
+            
+            # Authentication is already verified by permission_classes
+            # Just verify we have a valid user object
+            if not request.user or not request.user.id:
+                return Response(
+                    {"error": "Valid user account required"}, 
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+                
             client_ip = request.META.get("REMOTE_ADDR")
             logger.info(f"Received chat request from user {request.user.id}")
             logger.info(f"Starting chat completion for IP: {client_ip} | Message")

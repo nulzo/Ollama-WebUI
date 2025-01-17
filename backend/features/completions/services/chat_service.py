@@ -200,8 +200,6 @@ class ChatService:
         """Generate streaming response for chat"""
         generation_id = id(self)
         self._cancel_event.clear()
-        
-        print("DATA: ", data)
 
         try:
             # Try to get conversation or create new one if not provided
@@ -216,17 +214,16 @@ class ChatService:
             if not conversation:
                 # Create new conversation
                 conversation = Conversation.objects.create(
-                    user=user if isinstance(user, CustomUser) else CustomUser.objects.get(id=user),
-                    name="New Conversation"
+                    user=user,
+                    name=data.get('content', 'New Conversation')[:50]
                 )
                 # Send conversation UUID as first chunk
                 yield json.dumps({
                     'conversation_uuid': str(conversation.uuid),
                     'status': 'created'
                 })
-            logger.info(f"Created new conversation {conversation.uuid} for user {user.id}")
+                logger.info(f"Created new conversation {conversation.uuid} for user {user.id}")
 
-            
             try:
                 if isinstance(user, int):
                     user = CustomUser.objects.get(id=user)
@@ -251,15 +248,6 @@ class ChatService:
                 'images': data.get('images', [])
             })
 
-            print("USER MESSAGE: ", user_message)
-
-            # If new conversation, send UUID back
-            if not data.get('conversation_uuid'):
-                yield json.dumps({
-                    'conversation_uuid': user_message.conversation.uuid,
-                    'status': 'created'
-                })
-
             # Get the appropriate provider
             provider = self._get_provider(data.get('model', 'llama3.2:3b'))
             
@@ -279,8 +267,6 @@ class ChatService:
                 for msg in messages
             ]
             
-            print("Formatted messages:", formatted_messages)
-
             # Stream the response
             full_content = ""
             for chunk in provider.stream(data.get('model', 'llama3.2:3b'), formatted_messages):
@@ -300,7 +286,7 @@ class ChatService:
                 })
                 yield json.dumps({
                     'status': 'done',
-                    'message_id': assistant_message.id
+                    'message_id': str(assistant_message.id)
                 })
 
         except Exception as e:

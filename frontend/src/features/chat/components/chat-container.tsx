@@ -77,16 +77,6 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     return [...messages, ...streamingMessages];
   }, [messages, streamingMessages]);
 
-  const handleLoadMore = async () => {
-    // Store the current scroll position before loading
-    if (containerRef.current) {
-      lastScrollPositionRef.current = containerRef.current.scrollTop;
-    }
-
-    // Load the messages
-    await fetchNextPage();
-  };
-
   // Only auto-scroll for new messages at bottom
   useEffect(() => {
     if (
@@ -132,19 +122,17 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
           {showLoadMore && (
             <div className="flex justify-center py-4">
               <Button
-                variant="outline"
-                onClick={() => fetchNextPage()} // Use our new handler
+                variant="link"
+                onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
                 className="flex items-center gap-2"
               >
                 {isFetchingNextPage ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Loading...
+                    <Loader2 className="w-5 h-5 animate-spin" />
                   </>
                 ) : (
                   <>
-                    <ChevronUp className="w-4 h-4" />
                     Load older messages
                   </>
                 )}

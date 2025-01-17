@@ -1,28 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/features/authentication/hooks/use-auth';
-import { useCallback, useRef } from 'react';
+import { useRef } from 'react';
 import { useChatContext } from '../stores/chat-context';
+import { useNavigate } from 'react-router-dom';
 
 export function useChatMutation(conversation_id?: string) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { setStreamingMessages, setIsGenerating, isGenerating } = useChatContext();
-
-  const updateStreamingMessage = useCallback((newContent: string) => {
-    setStreamingMessages(prev => {
-      const newMessages = [...prev];
-      const lastMessage = newMessages[newMessages.length - 1];
-      if (lastMessage?.role === 'assistant') {
-        newMessages[newMessages.length - 1] = {
-          ...lastMessage,
-          content: lastMessage.content + newContent,
-        };
-      }
-      return newMessages;
-    });
-  }, []);
 
   const mutation = useMutation({
     mutationFn: async (message: string) => {
@@ -31,28 +19,31 @@ export function useChatMutation(conversation_id?: string) {
       setIsGenerating(true);
       abortControllerRef.current = new AbortController();
 
-      // Add user message and empty assistant message
-      setStreamingMessages([
-        {
-          role: 'user',
-          content: message,
-          model: 'llama3.2:3b',
-          liked_by: [],
-          has_images: false,
-          conversation_uuid: conversation_id ?? '',
-          user: user?.id?.toString() ?? '',
-          created_at: new Date().toISOString(),
-        },
-        {
-          role: 'assistant',
-          content: '',
-          model: 'llama3.2:3b',
-          liked_by: [],
-          has_images: false,
-          conversation_uuid: conversation_id ?? '',
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      // Add initial messages only if we're in an existing conversation
+      if (conversation_id) {
+        setStreamingMessages([
+          {
+            role: 'user',
+            content: message,
+            model: 'llama3.2:3b',
+            liked_by: [],
+            has_images: false,
+            conversation_uuid: conversation_id,
+            user: user?.id?.toString() ?? '',
+            created_at: new Date().toISOString(),
+          },
+          {
+            role: 'assistant',
+            content: '',
+            model: 'llama3.2:3b',
+            liked_by: [],
+            has_images: false,
+            conversation_uuid: conversation_id,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+      }
+
 
       try {
         await api.streamCompletion(
@@ -68,6 +59,31 @@ export function useChatMutation(conversation_id?: string) {
             // Parse the chunk as JSON
             const parsedChunk = typeof chunk === 'string' ? JSON.parse(chunk) : chunk;
             
+            // If this is a new conversation
+            if (parsedChunk.conversation_uuid && parsedChunk.status === 'created') {
+              const newConversationId = parsedChunk.conversation_uuid;
+              
+              // Set initial messages for the new conversation
+              setStreamingMessages([
+                {
+                  role: 'assistant',
+                  content: '',
+                  model: 'llama3.2:3b',
+                  liked_by: [],
+                  has_images: false,
+                  conversation_uuid: newConversationId,
+                  created_at: new Date().toISOString(),
+                },
+              ]);
+
+              // Invalidate for sidebar
+              queryClient.invalidateQueries({ queryKey: ['conversations'] });
+
+              // Route to the new conversation
+              navigate(`/?c=${newConversationId}`);
+              return;
+            }
+
             setStreamingMessages(prev => {
               const newMessages = [...prev];
               const lastMessage = newMessages[newMessages.length - 1];
@@ -85,11 +101,21 @@ export function useChatMutation(conversation_id?: string) {
       } finally {
         setIsGenerating(false);
         abortControllerRef.current = null;
-        // Clear streaming messages after the stream is complete
-        setStreamingMessages([]);
-        if (conversation_id) {
-          queryClient.invalidateQueries({ queryKey: ['conversations'] });
-          queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id }] });
+
+        // Don't clear streaming messages immediately
+        // Instead, wait for the query invalidation to update the UI
+        const currentConversationId = conversation_id || queryClient.getQueryData(['currentConversation']);
+        if (currentConversationId) {
+          // Invalidate queries and wait for them to settle
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['conversations'] }),
+            queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: currentConversationId }] })
+          ]);
+          
+          // Only clear streaming messages after queries have updated
+          setTimeout(() => {
+            setStreamingMessages([]);
+          }, 100);
         }
       }
     },

@@ -15,7 +15,7 @@ export function useChatMutation(conversation_id?: string) {
   const model = useModelStore(state => state.model);
   
   const mutation = useMutation({
-    mutationFn: async (message: string) => {
+    mutationFn: async ({ message, images }: { message: string, images: string[] | undefined }) => {
       if (!user) throw new Error('Authentication required');
       if (!model) throw new Error('No model selected');
 
@@ -49,15 +49,17 @@ export function useChatMutation(conversation_id?: string) {
 
 
       try {
+        const new_msg = {
+          content: message,
+          conversation_uuid: conversation_id,
+          role: 'user',
+          user: user?.id,
+          model: model?.name,
+          images: images || [],
+        }
+        console.log("new_msg", new_msg);
         await api.streamCompletion(
-          {
-            content: message,
-            conversation_uuid: conversation_id,
-            role: 'user',
-            user: user?.id,
-            model: model?.name,
-            images: [],
-          },
+          new_msg,
           chunk => {
             // Parse the chunk as JSON
             const parsedChunk = typeof chunk === 'string' ? JSON.parse(chunk) : chunk;

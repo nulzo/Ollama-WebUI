@@ -32,36 +32,44 @@ class MessageRepository(BaseRepository[Message]):
                 model=data["model"],
                 has_images=bool(images),
             )
-
+            
+            print("images", [img[:50] for img in images])
+            
             # Process and create MessageImage instances
             if images:
-                for index, image_data in enumerate(images):
+                for index, base64_image in enumerate(images):
                     try:
-                        if isinstance(image_data, str) and image_data.startswith("data:"):
-                            self.logger.debug(f"Processing image {index} for message {message.id}")
-                            format, imgstr = image_data.split(";base64,")
-                            ext = format.split("/")[-1].lower()
-                            if ext == "jpeg":
-                                ext = "jpg"
+                        # Each image should be a data URI at this point
+                        # Format: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+                        if not base64_image.startswith('data:'):
+                            self.logger.warning(f"Invalid image format for message {message.id}")
+                            continue
 
-                            filename = (
-                                f"message_{message.id}_{index}_{datetime.now().timestamp()}.{ext}"
-                            )
+                        # Split the data URI to get format and base64 data
+                        format_data, base64_data = base64_image.split(';base64,')
+                        
+                        # Get the image format (png, jpeg, etc)
+                        ext = format_data.split('/')[-1].lower()
+                        if ext == 'jpeg':
+                            ext = 'jpg'
 
-                            # Create ContentFile from base64 data
-                            image_content = ContentFile(base64.b64decode(imgstr), name=filename)
+                        # Generate filename
+                        filename = f"message_{message.id}_{index}_{datetime.now().timestamp()}.{ext}"
 
-                            # Create MessageImage instance
-                            MessageImage.objects.create(
-                                message=message, image=image_content, order=index
-                            )
-                            self.logger.info(
-                                f"Successfully created image {index} for message {message.id}"
-                            )
-                        else:
-                            self.logger.warning(
-                                f"Invalid image data format for message {message.id}: {image_data[:100]}..."
-                            )
+                        # Create file from base64 data
+                        image_content = ContentFile(
+                            base64.b64decode(base64_data),
+                            name=filename
+                        )
+
+                        # Create MessageImage instance
+                        MessageImage.objects.create(
+                            message=message,
+                            image=image_content,
+                            order=index
+                        )
+                        self.logger.info(f"Successfully created image {index} for message {message.id}")
+
                     except Exception as e:
                         self.logger.error(
                             f"Error processing image {index} for message {message.id}: {str(e)}"

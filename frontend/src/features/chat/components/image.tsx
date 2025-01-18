@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Download, X, Play, Pause, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button.tsx';
+import { ChevronLeft, ChevronRight, Download, Play, Pause, Info, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatBytes } from '@/lib/utils.ts'; // Utility to format bytes to readable format
+import { formatBytes } from '@/lib/utils';
 
 interface ImageProps {
   src: string;
@@ -17,12 +18,12 @@ interface ImageDetails {
 }
 
 export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(currentIndex);
   const [imageUrl, setImageUrl] = useState('');
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [imageDetails, setImageDetails] = useState<ImageDetails | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   // Parse image URL
   useEffect(() => {
@@ -41,7 +42,7 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
     try {
       const response = await fetch(url);
       const blob = await response.blob();
-      const img = new Image();
+      const img = document.createElement('img');
       img.src = URL.createObjectURL(blob);
 
       await new Promise(resolve => {
@@ -73,12 +74,9 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
   // Keyboard controls
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (!isModalOpen) return;
+      if (!isOpen) return;
 
       switch (event.key) {
-        case 'Escape':
-          setIsModalOpen(false);
-          break;
         case 'ArrowLeft':
           hasMultipleImages && prevImage();
           break;
@@ -93,7 +91,7 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
 
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isModalOpen, nextImage, prevImage, hasMultipleImages, showInfo]);
+  }, [isOpen, nextImage, prevImage, hasMultipleImages, showInfo]);
 
   // Auto-scroll functionality
   useEffect(() => {
@@ -110,145 +108,130 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
   };
 
   return (
-    <>
-      {/* Preview Thumbnail */}
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="relative group"
-      >
-        <img
-          src={imageUrl}
-          className="mb-1 rounded-lg w-full h-[250px] transition-all object-cover"
-          onClick={() => setIsModalOpen(true)}
-        />
-        {hasMultipleImages && (
-          <div className="right-2 bottom-2 absolute bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full text-white text-xs">
-            {images.length} images
-          </div>
-        )}
-      </motion.div>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <motion.div
+          whileHover={{ scale: 1.0 }}
+          whileTap={{ scale: 0.99 }}
+          className="relative cursor-pointer group"
+        >
+          <img
+            src={imageUrl}
+            className="mb-1 rounded-lg w-full h-[250px] transition-all object-cover"
+            alt="Preview"
+          />
+          {hasMultipleImages && (
+            <div className="right-2 bottom-2 absolute bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full text-foreground text-xs">
+              {images.length} images
+            </div>
+          )}
+        </motion.div>
+      </DialogTrigger>
 
-      {/* Fullscreen Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="z-[9999] fixed inset-0 flex justify-center items-center bg-black/90 backdrop-blur-sm image-modal"
-            onClick={e => e.target === e.currentTarget && setIsModalOpen(false)}
-          >
-            <div className="relative flex justify-center items-center p-4 w-full h-full image-modal">
-              {/* Main Image Container */}
-              <div className="relative flex justify-center items-center w-full max-w-7xl h-full image-modal">
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={carouselIndex}
-                    src={currentImage}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    className="rounded-lg max-w-full max-h-[90vh] image-modal object-contain"
-                  />
-                </AnimatePresence>
+      <DialogContent className="bg-black/50 backdrop-blur-md p-0 border-none max-w-7xl h-full">
+        <div className="relative flex justify-center items-center w-full h-full">
+          {/* Main Image */}
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={carouselIndex}
+              src={currentImage}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="rounded-lg max-w-[75vw] max-h-[75vh] object-contain"
+              alt="Full size preview"
+            />
+          </AnimatePresence>
 
-                {/* Control Bar */}
-                <div className="right-0 bottom-0 left-0 absolute flex justify-between items-center bg-gradient-to-t from-black/50 to-transparent p-4">
-                  <div className="flex items-center gap-2">
-                    {hasMultipleImages && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="bg-white/10 hover:bg-white/20"
-                        onClick={() => setIsAutoScrolling(!isAutoScrolling)}
-                      >
-                        {isAutoScrolling ? (
-                          <Pause className="w-4 h-4" />
-                        ) : (
-                          <Play className="w-4 h-4" />
-                        )}
-                      </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="bg-white/10 hover:bg-white/20"
-                      onClick={downloadImage}
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="bg-white/10 hover:bg-white/20"
-                      onClick={() => setShowInfo(!showInfo)}
-                    >
-                      <Info className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  {hasMultipleImages && (
-                    <span className="text-sm text-white/90">
-                      {carouselIndex + 1} / {images.length}
-                    </span>
-                  )}
-                </div>
-
-                {/* Navigation Arrows */}
-                {hasMultipleImages && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="top-1/2 left-4 absolute bg-white/10 hover:bg-white/20 -translate-y-1/2"
-                      onClick={prevImage}
-                    >
-                      <ChevronLeft className="w-6 h-6" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="top-1/2 right-4 absolute bg-white/10 hover:bg-white/20 -translate-y-1/2"
-                      onClick={nextImage}
-                    >
-                      <ChevronRight className="w-6 h-6" />
-                    </Button>
-                  </>
-                )}
-
-                {/* Close Button */}
+          {/* Control Bar */}
+          <div className="right-0 bottom-0 left-0 absolute flex justify-between items-center p-4">
+            <div className="flex items-center gap-2">
+              {hasMultipleImages && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="top-4 right-4 absolute bg-white/10 hover:bg-white/20"
-                  onClick={() => setIsModalOpen(false)}
+                  className="bg-background/50 hover:bg-background/75"
+                  onClick={() => setIsAutoScrolling(!isAutoScrolling)}
                 >
-                  <X className="w-6 h-6" />
+                  {isAutoScrolling ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                 </Button>
-
-                {/* Image Information Panel */}
-                <AnimatePresence>
-                  {showInfo && imageDetails && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 20 }}
-                      className="top-4 left-4 absolute bg-black/50 backdrop-blur-sm p-4 rounded-lg text-sm text-white"
-                    >
-                      <p className="font-medium">{imageDetails.name}</p>
-                      <p>
-                        {imageDetails.dimensions.width} × {imageDetails.dimensions.height}px
-                      </p>
-                      <p>{formatBytes(imageDetails.size)}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-background/50 hover:bg-background/75"
+                onClick={downloadImage}
+              >
+                <Download className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-background/50 hover:bg-background/75"
+                onClick={() => setShowInfo(!showInfo)}
+              >
+                <Info className="w-4 h-4" />
+              </Button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+
+            {hasMultipleImages && (
+              <span className="text-foreground text-sm">
+                {carouselIndex + 1} / {images.length}
+              </span>
+            )}
+          </div>
+
+          {/* Navigation Arrows */}
+          {hasMultipleImages && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="top-1/2 left-4 absolute bg-background/50 hover:bg-background/75 -translate-y-1/2"
+                onClick={prevImage}
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="top-1/2 right-4 absolute bg-background/50 hover:bg-background/75 -translate-y-1/2"
+                onClick={nextImage}
+              >
+                <ChevronRight className="w-6 h-6" />
+              </Button>
+            </>
+          )}
+
+            {/* Close Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="top-4 right-4 z-50 absolute bg-background/50 hover:bg-background/75"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+
+          {/* Image Information Panel */}
+          <AnimatePresence>
+            {showInfo && imageDetails && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="top-4 left-4 absolute bg-background/50 backdrop-blur-sm p-4 rounded-lg text-foreground text-sm"
+              >
+                <p className="font-medium">{imageDetails.name}</p>
+                <p>
+                  {imageDetails.dimensions.width} × {imageDetails.dimensions.height}px
+                </p>
+                <p>{formatBytes(imageDetails.size)}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };

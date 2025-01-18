@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 from dataclasses import dataclass
@@ -175,9 +176,34 @@ class OllamaProvider(BaseProvider):
         tokens_generated = 0
 
         try:
+            # Process messages to ensure images are in correct format
+            processed_messages = []
+            for msg in messages:
+                processed_msg = {
+                    'role': msg['role'],
+                    'content': msg['content']
+                }
+                
+                if 'images' in msg and msg['images']:
+                    # Convert bytes to base64 if needed
+                    base64_images = []
+                    for img in msg['images']:
+                        if isinstance(img, bytes):
+                            # If it's already bytes, encode to base64
+                            base64_images.append(base64.b64encode(img).decode('utf-8'))
+                        elif isinstance(img, str):
+                            # If it's a base64 string, remove data URI prefix if present
+                            if img.startswith('data:'):
+                                base64_images.append(img.split(',')[1])
+                            else:
+                                base64_images.append(img)
+                    processed_msg['images'] = base64_images
+                
+                processed_messages.append(processed_msg)
+                
             response = self._client.chat(
                 model=model,
-                messages=messages,
+                messages=processed_messages,
                 options=options,
                 stream=True
             )

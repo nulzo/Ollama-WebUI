@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 import logging
 import traceback
@@ -64,10 +65,14 @@ class ChatService:
         images = []
         for message_image in message.message_images.all():
             try:
-                # Read the image file into bytes
-                message_image.image.seek(0)  # Ensure we're at the start of the file
-                image_bytes = message_image.image.read()
-                images.append(image_bytes)
+                if isinstance(message_image.image, str):
+                    # If it's already a base64 string, decode it to bytes
+                    images.append(base64.b64decode(message_image.image))
+                else:
+                    # Read the image file into bytes
+                    message_image.image.seek(0)  # Ensure we're at the start of the file
+                    image_bytes = message_image.image.read()
+                    images.append(image_bytes)
             except Exception as e:
                 self.logger.error(f"Error processing image for message {message.id}: {str(e)}")
                 continue
@@ -238,6 +243,12 @@ class ChatService:
                 })
                 return
             
+            try:
+                images = data.get('images', [])
+            except Exception as e:
+                self.logger.error(f"Error processing images: {str(e)}")
+                images = []
+            
             # Create the user's message with conversation instance
             user_message = self.message_repository.create({
                 'conversation': conversation,  # Pass the conversation instance instead of UUID
@@ -245,7 +256,7 @@ class ChatService:
                 'role': 'user',
                 'user': user,
                 'model': data.get('model', 'llama3.2:3b'),
-                'images': data.get('images', [])
+                'images': images
             })
 
             # Get the appropriate provider

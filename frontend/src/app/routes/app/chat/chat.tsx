@@ -22,6 +22,12 @@ export function ChatRoute() {
     }
   }, [searchParamString, conversation]);
 
+  const handleSubmit = (message: string, images: string[] | undefined) => {
+    console.log("images", images);
+    console.log("message", message);
+    mutation.mutate({ message, images });
+  };
+
   return (
     <div className="relative flex flex-col w-full max-w-full h-screen transition">
       <ConversationAreaHeader />
@@ -38,7 +44,7 @@ export function ChatRoute() {
           )}
         </ConversationArea>
         <div className="bg-background p-4">
-          <ChatInput onSubmit={(content) => mutation.mutate(content)} disabled={isGenerating} />
+          <ChatInput onSubmit={handleSubmit} disabled={isGenerating} />
         </div>
       </div>
     </div>

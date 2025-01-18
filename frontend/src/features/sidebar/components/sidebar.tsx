@@ -21,7 +21,7 @@ export const Sidebar = ({ conversationList }: SidebarProps) => {
 
   return (
     <motion.div
-      className="left-0 z-[1] fixed inset-y-0 sidebar-container"
+      className="left-0 fixed inset-y-0 sidebar-container"
       initial={false}
       animate={{
         width: isCollapsed ? MIN_WIDTH : MAX_WIDTH,

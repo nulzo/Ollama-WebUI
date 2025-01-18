@@ -221,7 +221,7 @@ export const Message = React.memo<MessageProps>(
 
             <div className="max-w-[70%]">
               {image_ids.length > 0 && (
-                <div className="flex flex-wrap justify-end gap-2 mb-3">
+                <div className="flex flex-wrap justify-end gap-2">
                   <AsyncMessageImage
                     imageId={image_ids[0] as number}
                     images={image_ids as number[]}

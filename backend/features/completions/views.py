@@ -22,12 +22,14 @@ class ChatView(APIView):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.chat_service = ChatService()
+        self.logger = logger
         
     def post(self, request):
         
         try:
-            logger.info(f"Request user: {request.user}")
-            logger.info(f"Auth header: {request.headers.get('Authorization')}")
+            self.logger.info(f"Request user: {request.user}")
+            self.logger.info(f"Auth header: {request.headers.get('Authorization')}")
+            self.logger.info(f"Request data: {request.data}")
             
             # Authentication is already verified by permission_classes
             # Just verify we have a valid user object
@@ -38,8 +40,8 @@ class ChatView(APIView):
                 )
                 
             client_ip = request.META.get("REMOTE_ADDR")
-            logger.info(f"Received chat request from user {request.user.id}")
-            logger.info(f"Starting chat completion for IP: {client_ip} | Message")
+            self.logger.info(f"Received chat request from user {request.user.id}")
+            self.logger.info(f"Starting chat completion for IP: {client_ip} | Message")
 
             def stream_response():
                 try:

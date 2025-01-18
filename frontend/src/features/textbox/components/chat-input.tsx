@@ -3,6 +3,7 @@ import { mockPrompts, CustomPrompt } from '@/features/chat/data/mock-prompts';
 import { PromptSuggestions } from '@/features/chat/components/prompts/prompt-suggestions';
 import AutoResizeTextarea from './new-textbox';
 import { useModelStore } from '@/features/models/store/model-store';
+import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
 
 interface ChatInputProps {
   onSubmit: (message: string, images: string[]) => void;
@@ -16,6 +17,7 @@ export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
   const [promptIndex, setPromptIndex] = useState(-1);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { model } = useModelStore(state => ({ model: state.model }));
+  const { handleCancel, isGenerating } = useChatMutation();
 
   // Reset selected index when suggestions change
   useEffect(() => {
@@ -114,6 +116,8 @@ export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
         uploadedImages={images}
         disabled={disabled}
         onKeyDown={handleKeyDown}
+        onCancel={handleCancel}
+        isGenerating={isGenerating}
       />
     </div>
   );

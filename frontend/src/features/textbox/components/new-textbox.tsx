@@ -7,6 +7,7 @@ interface DynamicTextareaProps {
   text: string;
   setText: (text: string) => void;
   onSubmit: () => void;
+  onCancel: () => void;
   model: string;
   onImageUpload: (images: string[]) => void;
   onRemoveImage: (index: number) => void;
@@ -14,6 +15,7 @@ interface DynamicTextareaProps {
   placeholder?: string;
   maxLength?: number;
   disabled?: boolean;
+  isGenerating?: boolean;
   onKeyDown?: (e: React.KeyboardEvent) => void;
 }
 
@@ -29,7 +31,9 @@ export default function DynamicTextarea({
   model,
   uploadedImages,
   disabled,
-  onKeyDown
+  onKeyDown,
+  onCancel,
+  isGenerating
 }: DynamicTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -234,22 +238,33 @@ export default function DynamicTextarea({
               <span className="text-muted-foreground text-xs">
                 {text.length > 0 ? text.length : ''}
               </span>
-              <Button
-                size="icon"
-                className="px-2 w-fit h-8 text-xs"
-                onClick={handleSubmit}
-                disabled={!text.trim() || model.length === 0}
-              >
-                Send
-                <kbd className="inline-flex justify-center items-center gap-1 px-1 py-1 rounded font-mono text-sm">
-                  <Command className="size-2" />
-                  <CornerDownLeft className="size-2" />
-                </kbd>
-                <span className="sr-only">Send message</span>
-              </Button>
+              {isGenerating ? (
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="px-2 w-fit h-8 text-xs"
+                  onClick={onCancel}
+                >
+                  <X className="mr-1 size-3" />
+                  Cancel
+                </Button>
+              ) : (
+                <Button
+                  size="icon"
+                  className="px-2 w-fit h-8 text-xs"
+                  onClick={handleSubmit}
+                  disabled={!text.trim() || model.length === 0}
+                >
+                  Send
+                  <kbd className="inline-flex justify-center items-center gap-1 px-1 py-1 rounded font-mono text-sm">
+                    <Command className="size-2" />
+                    <CornerDownLeft className="size-2" />
+                  </kbd>
+                  <span className="sr-only">Send message</span>
+                </Button>
+              )}
             </div>
           </div>
-
           <input
             type="file"
             ref={fileInputRef}

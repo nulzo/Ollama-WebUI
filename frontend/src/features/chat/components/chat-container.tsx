@@ -172,12 +172,6 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
             }}
           />
         </div>
-
-        {isGenerating && (
-          <div className="-top-16 right-4 z-10 absolute pointer-events-auto">
-            <CancelButton onClick={handleCancel} />
-          </div>
-        )}
       </div>
     </div>
   );

@@ -213,6 +213,7 @@ class MessageViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
     """
@@ -361,6 +362,37 @@ class MessageViewSet(
             logger.error(f"Error fetching conversation messages: {str(e)}")
             return Response(
                 {"error": "Failed to fetch messages"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+    def update(self, request, *args, **kwargs):
+        try:
+            message = self.get_object()
+            
+            # Handle other updates
+            serializer = self.get_serializer(message, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            
+            return api_response(
+                data=serializer.data,
+                links={"self": request.build_absolute_uri()}
+            )
+            
+        except ValidationError as e:
+            logger.warning(f"Validation error: {str(e)}")
+            return api_response(
+                error={"code": "VALIDATION_ERROR", "message": str(e)},
+                status=400
+            )
+        except Exception as e:
+            logger.error(f"Error updating message: {str(e)}")
+            return api_response(
+                error={
+                    "code": "MESSAGE_UPDATE_ERROR",
+                    "message": "Failed to update message",
+                    "details": str(e)
+                },
+                status=500
             )
 
 

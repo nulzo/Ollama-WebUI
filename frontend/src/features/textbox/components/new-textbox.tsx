@@ -143,8 +143,8 @@ export default function DynamicTextarea({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             rows={1}
-            className="bg-transparent px-4 py-3 rounded-lg focus:ring-0 focus:ring-none w-full text-foreground text-sm placeholder:text-muted-foreground focus:outline-none resize-none"
-            style={{ minHeight: '44px', maxHeight: '200px' }}
+            className="bg-transparent px-4 pt-3 rounded-lg focus:ring-0 focus:ring-none w-full text-foreground text-sm placeholder:text-muted-foreground focus:outline-none resize-none"
+            style={{ minHeight: '47px', maxHeight: '200px' }}
             disabled={disabled}
           />
 

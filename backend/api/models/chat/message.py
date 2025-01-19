@@ -34,8 +34,10 @@ class Message(BaseModel):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     has_images = models.BooleanField(default=False)
     model = models.CharField(max_length=120)
+    is_liked = models.BooleanField(default=False)
+    is_hidden = models.BooleanField(default=False)
     tokens_used = models.IntegerField(null=True, blank=True)
-    generation_time = models.FloatField(null=True, blank=True)  # in seconds
+    generation_time = models.FloatField(null=True, blank=True)
     prompt_tokens = models.IntegerField(null=True, blank=True)
     completion_tokens = models.IntegerField(null=True, blank=True)
     finish_reason = models.CharField(max_length=50, null=True, blank=True)

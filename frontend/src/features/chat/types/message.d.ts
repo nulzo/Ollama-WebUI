@@ -19,6 +19,8 @@ export interface Message {
   has_images: boolean;
   image_ids?: (string | number)[];
   liked_by?: string[];
+  is_liked?: boolean;
+  is_hidden?: boolean;
   // New metadata fields
   tokens_used?: number;
   generation_time?: number;

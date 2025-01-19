@@ -44,6 +44,11 @@ export const getMessages = ({
   });
 };
 
+export const getMessagesQueryOptions = (conversation_id: string) => ({
+  queryKey: ['messages', { conversation_id }],
+  queryFn: () => getMessages({ conversation_id }),
+});
+
 export const getInfiniteMessagesQueryOptions = (conversation_id: string) => {
   return infiniteQueryOptions({
     queryKey: ['messages', { conversation_id }],

@@ -15,6 +15,9 @@ import { Tooltip } from '@/components/ui/tooltip.tsx';
 import { TooltipProvider } from '@/components/ui/tooltip.tsx';
 import { useClipboard } from '@/hooks/use-clipboard.ts';
 import { MessageDetails } from './message-details.tsx';
+import { useUpdateMessage } from '../api/update-message.ts';
+import { HeartFilledIcon } from '@radix-ui/react-icons';
+import { cn } from '@/lib/utils.ts';
 
 interface MessageProps {
   message: MessageType;
@@ -30,6 +33,28 @@ export const Message = React.memo<MessageProps>(
     const progress = useMotionValue(0);
     const previousContentRef = useRef(message.content || '');
     const { copy } = useClipboard();
+
+    const updateMessage = useUpdateMessage();
+    
+    const handleLike = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      updateMessage.mutate(
+        {
+          messageId: message.id.toString(),
+          data: {
+            is_liked: !message.is_liked
+          }
+        },
+        {
+          onError: (error) => {
+            console.error('Failed to update message:', error);
+            // You could add a toast notification here
+          },
+        }
+      );
+    };
 
     const isModelOnline = useMemo(() => {
       if (!modelsData || !message.model) return false;
@@ -139,16 +164,27 @@ export const Message = React.memo<MessageProps>(
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Button
-                          variant="link"
-                          size="icon"
-                          className="w-7 text-muted-foreground hover:text-red-600"
-                        >
-                          <Heart className="w-3.5 h-3.5" strokeWidth={2.5} />
-                        </Button>
+                      <Button
+                variant="link"
+                size="icon"
+                onClick={handleLike}
+                className={cn(
+                  "w-7 hover:text-red-600",
+                  message.is_liked 
+                    ? "text-red-600" 
+                    : "text-muted-foreground"
+                )}
+                disabled={updateMessage.isPending}
+              >
+                {message.is_liked ? (
+                  <HeartFilledIcon className="w-3.5 h-3.5" />
+                ) : (
+                  <Heart className="w-3.5 h-3.5" strokeWidth={2.5} />
+                )}
+              </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Like message</p>
+                      <p>{message.is_liked ? 'Unlike message' : 'Like message'}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

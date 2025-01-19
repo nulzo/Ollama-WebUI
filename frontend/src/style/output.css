@@ -576,8 +576,8 @@ video {
   --border-width: 5rem;
   --sidebar-width-collapsed: '50px';
   --sidebar-width: '250px';
-  --success: 158.1 64.4% 51.6%;
-  --success-foreground: 0 0% 3.9%;
+  --success: 	151 73% 41%;
+  --success-foreground: 151 80% 98%;
   --message: 0 0% 98%;
   --message-foreground: 0 0% 3.9%;
   *::-webkit-scrollbar-thumb {
@@ -1694,6 +1694,10 @@ body {
   width: 2.25rem;
 }
 
+.w-96 {
+  width: 24rem;
+}
+
 .w-\[100\%\] {
   width: 100%;
 }
@@ -1765,10 +1769,6 @@ body {
 
 .w-screen {
   width: 100vw;
-}
-
-.w-96 {
-  width: 24rem;
 }
 
 .min-w-0 {
@@ -2318,11 +2318,6 @@ body {
   border-color: hsl(var(--destructive) / 0.5);
 }
 
-.border-green-500 {
-  --tw-border-opacity: 1;
-  border-color: rgb(34 197 94 / var(--tw-border-opacity, 1));
-}
-
 .border-input {
   border-color: hsl(var(--border));
 }
@@ -2345,6 +2340,10 @@ body {
 
 .border-secondary\/50 {
   border-color: hsl(var(--secondary) / 0.5);
+}
+
+.border-success {
+  border-color: hsl(var(--success));
 }
 
 .border-transparent {
@@ -2405,6 +2404,10 @@ body {
   background-color: rgb(219 234 254 / var(--tw-bg-opacity, 1));
 }
 
+.bg-blue-100\/20 {
+  background-color: rgb(219 234 254 / 0.2);
+}
+
 .bg-blue-500 {
   --tw-bg-opacity: 1;
   background-color: rgb(59 130 246 / var(--tw-bg-opacity, 1));
@@ -2420,6 +2423,22 @@ body {
 
 .bg-destructive {
   background-color: hsl(var(--destructive));
+}
+
+.bg-destructive-foreground {
+  background-color: hsl(var(--destructive-foreground));
+}
+
+.bg-destructive-foreground\/20 {
+  background-color: hsl(var(--destructive-foreground) / 0.2);
+}
+
+.bg-foreground {
+  background-color: hsl(var(--foreground));
+}
+
+.bg-foreground\/20 {
+  background-color: hsl(var(--foreground) / 0.2);
 }
 
 .bg-gray-100 {
@@ -2480,6 +2499,14 @@ body {
   background-color: hsl(var(--secondary) / 0.5);
 }
 
+.bg-success {
+  background-color: hsl(var(--success));
+}
+
+.bg-success\/20 {
+  background-color: hsl(var(--success) / 0.2);
+}
+
 .bg-tertiary {
   background-color: hsl(var(--tertiary));
 }
@@ -2488,8 +2515,13 @@ body {
   background-color: transparent;
 }
 
-.bg-white\/20 {
-  background-color: rgb(255 255 255 / 0.2);
+.bg-yellow-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 249 195 / var(--tw-bg-opacity, 1));
+}
+
+.bg-yellow-100\/20 {
+  background-color: rgb(254 249 195 / 0.2);
 }
 
 .bg-yellow-500 {
@@ -2551,10 +2583,6 @@ body {
 
 .stroke-yellow-200 {
   stroke: #fef08a;
-}
-
-.stroke-2 {
-  stroke-width: 2;
 }
 
 .object-contain {
@@ -2788,6 +2816,10 @@ body {
   padding-top: 2rem;
 }
 
+.pt-3 {
+  padding-top: 0.75rem;
+}
+
 .text-left {
   text-align: left;
 }
@@ -2992,9 +3024,18 @@ body {
   color: rgb(71 85 105 / var(--tw-text-opacity, 1));
 }
 
+.text-success-foreground {
+  color: hsl(var(--success-foreground));
+}
+
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+.text-red-600 {
+  --tw-text-opacity: 1;
+  color: rgb(220 38 38 / var(--tw-text-opacity, 1));
 }
 
 .underline {
@@ -3486,6 +3527,15 @@ body {
 .hover\:text-red-600:hover {
   --tw-text-opacity: 1;
   color: rgb(220 38 38 / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-blue-600:hover {
+  --tw-text-opacity: 1;
+  color: rgb(37 99 235 / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-destructive:hover {
+  color: hsl(var(--destructive));
 }
 
 .hover\:underline:hover {

@@ -43,8 +43,11 @@ export function ChatRoute() {
             <ConversationDefault />
           )}
         </ConversationArea>
-        <div className="bg-background p-4">
+        <div className="bg-background p-2 flex flex-col gap-2 items-center">
           <ChatInput onSubmit={handleSubmit} disabled={isGenerating} />
+          <div className="flex text-xs text-muted-foreground items-center gap-1">
+            <span>CringeGPT Never Makes Mistakes</span>
+          </div>
         </div>
       </div>
     </div>

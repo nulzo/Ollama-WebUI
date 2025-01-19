@@ -31,7 +31,7 @@ const toastVariants = cva(
         default: 'border-border bg-background text-foreground',
         destructive:
           'destructive group border-destructive bg-destructive text-destructive-foreground',
-        success: 'border-green-500 bg-green-500 text-white',
+        success: 'border-success bg-success text-success-foreground',
         warning: 'border-yellow-500 bg-yellow-500 text-white',
         info: 'border-blue-500 bg-blue-500 text-white',
       },
@@ -61,24 +61,24 @@ const Toast = React.forwardRef<
     const updateProgress = () => {
       const now = Date.now();
       const remaining = endTime - now;
-      const newProgress = ((duration - remaining) / duration) * 100;
+      const newProgress = (remaining / duration) * 100;
 
-      if (newProgress >= 100) {
-        setProgress(100);
+      if (newProgress <= 0) {
+        setProgress(0);
         onOpenChange?.(false);
         return;
       }
 
       progressRef.current = newProgress;
       setProgress(newProgress);
-      progressTimerRef.current = window.setTimeout(updateProgress, 10);
+      progressTimerRef.current = window.requestAnimationFrame(updateProgress);
     };
 
-    progressTimerRef.current = window.setTimeout(updateProgress, 10);
+    progressTimerRef.current = window.requestAnimationFrame(updateProgress);
 
     return () => {
       if (progressTimerRef.current) {
-        window.clearTimeout(progressTimerRef.current);
+        window.cancelAnimationFrame(progressTimerRef.current);
       }
     };
   }, [duration, onOpenChange]);
@@ -95,16 +95,33 @@ const Toast = React.forwardRef<
           damping: 20,
           stiffness: 300,
         }}
-        className={cn(toastVariants({ variant }), className)}
+        className={cn(toastVariants({ variant }), className, 'relative')}
       >
         {props.children}
         <div
-          className="bottom-0 left-0 absolute bg-white/20 h-1"
-          style={{
-            width: `${progress}%`,
-            transition: 'width 10ms linear',
-          }}
-        />
+          className={cn(
+            "absolute bottom-0 left-0 h-1 w-full bg-foreground/20",
+            variant === 'destructive' && "bg-destructive-foreground/20",
+            variant === 'success' && "bg-success/20",
+            variant === 'warning' && "bg-yellow-100/20",
+            variant === 'info' && "bg-blue-100/20"
+          )}
+        >
+          <div
+            className={cn(
+              "h-full bg-foreground",
+              variant === 'destructive' && "bg-destructive-foreground",
+              variant === 'success' && "bg-success",
+              variant === 'warning' && "bg-yellow-100",
+              variant === 'info' && "bg-blue-100"
+            )}
+            style={{
+              width: `${progress}%`,
+              transition: 'width linear',
+              transitionDuration: `${duration}ms`,
+            }}
+          />
+        </div>
       </motion.div>
     </ToastPrimitives.Root>
   );

@@ -9,17 +9,30 @@
 // }
 
 export interface Message {
-  id?: number;
+  id: string | number;
   conversation_uuid: string;
-  role?: string;
+  role: 'user' | 'assistant' | 'system';
   content: string;
-  created_at?: string;
-  model_id?: number;
+  created_at: string;
+  model: string;
   user_id?: number;
-  image?: string;
+  has_images: boolean;
+  image_ids?: (string | number)[];
   liked_by?: string[];
-  has_images?: boolean;
-  conversation_uuid?: string;
-  model?: string;
-  user?: string;
+  // New metadata fields
+  tokens_used?: number;
+  generation_time?: number;
+  model_config?: {
+    temperature?: number;
+    top_p?: number;
+    frequency_penalty?: number;
+    presence_penalty?: number;
+    max_tokens?: number;
+    [key: string]: any;
+  };
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_cost?: number;
+  finish_reason?: string;
+  updated_at?: string;
 }

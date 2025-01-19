@@ -24,16 +24,29 @@ class MessageRepository(BaseRepository[Message]):
             images = data.pop("images", [])
             self.logger.info(f"Processing message with {len(images)} images")
 
-            message = Message.objects.create(
-                conversation=data["conversation"],
-                content=data["content"],
-                role=data["role"],
-                user=data["user"],
-                model=data["model"],
-                has_images=bool(images),
-            )
-            
-            print("images", [img[:50] for img in images])
+            if data["role"] == "assistant":
+                message = Message.objects.create(
+                    conversation=data["conversation"],
+                    content=data["content"],
+                    role=data["role"],
+                    user=data["user"],
+                    model=data["model"],
+                    has_images=bool(images),
+                    tokens_used=data.get("tokens_used"),
+                    generation_time=data.get("generation_time"),
+                    prompt_tokens=None,
+                    completion_tokens=None,
+                    finish_reason=None,
+                )
+            else:
+                message = Message.objects.create(
+                    conversation=data["conversation"],
+                    content=data["content"],
+                    role=data["role"],
+                    user=data["user"],
+                    model=data["model"],
+                    has_images=bool(images),
+                )
             
             # Process and create MessageImage instances
             if images:

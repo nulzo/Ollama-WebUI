@@ -77,6 +77,11 @@ class MessageSerializer(serializers.ModelSerializer):
             "has_images",
             "image_ids",
             "images",
+            "tokens_used",
+            "generation_time",
+            "prompt_tokens",
+            "completion_tokens",
+            "finish_reason",
         ]
         read_only_fields = ["id", "created_at", "has_images"]
 
@@ -157,7 +162,12 @@ class MessageListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ["id", "role", "created_at", "conversation"]
+        fields = [
+            'id', 'conversation', 'role', 'content', 'model',
+            'tokens_used', 'generation_time', 'model_config',
+            'prompt_tokens', 'completion_tokens', 'total_cost',
+            'finish_reason', 'created_at', 'updated_at', 
+        ]
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

@@ -1040,10 +1040,6 @@ body {
   top: -3.5rem;
 }
 
-.-top-16 {
-  top: -4rem;
-}
-
 .bottom-0 {
   bottom: 0px;
 }
@@ -1582,24 +1578,20 @@ body {
   max-height: 300px;
 }
 
-.max-h-\[90vh\] {
-  max-height: 90vh;
-}
-
-.max-h-full {
-  max-height: 100%;
-}
-
-.max-h-screen {
-  max-height: 100vh;
-}
-
 .max-h-\[400px\] {
   max-height: 400px;
 }
 
 .max-h-\[75vh\] {
   max-height: 75vh;
+}
+
+.max-h-\[90vh\] {
+  max-height: 90vh;
+}
+
+.max-h-screen {
+  max-height: 100vh;
 }
 
 .min-h-0 {
@@ -1734,12 +1726,12 @@ body {
   width: 325px;
 }
 
-.w-\[384px\] {
-  width: 384px;
-}
-
 .w-\[40\%\] {
   width: 40%;
+}
+
+.w-\[400px\] {
+  width: 400px;
 }
 
 .w-\[500px\] {
@@ -1775,12 +1767,8 @@ body {
   width: 100vw;
 }
 
-.w-\[350px\] {
-  width: 350px;
-}
-
-.w-\[400px\] {
-  width: 400px;
+.w-96 {
+  width: 24rem;
 }
 
 .min-w-0 {
@@ -1823,6 +1811,10 @@ body {
   max-width: 70%;
 }
 
+.max-w-\[75vw\] {
+  max-width: 75vw;
+}
+
 .max-w-\[80\%\] {
   max-width: 80%;
 }
@@ -1841,18 +1833,6 @@ body {
 
 .max-w-none {
   max-width: none;
-}
-
-.max-w-sm {
-  max-width: 24rem;
-}
-
-.max-w-md {
-  max-width: 28rem;
-}
-
-.max-w-\[75vw\] {
-  max-width: 75vw;
 }
 
 .flex-1 {
@@ -2223,14 +2203,6 @@ body {
   white-space: nowrap;
 }
 
-.overflow-ellipsis {
-  text-overflow: ellipsis;
-}
-
-.text-ellipsis {
-  text-overflow: ellipsis;
-}
-
 .whitespace-nowrap {
   white-space: nowrap;
 }
@@ -2424,10 +2396,6 @@ body {
   background-color: rgb(0 0 0 / 0.5);
 }
 
-.bg-black\/75 {
-  background-color: rgb(0 0 0 / 0.75);
-}
-
 .bg-black\/80 {
   background-color: rgb(0 0 0 / 0.8);
 }
@@ -2529,10 +2497,6 @@ body {
   background-color: rgb(234 179 8 / var(--tw-bg-opacity, 1));
 }
 
-.bg-white\/10 {
-  background-color: rgb(255 255 255 / 0.1);
-}
-
 .bg-gradient-to-l {
   background-image: linear-gradient(to left, var(--tw-gradient-stops));
 }
@@ -2587,6 +2551,10 @@ body {
 
 .stroke-yellow-200 {
   stroke: #fef08a;
+}
+
+.stroke-2 {
+  stroke-width: 2;
 }
 
 .object-contain {
@@ -3481,10 +3449,6 @@ body {
 
 .hover\:bg-tertiary\/75:hover {
   background-color: hsl(var(--tertiary) / 0.75);
-}
-
-.hover\:bg-white\/20:hover {
-  background-color: rgb(255 255 255 / 0.2);
 }
 
 .hover\:stroke-foreground:hover {

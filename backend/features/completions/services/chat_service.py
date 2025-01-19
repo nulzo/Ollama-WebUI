@@ -1,5 +1,6 @@
 import asyncio
 import base64
+from timeit import default_timer as timer
 import json
 import logging
 import traceback
@@ -26,6 +27,7 @@ from api.services.prompt_service import (
 )
 
 logger = logging.getLogger(__name__)
+
 
 class ChatService:
     """
@@ -205,108 +207,110 @@ class ChatService:
         """Generate streaming response for chat"""
         generation_id = id(self)
         self._cancel_event.clear()
+        start = timer()
 
         try:
             # Try to get conversation or create new one if not provided
             conversation = None
-            if conversation_uuid := data.get('conversation_uuid'):
+            if conversation_uuid := data.get("conversation_uuid"):
                 try:
                     conversation = Conversation.objects.get(uuid=conversation_uuid)
                 except Conversation.DoesNotExist:
-                    logger.info(f"Conversation {conversation_uuid} not found, creating new conversation")
+                    logger.info(
+                        f"Conversation {conversation_uuid} not found, creating new conversation"
+                    )
                     conversation = None
 
             if not conversation:
                 # Create new conversation
                 conversation = Conversation.objects.create(
-                    user=user,
-                    name=data.get('content', 'New Conversation')[:50]
+                    user=user, name=data.get("content", "New Conversation")[:50]
                 )
                 # Send conversation UUID as first chunk
-                yield json.dumps({
-                    'conversation_uuid': str(conversation.uuid),
-                    'status': 'created'
-                })
+                yield json.dumps({"conversation_uuid": str(conversation.uuid), "status": "created"})
                 logger.info(f"Created new conversation {conversation.uuid} for user {user.id}")
 
             try:
                 if isinstance(user, int):
                     user = CustomUser.objects.get(id=user)
-                elif isinstance(data.get('user'), int):
-                    user = CustomUser.objects.get(id=data['user'])
+                elif isinstance(data.get("user"), int):
+                    user = CustomUser.objects.get(id=data["user"])
             except CustomUser.DoesNotExist:
                 error_msg = "User not found"
                 logger.error(f"Error in generation {generation_id}: {error_msg}")
-                yield json.dumps({
-                    'error': error_msg,
-                    'status': 'error'
-                })
+                yield json.dumps({"error": error_msg, "status": "error"})
                 return
-            
+
             try:
-                images = data.get('images', [])
+                images = data.get("images", [])
             except Exception as e:
                 self.logger.error(f"Error processing images: {str(e)}")
                 images = []
-            
+
             # Create the user's message with conversation instance
-            user_message = self.message_repository.create({
-                'conversation': conversation,  # Pass the conversation instance instead of UUID
-                'content': data.get('content', ''),
-                'role': 'user',
-                'user': user,
-                'model': data.get('model', 'llama3.2:3b'),
-                'images': images
-            })
+            user_message = self.message_repository.create(
+                {
+                    "conversation": conversation,  # Pass the conversation instance instead of UUID
+                    "content": data.get("content", ""),
+                    "role": "user",
+                    "user": user,
+                    "model": data.get("model", "llama3.2:3b"),
+                    "images": images,
+                }
+            )
 
             # Get the appropriate provider
-            provider = self._get_provider(data.get('model', 'llama3.2:3b'))
-            
+            provider = self._get_provider(data.get("model", "llama3.2:3b"))
+
             # Process conversation history
-            messages = list(user_message.conversation.messages.all().order_by('created_at'))
-            
+            messages = list(user_message.conversation.messages.all().order_by("created_at"))
+
             if user_message not in messages:
                 messages.append(user_message)
-            
+
             # Format messages for provider
             formatted_messages = [
                 {
-                    'role': msg.role,
-                    'content': msg.content,
-                    'images': self._process_message_images(msg),
+                    "role": msg.role,
+                    "content": msg.content,
+                    "images": self._process_message_images(msg),
                 }
                 for msg in messages
             ]
-            
+
             # Stream the response
+            tokens_generated = 0
             full_content = ""
-            for chunk in provider.stream(data.get('model', 'llama3.2:3b'), formatted_messages):
+            for chunk in provider.stream(data.get("model", "llama3.2:3b"), formatted_messages):
                 if isinstance(chunk, str):
                     chunk_data = json.loads(chunk)
-                    full_content += chunk_data.get('content', '')
-                    yield json.dumps(chunk_data) + '\n'
+                    full_content += chunk_data.get("content", "")
+                    tokens_generated += 1
+                    yield json.dumps(chunk_data) + "\n"
+
+            end = timer()
+            generation_time = end - start
 
             # Update final message content if not cancelled
             if not self._cancel_event.is_set():
-                assistant_message = self.message_repository.create({
-                    'conversation': conversation,
-                    'content': full_content,  # Use accumulated content
-                    'role': 'assistant',
-                    'user': user,
-                    'model': data.get('model', 'llama3.2:3b')
-                })
-                yield json.dumps({
-                    'status': 'done',
-                    'message_id': str(assistant_message.id)
-                })
+                assistant_message = self.message_repository.create(
+                    {
+                        "conversation": user_message.conversation,
+                        "content": full_content,
+                        "role": "assistant",
+                        "user": user,
+                        "tokens_used": tokens_generated,
+                        "model": data.get("model"),
+                        "generation_time": generation_time,
+                        "finish_reason": "stop",
+                    }
+                )
+                yield json.dumps({"status": "done", "message_id": str(assistant_message.id)})
 
         except Exception as e:
             logger.error(f"Error in generation {generation_id}: {str(e)}\n{traceback.format_exc()}")
-            yield json.dumps({
-                'error': str(e),
-                'status': 'error'
-            })
-            
+            yield json.dumps({"error": str(e), "status": "error"})
+
     def _get_provider(self, model_name: str, user_id: int = None):
         """Get appropriate provider based on model name"""
         provider_name = "openai" if model_name.startswith("gpt") else "ollama"
@@ -341,7 +345,7 @@ class ChatService:
         except Exception as e:
             self.logger.error(f"Error generating prompts: {str(e)}")
             raise
-        
+
     def cancel_generation(self):
         """Mark the current generation as cancelled"""
         self._cancel_event.set()

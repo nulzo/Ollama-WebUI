@@ -12,52 +12,48 @@ import { Button } from '@/components/ui/button.tsx';
 import { TooltipContent } from '@/components/ui/tooltip.tsx';
 import { TooltipTrigger } from '@/components/ui/tooltip.tsx';
 import { Tooltip } from '@/components/ui/tooltip.tsx';
-import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { TooltipProvider } from '@/components/ui/tooltip.tsx';
 import { useClipboard } from '@/hooks/use-clipboard.ts';
+import { MessageDetails } from './message-details.tsx';
 
-interface MessageProps extends Omit<MessageType, 'conversation_id'> {
-  username: string;
-  time: number;
+interface MessageProps {
+  message: MessageType;
   isTyping?: boolean;
-  image_ids?: string[] | number[] | undefined;
-  conversation_id: string;
-  modelName: string;
   isLoading?: boolean;
 }
 
 export const Message = React.memo<MessageProps>(
-  ({ username, role, time, content, isTyping, modelName, image_ids = [], isLoading }) => {
+  ({ message, isTyping, isLoading }) => {
     const [displayedContent, setDisplayedContent] = useState('');
-    const formattedDate = formatDate(time);
+    const formattedDate = formatDate(new Date(message.created_at).getTime());
     const { data: modelsData } = useModels();
     const progress = useMotionValue(0);
-    const previousContentRef = useRef(content || '');
+    const previousContentRef = useRef(message.content || '');
     const { copy } = useClipboard();
 
     const isModelOnline = useMemo(() => {
-      if (!modelsData || !modelName) return false;
+      if (!modelsData || !message.model) return false;
 
       const isOllamaModel = modelsData.ollama?.models?.some(
-        model => model.name?.toLowerCase() === modelName?.toLowerCase()
+        model => model.name?.toLowerCase() === message.model?.toLowerCase()
       );
 
       const isOpenAIModel = modelsData.openai?.some(
-        model => model.id?.toLowerCase() === modelName?.toLowerCase()
+        model => model.id?.toLowerCase() === message.model?.toLowerCase()
       );
 
       return isOllamaModel || isOpenAIModel;
-    }, [modelsData, modelName]);
+    }, [modelsData, message.model]);
 
     // Update the streaming effect to be smoother
     useEffect(() => {
       if (!isTyping) {
-        setDisplayedContent(content || '');
+        setDisplayedContent(message.content || '');
         return;
       }
 
-      if (content !== previousContentRef.current) {
-        const newContent = content;
+      if (message.content !== previousContentRef.current) {
+        const newContent = message.content;
         const targetLength = newContent.length;
 
         // Animate the progress value from current to target length
@@ -70,14 +66,14 @@ export const Message = React.memo<MessageProps>(
           },
         });
       }
-      previousContentRef.current = content;
-    }, [content, isTyping]);
+      previousContentRef.current = message.content;
+    }, [message.content, isTyping]);
 
     if (isLoading) {
       return (
         <div className="flex flex-col gap-1 px-4 py-2">
-          <div className={`flex ${role !== 'user' ? 'gap-3 max-w-[85%]' : 'flex-col items-end'}`}>
-            {role !== 'user' && (
+          <div className={`flex ${message.role !== 'user' ? 'gap-3 max-w-[85%]' : 'flex-col items-end'}`}>
+            {message.role !== 'user' && (
               <div className="flex items-start mb-0">
                 <Skeleton className="rounded-full size-8" />
               </div>
@@ -89,7 +85,7 @@ export const Message = React.memo<MessageProps>(
               </div>
               <div
                 className={`px-4 py-3 rounded-xl ${
-                  role !== 'user' ? 'bg-muted/30 rounded-tl' : 'bg-primary rounded-tr-sm'
+                  message.role !== 'user' ? 'bg-muted/30 rounded-tl' : 'bg-primary rounded-tr-sm'
                 }`}
               >
                 <Skeleton className="w-[300px] h-16" />
@@ -100,30 +96,30 @@ export const Message = React.memo<MessageProps>(
       );
     }
 
-    const messageContent = isTyping ? displayedContent : content || '';
-    const showActions = !isTyping && !isLoading && role === 'assistant';
+    const messageContent = isTyping ? displayedContent : message.content || '';
+    const showActions = !isTyping && !isLoading && message.role === 'assistant';
 
     return (
       <div className="flex flex-col gap-1 px-4 py-2">
-        {role !== 'user' ? (
+        {message.role !== 'user' ? (
           // Bot message
           <div className="flex gap-3 max-w-[85%]">
             <div className="flex flex-col items-center mb-0">
-              <BotIcon assistantId={0} isOnline={isModelOnline} modelName={modelName} />
+              <BotIcon assistantId={0} isOnline={isModelOnline} modelName={message.model} />
             </div>
 
             <div className="flex flex-col">
               <div className="flex items-baseline gap-2 mb-0.5 ml-1">
-                <span className="font-medium text-primary text-sm">{modelName}</span>
+                <span className="font-medium text-primary text-sm">{message.model}</span>
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
               </div>
 
               <div className="bg-muted/30 px-4 py-3 rounded-xl rounded-tl">
-                {image_ids.length > 0 && (
+                {message.image_ids?.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     <AsyncMessageImage
-                      imageId={image_ids[0] as number}
-                      images={image_ids as number[]}
+                      imageId={message.image_ids[0] as number}
+                      images={message.image_ids as number[]}
                       currentIndex={0}
                     />
                   </div>
@@ -148,7 +144,7 @@ export const Message = React.memo<MessageProps>(
                           size="icon"
                           className="w-7 text-muted-foreground hover:text-red-600"
                         >
-                          <Heart className="w-3.5 h-3.5" />
+                          <Heart className="w-3.5 h-3.5" strokeWidth={2.5} />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -163,10 +159,10 @@ export const Message = React.memo<MessageProps>(
                         <Button
                           variant="link"
                           size="icon"
-                          onClick={() => copy(content)}
+                          onClick={() => copy(message.content)}
                           className="w-7 text-muted-foreground hover:text-foreground"
                         >
-                          <Copy className="w-3.5 h-3.5" />
+                          <Copy className="w-3.5 h-3.5" strokeWidth={2.5} />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -183,7 +179,7 @@ export const Message = React.memo<MessageProps>(
                           size="icon"
                           className="w-7 text-muted-foreground hover:text-foreground"
                         >
-                          <RefreshCw className="w-3.5 h-3.5" />
+                          <RefreshCw className="w-3.5 h-3.5" strokeWidth={2.5} />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -192,22 +188,7 @@ export const Message = React.memo<MessageProps>(
                     </Tooltip>
                   </TooltipProvider>
 
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Button
-                          variant="link"
-                          size="icon"
-                          className="w-7 text-muted-foreground hover:text-foreground"
-                        >
-                          <DotsHorizontalIcon className="w-3.5 h-3.5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>More actions</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <MessageDetails messageId={message.id} />
                 </div>
               )}
             </div>
@@ -220,11 +201,11 @@ export const Message = React.memo<MessageProps>(
             </div>
 
             <div className="max-w-[70%]">
-              {image_ids.length > 0 && (
+              {message.image_ids?.length > 0 && (
                 <div className="flex flex-wrap justify-end gap-2">
                   <AsyncMessageImage
-                    imageId={image_ids[0] as number}
-                    images={image_ids as number[]}
+                    imageId={message.image_ids[0] as number}
+                    images={message.image_ids as number[]}
                     currentIndex={0}
                   />
                 </div>
@@ -248,7 +229,7 @@ export const Message = React.memo<MessageProps>(
   (prevProps, nextProps) => {
     // Custom comparison function to optimize re-renders
     return (
-      prevProps.content === nextProps.content &&
+      prevProps.message.content === nextProps.message.content &&
       prevProps.isTyping === nextProps.isTyping &&
       prevProps.isLoading === nextProps.isLoading
     );

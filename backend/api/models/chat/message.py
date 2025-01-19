@@ -34,6 +34,12 @@ class Message(BaseModel):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     has_images = models.BooleanField(default=False)
     model = models.CharField(max_length=120)
+    tokens_used = models.IntegerField(null=True, blank=True)
+    generation_time = models.FloatField(null=True, blank=True)  # in seconds
+    prompt_tokens = models.IntegerField(null=True, blank=True)
+    completion_tokens = models.IntegerField(null=True, blank=True)
+    finish_reason = models.CharField(max_length=50, null=True, blank=True)
+    
 
     def clean(self):
         if self.role == "user" and not self.user:
@@ -43,6 +49,12 @@ class Message(BaseModel):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+        if self.role == 'user':
+            self.tokens_used = None
+            self.generation_time = None
+            self.prompt_tokens = None
+            self.completion_tokens = None
+            self.finish_reason = None
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:

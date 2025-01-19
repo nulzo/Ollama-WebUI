@@ -142,19 +142,15 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
 
           {allMessages.map((message, index) => (
             <Message
-              key={message.id || index}
-              content={message.content}
-              role={message.role}
-              time={new Date(message.created_at).getTime()}
-              username={message.role === 'user' ? 'You' : 'Assistant'}
-              modelName={message.model || 'claude-3-opus-20240229'}
-              conversation_id={conversation_id}
-              image_ids={message.image_ids || []}
-              isTyping={
-                isGenerating && index === allMessages.length - 1 && message.role === 'assistant'
-              }
-              isLoading={false}
-            />
+            key={message.id || index}
+            message={message}
+            isTyping={
+              isGenerating && 
+              index === allMessages.length - 1 && 
+              message.role === 'assistant'
+            }
+            isLoading={false}
+          />
           ))}
         </div>
       </div>

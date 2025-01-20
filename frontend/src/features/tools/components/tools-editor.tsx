@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createEditorTheme } from '@/style/editor-themes';
 import { useDropzone } from 'react-dropzone';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useCreateTool, useUpdateTool, useTool } from '@/features/tools/api';
 
 const DEFAULT_FUNCTION_TEMPLATE = `# Ollama Function Calling requires Google-style docstrings for proper function parsing
@@ -104,6 +104,8 @@ export function ToolEditor() {
         is_enabled: true,
       };
 
+      console.log('formData', formData);
+
       if (toolId) {
         await updateTool.mutateAsync({
           toolId,
@@ -125,7 +127,7 @@ export function ToolEditor() {
 
       setIsSaveDialogOpen(false);
       navigate('/tools');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Save error:', error);
       toast({
         title: 'Error',
@@ -178,8 +180,8 @@ export function ToolEditor() {
   useEffect(() => {
     loader.init().then(monaco => {
       // Define both themes with the current color
-      monaco.editor.defineTheme('custom-light', createEditorTheme(false, color));
-      monaco.editor.defineTheme('custom-dark', createEditorTheme(true, color));
+      monaco.editor.defineTheme('custom-light', createEditorTheme(false));
+      monaco.editor.defineTheme('custom-dark', createEditorTheme(true));
 
       // Set the current theme
       setMonacoTheme(theme === 'dark' ? 'custom-dark' : 'custom-light');
@@ -200,9 +202,9 @@ export function ToolEditor() {
         </div>
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex flex-col flex-1 min-h-0">
           {/* Controls bar */}
-          <div className="flex justify-between items-center mb-4 gap-2">
+          <div className="flex justify-between items-center gap-2 mb-4">
             <div className="flex gap-2">
               <Select value={language} onValueChange={setLanguage}>
                 <SelectTrigger className="w-[100px]">
@@ -220,20 +222,20 @@ export function ToolEditor() {
                   variant="outline"
                   className={`gap-2 ${isDragActive ? 'border-primary' : ''}`}
                 >
-                  <Upload className="h-4 w-4" />
+                  <Upload className="w-4 h-4" />
                   {isDragActive ? 'Drop file here' : 'Upload File'}
                   <span className="sr-only">Upload file</span>
                 </Button>
               </div>
             </div>
             <Button className="gap-2" onClick={() => setIsSaveDialogOpen(true)}>
-              <Save className="h-4 w-4" />
+              <Save className="w-4 h-4" />
               Save Function
             </Button>
           </div>
 
           {/* Editor */}
-          <div className="flex-1 overflow-hidden rounded-lg border">
+          <div className="flex-1 border rounded-lg overflow-hidden">
             <Editor
               height="100%"
               defaultLanguage="python"

@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from django.db import transaction
 
-from api.models.chat.conversation import Conversation
+from features.conversations.models import Conversation
 from api.utils.interfaces.base_repository import BaseRepository
 
 

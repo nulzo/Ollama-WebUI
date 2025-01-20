@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models.agent.knowledge import Knowledge
+from features.knowledge.models import Knowledge
 
 
 class KnowledgeSerializer(serializers.ModelSerializer):

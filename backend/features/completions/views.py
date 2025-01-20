@@ -3,19 +3,25 @@ import logging
 
 from django.http import StreamingHttpResponse
 from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from api.utils.responses.response import api_response
 from features.completions.services.chat_service import ChatService
 from api.utils.exceptions import ServiceError, ValidationError
 from api.utils.renderers import EventStreamRenderer
+import base64
+from rest_framework.decorators import action
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from features.completions.models import MessageImage
+from features.completions.serializers.image_serializer import MessageImageSerializer
+
 
 logger = logging.getLogger(__name__)
 
 
-class ChatView(APIView):
+class ChatViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
     renderer_classes = [EventStreamRenderer]
     
@@ -24,8 +30,8 @@ class ChatView(APIView):
         self.chat_service = ChatService()
         self.logger = logger
         
-    def post(self, request):
-        
+    @action(detail=False, methods=['post'])
+    def chat(self, request):
         try:
             self.logger.info(f"Request user: {request.user}")
             self.logger.info(f"Auth header: {request.headers.get('Authorization')}")
@@ -92,16 +98,30 @@ class ChatView(APIView):
                 status=500
             )
 
-    def get(self, request):
+
+class MessageImageViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = MessageImageSerializer
+
+    def get_queryset(self):
+        return MessageImage.objects.filter(message__conversation__user=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
         try:
-            models = self.chat_service.get_available_models()
-            return Response(models)
-        except ServiceError as e:
-            logger.error(f"Error fetching models: {str(e)}")
-            return Response({"error": str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+            # Read the file content
+            instance.image.seek(0)  # Ensure we're at the start of the file
+            image_bytes = instance.image.read()
+            image_data = base64.b64encode(image_bytes).decode("utf-8")
+
             return Response(
-                {"error": "An unexpected error occurred"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {
+                    "data": {  # Wrap in data object to match expected format
+                        "id": instance.id,
+                        "image": f"data:image/jpeg;base64,{image_data}",
+                        "order": instance.order,
+                    }
+                }
             )
+        except Exception as e:
+            return Response({"error": f"Error processing image: {str(e)}"}, status=500)

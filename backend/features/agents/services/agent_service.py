@@ -1,9 +1,9 @@
 from typing import Dict, List
 from django.core.exceptions import ValidationError
-from api.models.agent.agent import Agent, AgentProvider, AgentModel
-from api.repositories.agent_repository import AgentRepository
-from api.providers.provider_factory import ProviderFactory
-from api.services.provider_settings_service import ProviderSettingsService
+from features.agents.models import Agent, AgentProvider, AgentModel
+from features.agents.repositories.agent_repository import AgentRepository
+from features.providers.clients.provider_factory import ProviderFactory
+from features.providers.services.provider_settings_service import ProviderSettingsService
 
 
 class AgentService:

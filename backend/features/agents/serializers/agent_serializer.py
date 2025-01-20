@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models.agent.agent import Agent
+from features.agents.models import Agent
 
 
 class AgentSerializer(serializers.ModelSerializer):

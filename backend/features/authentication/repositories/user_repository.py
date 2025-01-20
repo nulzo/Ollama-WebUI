@@ -4,7 +4,7 @@ from typing import List, Optional
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 
-from api.models.auth.user import CustomUser
+from features.authentication.models import CustomUser
 from api.utils.interfaces.base_repository import BaseRepository
 
 

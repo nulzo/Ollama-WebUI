@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict
 
-from api.models.chat.message import Message
+from features.completions.models import Message
 from features.conversations.repositories.message_repository import MessageRepository
 from features.conversations.serializers.message import MessageSerializer
 from api.utils.exceptions import ServiceError, ValidationError

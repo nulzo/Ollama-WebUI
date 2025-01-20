@@ -2,8 +2,8 @@ import logging
 
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-
-from api.models import Conversation, Message, MessageImage
+from features.conversations.models import Conversation
+from features.completions.models import Message, MessageImage
 
 logger = logging.getLogger(__name__)
 

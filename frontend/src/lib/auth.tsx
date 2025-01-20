@@ -7,10 +7,11 @@ import { useQueryClient } from '@tanstack/react-query';
 
 const getUser = async (): Promise<User | null> => {
   const token = localStorage.getItem('authToken');
+
   if (!token) return null;
 
   try {
-    const response = await api.get('/user/current/');
+    const response = await api.get('/users/profile/');
     return response as User;
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -32,12 +33,28 @@ export const registerInputSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginInputSchema>;
 export type RegisterInput = z.infer<typeof registerInputSchema>;
+export type AuthResponse = {
+  success: true,
+  meta: {
+    timestamp: string;
+    request_id: string;
+    version: string;
+  },
+  status: number;
+  data: {
+    token: string;
+    user: User;
+  };
+};
 
 const authConfig = {
   userFn: getUser,
   loginFn: async (data: LoginInput) => {
-    const response = await api.post('/auth/login/', data);
-    const { token, user } = response as { token: string; user: User };
+    const response = await api.post<AuthResponse>('/auth/login/', data);
+    if (!response.data) {
+      throw new Error('No data in response');
+    }
+    const { token, user } = response.data;
     localStorage.setItem('authToken', token);
     console.log('user', user);
     

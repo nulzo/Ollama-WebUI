@@ -1,8 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
 
-from api.services.agent_service import AgentService
+from features.agents.services.agent_service import AgentService
 from api.utils.exceptions import ValidationError, NotFoundException
 from api.utils.responses.response import api_response
 

@@ -1,11 +1,9 @@
 import json
 
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
 from django.db import models
 
-from api.models.auth.user import CustomUser
-
+from features.authentication.models import CustomUser
 
 class Tool(models.Model):
     # Basic Information

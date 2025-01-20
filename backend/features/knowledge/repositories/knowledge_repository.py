@@ -1,9 +1,7 @@
 import logging
 from typing import List, Optional
 
-from django.db import transaction
-
-from api.models.agent.knowledge import Knowledge
+from features.knowledge.models import Knowledge
 from api.utils.interfaces.base_repository import BaseRepository
 
 logger = logging.getLogger(__name__)

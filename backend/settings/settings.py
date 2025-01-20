@@ -5,6 +5,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from rich.logging import RichHandler
 
+from features import agents, authentication, completions, conversations, knowledge, prompts, providers, tags, tools
+from features.agents.apps import AgentsConfig
+from api.middleware.csrf_middleware import CsrfExemptMiddleware
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,11 +30,8 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    # Requests from the proxy container in docker compose
     "backend",
     "host.docker.internal",
-    "http://192.168.0.90:6969",
-    "192.168.0.90",
 ]
 
 CHROMA_PERSIST_DIR = "data/chromadb"
@@ -42,6 +43,11 @@ CHROMA_SETTINGS = {
 }
 
 EMBEDDING_MODEL = "nomic-embed-text"
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5073",
+    "http://127.0.0.1:5073",
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -78,9 +84,19 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework.authtoken",
+    "django_extensions",
     "api.apps.ApiConfig",
     "rest_framework",
     "corsheaders",
+    "features.agents.apps.AgentsConfig",
+    "features.authentication.apps.AuthenticationConfig",
+    "features.completions.apps.CompletionsConfig",
+    "features.conversations.apps.ConversationsConfig",
+    "features.knowledge.apps.KnowledgeConfig",
+    "features.prompts.apps.PromptsConfig",
+    "features.providers.apps.ProvidersConfig",
+    "features.tags.apps.TagsConfig",
+    "features.tools.apps.ToolsConfig",
 ]
 
 MIDDLEWARE = [
@@ -88,7 +104,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    "api.middleware.csrf_middleware.CsrfExemptMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -131,7 +147,7 @@ REST_FRAMEWORK = {
 
 ASGI_APPLICATION = "settings.asgi.application"
 
-AUTH_USER_MODEL = "api.CustomUser"
+AUTH_USER_MODEL = "authentication.CustomUser"
 
 DATABASES = {
     "default": {

@@ -50,9 +50,9 @@ class Agent(BaseModel):
     enabled = models.BooleanField(default=True)
 
     # Relationships
-    user = models.ForeignKey("api.CustomUser", on_delete=models.CASCADE)
-    tools = models.ManyToManyField("api.Tool", blank=True)
-    knowledge_base = models.ManyToManyField("api.Knowledge", blank=True)
+    user = models.ForeignKey("authentication.CustomUser", on_delete=models.CASCADE)
+    tools = models.ManyToManyField("tools.Tool", blank=True)
+    knowledge_base = models.ManyToManyField("knowledge.Knowledge", blank=True)
 
     class Meta:
         unique_together = ["user", "display_name"]

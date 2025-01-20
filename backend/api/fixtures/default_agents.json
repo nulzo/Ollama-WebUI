@@ -1,6 +1,6 @@
 [
   {
-    "model": "api.customuser",
+    "model": "authentication.customuser",
     "pk": 2,
     "fields": {
       "password": "password",
@@ -18,7 +18,7 @@
     }
   },
   {
-    "model": "api.model",
+    "model": "providers.model",
     "pk": 1,
     "fields": {
       "name": "llama3.1",
@@ -31,7 +31,7 @@
     }
   },
   {
-    "model": "api.agent",
+    "model": "agents.agent",
     "pk": 1,
     "fields": {
       "display_name": "Claude",

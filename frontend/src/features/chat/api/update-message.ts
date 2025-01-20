@@ -45,10 +45,6 @@ export const useUpdateMessage = ({ mutationConfig }: UseUpdateMessageOptions = {
 
   return useMutation({
     onSuccess: (data, ...args) => {
-      // Invalidate the specific message query
-      queryClient.refetchQueries({
-        queryKey: getMessagesQueryOptions(args[0].messageId).queryKey,
-      });
       onSuccess?.(data, ...args);
     },
     ...restConfig,

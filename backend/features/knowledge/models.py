@@ -1,6 +1,6 @@
 from django.db import models
 
-from api.models.auth.user import CustomUser
+from features.authentication.models import CustomUser
 from api.models.base import BaseModel
 
 

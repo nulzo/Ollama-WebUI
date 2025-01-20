@@ -1,6 +1,6 @@
 [
     {
-      "model": "api.conversation",
+      "model": "conversations.conversation",
       "pk": "550e8400-e29b-41d4-a716-446655440000",
       "fields": {
         "user": 1,
@@ -12,7 +12,7 @@
       }
     },
     {
-      "model": "api.message",
+      "model": "completions.message",
       "pk": 1,
       "fields": {
         "conversation": "550e8400-e29b-41d4-a716-446655440000",
@@ -26,7 +26,7 @@
       }
     },
     {
-      "model": "api.message",
+      "model": "completions.message",
       "pk": 2,
       "fields": {
         "conversation": "550e8400-e29b-41d4-a716-446655440000",
@@ -40,7 +40,7 @@
       }
     },
     {
-      "model": "api.conversation",
+      "model": "conversations.conversation",
       "pk": "550e8400-e29b-41d4-a716-446655440001",
       "fields": {
         "user": 1,
@@ -52,7 +52,7 @@
       }
     },
     {
-      "model": "api.message",
+      "model": "completions.message",
       "pk": 3,
       "fields": {
         "conversation": "550e8400-e29b-41d4-a716-446655440001",
@@ -66,7 +66,7 @@
       }
     },
     {
-      "model": "api.message",
+      "model": "completions.message",
       "pk": 4,
       "fields": {
         "conversation": "550e8400-e29b-41d4-a716-446655440001",

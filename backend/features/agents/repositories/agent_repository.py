@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from django.db import transaction
 
-from api.models.agent.agent import Agent
+from features.agents.models import Agent
 from api.utils.interfaces.base_repository import BaseRepository
 
 

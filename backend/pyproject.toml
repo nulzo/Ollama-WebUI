@@ -21,6 +21,7 @@ uvicorn = "^0.32.0"
 django-cryptography = "^1.1"
 django = "^5.1.4"
 chromadb = "^0.5.23"
+pydot = "^3.0.4"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
@@ -39,6 +40,9 @@ coverage = "^7.6.9"
 bandit = "^1.8.0"
 vulture = "^2.14"
 pip-audit = "^2.7.3"
+pyparsing = "^3.2.1"
+pydot = "^3.0.4"
+graphviz = "^0.20.3"
 
 [tool.black]
 line-length = 100

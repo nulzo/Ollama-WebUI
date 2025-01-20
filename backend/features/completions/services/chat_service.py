@@ -11,15 +11,14 @@ from asgiref.sync import sync_to_async
 from django.http import StreamingHttpResponse
 from ollama import Options
 
-from api.models.agent.agent import Agent
-from api.providers.provider_factory import ProviderFactory
-from api.models.chat.conversation import Conversation
+from features.agents.models import Agent
+from features.providers.clients.provider_factory import ProviderFactory
+from features.conversations.models import Conversation
 from features.conversations.repositories.message_repository import MessageRepository
 from features.conversations.serializers.message import MessageSerializer
-from api.models.auth.user import CustomUser
-from django.contrib.auth import get_user_model
+from features.authentication.models import CustomUser
 from features.knowledge.services.knowledge_service import KnowledgeService
-from api.services.prompt_service import (
+from features.prompts.services.prompt_service import (
     PromptBuilderService,
     PromptService,
     PromptTemplateService,

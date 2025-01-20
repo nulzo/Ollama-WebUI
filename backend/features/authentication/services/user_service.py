@@ -1,6 +1,6 @@
 import logging
 
-from api.core.exceptions import NotFoundException, ValidationError
+from api.utils.exceptions import NotFoundException, ValidationError
 from features.authentication.repositories.user_repository import UserRepository
 
 

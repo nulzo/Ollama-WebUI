@@ -37,7 +37,7 @@ export const createMessage = async ({
   );
 
   try {
-    const response = await api.post('/chat/', data, {
+    const response = await api.post('/completions/chat', data, {
       headers: {
         Accept: 'text/event-stream',
         'Content-Type': 'application/json',

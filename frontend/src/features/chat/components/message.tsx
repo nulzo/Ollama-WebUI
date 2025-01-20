@@ -18,6 +18,7 @@ import { MessageDetails } from './message-details.tsx';
 import { useUpdateMessage } from '../api/update-message.ts';
 import { HeartFilledIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils.ts';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface MessageProps {
   message: MessageType;
@@ -33,24 +34,58 @@ export const Message = React.memo<MessageProps>(
     const progress = useMotionValue(0);
     const previousContentRef = useRef(message.content || '');
     const { copy } = useClipboard();
+    const [isLiked, setIsLiked] = useState(message.is_liked);
 
+    const queryClient = useQueryClient();
     const updateMessage = useUpdateMessage();
-    
-    const handleLike = (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
+
+    const handleLike = () => {
+      const newIsLiked = !isLiked;
+      setIsLiked(newIsLiked);
+
+      // Optimistically update the messages in the infinite query cache
+      queryClient.setQueryData(
+        ['messages', { conversation_id: message.conversation_id }],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => ({
+              ...page,
+              data: page.data.map((msg: any) =>
+                msg.id === message.id ? { ...msg, is_liked: newIsLiked } : msg
+              ),
+            })),
+          };
+        }
+      );
+
+      // Make the API call
       updateMessage.mutate(
         {
           messageId: message.id.toString(),
-          data: {
-            is_liked: !message.is_liked
-          }
+          data: { is_liked: newIsLiked },
         },
         {
-          onError: (error) => {
-            console.error('Failed to update message:', error);
-            // You could add a toast notification here
+          // Revert on error
+          onError: () => {
+            queryClient.setQueryData(
+              ['messages', { conversation_id: message.conversation_id }],
+              (oldData: any) => {
+                if (!oldData) return oldData;
+
+                return {
+                  ...oldData,
+                  pages: oldData.pages.map((page: any) => ({
+                    ...page,
+                    data: page.data.map((msg: any) =>
+                      msg.id === message.id ? { ...msg, is_liked: !newIsLiked } : msg
+                    ),
+                  })),
+                };
+              }
+            );
           },
         }
       );
@@ -84,7 +119,7 @@ export const Message = React.memo<MessageProps>(
         // Animate the progress value from current to target length
         animate(progress, targetLength, {
           type: 'tween',
-          duration: 0.5, // Adjust this for speed
+          duration: 0.5,
           ease: 'linear',
           onUpdate: latest => {
             setDisplayedContent(newContent.slice(0, Math.floor(latest)));
@@ -94,10 +129,17 @@ export const Message = React.memo<MessageProps>(
       previousContentRef.current = message.content;
     }, [message.content, isTyping]);
 
+    // Update local state when prop changes
+    useEffect(() => {
+      setIsLiked(message.is_liked);
+    }, [message.is_liked]);
+
     if (isLoading) {
       return (
         <div className="flex flex-col gap-1 px-4 py-2">
-          <div className={`flex ${message.role !== 'user' ? 'gap-3 max-w-[85%]' : 'flex-col items-end'}`}>
+          <div
+            className={`flex ${message.role !== 'user' ? 'gap-3 max-w-[85%]' : 'flex-col items-end'}`}
+          >
             {message.role !== 'user' && (
               <div className="flex items-start mb-0">
                 <Skeleton className="rounded-full size-8" />
@@ -164,27 +206,25 @@ export const Message = React.memo<MessageProps>(
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                      <Button
-                variant="link"
-                size="icon"
-                onClick={handleLike}
-                className={cn(
-                  "w-7 hover:text-red-600",
-                  message.is_liked 
-                    ? "text-red-600" 
-                    : "text-muted-foreground"
-                )}
-                disabled={updateMessage.isPending}
-              >
-                {message.is_liked ? (
-                  <HeartFilledIcon className="w-3.5 h-3.5" />
-                ) : (
-                  <Heart className="w-3.5 h-3.5" strokeWidth={2.5} />
-                )}
-              </Button>
+                        <Button
+                          variant="link"
+                          size="icon"
+                          onClick={handleLike}
+                          className={cn(
+                            'w-7 hover:text-red-600',
+                            isLiked ? 'text-red-600' : 'text-muted-foreground'
+                          )}
+                          disabled={updateMessage.isPending}
+                        >
+                          {isLiked ? (
+                            <Heart className="w-3.5 h-3.5" fill='currentColor' />
+                          ) : (
+                            <Heart className="w-3.5 h-3.5" strokeWidth={2.5} />
+                          )}
+                        </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                      <p>{message.is_liked ? 'Unlike message' : 'Like message'}</p>
+                        <p>{isLiked ? 'Unlike message' : 'Like message'}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -266,6 +306,7 @@ export const Message = React.memo<MessageProps>(
     // Custom comparison function to optimize re-renders
     return (
       prevProps.message.content === nextProps.message.content &&
+      prevProps.message.is_liked === nextProps.message.is_liked &&
       prevProps.isTyping === nextProps.isTyping &&
       prevProps.isLoading === nextProps.isLoading
     );

@@ -135,12 +135,17 @@ class ApiClient {
 
   async post<T>(endpoint: string, data?: unknown, config: RequestConfig = {}): Promise<T> {
     try {
+      console.log('POST Request Data:', data);
+      console.log('Making POST request to:', endpoint, 'with data:', data);
+
       const response = await fetch(this.getFullURL(endpoint), {
         method: 'POST',
         headers: this.getHeaders(config),
         credentials: 'include',
         body: JSON.stringify(data),
       });
+
+      console.log('POST Response:', response);
 
       if (!response.ok) {
         console.error('Response status:', response.status);
@@ -201,7 +206,7 @@ class ApiClient {
     signal?: AbortSignal
   ): Promise<void> {
     try {
-      const response = await fetch(this.getFullURL('/chat/completion/'), {
+      const response = await fetch(this.getFullURL('/completions/chat/'), {
         method: 'POST',
         headers: this.getHeaders({
             headers: {

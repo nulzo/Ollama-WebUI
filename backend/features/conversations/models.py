@@ -2,8 +2,8 @@ import uuid
 
 from django.db import models
 from django.db.models import Count, Prefetch, Q
-
-from api.models.chat.message import Message
+from features.authentication.models import CustomUser
+from features.completions.models import Message
 
 
 class ConversationManager(models.Manager):
@@ -28,7 +28,7 @@ class Conversation(models.Model):
     uuid = models.UUIDField(
         default=uuid.uuid4, editable=False, unique=True, primary_key=True, db_index=True
     )
-    user = models.ForeignKey("CustomUser", on_delete=models.CASCADE, related_name="conversations")
+    user = models.ForeignKey("authentication.CustomUser", on_delete=models.CASCADE, related_name="conversations")
     name = models.CharField(max_length=150, blank=True, null=True, default="")
     is_pinned = models.BooleanField(default=False, db_index=True)
     is_hidden = models.BooleanField(default=False, db_index=True)

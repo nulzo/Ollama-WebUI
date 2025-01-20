@@ -2,13 +2,10 @@ import uuid
 
 from rest_framework import serializers
 
-from api.models.auth.user import CustomUser
-from api.models.chat.assistant import Assistant
-from api.models.chat.conversation import Conversation
-from api.models.chat.message import Message
+from features.authentication.models import CustomUser
+from features.conversations.models import Conversation
+from features.conversations.models import Message
 from features.conversations.repositories.message_repository import MessageRepository
-from api.serializers.liked_messages import LikedMessageSerializer
-
 
 class UserField(serializers.RelatedField):
     def to_representation(self, value):
@@ -19,19 +16,6 @@ class UserField(serializers.RelatedField):
             return CustomUser.objects.get(username=data)
         except CustomUser.DoesNotExist:
             raise serializers.ValidationError("User does not exist")
-
-
-class AssistantField(serializers.RelatedField):
-    def to_representation(self, value):
-        return value.name
-
-    def to_internal_value(self, data):
-        try:
-            return Assistant.objects.get(name=data)
-        except Assistant.DoesNotExist:
-            # Create a new assistant if it does not exist
-            assistant = Assistant.objects.create(name=data)
-            return assistant
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -45,7 +29,6 @@ class MessageSerializer(serializers.ModelSerializer):
     """
 
     # Read-only fields
-    liked_by = LikedMessageSerializer(many=True, read_only=True)
     image_ids = serializers.ListField(child=serializers.IntegerField(), read_only=True)
     conversation_uuid = serializers.SerializerMethodField()
 
@@ -73,7 +56,6 @@ class MessageSerializer(serializers.ModelSerializer):
             "created_at",
             "model",
             "user",
-            "liked_by",
             "has_images",
             "image_ids",
             "images",
@@ -82,6 +64,8 @@ class MessageSerializer(serializers.ModelSerializer):
             "prompt_tokens",
             "completion_tokens",
             "finish_reason",
+            "is_liked",
+            "is_hidden"
         ]
         read_only_fields = ["id", "created_at", "has_images"]
 

@@ -6,9 +6,9 @@ from typing import List, Optional
 from django.core.files.base import ContentFile
 from django.db import transaction
 
-from api.models.chat.conversation import Conversation
-from api.models.chat.image import MessageImage
-from api.models.chat.message import Message
+from features.conversations.models import Conversation
+from features.completions.models import Message
+from features.completions.models import MessageImage
 from api.utils.interfaces.base_repository import BaseRepository
 
 

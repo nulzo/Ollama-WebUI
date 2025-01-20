@@ -9,7 +9,7 @@ export const getPrompts = async (style?: string, model?: string): Promise<Prompt
   if (model) params.append('model', model);
 
   const response = await api.get<ApiResponse<PromptsResponse>>(
-    `/prompts/${style || ''}?${params.toString()}`
+    `/prompts/show/${style || ''}?${params.toString()}`
   );
 
   if (!response.success) {

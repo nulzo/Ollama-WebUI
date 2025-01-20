@@ -1,7 +1,5 @@
 import logging
 
-from api.models import Message
-from features.conversations.serializers import conversation
 from features.conversations.serializers.conversation import ConversationSerializer
 from features.conversations.services.conversation_service import ConversationService
 from django.http import StreamingHttpResponse

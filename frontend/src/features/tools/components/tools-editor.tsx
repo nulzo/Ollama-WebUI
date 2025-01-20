@@ -92,7 +92,25 @@ export function ToolEditor() {
         });
         return;
       }
-
+  
+      if (!editorContent) {
+        toast({
+          title: 'Validation Error',
+          description: 'Function content is required',
+          variant: 'destructive',
+        });
+        return;
+      }
+  
+      if (!language) {
+        toast({
+          title: 'Validation Error',
+          description: 'Language selection is required',
+          variant: 'destructive',
+        });
+        return;
+      }
+  
       const formData = {
         name: functionName,
         description: 'Function for LLM function calling',
@@ -103,9 +121,9 @@ export function ToolEditor() {
         returns: {},
         is_enabled: true,
       };
-
+  
       console.log('formData', formData);
-
+  
       if (toolId) {
         await updateTool.mutateAsync({
           toolId,
@@ -124,7 +142,7 @@ export function ToolEditor() {
           description: 'Function created successfully',
         });
       }
-
+  
       setIsSaveDialogOpen(false);
       navigate('/tools');
     } catch (error: any) {

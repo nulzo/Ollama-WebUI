@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState, useRef } from 'react';
 import MarkdownRenderer from '@/features/markdown/components/markdown.tsx';
-import { Copy, Heart, RefreshCw } from 'lucide-react';
+import { Copy, Heart, HeartCrack, RefreshCw } from 'lucide-react';
 import { Message as MessageType } from '@/features/chat/types/message';
 import { BotIcon } from '@/features/chat/components/bot-icon.tsx';
 import { formatDate } from '@/utils/format.ts';
@@ -211,13 +211,13 @@ export const Message = React.memo<MessageProps>(
                           size="icon"
                           onClick={handleLike}
                           className={cn(
-                            'w-7 hover:text-red-600',
-                            isLiked ? 'text-red-600' : 'text-muted-foreground'
+                            'w-7 hover:text-destructive',
+                            isLiked ? 'text-destructive' : 'text-muted-foreground'
                           )}
                           disabled={updateMessage.isPending}
                         >
                           {isLiked ? (
-                            <Heart className="w-3.5 h-3.5" fill='currentColor' />
+                            <HeartCrack className="w-3.5 h-3.5 hover:text-destructive hover:fill-background hover:stroke-[3] stroke-1" strokeWidth={3} fill='currentColor' />
                           ) : (
                             <Heart className="w-3.5 h-3.5" strokeWidth={2.5} />
                           )}

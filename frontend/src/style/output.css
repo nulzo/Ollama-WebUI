@@ -2585,6 +2585,38 @@ body {
   stroke: #fef08a;
 }
 
+.stroke-blue-400 {
+  stroke: #60a5fa;
+}
+
+.stroke-red-400 {
+  stroke: #f87171;
+}
+
+.stroke-red-300 {
+  stroke: #fca5a5;
+}
+
+.stroke-red-100 {
+  stroke: #fee2e2;
+}
+
+.stroke-red-700 {
+  stroke: #b91c1c;
+}
+
+.stroke-red-900 {
+  stroke: #7f1d1d;
+}
+
+.stroke-2 {
+  stroke-width: 2;
+}
+
+.stroke-1 {
+  stroke-width: 1;
+}
+
 .object-contain {
   -o-object-fit: contain;
      object-fit: contain;
@@ -3492,6 +3524,18 @@ body {
   background-color: hsl(var(--tertiary) / 0.75);
 }
 
+.hover\:fill-transparent:hover {
+  fill: transparent;
+}
+
+.hover\:fill-destructive:hover {
+  fill: hsl(var(--destructive));
+}
+
+.hover\:fill-background:hover {
+  fill: hsl(var(--background));
+}
+
 .hover\:stroke-foreground:hover {
   stroke: hsl(var(--foreground));
 }
@@ -3506,6 +3550,14 @@ body {
 
 .hover\:stroke-yellow-400:hover {
   stroke: #facc15;
+}
+
+.hover\:stroke-\[5\]:hover {
+  stroke-width: 5;
+}
+
+.hover\:stroke-\[3\]:hover {
+  stroke-width: 3;
 }
 
 .hover\:text-accent-foreground:hover {
@@ -3527,6 +3579,14 @@ body {
 .hover\:text-red-600:hover {
   --tw-text-opacity: 1;
   color: rgb(220 38 38 / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-background:hover {
+  color: hsl(var(--background));
+}
+
+.hover\:text-destructive:hover {
+  color: hsl(var(--destructive));
 }
 
 .hover\:underline:hover {

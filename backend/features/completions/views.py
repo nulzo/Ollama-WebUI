@@ -44,7 +44,7 @@ class ChatViewSet(viewsets.ViewSet):
                     {"error": "Valid user account required"}, 
                     status=status.HTTP_401_UNAUTHORIZED
                 )
-                
+
             client_ip = request.META.get("REMOTE_ADDR")
             self.logger.info(f"Received chat request from user {request.user.id}")
             self.logger.info(f"Starting chat completion for IP: {client_ip} | Message")
@@ -73,10 +73,6 @@ class ChatViewSet(viewsets.ViewSet):
                 content_type='text/event-stream'
             )
 
-            # response["X-Accel-Buffering"] = "no"
-            # response["Cache-Control"] = "no-cache"
-            # response["Content-Type"] = "text/event-stream"
-            
             response._handler = lambda: logger.info(f"Connection closed by client - IP: {client_ip}")
 
             return response

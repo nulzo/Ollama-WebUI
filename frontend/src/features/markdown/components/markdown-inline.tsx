@@ -55,7 +55,7 @@ const MarkdownInlineTokens: React.FC<MarkdownInlineTokensProps> = ({ id, tokens 
             );
           case 'codespan':
             return (
-              <code key={key} className="cursor-pointer codespan">
+              <code key={key} className="codespan">
                 {he.escape(token.text)}
               </code>
             );

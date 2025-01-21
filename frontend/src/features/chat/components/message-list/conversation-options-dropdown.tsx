@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
 import { useDeleteConversation } from '../../api/delete-conversation.ts';
-import { Pen, Pin, PinOff, SquareMenu, Trash } from 'lucide-react';
+import { Pen, Pin, PinOff, Sparkles, SquareMenu, Trash } from 'lucide-react';
 import { useUpdateConversation } from '../../api/update-conversation.ts';
 
 interface ConversationOptionsDropdownProps {
@@ -16,7 +16,7 @@ interface ConversationOptionsDropdownProps {
   is_pinned: boolean;
   name: string;
 }
-
+import { useCreateAITitle } from '@/features/chat/api/create-ai-title.ts';
 import { useCallback, useState } from 'react';
 import {
   Dialog,
@@ -28,6 +28,7 @@ import {
 import { Input } from '@/components/ui/input.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Label } from '@/components/ui/label.tsx';
+import { Textarea } from '@/components/ui/textarea.tsx';
 
 export const ConversationOptionsDropdown = ({
   conversationID,
@@ -35,10 +36,12 @@ export const ConversationOptionsDropdown = ({
   name,
 }: ConversationOptionsDropdownProps) => {
   const deleteChat = useDeleteConversation();
-  const updateChat = useUpdateConversation();
   const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
   const [isSummarizeDialogOpen, setIsSummarizeDialogOpen] = useState(false);
   const [newName, setNewName] = useState(name);
+  const [newDescription, setNewDescription] = useState<string>('');
+  const updateChat = useUpdateConversation();
+  const generateTitle = useCreateAITitle();
 
   const handlePinToggle = () => {
     updateChat.mutate({
@@ -48,6 +51,17 @@ export const ConversationOptionsDropdown = ({
       },
       conversationID: conversationID,
     });
+  };
+
+  const handleGenerateTitle = () => {
+    try {
+      generateTitle.mutate({
+        conversation_uuid: conversationID.toString(),
+      });
+      setIsNameDialogOpen(false);
+    } catch (error) {
+      console.error('Error generating title:', error);
+    }
   };
 
   const handleChangeName = useCallback(() => {
@@ -83,7 +97,7 @@ export const ConversationOptionsDropdown = ({
     <div className="flex space-x-1 self-center">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <DotsHorizontalIcon className="hover:stroke-primary transition self-center" />
+          <DotsHorizontalIcon className="transition hover:stroke-primary self-center" />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-[150px]" align="center" sideOffset={2} side="right">
           <DropdownMenuGroup>
@@ -140,12 +154,31 @@ export const ConversationOptionsDropdown = ({
                 className="col-span-3"
               />
             </div>
+            <div className="items-start gap-4 grid grid-cols-4">
+              <Label htmlFor="name" className="text-right pt-1">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                value={newDescription}
+                placeholder={'A random chat ...'}
+                onChange={e => setNewDescription(e.target.value)}
+                className="col-span-3 resize-none"
+              />
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => handleOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleChangeName}>Save</Button>
+          <DialogFooter className="flex w-full">
+            <div className="flex-1 justify-start items-start w-full">
+              <Button variant="outline" onClick={() => handleOpenChange(false)}>
+                Cancel
+              </Button>
+            </div>
+            <div className="flex justify-end gap-1 w-full">
+              <Button onClick={handleGenerateTitle} variant="secondary" className="gap-1">
+                <Sparkles className="size-4" /> Generate AI Title
+              </Button>
+              <Button onClick={handleChangeName}>Save</Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

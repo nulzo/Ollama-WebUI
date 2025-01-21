@@ -2,11 +2,15 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Plus, ArrowUpDown, Bot, Code2, ChevronRight, LayoutGrid, Image } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button.tsx';
+import { Input } from '@/components/ui/input.tsx';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { useTools } from '@/features/tools/api';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible.tsx';
 import { LucideIcon } from 'lucide-react';
 
 interface SidebarActionsProps {

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useSidebar } from '@/features/sidebar/components/sidebar-context';
+import { useSidebar } from '@/components/sidebar/sidebar-context.tsx';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -18,9 +18,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           transition: 'margin-left 0.2s ease-in-out',
         }}
       >
-        <div className="w-full h-full overflow-auto">
-          {children}
-        </div>
+        <div className="w-full h-full overflow-auto">{children}</div>
       </div>
     </div>
   );

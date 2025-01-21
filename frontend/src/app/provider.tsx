@@ -10,7 +10,7 @@ import { Notifications } from '@/components/notification/notification';
 import { Spinner } from '@/components/ui/spinner';
 import { queryConfig } from '@/lib/query';
 import { AuthProvider } from '@/features/authentication/components/auth-provider';
-import { SidebarProvider } from '@/features/sidebar/components/sidebar-context';
+import { SidebarProvider } from '@/components/sidebar/sidebar-context.tsx';
 import { ChatProvider } from '@/features/chat/stores/chat-context';
 
 type AppProviderProps = {

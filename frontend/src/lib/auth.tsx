@@ -12,7 +12,7 @@ const getUser = async (): Promise<User | null> => {
 
   try {
     const response = await api.get('/users/profile/');
-    return response as User;
+    return response?.data as User;
   } catch (error) {
     console.error('Error fetching user:', error);
     localStorage.removeItem('authToken');
@@ -92,7 +92,9 @@ export const useAuthLogin = () => {
       const user = await login.mutate(data);
       // Force invalidate the user query after login
       await queryClient.invalidateQueries({ queryKey: ['authenticated-user'] });
-      return user;
+      console.log('user', user);
+      console.log('user.data', user.data);
+      return user.data;
     }
   };
 };

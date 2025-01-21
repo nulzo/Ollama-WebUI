@@ -112,12 +112,14 @@ class OllamaProvider(BaseProvider):
         """
         try:
             # Only prepare tools if they are provided
-            if tools:
-                self.logger.debug(f"Preparing {len(tools)} tools for chat")
-                kwargs["tools"] = self.tool_service.prepare_tools_for_ollama(tools)
+            # if tools:
+            #     self.logger.debug(f"Preparing {len(tools)} tools for chat")
+            #     kwargs["tools"] = self.tool_service.prepare_tools_for_ollama(tools)
 
             # Make the chat request
-            response = self._client.chat(model=model, messages=messages, stream=stream, **kwargs)
+            response = self._client.chat(model=model, messages=messages, stream=stream)
+
+            print(response)
 
             # For streaming responses, return directly
             if stream:
@@ -157,7 +159,7 @@ class OllamaProvider(BaseProvider):
                     )
 
                 return message["content"]
-
+            print(response)
             return response
 
         except Exception as e:

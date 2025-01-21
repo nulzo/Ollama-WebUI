@@ -1,5 +1,7 @@
 import logging
 
+from features.providers.clients.provider_factory import ProviderFactory
+from features.completions.models import Message
 from features.conversations.serializers.conversation import ConversationSerializer
 from features.conversations.services.conversation_service import ConversationService
 from django.http import StreamingHttpResponse
@@ -184,6 +186,84 @@ class ConversationViewSet(
                     "details": str(e),
                 },
                 status=500,
+            )
+
+    @action(detail=True, methods=['post'], url_path="title")
+    def generate_title(self, request, uuid=None):
+        """Generate an AI title for the conversation"""
+        try:
+            # Get the conversation and verify ownership
+            conversation = self.conversation_service.get_conversation(uuid, request.user.id)
+
+            # Get the last few messages from the conversation
+            messages = Message.objects.filter(
+                conversation=conversation
+            ).order_by('-created_at')[:5]  # Get last 5 messages
+
+            # Format messages for the AI
+            formatted_messages = [
+                {
+                    "role": msg.role,
+                    "content": msg.content,
+                }
+                for msg in reversed(messages)
+            ]
+
+            messages = [
+                {"role": "system", "content": "You are a helpful assistant that generates concise, descriptive titles. Generate a title that is 2-3 words long based on the conversation that follows. The title should be clear and descriptive, and can contain emojis if needed. If it contains an emoji, have the title start with the emoji. Respond with only the title, nothing else."},
+                {"role": "user", "content": f"Create a response based on the messages: {formatted_messages}"},
+            ]
+            print(messages)
+
+            # Initialize Ollama provider
+            provider_factory = ProviderFactory()
+            provider = provider_factory.get_provider("ollama", request.user.id)
+
+            # Get AI response using non-streaming chat
+            title = provider.chat(
+                messages=messages,
+                model="llama3.2:3b",
+                stream=False
+            )
+
+            print("title", title)
+
+            # Clean up the title (remove quotes, newlines, etc)
+            new_title = title.strip().strip('"').strip()
+
+            print("new_title", new_title)
+
+            # Update the conversation with the new title
+            conversation = self.conversation_service.update_conversation(
+                uuid=uuid,
+                user_id=request.user.id,
+                data={"name": new_title}
+            )
+
+            return api_response(
+                data={
+                    "title": new_title,
+                    "uuid": conversation.uuid
+                },
+                links={"self": request.build_absolute_uri()},
+                status=200
+            )
+
+        except ValidationError as e:
+            self.logger.warning(f"Validation error: {str(e)}")
+            return api_response(
+                error={"code": "VALIDATION_ERROR", "message": str(e)},
+                status=400
+            )
+        except Exception as e:
+            self.logger.error(f"Error generating title: {str(e)}")
+            return api_response(
+                error={
+                    "code": "TITLE_GENERATION_ERROR",
+                    "message": "Failed to generate title",
+                    "details": str(e)
+                },
+                status=500
             )
 
 class MessagePagination(PageNumberPagination):

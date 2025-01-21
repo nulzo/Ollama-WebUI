@@ -36,7 +36,7 @@ export const updateSettings = ({
   data: UpdateSettingsInput;
   settings_id: string;
 }): Promise<any> => {
-  return api.patch(`/settings/${settings_id}/`, data);
+  return api.patch(`users/settings/${settings_id}/`, data);
 };
 type UseUpdateProviderSettingsOptions = {
   mutationConfig?: MutationConfig<typeof updateProviderSettings>;

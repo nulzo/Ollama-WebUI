@@ -1,82 +1,84 @@
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { useTheme } from '@/components/theme/theme-provider';
-import { Check, Settings } from 'lucide-react';
-import { colorThemes } from '@/config/themes';
-import { cn } from '@/lib/utils';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { UserProfile } from './user-profile';
+import { ProviderSettingsSection } from '@/features/settings/components/provider-settings';
+import { GeneralSettingsSection } from '@/features/settings/components/general-settings';
+import { PrivacySettingsSection } from '@/features/settings/components/privacy-settings';
+import { ExportSettingsSection } from '@/features/settings/components/export-settings';
+import { User, Settings2, Server, Shield, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-export function SettingsModal() {
-  const { color, setColor, theme } = useTheme();
-  const [open, setOpen] = useState(false);
+interface SettingsModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
+  const [activeTab, setActiveTab] = useState('profile');
 
   return (
-    <>
-      <DropdownMenuItem
-        onSelect={e => {
-          e.preventDefault();
-          setOpen(true);
-        }}
-      >
-        <Settings className="size-3 mr-1.5" /> Settings
-      </DropdownMenuItem>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="p-0 max-w-[80vw] h-[600px]">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="flex flex-1 min-h-0 items-start h-full"
+        >
+          {/* Sidebar */}
+          <div className="justify-start items-start w-[180px]">
+            <TabsList className="flex flex-col space-y-1 bg-transparent h-full justify-start p-2 mt-6">
+              <TabsTrigger value="profile" className="justify-start gap-2 px-4 py-2 w-full">
+                <User className="w-4 h-4" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger value="general" className="justify-start gap-2 px-4 py-2 w-full">
+                <Settings2 className="w-4 h-4" />
+                General
+              </TabsTrigger>
+              <TabsTrigger value="providers" className="justify-start gap-2 px-4 py-2 w-full">
+                <Server className="w-4 h-4" />
+                Providers
+              </TabsTrigger>
+              <TabsTrigger value="privacy" className="justify-start gap-2 px-4 py-2 w-full">
+                <Shield className="w-4 h-4" />
+                Privacy
+              </TabsTrigger>
+              <TabsTrigger value="export" className="justify-start gap-2 px-4 py-2 w-full">
+                <Download className="w-4 h-4" />
+                Export
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Settings</DialogTitle>
-            <DialogDescription>Make changes to your profile here!</DialogDescription>
-          </DialogHeader>
-          <div className="">
-            <div className="flex flex-col items-start gap-4">
-              <Label htmlFor="name" className="flex gap-1 items-center align-middle">
-                Color Theme:
-                <div className="text-muted-foreground text-xs">{color}</div>
-              </Label>
-
-              <div className="flex gap-5 w-fit flex-wrap">
-                {Object.entries(colorThemes).map(([key, value]) => {
-                  const isActive = color === key;
-                  return (
-                    <Button
-                      variant="ghost"
-                      key={key}
-                      onClick={() => {
-                        setColor(key);
-                      }}
-                      className={cn(
-                        'justify-start h-10 px-1 py-3 rounded-lg',
-                        isActive && 'border border-primary ring-1 ring-primary'
-                      )}
-                      style={
-                        {
-                          '--theme-primary': `hsl(${theme === 'dark' ? value.dark.primary : value.light.primary})`,
-                        } as React.CSSProperties
-                      }
-                    >
-                      <span
-                        className={cn(
-                          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[--theme-primary]'
-                        )}
-                      >
-                        {isActive && <Check className="h-4 w-4 text-primary-foreground" />}
-                      </span>
-                    </Button>
-                  );
-                })}
-              </div>
+          {/* Content Area */}
+          <div className="flex flex-col flex-1 h-full min-h-0">
+            <div className="flex-1 p-6 overflow-y-auto">
+              <TabsContent value="profile" className="mt-0 h-full">
+                <UserProfile />
+              </TabsContent>
+              <TabsContent value="general" className="mt-0 h-full">
+                <GeneralSettingsSection />
+              </TabsContent>
+              <TabsContent value="providers" className="mt-0 h-full">
+                <ProviderSettingsSection />
+              </TabsContent>
+              <TabsContent value="privacy" className="mt-0 h-full">
+                <PrivacySettingsSection />
+              </TabsContent>
+              <TabsContent value="export" className="mt-0 h-full">
+                <ExportSettingsSection />
+              </TabsContent>
+            </div>
+            <div className="flex justify-end gap-2 bg-background p-4">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Save Changes</Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -9,7 +9,7 @@ export const getSettings = (): Promise<{
   settings: UserSettings;
   meta: Meta;
 }> => {
-  return api.get(`/settings/`);
+  return api.get(`users/profile/`);
 };
 
 export const getSettingsQueryOptions = () => {

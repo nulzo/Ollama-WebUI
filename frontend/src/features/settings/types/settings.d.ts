@@ -85,8 +85,35 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
   },
 };
 
+export interface GeneralSettings {
+  theme: 'light' | 'dark' | 'system';
+  language: string;
+  timezone: string;
+  default_model: string;
+  notifications_enabled: boolean;
+}
+
+export interface PrivacySettings {
+  data_collection: boolean;
+  error_reporting: boolean;
+  chat_history_retention: '1month' | '3months' | '6months' | '1year' | 'forever';
+  export_format: 'json' | 'csv' | 'txt';
+  custom_privacy_notice?: string;
+}
+
+export interface ExportSettings {
+  include_chat_history: boolean;
+  include_settings: boolean;
+  include_profile: boolean;
+  export_format: 'json' | 'csv' | 'txt';
+  date_range?: 'all' | '1month' | '3months' | '6months' | '1year';
+}
+
 export interface UserSettings {
   theme: string;
   default_provider: string;
   providers: ProviderSettings[];
+  general: GeneralSettings;
+  privacy: PrivacySettings;
+  export: ExportSettings;
 }

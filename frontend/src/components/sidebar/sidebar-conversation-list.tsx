@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
-import { ConversationItem } from '@/features/sidebar/components/convertsation-item';
+import { ConversationItem } from '@/components/sidebar/convertsation-item.tsx';
 import { useConversations } from '@/features/chat/api/get-conversations.ts';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton.tsx';
 
 interface SidebarConversationListProps {
   isCollapsed: boolean;

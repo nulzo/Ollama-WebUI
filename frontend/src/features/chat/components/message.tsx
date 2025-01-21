@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState, useRef } from 'react';
+import { useMemo, useEffect, useState, useRef, memo } from 'react';
 import MarkdownRenderer from '@/features/markdown/components/markdown.tsx';
 import { Copy, Heart, HeartCrack, RefreshCw } from 'lucide-react';
 import { Message as MessageType } from '@/features/chat/types/message';
@@ -16,7 +16,6 @@ import { TooltipProvider } from '@/components/ui/tooltip.tsx';
 import { useClipboard } from '@/hooks/use-clipboard.ts';
 import { MessageDetails } from './message-details.tsx';
 import { useUpdateMessage } from '../api/update-message.ts';
-import { HeartFilledIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils.ts';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -26,7 +25,8 @@ interface MessageProps {
   isLoading?: boolean;
 }
 
-export const Message = React.memo<MessageProps>(
+// eslint-disable-next-line react/display-name
+export const Message = memo<MessageProps>(
   ({ message, isTyping, isLoading }) => {
     const [displayedContent, setDisplayedContent] = useState('');
     const formattedDate = formatDate(new Date(message.created_at).getTime());
@@ -45,7 +45,7 @@ export const Message = React.memo<MessageProps>(
 
       // Optimistically update the messages in the infinite query cache
       queryClient.setQueryData(
-        ['messages', { conversation_id: message.conversation_id }],
+        ['messages', { conversation_id: message.conversation_uuid }],
         (oldData: any) => {
           if (!oldData) return oldData;
 
@@ -217,7 +217,11 @@ export const Message = React.memo<MessageProps>(
                           disabled={updateMessage.isPending}
                         >
                           {isLiked ? (
-                            <HeartCrack className="w-3.5 h-3.5 hover:text-destructive hover:fill-background hover:stroke-[3] stroke-1" strokeWidth={3} fill='currentColor' />
+                            <HeartCrack
+                              className="w-3.5 h-3.5 hover:text-destructive hover:fill-background hover:stroke-[3] stroke-1"
+                              strokeWidth={3}
+                              fill="currentColor"
+                            />
                           ) : (
                             <Heart className="w-3.5 h-3.5" strokeWidth={2.5} />
                           )}

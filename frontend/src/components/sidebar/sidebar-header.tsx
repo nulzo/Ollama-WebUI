@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { PanelRightClose, PanelRightOpen } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { CringeLogo } from '@/assets/cringelogo';
+import { Button } from '@/components/ui/button.tsx';
+import { CringeLogo } from '@/assets/cringelogo.tsx';
 
 interface SidebarHeaderProps {
   isCollapsed: boolean;

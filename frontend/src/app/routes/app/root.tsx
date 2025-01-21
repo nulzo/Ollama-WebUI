@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Spinner } from '@/components/ui/spinner';
-import { Sidebar } from '@/features/sidebar/components/sidebar';
+import { Sidebar } from '@/components/sidebar/sidebar.tsx';
 import { AppLayout } from '@/components/layouts/main';
 import { ConversationList } from '@/features/chat/components/message-list/conversation-list.tsx';
 

@@ -16,7 +16,7 @@ export function ThemeSettings() {
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>
-        <Settings2 className="size-3 mr-1.5" /> Theme
+        <Settings2 className="size-3.5 mr-1.5" /> Theme
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent className="p-2">
         <div className="flex gap-2 flex-wrap w-[200px]">

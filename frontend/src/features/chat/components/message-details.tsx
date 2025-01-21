@@ -1,16 +1,10 @@
 import React from 'react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { useMessage } from '../api/get-message';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDate } from '@/utils/format';
-import { Badge } from '@/components/ui/badge';
-// import { formatDistanceToNow } from 'date-fns';
 
 interface MessageDetailsProps {
   messageId: string;
@@ -24,7 +18,6 @@ export const MessageDetails: React.FC<MessageDetailsProps> = ({ messageId }) => 
   }
 
   const message = messageData?.data;
-  const modelConfig = message?.model_config || {};
 
   return (
     <Popover>
@@ -72,9 +65,7 @@ export const MessageDetails: React.FC<MessageDetailsProps> = ({ messageId }) => 
             )}
             <div className="items-center gap-4 grid grid-cols-3">
               <span className="font-medium text-sm">Finish Reason</span>
-              <span className="col-span-2 text-muted-foreground text-sm">
-                success
-              </span>
+              <span className="col-span-2 text-muted-foreground text-sm">success</span>
             </div>
           </div>
         </div>

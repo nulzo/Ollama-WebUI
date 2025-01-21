@@ -2,15 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, MoreVertical, Trash, Edit, Copy } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils.ts';
+import { Button } from '@/components/ui/button.tsx';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu.tsx';
 import { useDeleteConversation } from '@/features/chat/api/delete-conversation.ts';
 // import { useCloneConversation } from '@/features/conversation/api/clone-conversation';
 import { Conversation } from '@/features/chat/types/conversation';

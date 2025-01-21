@@ -1,30 +1,23 @@
-import { useState } from 'react';
+import { useProviderSettings } from '@/features/settings/api/get-settings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { useProviderSettings } from '../api/get-provider-settings';
-import { useUpdateProviderSetting } from '../api/update-provider-settings';
-import { useCreateProviderSetting } from '../api/create-provider-settings';
-import { toast } from '@/components/ui/use-toast';
+import { useUpdateProviderSetting } from '@/features/settings/api/update-provider-settings';
+import { useCreateProviderSetting } from '@/features/settings/api/create-provider-settings';
+export interface ProviderField {
+  name: string;
+  label: string;
+  type: 'text' | 'password' | 'number';
+  placeholder: string;
+}
 
-// Define the providers configuration
-const providers = {
-  ollama: {
-    name: 'Ollama',
-    fields: [
-      {
-        name: 'endpoint',
-        label: 'Endpoint',
-        type: 'text',
-        placeholder: 'Enter endpoint URL',
-        required: true,
-        defaultValue: 'http://localhost:11434',
-      },
-    ],
-    modelOptions: ['llama2', 'mistral', 'codellama'],
-  },
+export interface ProviderConfig {
+  name: string;
+  fields: ProviderField[];
+}
+
+export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
   openai: {
     name: 'OpenAI',
     fields: [
@@ -32,130 +25,103 @@ const providers = {
         name: 'api_key',
         label: 'API Key',
         type: 'password',
-        placeholder: 'Enter API key',
-        required: true,
+        placeholder: 'Enter your OpenAI API key',
       },
       {
         name: 'organization_id',
-        label: 'Organization ID (Optional)',
+        label: 'Organization ID',
         type: 'text',
-        placeholder: 'Enter organization ID',
-        required: false,
+        placeholder: 'Enter your organization ID (optional)',
       },
     ],
-    modelOptions: ['gpt-4', 'gpt-3.5-turbo'],
   },
-  // ... similar structure for azure and anthropic ...
+  anthropic: {
+    name: 'Anthropic',
+    fields: [
+      {
+        name: 'api_key',
+        label: 'API Key',
+        type: 'password',
+        placeholder: 'Enter your Anthropic API key',
+      },
+    ],
+  },
+  ollama: {
+    name: 'Ollama',
+    fields: [
+      {
+        name: 'host',
+        label: 'Host',
+        type: 'text',
+        placeholder: 'Enter Ollama host URL',
+      },
+    ],
+  },
 };
 
-export const ProviderSettings = () => {
+export interface ProviderSettings {
+  id?: number;
+  provider_type: string;
+  api_key?: string;
+  organization_id?: string;
+  host?: string;
+  is_enabled: boolean;
+  [key: string]: any;
+}
+export function ProviderSettingsSection() {
   const { data: settings, isLoading } = useProviderSettings();
   const updateSetting = useUpdateProviderSetting();
   const createSetting = useCreateProviderSetting();
-  const [formData, setFormData] = useState<Record<string, any>>({});
 
-  if (isLoading) return <div>Loading...</div>;
-
-  const handleSubmit = async (providerType: string) => {
-    try {
-      const existingSettings = settings?.find(s => s.provider_type === providerType);
-      const data = {
-        ...formData[providerType],
-        provider_type: providerType,
-      };
-
-      if (existingSettings?.id) {
-        await updateSetting.mutateAsync({
-          providerId: existingSettings.id.toString(),
-          data: {
-            ...existingSettings,
-            ...data,
-          },
-        });
-      } else {
-        await createSetting.mutateAsync({ data });
-      }
-
-      toast({
-        title: 'Settings updated',
-        description: `${providers[providerType].name} settings have been updated successfully.`,
-      });
-    } catch (error) {
-      console.error('Error updating settings:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update settings.',
-        variant: 'destructive',
-      });
-    }
-  };
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
-      {Object.entries(providers).map(([providerType, config]) => {
-        const providerSettings = settings?.find(s => s.provider_type === providerType);
+      <div>
+        <h2 className="font-medium text-lg">Provider Settings</h2>
+        <p className="text-muted-foreground text-sm">
+          Configure your AI provider connections and preferences
+        </p>
+      </div>
 
-        return (
-          <Card key={providerType}>
-            <CardHeader>
-              <CardTitle>{config.name} Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form
-                onSubmit={e => {
-                  e.preventDefault();
-                  handleSubmit(providerType);
-                }}
-                className="space-y-4"
-              >
+      <div className="space-y-4">
+        {Object.entries(PROVIDER_CONFIGS).map(([providerType, config]) => {
+          const providerSettings = settings?.providers?.find(
+            s => s.provider_type === providerType
+          );
+
+          return (
+            <Card key={providerType}>
+              <CardHeader>
+                <CardTitle>{config.name}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 {config.fields.map(field => (
                   <div key={field.name} className="space-y-2">
-                    <Label htmlFor={`${providerType}-${field.name}`}>{field.label}</Label>
+                    <Label>{field.label}</Label>
                     <Input
-                      id={`${providerType}-${field.name}`}
                       type={field.type}
                       placeholder={field.placeholder}
-                      defaultValue={providerSettings?.[field.name] || field.defaultValue || ''}
-                      onChange={e => {
-                        setFormData(prev => ({
-                          ...prev,
-                          [providerType]: {
-                            ...prev[providerType],
-                            [field.name]: e.target.value,
-                          },
-                        }));
-                      }}
-                      required={field.required}
+                      defaultValue={providerSettings?.[field.name] || ''}
                     />
                   </div>
                 ))}
-
                 <div className="flex justify-between items-center">
                   <Label>Enable Provider</Label>
                   <Switch
-                    defaultChecked={providerSettings?.is_enabled}
-                    onCheckedChange={checked => {
-                      setFormData(prev => ({
-                        ...prev,
-                        [providerType]: {
-                          ...prev[providerType],
-                          is_enabled: checked,
-                        },
-                      }));
+                    checked={providerSettings?.is_enabled}
+                    onCheckedChange={() => {
+                      // Implement toggle logic
                     }}
                   />
                 </div>
-
-                <Button type="submit" disabled={updateSetting.isPending || createSetting.isPending}>
-                  {updateSetting.isPending || createSetting.isPending
-                    ? 'Saving...'
-                    : `Save ${config.name} Settings`}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        );
-      })}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
-};
+}

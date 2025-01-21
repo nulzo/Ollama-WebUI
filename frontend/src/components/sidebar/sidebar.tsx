@@ -1,10 +1,9 @@
 import { motion, useMotionValue } from 'framer-motion';
-import { SidebarHeader } from '@/features/sidebar/components/sidebar-header';
-import { SidebarActions } from '@/features/sidebar/components/sidebar-actions';
-import { SidebarConversationList } from '@/features/sidebar/components/sidebar-conversation-list';
-import { SidebarUserSection } from '@/features/sidebar/components/sidebar-user-section';
-import { SidebarModals } from '@/features/sidebar/components/sidebar-modals';
-import { useSidebar } from '@/features/sidebar/components/sidebar-context';
+import { SidebarHeader } from '@/components/sidebar/sidebar-header.tsx';
+import { SidebarActions } from '@/components/sidebar/sidebar-actions.tsx';
+import { SidebarConversationList } from '@/components/sidebar/sidebar-conversation-list.tsx';
+import { SidebarUserSection } from '@/components/sidebar/sidebar-user-section.tsx';
+import { useSidebar } from '@/components/sidebar/sidebar-context.tsx';
 
 interface SidebarProps {
   conversationList?: React.ReactNode;
@@ -47,8 +46,6 @@ export const Sidebar = ({ conversationList }: SidebarProps) => {
           <SidebarUserSection isCollapsed={isCollapsed} animationDuration={animationDuration} />
         </div>
       </div>
-
-      <SidebarModals />
     </motion.div>
   );
 };

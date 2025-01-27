@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useUpdateProviderSetting } from '@/features/settings/api/update-provider-settings';
 import { useCreateProviderSetting } from '@/features/settings/api/create-provider-settings';
+import { useForm } from 'react-hook-form';
 export interface ProviderField {
   name: string;
   label: string;
@@ -72,25 +73,55 @@ export function ProviderSettingsSection() {
   const { data: settings, isLoading } = useProviderSettings();
   const updateSetting = useUpdateProviderSetting();
   const createSetting = useCreateProviderSetting();
+  console.log("Settings", settings);
+
+  const handleProviderUpdate = async (
+    providerType: string,
+    field: string,
+    value: string | boolean
+  ) => {
+    // Find existing settings for this provider
+    console.log("Settings", settings);
+    const providerSettings = Array.isArray(settings) ? 
+      settings.find(s => s.provider_type === providerType) : 
+      undefined;
+
+    const data = {
+      [field]: value,
+      provider_type: providerType,
+    };
+
+    try {
+      if (providerSettings?.id) {
+        await updateSetting.mutateAsync({
+          providerId: providerSettings.id.toString(),
+          data,
+        });
+      } else {
+        await createSetting.mutateAsync({
+          data: {
+            ...data,
+            is_enabled: field === 'is_enabled' ? value : false,
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update provider settings:', error);
+    }
+  };
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-medium text-lg">Provider Settings</h2>
-        <p className="text-muted-foreground text-sm">
-          Configure your AI provider connections and preferences
-        </p>
-      </div>
+    <div className="flex flex-col space-y-6">
 
-      <div className="space-y-4">
+      <div className="flex flex-col space-y-4">
         {Object.entries(PROVIDER_CONFIGS).map(([providerType, config]) => {
-          const providerSettings = settings?.providers?.find(
-            s => s.provider_type === providerType
-          );
+          const providerSettings = Array.isArray(settings) ? 
+            settings.find(s => s.provider_type === providerType) : 
+            undefined;
 
           return (
             <Card key={providerType}>
@@ -105,16 +136,19 @@ export function ProviderSettingsSection() {
                       type={field.type}
                       placeholder={field.placeholder}
                       defaultValue={providerSettings?.[field.name] || ''}
+                      onChange={(e) => 
+                        handleProviderUpdate(providerType, field.name, e.target.value)
+                      }
                     />
                   </div>
                 ))}
                 <div className="flex justify-between items-center">
                   <Label>Enable Provider</Label>
                   <Switch
-                    checked={providerSettings?.is_enabled}
-                    onCheckedChange={() => {
-                      // Implement toggle logic
-                    }}
+                    checked={providerSettings?.is_enabled || false}
+                    onCheckedChange={(checked) => 
+                      handleProviderUpdate(providerType, 'is_enabled', checked)
+                    }
                   />
                 </div>
               </CardContent>

@@ -50,13 +50,6 @@ export function GeneralSettingsSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-medium text-lg">General Settings</h2>
-        <p className="text-muted-foreground text-sm">
-          Customize your application preferences
-        </p>
-      </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField

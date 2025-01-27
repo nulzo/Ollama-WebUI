@@ -51,13 +51,6 @@ export function PrivacySettingsSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-medium text-lg">Privacy Settings</h2>
-        <p className="text-muted-foreground text-sm">
-          Manage your privacy and data preferences
-        </p>
-      </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField

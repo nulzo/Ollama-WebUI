@@ -133,3 +133,9 @@ class ProviderSettingsService:
             "created_at": settings.created_at,
             "updated_at": settings.updated_at,
         }
+
+    def get_settings(self, user):
+        return ProviderSettings.objects.filter(user=user)
+    
+    def get_setting(self, user, provider_id):
+        return ProviderSettings.objects.get(user=user, id=provider_id)

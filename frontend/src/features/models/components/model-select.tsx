@@ -62,7 +62,7 @@ export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
 
   if (isLoading) {
     return (
-      <Button variant="outline" className="w-full" disabled>
+      <Button variant="ghost" className="w-full" disabled>
         Loading models...
       </Button>
     );
@@ -70,7 +70,7 @@ export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
 
   if (!formattedModels.length) {
     return (
-      <Button variant="outline" className="w-full" disabled>
+      <Button variant="ghost" className="w-full" disabled>
         No models available
       </Button>
     );
@@ -80,7 +80,7 @@ export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
     <Popover open={open} onOpenChange={setOpen}>
        <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           role="combobox"
           aria-expanded={open}
           className="justify-between w-full"
@@ -90,7 +90,7 @@ export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
               {value ? formattedModels.find(model => model.value === value)?.label : 'Select model...'}
             </span>
           </div>
-          <ChevronsUpDown className="opacity-50 ml-2 w-4 h-4 shrink-0" />
+          <ChevronsUpDown className="opacity-50 ml-2 shrink-0 size-3.5" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[400px]" align="start">

@@ -6,6 +6,8 @@ interface ChatContextType {
   setStreamingMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   isGenerating: boolean;
   setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>;
+  isWaiting: boolean;
+  setIsWaiting: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -13,13 +15,17 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [streamingMessages, setStreamingMessages] = useState<Message[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isWaiting, setIsWaiting] = useState(false);
+
 
   return (
     <ChatContext.Provider value={{ 
       streamingMessages,
       setStreamingMessages,
       isGenerating,
-      setIsGenerating
+      setIsGenerating,
+      isWaiting,
+      setIsWaiting
     }}>
       {children}
     </ChatContext.Provider>

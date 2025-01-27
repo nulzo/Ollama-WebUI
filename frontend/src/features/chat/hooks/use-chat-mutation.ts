@@ -11,7 +11,7 @@ export function useChatMutation(conversation_id?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { setStreamingMessages, setIsGenerating, isGenerating } = useChatContext();
+  const { setStreamingMessages, setIsGenerating, setIsWaiting, isGenerating, isWaiting } = useChatContext();
   const model = useModelStore(state => state.model);
   
   const mutation = useMutation({
@@ -63,6 +63,13 @@ export function useChatMutation(conversation_id?: string) {
           chunk => {
             // Parse the chunk as JSON
             const parsedChunk = typeof chunk === 'string' ? JSON.parse(chunk) : chunk;
+
+            if (parsedChunk.status === 'waiting') {
+              setIsWaiting(true);
+              return;
+            } else if (parsedChunk.status === 'generating') {
+              setIsWaiting(false);
+            }
             
             // If this is a new conversation
             if (parsedChunk.conversation_uuid && parsedChunk.status === 'created') {
@@ -106,6 +113,7 @@ export function useChatMutation(conversation_id?: string) {
         );
       } finally {
         setIsGenerating(false);
+        setIsWaiting(false);
         abortControllerRef.current = null;
 
         // Don't clear streaming messages immediately

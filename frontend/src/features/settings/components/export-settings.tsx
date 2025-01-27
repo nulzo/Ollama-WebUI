@@ -50,13 +50,6 @@ export function ExportSettingsSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="font-medium text-lg">Export Data</h2>
-        <p className="text-muted-foreground text-sm">
-          Export your data in various formats
-        </p>
-      </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField

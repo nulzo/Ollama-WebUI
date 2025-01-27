@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState, useRef, memo } from 'react';
 import MarkdownRenderer from '@/features/markdown/components/markdown.tsx';
-import { Copy, Heart, HeartCrack, RefreshCw } from 'lucide-react';
+import { Copy, Heart, HeartCrack, Loader2, RefreshCw } from 'lucide-react';
 import { Message as MessageType } from '@/features/chat/types/message';
 import { BotIcon } from '@/features/chat/components/bot-icon.tsx';
 import { formatDate } from '@/utils/format.ts';
@@ -23,11 +23,12 @@ interface MessageProps {
   message: MessageType;
   isTyping?: boolean;
   isLoading?: boolean;
+  isWaiting?: boolean;
 }
 
 // eslint-disable-next-line react/display-name
 export const Message = memo<MessageProps>(
-  ({ message, isTyping, isLoading }) => {
+  ({ message, isTyping, isLoading, isWaiting }) => {
     const [displayedContent, setDisplayedContent] = useState('');
     const formattedDate = formatDate(new Date(message.created_at).getTime());
     const { data: modelsData } = useModels();
@@ -133,6 +134,30 @@ export const Message = memo<MessageProps>(
     useEffect(() => {
       setIsLiked(message.is_liked);
     }, [message.is_liked]);
+
+    if (isWaiting) {
+      return (
+        <div className="flex flex-col gap-1 px-4 py-2">
+          <div className="flex gap-3 max-w-[85%]">
+            <div className="flex flex-col items-center mb-0">
+              <BotIcon assistantId={0} isOnline={isModelOnline} modelName={message.model} />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-baseline gap-2 mb-0.5 ml-1">
+                <span className="font-medium text-primary text-sm">{message.model}</span>
+                <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
+              </div>
+              <div className="bg-muted/30 px-4 py-3 rounded-xl rounded-tl">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span>{message.model} is thinking...</span>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     if (isLoading) {
       return (

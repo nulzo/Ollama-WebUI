@@ -71,7 +71,7 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
   const { messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages({
     conversation_id,
   });
-  const { streamingMessages, isGenerating } = useChatContext();
+  const { streamingMessages, isGenerating, isWaiting } = useChatContext();
 
   const allMessages = useMemo(() => {
     return [...messages, ...streamingMessages];
@@ -132,9 +132,7 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
                     <Loader2 className="w-5 h-5 animate-spin" />
                   </>
                 ) : (
-                  <>
-                    Load older messages
-                  </>
+                  <>Load older messages</>
                 )}
               </Button>
             </div>
@@ -142,15 +140,22 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
 
           {allMessages.map((message, index) => (
             <Message
-            key={message.id || index}
-            message={message}
-            isTyping={
-              isGenerating && 
-              index === allMessages.length - 1 && 
-              message.role === 'assistant'
-            }
-            isLoading={false}
-          />
+              key={message.id || index}
+              message={message}
+              isTyping={
+                isGenerating &&
+                index === allMessages.length - 1 &&
+                message.role === 'assistant' &&
+                !isWaiting
+              }
+              isWaiting={
+                isGenerating &&
+                index === allMessages.length - 1 &&
+                message.role === 'assistant' &&
+                isWaiting
+              }
+              isLoading={false}
+            />
           ))}
         </div>
       </div>

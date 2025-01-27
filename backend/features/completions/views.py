@@ -51,6 +51,8 @@ class ChatViewSet(viewsets.ViewSet):
 
             def stream_response():
                 try:
+                    anim= json.dumps({"content": "", "status": "waiting"})
+                    yield f"data: {anim}\n\n"
                     for chunk in self.chat_service.generate_response(
                         data=request.data,
                         user=request.user

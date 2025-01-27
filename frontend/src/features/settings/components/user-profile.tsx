@@ -46,13 +46,6 @@ export function UserProfile() {
   console.log(user);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-medium text-lg">Profile Settings</h2>
-        <p className="text-muted-foreground text-sm">
-          Manage your profile information and preferences
-        </p>
-      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -134,6 +127,5 @@ export function UserProfile() {
           />
         </form>
       </Form>
-    </div>
   );
 }

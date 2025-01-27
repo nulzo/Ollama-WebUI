@@ -19,59 +19,113 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 max-w-[80vw] h-[600px]">
+      <DialogContent className="flex flex-col gap-0 p-0 max-w-4xl h-[600px]">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="flex flex-1 min-h-0 items-start h-full"
+          className="flex h-full"
         >
           {/* Sidebar */}
-          <div className="justify-start items-start w-[180px]">
-            <TabsList className="flex flex-col space-y-1 bg-transparent h-full justify-start p-2 mt-6">
-              <TabsTrigger value="profile" className="justify-start gap-2 px-4 py-2 w-full">
+          <div className="w-[200px]">
+            <TabsList className="flex flex-col justify-start space-y-1 bg-transparent mt-4 p-2 w-full h-full">
+              <TabsTrigger 
+                value="profile" 
+                className="justify-start gap-2 px-4 py-2 w-full"
+              >
                 <User className="w-4 h-4" />
                 Profile
               </TabsTrigger>
-              <TabsTrigger value="general" className="justify-start gap-2 px-4 py-2 w-full">
+              <TabsTrigger 
+                value="general" 
+                className="justify-start gap-2 px-4 py-2 w-full"
+              >
                 <Settings2 className="w-4 h-4" />
                 General
               </TabsTrigger>
-              <TabsTrigger value="providers" className="justify-start gap-2 px-4 py-2 w-full">
+              <TabsTrigger 
+                value="providers" 
+                className="justify-start gap-2 px-4 py-2 w-full"
+              >
                 <Server className="w-4 h-4" />
                 Providers
               </TabsTrigger>
-              <TabsTrigger value="privacy" className="justify-start gap-2 px-4 py-2 w-full">
+              <TabsTrigger 
+                value="privacy" 
+                className="justify-start gap-2 px-4 py-2 w-full"
+              >
                 <Shield className="w-4 h-4" />
                 Privacy
               </TabsTrigger>
-              <TabsTrigger value="export" className="justify-start gap-2 px-4 py-2 w-full">
+              <TabsTrigger 
+                value="export" 
+                className="justify-start gap-2 px-4 py-2 w-full"
+              >
                 <Download className="w-4 h-4" />
                 Export
               </TabsTrigger>
             </TabsList>
           </div>
 
-          {/* Content Area */}
-          <div className="flex flex-col flex-1 h-full min-h-0">
-            <div className="flex-1 p-6 overflow-y-auto">
-              <TabsContent value="profile" className="mt-0 h-full">
-                <UserProfile />
+          {/* Main Content Area */}
+          <div className="flex flex-col flex-1">
+            {/* Fixed Header */}
+            <div className="bg-background p-6">
+              <TabsContent value="profile" className="m-0">
+                <h2 className="font-medium text-lg">Profile Settings</h2>
+                <p className="text-muted-foreground text-sm">
+                  Manage your profile information and preferences
+                </p>
               </TabsContent>
-              <TabsContent value="general" className="mt-0 h-full">
-                <GeneralSettingsSection />
+              <TabsContent value="general" className="m-0">
+                <h2 className="font-medium text-lg">General Settings</h2>
+                <p className="text-muted-foreground text-sm">
+                  Customize your application preferences
+                </p>
               </TabsContent>
-              <TabsContent value="providers" className="mt-0 h-full">
-                <ProviderSettingsSection />
+              <TabsContent value="providers" className="m-0">
+                <h2 className="font-medium text-lg">Provider Settings</h2>
+                <p className="text-muted-foreground text-sm">
+                  Configure your AI provider connections
+                </p>
               </TabsContent>
-              <TabsContent value="privacy" className="mt-0 h-full">
-                <PrivacySettingsSection />
+              <TabsContent value="privacy" className="m-0">
+                <h2 className="font-medium text-lg">Privacy Settings</h2>
+                <p className="text-muted-foreground text-sm">
+                  Manage your privacy and security preferences
+                </p>
               </TabsContent>
-              <TabsContent value="export" className="mt-0 h-full">
-                <ExportSettingsSection />
+              <TabsContent value="export" className="m-0">
+                <h2 className="font-medium text-lg">Export Data</h2>
+                <p className="text-muted-foreground text-sm">
+                  Export your data and settings
+                </p>
               </TabsContent>
             </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-6">
+                <TabsContent value="profile" className="mt-0 h-full">
+                  <UserProfile />
+                </TabsContent>
+                <TabsContent value="general" className="mt-0 h-full">
+                  <GeneralSettingsSection />
+                </TabsContent>
+                <TabsContent value="providers" className="mt-0 h-full">
+                  <ProviderSettingsSection />
+                </TabsContent>
+                <TabsContent value="privacy" className="mt-0 h-full">
+                  <PrivacySettingsSection />
+                </TabsContent>
+                <TabsContent value="export" className="mt-0 h-full">
+                  <ExportSettingsSection />
+                </TabsContent>
+              </div>
+            </div>
+
+            {/* Fixed Footer */}
             <div className="flex justify-end gap-2 bg-background p-4">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <Button variant="secondary" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit">Save Changes</Button>

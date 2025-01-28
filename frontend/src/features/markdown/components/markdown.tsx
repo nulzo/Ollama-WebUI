@@ -7,6 +7,7 @@ import KatexRenderer from './katex';
 import DOMPurify from 'dompurify';
 import MarkdownInlineTokens from './markdown-inline';
 import { memo, useMemo } from 'react';
+import ThinkBlock from './think-block';
 
 const renderTokens = (tokens: any): React.ReactNode[] => {
   return tokens.map((token: any, index: number) => {
@@ -154,8 +155,22 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
             </table>
           </div>
         );
-      case 'html':
-        return <div key={index}>{DOMPurify.sanitize(token.text)}</div>;
+        case 'html':
+          // Handle think blocks
+          if (token.text.startsWith('<think>')) {
+            const thinkContent = token.text
+              .replace('<think>', '')
+              .replace('</think>', '')
+              .trim();
+            
+            return (
+              <ThinkBlock key={index}>
+                <MarkdownRenderer markdown={thinkContent} />
+              </ThinkBlock>
+            );
+          }
+          return <div key={index}>{DOMPurify.sanitize(token.text)}</div>;
+          
       case 'blockKatex':
         return <KatexRenderer content={token.text} displayMode={true} />;
       case 'inlineKatex':

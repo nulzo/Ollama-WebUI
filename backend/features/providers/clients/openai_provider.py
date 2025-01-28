@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class OpenAiProvider(BaseProvider):
     def __init__(self) -> None:
-        _openai_host = settings.OPENAI_HOST
+        # _openai_host = settings.OPENAI_HOST
         _api_key = settings.OPENAI_API_KEY
         self._client = Client(api_key=_api_key)
         super().__init__()

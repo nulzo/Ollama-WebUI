@@ -24,6 +24,28 @@ markedInstance.setOptions({
 
 markedInstance.use(katexExtension());
 
+markedInstance.use({
+  extensions: [{
+    name: 'thinkBlock',
+    level: 'block',
+    start(src) {
+      return src.match(/^<think>/)?.index;
+    },
+    tokenizer(src) {
+      const rule = /^<think>([\s\S]*?)<\/think>/;
+      const match = rule.exec(src);
+      if (match) {
+        return {
+          type: 'html',
+          raw: match[0],
+          text: match[0],
+          tokens: []
+        };
+      }
+    }
+  }]
+});
+
 export function useTokens(markdown: string) {
   return useMemo(() => {
     return markedInstance.lexer(markdown);

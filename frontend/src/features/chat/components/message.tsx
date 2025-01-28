@@ -195,7 +195,7 @@ export const Message = memo<MessageProps>(
       <div className="flex flex-col gap-1 px-4 py-2">
         {message.role !== 'user' ? (
           // Bot message
-          <div className="flex gap-3 max-w-[85%]">
+          <div className="flex gap-3 max-w-[95%]">
             <div className="flex flex-col items-center mb-0">
               <BotIcon assistantId={0} isOnline={isModelOnline} modelName={message.model} />
             </div>
@@ -206,7 +206,7 @@ export const Message = memo<MessageProps>(
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
               </div>
 
-              <div className="bg-muted/30 px-4 py-3 rounded-xl rounded-tl">
+              <div className="p-2 rounded-xl rounded-tl">
                 {message.image_ids?.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     <AsyncMessageImage

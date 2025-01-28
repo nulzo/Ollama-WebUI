@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import type { Token } from 'marked';
 import he from 'he';
 import KatexRenderer from './katex';
+import { ThinkBlock } from './think-block';
 
 interface MarkdownInlineTokensProps {
   id: string;
@@ -81,6 +82,7 @@ const MarkdownInlineTokens: React.FC<MarkdownInlineTokensProps> = ({ id, tokens 
 
           case 'text':
             return <span key={key}>{token.raw}</span>;
+
           default:
             console.log('Unknown inline token', token);
             return null;

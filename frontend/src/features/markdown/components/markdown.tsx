@@ -1,13 +1,13 @@
 import CodeBlock from '@/features/markdown/components/code-block';
 import InlineCodeBlock from '@/features/markdown/components/inline-code';
-import { useTokens } from '../hooks/use-tokens';
+import { markedInstance, useTokens } from '../hooks/use-tokens';
 import { MarkdownRendererProps } from '../types/markdown';
 import he from 'he';
 import KatexRenderer from './katex';
 import DOMPurify from 'dompurify';
 import MarkdownInlineTokens from './markdown-inline';
 import { memo, useMemo } from 'react';
-import ThinkBlock from './think-block';
+import { ThinkBlock } from './think-block';
 
 const renderTokens = (tokens: any): React.ReactNode[] => {
   return tokens.map((token: any, index: number) => {
@@ -155,24 +155,18 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
             </table>
           </div>
         );
-        case 'html':
-          // Handle think blocks
-          if (token.text.startsWith('<think>')) {
-            const thinkContent = token.text
-              .replace('<think>', '')
-              .replace('</think>', '')
-              .trim();
-            
-            return (
-              <ThinkBlock key={index}>
-                <MarkdownRenderer markdown={thinkContent} />
-              </ThinkBlock>
-            );
-          }
-          return <div key={index}>{DOMPurify.sanitize(token.text)}</div>;
-          
+      case 'html':
+        return <div key={index}>{DOMPurify.sanitize(token.text)}</div>;
       case 'blockKatex':
         return <KatexRenderer content={token.text} displayMode={true} />;
+        case 'thinkBlock':
+          return (
+            <ThinkBlock key={index} isComplete={token.isComplete}>
+              <div className="prose prose-sm max-w-none">
+                <MarkdownRenderer markdown={token.text} />
+              </div>
+            </ThinkBlock>
+          );
       case 'inlineKatex':
         return <KatexRenderer content={token.text} displayMode={false} />;
       case 'space':

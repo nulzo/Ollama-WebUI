@@ -1,13 +1,18 @@
 import katex from 'katex';
 
 const DELIMITER_LIST = [
+  { left: '\\boxed{', right: '}', display: false },
   { left: '$$', right: '$$', display: true },
   { left: '$', right: '$', display: false },
-  { left: '\\pu{', right: '}', display: false },
-  { left: '\\ce{', right: '}', display: false },
   { left: '\\(', right: '\\)', display: false },
   { left: '\\[', right: '\\]', display: true },
   { left: '\\begin{equation}', right: '\\end{equation}', display: true },
+  { left: '\\begin{align}', right: '\\end{align}', display: true },
+  { left: '\\begin{alignat}', right: '\\end{alignat}', display: true },
+  { left: '\\begin{gather}', right: '\\end{gather}', display: true },
+  { left: '\\begin{CD}', right: '\\end{CD}', display: true },
+  { left: '\\pu{', right: '}', display: false },
+  { left: '\\ce{', right: '}', display: false },
 ];
 
 // const DELIMITER_LIST = [
@@ -18,10 +23,10 @@ const DELIMITER_LIST = [
 // const inlineRule = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n\$]))\1(?=[\s?!\.,:？！。，：]|$)/;
 // const blockRule = /^(\${1,2})\n((?:\\[^]|[^\\])+?)\n\1(?:\n|$)/;
 
-let inlinePatterns = [];
-let blockPatterns = [];
+let inlinePatterns: string[] = [];
+let blockPatterns: string[] = [];
 
-function escapeRegex(string) {
+function escapeRegex(string: string) {
   return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 

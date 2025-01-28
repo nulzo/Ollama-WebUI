@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, Brain, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -9,7 +9,16 @@ interface ThinkBlockProps {
 }
 
 export const ThinkBlock: React.FC<ThinkBlockProps> = ({ children, isComplete = false }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(!isComplete);
+
+  // Update expansion state when thinking status changes
+  useEffect(() => {
+    if (!isComplete) {
+      setIsExpanded(true);
+    } else {
+      setIsExpanded(false);
+    }
+  }, [isComplete]);
 
   return (
     <div className="my-1 rounded-lg border bg-secondary/75 backdrop-blur-sm overflow-hidden">

@@ -31,7 +31,7 @@ export const Sidebar = ({ conversationList }: SidebarProps) => {
         ease: 'easeInOut',
       }}
     >
-      <div className="relative flex flex-col bg-secondary border-r h-svh overflow-hidden">
+      <div className="relative flex flex-col bg-secondary h-svh overflow-hidden">
         <SidebarHeader
           isCollapsed={isCollapsed}
           toggleSidebar={() => setIsCollapsed(!isCollapsed)}

@@ -29,7 +29,7 @@ export function ChatRoute() {
   };
 
   return (
-    <div className="relative flex flex-col w-full max-w-full h-screen transition">
+    <div className="relative flex flex-col w-full max-w-full h-screen transition ">
       <ConversationAreaHeader />
       <div className="relative flex flex-col flex-1 transition overflow-hidden">
         <ConversationArea>

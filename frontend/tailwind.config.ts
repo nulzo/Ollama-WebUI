@@ -1,5 +1,6 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import type { Config } from "tailwindcss";
+
+export default {
   darkMode: ['class'],
   mode: 'jit',
   content: [
@@ -85,10 +86,6 @@ module.exports = {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
         },
-        success: {
-          DEFAULT: 'hsl(var(--success))',
-          foreground: 'hsl(var(--success-foreground))',
-        },
         message: {
           DEFAULT: 'hsl(var(--message))',
           foreground: 'hsl(var(--message-foreground))',
@@ -100,7 +97,9 @@ module.exports = {
         sm: 'calc(var(--radius) - 4px)',
         '2xl': 'calc(var(--radius) + 25px)',
       },
-      borderWidth: 'var(--border-width)',
+      borderWidth: {
+        DEFAULT: 'var(--border-width)',
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
@@ -111,12 +110,12 @@ module.exports = {
           to: { height: '0' },
         },
         'toast-in': {
-          '0%': { transform: 'translateY(-100%)', opacity: 0 },
-          '100%': { transform: 'translateY(0)', opacity: 1 },
+          '0%': { transform: 'translateY(-100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         'toast-out': {
-          '0%': { transform: 'translateX(0)', opacity: 1 },
-          '100%': { transform: 'translateX(100%)', opacity: 0 },
+          '0%': { transform: 'translateX(0)', opacity: '1' },
+          '100%': { transform: 'translateX(100%)', opacity: '0' },
         },
         fadeIn: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
@@ -138,4 +137,4 @@ module.exports = {
     },
   },
   plugins: [require('tailwindcss-animated'), require('tailwindcss-animate')],
-};
+} satisfies Config;

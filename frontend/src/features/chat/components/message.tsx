@@ -138,7 +138,7 @@ export const Message = memo<MessageProps>(
     if (isWaiting) {
       return (
         <div className="flex flex-col gap-1 px-4 py-2">
-          <div className="flex gap-3 max-w-[85%]">
+          <div className="flex gap-3 w-full max-w-[85%]">
             <div className="flex flex-col items-center mb-0">
               <BotIcon assistantId={0} isOnline={isModelOnline} modelName={message.model} />
             </div>
@@ -195,12 +195,12 @@ export const Message = memo<MessageProps>(
       <div className="flex flex-col gap-1 px-4 py-2">
         {message.role !== 'user' ? (
           // Bot message
-          <div className="flex gap-3 max-w-[95%]">
+          <div className="flex gap-3 w-full max-w-[95%]">
             <div className="flex flex-col items-center mb-0">
               <BotIcon assistantId={0} isOnline={isModelOnline} modelName={message.model} />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col w-full">
               <div className="flex items-baseline gap-2 mb-0.5 ml-1">
                 <span className="font-medium text-primary text-sm">{message.model}</span>
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>

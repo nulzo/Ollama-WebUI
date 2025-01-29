@@ -18,8 +18,10 @@ export default {
       fontFamily: {
         poppins: ['Poppins'],
         archivo: ['Archivo', 'sans'],
+        geist: ['Geist', 'sans'],
         jetbrainsMono: ['JetBrains Mono', 'monospace'],
         sans: [
+          'Geist',
           '-apple-system',
           'BlinkMacSystemFont',
           'Inter',

@@ -3,9 +3,6 @@ module.exports = {
   darkMode: ['class'],
   mode: 'jit',
   content: [
-    './routes/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx,html}',
   ],
   prefix: '',

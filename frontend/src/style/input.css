@@ -1,4 +1,6 @@
 @tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Chrome, Edge, and Safari */
 *::-webkit-scrollbar {
@@ -44,9 +46,6 @@
     opacity: 0.3;
   }
 }
-
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
   :root {

@@ -153,10 +153,7 @@
     margin-top: 1rem;
   }
 
-  .markdown-prose {
-    @apply whitespace-pre-line prose;
-  }
-
+ 
   .markdown a {
     @apply underline;
   }
@@ -374,7 +371,7 @@
   }
 }
 
-@layer base {
+@layer utilities {
   * {
     @apply border-border;
   }

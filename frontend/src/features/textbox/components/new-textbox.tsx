@@ -134,8 +134,8 @@ export default function DynamicTextarea({
 
   return (
     <TooltipProvider>
-      <div className="inset-x-0 border-spacing-2 bg-transparent mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-7xl overflow-hidden">
-        <div className="relative z-10 inset-x-0 border-input border-spacing-2 focus-within:border-primary shadow-xs mx-auto border rounded-lg ring-primary/50 focus-within:ring-1 w-full overflow-hidden">
+      <div className="inset-x-0 border-spacing-2 bg-transparent mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-6xl overflow-hidden">
+        <div className="relative z-10 inset-x-0 border-input border-spacing-2 focus-within:border-primary shadow-xs mx-auto border rounded-lg ring-primary/50 focus-within:ring focus-within:ring-2 w-full overflow-hidden">
           <textarea
             ref={textareaRef}
             value={text}
@@ -143,7 +143,7 @@ export default function DynamicTextarea({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             rows={1}
-            className="bg-transparent px-4 pt-3 rounded-lg focus:ring-0 focus:ring-none w-full text-foreground text-sm placeholder:text-muted-foreground focus:outline-hidden resize-none"
+            className="bg-transparent px-4 pt-3 rounded-lg focus:ring-0 focus:ring-none w-full text-foreground text-sm placeholder:text-muted-foreground focus:outline-none resize-none"
             style={{ minHeight: '47px', maxHeight: '200px' }}
             disabled={disabled}
           />

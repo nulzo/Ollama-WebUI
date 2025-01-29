@@ -48,7 +48,7 @@ export const PromptSuggestions = ({
                 className={`relative flex items-center gap-3 mx-1 px-2 py-2 rounded-md transition-colors cursor-pointer group
                   ${index === selectedIndex ? 'bg-accent/60' : 'hover:bg-accent/60'}`}
               >
-                <div className="flex justify-center items-center bg-background shadow-sm border rounded-md w-8 h-8 shrink-0">
+                <div className="flex justify-center items-center bg-background shadow-xs border rounded-md w-8 h-8 shrink-0">
                   <CommandIcon className="w-4 h-4 text-foreground/70" />
                 </div>
 

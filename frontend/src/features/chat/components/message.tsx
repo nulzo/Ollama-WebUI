@@ -243,7 +243,7 @@ export const Message = memo<MessageProps>(
                         >
                           {isLiked ? (
                             <HeartCrack
-                              className="w-3.5 h-3.5 hover:text-destructive hover:fill-background hover:stroke-[3] stroke-1"
+                              className="w-3.5 h-3.5 hover:text-destructive hover:fill-background hover:stroke-3 stroke-1"
                               strokeWidth={3}
                               fill="currentColor"
                             />

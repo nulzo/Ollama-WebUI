@@ -22,13 +22,13 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, lang }) => {
 
   return (
     <div className="text-sm relative rounded-lg overflow-hidden my-6 mx-4">
-      <div className="flex justify-between items-center backdrop-blur bg-secondary/50 p-2">
+      <div className="flex justify-between items-center backdrop-blur-sm bg-secondary/50 p-2">
         <span className="pl-2 text-xs text-muted-foreground">
           {lang || language || 'plaintext'}
         </span>
         <CodeCopyButton onClick={handleCopy} copied={copied} />
       </div>
-      <pre className="pb-4 px-4 py-3 backdrop-blur bg-secondary/50 rounded-t-none overflow-x-scroll">
+      <pre className="pb-4 px-4 py-3 backdrop-blur-sm bg-secondary/50 rounded-t-none overflow-x-scroll">
         {isMermaid ? (
           <MermaidComponent code={code} />
         ) : (

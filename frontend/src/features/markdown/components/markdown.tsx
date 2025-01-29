@@ -41,7 +41,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           return (
             <h1
               key={index}
-              className="scroll-m-20 [&:not(:first-child)]:mt-10 [&:first-child]:mt-2 font-bold text-4xl leading-9 tracking-tight"
+              className="scroll-m-20 not-first:mt-10 first:mt-2 font-bold text-4xl leading-9 tracking-tight"
             >
               <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h1>
@@ -50,7 +50,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           return (
             <h2
               key={index}
-              className="scroll-m-20 [&:not(:first-child)]:mt-8 first:mt-0 pb-2 border-b font-semibold text-3xl leading-7 tracking-tight"
+              className="scroll-m-20 not-first:mt-8 first:mt-0 pb-2 border-b font-semibold text-3xl leading-7 tracking-tight"
             >
               <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h2>
@@ -59,7 +59,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           return (
             <h3
               key={index}
-              className="scroll-m-20 [&:not(:first-child)]:mt-8 font-semibold text-2xl leading-7 tracking-tight"
+              className="scroll-m-20 not-first:mt-8 font-semibold text-2xl leading-7 tracking-tight"
             >
               <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h3>
@@ -68,7 +68,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
           return (
             <h4
               key={index}
-              className="scroll-m-20 [&:not(:first-child)]:mt-4 font-semibold text-lg leading-7 tracking-tight"
+              className="scroll-m-20 not-first:mt-4 font-semibold text-lg leading-7 tracking-tight"
             >
               <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens} />
             </h4>
@@ -88,7 +88,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
         }
       case 'paragraph':
         return (
-          <p key={index} className="[&:not(:first-child)]:mt-4 leading-7">
+          <p key={index} className="not-first:mt-4 leading-7">
             <MarkdownInlineTokens id={`${index}-p`} tokens={token.tokens ?? []} />
           </p>
         );
@@ -122,7 +122,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
         );
       case 'table':
         return (
-          <div className="shadow-sm rounded-xl overflow-x-auto">
+          <div className="shadow-xs rounded-xl overflow-x-auto">
             <table className="rounded-xl w-full min-w-5xl overflow-hidden table-auto">
               <thead className="bg-muted/25">
                 <tr className="m-0 p-0 border whitespace-nowrap">

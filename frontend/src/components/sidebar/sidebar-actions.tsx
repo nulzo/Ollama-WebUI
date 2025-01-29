@@ -186,7 +186,7 @@ const SearchBar = ({ isCollapsed }: { isCollapsed: boolean }) => {
     <div className="flex items-center gap-2.5 px-3 w-full">
       <MagnifyingGlassIcon className="size-4 stroke-muted-foreground" />
       <Input
-        className="border-0 focus-within:border-0 focus:border-0 bg-transparent px-0 hover:ring-0 focus-visible:ring-0 focus-within:ring-0 focus:ring-0 w-[75%] focus:outline-none"
+        className="border-0 focus-within:border-0 focus:border-0 bg-transparent px-0 hover:ring-0 focus-visible:ring-0 focus-within:ring-0 focus:ring-0 w-[75%] focus:outline-hidden"
         placeholder="Search"
       />
     </div>

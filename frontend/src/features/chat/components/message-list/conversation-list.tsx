@@ -22,7 +22,7 @@ function ChatItem({ chat, uuid, updateURL }: any) {
         </div>
       </button>
       <div
-        className={`${uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} cursor-pointer h-7 group-hover:opacity-100 z-0 from-tertiary absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-70% to-transparent`}
+        className={`${uuid === chat.uuid ? 'opacity-100' : 'opacity-0'} cursor-pointer h-7 group-hover:opacity-100 z-0 from-tertiary absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-linear-to-l from-70% to-transparent`}
       >
         <ConversationOptionsDropdown
           name={chat.name}

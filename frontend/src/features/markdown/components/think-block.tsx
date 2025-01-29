@@ -21,7 +21,7 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({ children, isComplete = f
   }, [isComplete]);
 
   return (
-    <div className="my-1 rounded-lg border bg-secondary/75 backdrop-blur-sm overflow-hidden">
+    <div className="my-1 rounded-lg border bg-secondary/75 backdrop-blur-xs overflow-hidden">
       <button
         onClick={() => isComplete && setIsExpanded(!isExpanded)}
         className={cn(

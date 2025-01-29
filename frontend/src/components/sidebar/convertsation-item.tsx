@@ -86,7 +86,7 @@ export const ConversationItem = ({ conversation, isCollapsed }: ConversationItem
                     type="text"
                     value={title}
                     onChange={handleTitleChange}
-                    className="w-full bg-transparent border-none focus:outline-none"
+                    className="w-full bg-transparent border-none focus:outline-hidden"
                     autoFocus
                     onBlur={() => setIsEditing(false)}
                   />

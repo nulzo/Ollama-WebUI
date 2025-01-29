@@ -77,7 +77,7 @@ export function ConversationAreaHeader() {
   }, [model?.model, formattedModels]);
 
   return (
-    <div className="top-0 z-10 sticky flex flex-row justify-between items-center gap-3 col-span-4 bg-background/25 backdrop-blur px-4 py-2.5 rounded-b-none grow-0 w-full h-14">
+    <div className="top-0 z-10 sticky flex flex-row justify-between items-center gap-3 col-span-4 bg-background/25 backdrop-blur-sm px-4 py-2.5 rounded-b-none grow-0 w-full h-14">
       <div className="flex items-center gap-3 font-semibold text-lg ps-8">
         <ModelSelect value={currentModelValue} onValueChange={handleModelSelect} />
       </div>

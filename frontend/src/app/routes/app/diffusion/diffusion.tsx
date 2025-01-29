@@ -260,7 +260,7 @@ export function DiffusionRoute() {
         </Popover>
       </header>
 
-      <ScrollArea className="flex-grow p-4 space-y-4">
+      <ScrollArea className="grow p-4 space-y-4">
         {messages.map((message, index) => (
           <div
             key={index}

@@ -106,7 +106,7 @@ export function CloudRoute() {
         Browse and download models for your AI applications.
       </h3>
       <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <div className="relative flex-grow">
+        <div className="relative grow">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 stroke-muted-foreground size-4" />
           <Input
             type="text"
@@ -196,7 +196,7 @@ export function CloudRoute() {
                 </Badge>
               ))}
             </div>
-            <p className="text-sm text-muted-foreground mb-4 flex-grow overflow-y-auto">
+            <p className="text-sm text-muted-foreground mb-4 grow overflow-y-auto">
               {model.description}
             </p>
             <div className="flex w-full justify-between">

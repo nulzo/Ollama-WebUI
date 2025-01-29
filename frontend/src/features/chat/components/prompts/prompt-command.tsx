@@ -36,7 +36,7 @@ export const PromptCommand = ({ isOpen, onClose, onSelect, searchTerm }: PromptC
           placeholder="Search commands..." 
           value={searchTerm} 
           readOnly 
-          className="flex border-0 bg-transparent disabled:opacity-50 py-3 rounded-md focus-visible:ring-0 w-full h-10 text-sm placeholder:text-muted-foreground disabled:cursor-not-allowed outline-none"
+          className="flex border-0 bg-transparent disabled:opacity-50 py-3 rounded-md focus-visible:ring-0 w-full h-10 text-sm placeholder:text-muted-foreground disabled:cursor-not-allowed outline-hidden"
         />
       </div>
       <CommandList className="p-2 max-h-[300px] overflow-y-auto">
@@ -57,7 +57,7 @@ export const PromptCommand = ({ isOpen, onClose, onSelect, searchTerm }: PromptC
                 onSelect(prompt.content);
                 onClose();
               }}
-              className="relative flex items-center aria-selected:bg-accent/50 hover:bg-accent/50 px-3 py-2.5 rounded-sm cursor-pointer select-none group outline-none"
+              className="relative flex items-center aria-selected:bg-accent/50 hover:bg-accent/50 px-3 py-2.5 rounded-sm cursor-pointer select-none group outline-hidden"
             >
               <div className="flex flex-col flex-1 overflow-hidden">
                 <span className="font-medium truncate">{prompt.title}</span>

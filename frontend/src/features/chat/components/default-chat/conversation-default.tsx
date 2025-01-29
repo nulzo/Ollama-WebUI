@@ -242,7 +242,7 @@ export const ConversationDefault = () => {
                 variants={cardVariants}
                 initial="hidden"
                 animate="visible"
-                className="flex items-center bg-secondary/15 backdrop-blur-sm p-4 rounded-lg h-[52px]"
+                className="flex items-center bg-secondary/15 backdrop-blur-xs p-4 rounded-lg h-[52px]"
               >
                 <Skeleton className="w-full h-4" />
               </motion.div>
@@ -258,7 +258,7 @@ export const ConversationDefault = () => {
                 initial="hidden"
                 animate="visible"
                 onClick={() => handleMessage(item.prompt)}
-                className="flex justify-between items-center border-secondary/50 hover:border-primary/50 bg-secondary/20 hover:bg-secondary/30 hover:shadow-sm backdrop-blur-sm px-4 border rounded-lg h-[52px] transition-all duration-200 cursor-pointer ease-in-out group"
+                className="flex justify-between items-center border-secondary/50 hover:border-primary/50 bg-secondary/20 hover:bg-secondary/30 hover:shadow-xs backdrop-blur-xs px-4 border rounded-lg h-[52px] transition-all duration-200 cursor-pointer ease-in-out group"
               >
                 <div className="flex items-center gap-1 overflow-hidden">
                   <span className="font-semibold text-primary text-sm whitespace-nowrap">
@@ -278,7 +278,7 @@ export const ConversationDefault = () => {
               initial="hidden"
               animate="visible"
               onClick={() => refetch()}
-              className="flex justify-between items-center border-secondary/50 hover:border-primary/50 bg-secondary/20 hover:bg-secondary/30 hover:shadow-sm backdrop-blur-sm px-4 border rounded-lg h-[52px] transition-all duration-200 cursor-pointer ease-in-out group"
+              className="flex justify-between items-center border-secondary/50 hover:border-primary/50 bg-secondary/20 hover:bg-secondary/30 hover:shadow-xs backdrop-blur-xs px-4 border rounded-lg h-[52px] transition-all duration-200 cursor-pointer ease-in-out group"
             >
               <span className="text-muted-foreground text-sm truncate">
                 Regenerate Recommendations

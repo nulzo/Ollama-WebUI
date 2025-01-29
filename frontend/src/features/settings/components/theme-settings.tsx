@@ -41,7 +41,7 @@ export function ThemeSettings() {
               >
                 <span
                   className={cn(
-                    'flex h-full w-full items-center justify-center rounded-lg bg-[--theme-primary]'
+                    'flex h-full w-full items-center justify-center rounded-lg bg-(--theme-primary)'
                   )}
                 >
                   {isActive && <Check className="h-3 w-3 text-primary-foreground" />}

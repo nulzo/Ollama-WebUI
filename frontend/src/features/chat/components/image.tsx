@@ -121,7 +121,7 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
             alt="Preview"
           />
           {hasMultipleImages && (
-            <div className="right-2 bottom-2 absolute bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full text-foreground text-xs">
+            <div className="right-2 bottom-2 absolute bg-black/50 backdrop-blur-xs px-3 py-1 rounded-full text-foreground text-xs">
               {images.length} images
             </div>
           )}
@@ -220,7 +220,7 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
-                className="top-4 left-4 absolute bg-background/50 backdrop-blur-sm p-4 rounded-lg text-foreground text-sm"
+                className="top-4 left-4 absolute bg-background/50 backdrop-blur-xs p-4 rounded-lg text-foreground text-sm"
               >
                 <p className="font-medium">{imageDetails.name}</p>
                 <p>

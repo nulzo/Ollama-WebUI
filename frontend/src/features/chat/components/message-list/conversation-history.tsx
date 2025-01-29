@@ -135,17 +135,17 @@ export default function ConversationHistory(props: any) {
               onClick={() => {}}
             >
               <div className="flex gap-2.5 items-center overflow-hidden">
-                <img src={logo} alt="logo" className="size-4 flex-shrink-0" />
+                <img src={logo} alt="logo" className="size-4 shrink-0" />
                 {isExpanded && <span className="truncate">New Chat</span>}
               </div>
-              {isExpanded && <SquarePen className="size-4 flex-shrink-0" />}
+              {isExpanded && <SquarePen className="size-4 shrink-0" />}
             </Button>
             {isExpanded && (
               <Button
                 size="icon"
                 variant="ghost"
                 type="submit"
-                className="font-bold flex-shrink-0"
+                className="font-bold shrink-0"
                 onClick={() => setExpanded(!isExpanded)}
               >
                 <PanelRightOpen className="size-4" />
@@ -158,7 +158,7 @@ export default function ConversationHistory(props: any) {
             size="icon"
             variant="ghost"
             type="submit"
-            className="font-bold flex-shrink-0 absolute top-2.5 left-16 z-[10000]"
+            className="font-bold shrink-0 absolute top-2.5 left-16 z-10000"
             onClick={() => setExpanded(!isExpanded)}
           >
             <PanelLeftOpen className="size-4" />
@@ -201,7 +201,7 @@ export default function ConversationHistory(props: any) {
           <div className="flex items-center px-6 gap-2.5 w-full">
             <MagnifyingGlassIcon className="stroke-muted-foreground size-4" />
             <Input
-              className="w-[75%] focus-visible:ring-0 border-0 bg-transparent px-0 hover:ring-0 focus-within:ring-0 focus-within:border-0 focus:ring-0 focus:outline-none focus:border-0"
+              className="w-[75%] focus-visible:ring-0 border-0 bg-transparent px-0 hover:ring-0 focus-within:ring-0 focus-within:border-0 focus:ring-0 focus:outline-hidden focus:border-0"
               placeholder="Search"
             />
           </div>
@@ -252,7 +252,7 @@ export default function ConversationHistory(props: any) {
               <TooltipTrigger asChild>
                 <Link to="/">
                   <Button variant="ghost" size="icon" className="rounded-lg" aria-label="Chat">
-                    <img src={logo} alt="logo" className="size-4 flex-shrink-0" />
+                    <img src={logo} alt="logo" className="size-4 shrink-0" />
                   </Button>
                 </Link>
               </TooltipTrigger>
@@ -434,7 +434,7 @@ function ChatItem({ chat, uuid, updateURL, isActive }: any) {
         </div>
       </button>
       <div
-        className={`${isActive ? 'opacity-100' : 'opacity-0'} cursor-pointer h-7 group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-gradient-to-l from-80% to-transparent`}
+        className={`${isActive ? 'opacity-100' : 'opacity-0'} cursor-pointer h-7 group-hover:opacity-100 z-0 from-accent absolute right-[10px] top-[6px] py-1 pr-2 pl-5 bg-linear-to-l from-80% to-transparent`}
       >
         <ConversationOptionsDropdown
           name={chat.name}

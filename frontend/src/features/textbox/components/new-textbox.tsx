@@ -256,7 +256,7 @@ export default function DynamicTextarea({
                   disabled={!text.trim() || model.length === 0}
                 >
                   Send
-                  <kbd className="inline-flex justify-center items-center gap-1 px-1 py-1 rounded font-mono text-sm">
+                  <kbd className="inline-flex justify-center items-center gap-1 px-1 py-1 rounded font-geistmono text-sm">
                     <Command className="size-2" />
                     <CornerDownLeft className="size-2" />
                   </kbd>

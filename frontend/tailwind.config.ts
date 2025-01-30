@@ -19,6 +19,7 @@ export default {
         poppins: ['Poppins'],
         archivo: ['Archivo', 'sans'],
         geist: ['Geist', 'sans'],
+        geistmono: ['Geist Mono', 'monospace'],
         jetbrainsMono: ['JetBrains Mono', 'monospace'],
         sans: [
           'Geist',

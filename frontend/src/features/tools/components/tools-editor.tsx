@@ -276,7 +276,7 @@ export function ToolEditor() {
                   horizontalScrollbarSize: 3,
                 },
                 overviewRulerBorder: false,
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "'Geist Mono', monospace",
               }}
             />
           </div>

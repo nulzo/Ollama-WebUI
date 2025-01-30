@@ -21,18 +21,18 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, lang }) => {
     : hljs.highlightAuto(code, hljs.getLanguage(lang || '')?.aliases);
 
   return (
-    <div className="text-sm relative rounded-lg overflow-hidden my-6 mx-4">
-      <div className="flex justify-between items-center backdrop-blur-sm bg-secondary/50 p-2">
-        <span className="pl-2 text-xs text-muted-foreground">
+    <div className="relative mx-4 my-6 rounded-lg text-sm overflow-hidden">
+      <div className="flex justify-between items-center bg-secondary/50 backdrop-blur-sm p-2">
+        <span className="pl-2 text-muted-foreground text-xs">
           {lang || language || 'plaintext'}
         </span>
         <CodeCopyButton onClick={handleCopy} copied={copied} />
       </div>
-      <pre className="pb-4 px-4 py-3 backdrop-blur-sm bg-secondary/50 rounded-t-none overflow-x-scroll">
+      <pre className="bg-secondary/50 backdrop-blur-sm px-4 py-3 pb-4 rounded-t-none overflow-x-scroll">
         {isMermaid ? (
           <MermaidComponent code={code} />
         ) : (
-          <code className="mt-0 mb-3" dangerouslySetInnerHTML={{ __html: highlightedCode }} />
+          <code className="mt-0 mb-3 text-sm" dangerouslySetInnerHTML={{ __html: highlightedCode }} />
         )}
       </pre>
     </div>

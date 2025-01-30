@@ -334,6 +334,11 @@
 
   pre {
     white-space: pre-wrap;
+    font-family: 'Geist Mono', monospace;
+  }
+
+  code {
+    font-family: 'Geist Mono', monospace;
   }
 
   .explode {

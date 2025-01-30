@@ -186,7 +186,7 @@ const SearchBar = ({ isCollapsed }: { isCollapsed: boolean }) => {
     <div className="flex items-center gap-2.5 px-3 w-full">
       <MagnifyingGlassIcon className="size-4 stroke-muted-foreground" />
       <Input
-        className="border-0 focus-within:border-0 focus:border-0 bg-transparent px-0 hover:ring-0 focus-visible:ring-0 focus-within:ring-0 focus:ring-0 w-[75%] focus:outline-hidden"
+        className="border-0 focus-within:border-0 focus:border-0 focus:outline-hidden bg-transparent px-0 hover:ring-0 focus-visible:ring-0 focus-within:ring-0 focus:ring-0 w-[75%]"
         placeholder="Search"
       />
     </div>
@@ -269,7 +269,7 @@ const AgentsList = ({ mockAgents, navigate, isCollapsed }: any) => (
       </motion.div>
     </Button>
 
-    {mockAgents.map(agent => (
+    {mockAgents.map((agent: any) => (
       <Button
         key={agent.id}
         variant="ghost"
@@ -323,7 +323,7 @@ const FunctionsList = ({ tools, navigate, isCollapsed }: any) => (
       </motion.div>
     </Button>
 
-    {tools?.results?.map(tool => (
+    {tools?.results?.map((tool: any) => (
       <Button
         key={tool.id}
         variant="ghost"
@@ -331,7 +331,7 @@ const FunctionsList = ({ tools, navigate, isCollapsed }: any) => (
         className="relative flex justify-start items-center pl-2 w-full h-8 text-sm group"
         onClick={() => navigate(`/tools/${tool.id}`)}
       >
-        <motion.div className="group-hover:text-foreground flex items-center gap-2 font-mono text-muted-foreground">
+        <motion.div className="group-hover:text-foreground flex items-center gap-2 font-geistmono text-muted-foreground">
           <Code2 className="shrink-0 size-3" />
           <span className="text-xs">
             {tool.name}

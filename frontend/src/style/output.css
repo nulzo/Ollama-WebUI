@@ -1,7 +1,7 @@
-/*! tailwindcss v4.0.0 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.0.1 | MIT License | https://tailwindcss.com */
 @layer theme, base, components, utilities;
 @layer theme {
-  :root {
+  :root, :host {
     --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
       "Liberation Mono", "Courier New", monospace;
@@ -1933,8 +1933,8 @@
   .font-geist {
     font-family: Geist, sans;
   }
-  .font-mono {
-    font-family: var(--font-mono);
+  .font-geistmono {
+    font-family: Geist Mono, monospace;
   }
   .text-2xl {
     font-size: var(--text-2xl);
@@ -3768,6 +3768,10 @@
   }
   pre {
     white-space: pre-wrap;
+    font-family: 'Geist Mono', monospace;
+  }
+  code {
+    font-family: 'Geist Mono', monospace;
   }
   .explode {
     animation-name: explode;

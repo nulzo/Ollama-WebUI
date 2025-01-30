@@ -17,13 +17,13 @@ export function AppLayout({ children }: AppLayoutProps) {
       
       {/* Main Content */}
       <main 
-        className="relative z-0 py-3 pl-1 pr-3 flex flex-col bg-secondary flex-1 w-full max-w-full"
+        className="relative z-0 flex flex-col flex-1 bg-secondary py-4 pr-4 pl-1 w-full max-w-full"
         style={{
           marginLeft: isCollapsed ? '55px' : '250px',
           transition: 'margin-left 0.2s ease-in-out',
         }}
       >
-        <div className="flex rounded-xl flex-col h-full overflow-hidden bg-background">
+        <div className="flex flex-col bg-background rounded-xl h-full overflow-hidden">
           {children}
         </div>
       </main>

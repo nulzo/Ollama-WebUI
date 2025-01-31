@@ -24,6 +24,10 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
   const [showInfo, setShowInfo] = useState(false);
   const [imageDetails, setImageDetails] = useState<ImageDetails | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [scale, setScale] = useState(1);
 
   // Parse image URL
   useEffect(() => {
@@ -71,27 +75,48 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
     setCarouselIndex(prev => (prev - 1 + images.length) % images.length);
   }, [images.length]);
 
-  // Keyboard controls
+  // Handle mouse down for dragging
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (scale === 1) return;
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+    e.preventDefault();
+  };
+
+  // Handle mouse move for dragging
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+    e.preventDefault();
+  };
+
+  // Handle mouse up to stop dragging
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Reset zoom and position when closing dialog or changing images
   useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (!isOpen) return;
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  }, [isOpen, carouselIndex]);
 
-      switch (event.key) {
-        case 'ArrowLeft':
-          hasMultipleImages && prevImage();
-          break;
-        case 'ArrowRight':
-          hasMultipleImages && nextImage();
-          break;
-        case 'i':
-          setShowInfo(!showInfo);
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isOpen, nextImage, prevImage, hasMultipleImages, showInfo]);
+  const handleWheel = (e: React.WheelEvent<HTMLImageElement>) => {
+    e.preventDefault();
+    
+    // Calculate new scale (zoom in/out by 10%)
+    const delta = e.deltaY < 0 ? 1.1 : 0.9;
+    const newScale = scale * delta;
+    
+    // Limit scale between 0.5 and 5
+    setScale(newScale);
+  };
 
   // Auto-scroll functionality
   useEffect(() => {
@@ -113,7 +138,7 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
         <motion.div
           whileHover={{ scale: 1.0 }}
           whileTap={{ scale: 0.99 }}
-          className="relative cursor-pointer group"
+          className="group relative cursor-pointer"
         >
           <img
             src={imageUrl}
@@ -128,24 +153,58 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
         </motion.div>
       </DialogTrigger>
 
-      <DialogContent className="bg-black/50 backdrop-blur-md p-0 border-none max-w-7xl h-full">
-        <div className="relative flex justify-center items-center w-full h-full">
-          {/* Main Image */}
+      <DialogContent className="bg-black/50 backdrop-blur-md p-0 border-none w-full max-w-7xl h-full">
+        <div 
+          className="relative flex justify-center items-center w-full h-full"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          style={{ 
+            cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
+          }}
+        >
           <AnimatePresence mode="wait">
-            <motion.img
+          <motion.img
               key={carouselIndex}
               src={currentImage}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="rounded-lg max-w-[75vw] max-h-[75vh] object-contain"
+              initial={{ opacity: 0 }}
+              animate={{ 
+                opacity: 1,
+                scale: scale,
+                x: position.x,
+                y: position.y,
+              }}
+              transition={{
+                type: "tween",
+                duration: 0.1
+              }}
+              exit={{ opacity: 0 }}
+              className="rounded-lg select-none"
+              style={{ 
+                maxWidth: '80vw',
+                maxHeight: '80vh',
+                objectFit: 'contain',
+              }}
+              onWheel={handleWheel}
               alt="Full size preview"
+              draggable={false}
             />
           </AnimatePresence>
 
-          {/* Control Bar */}
+          {/* Controls */}
           <div className="right-0 bottom-0 left-0 absolute flex justify-between items-center p-4">
             <div className="flex items-center gap-2">
+              {scale !== 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="bg-background/50 hover:bg-background/75"
+                  onClick={() => setScale(1)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
               {hasMultipleImages && (
                 <Button
                   variant="ghost"
@@ -181,7 +240,7 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
             )}
           </div>
 
-          {/* Navigation Arrows */}
+          {/* Navigation */}
           {hasMultipleImages && (
             <>
               <Button
@@ -203,17 +262,17 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
             </>
           )}
 
-            {/* Close Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="top-4 right-4 z-50 absolute bg-background/50 hover:bg-background/75"
-              onClick={() => setIsOpen(false)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
+          {/* Close Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="top-4 right-4 z-50 absolute bg-background/50 hover:bg-background/75"
+            onClick={() => setIsOpen(false)}
+          >
+            <X className="w-4 h-4" />
+          </Button>
 
-          {/* Image Information Panel */}
+          {/* Info Panel */}
           <AnimatePresence>
             {showInfo && imageDetails && (
               <motion.div

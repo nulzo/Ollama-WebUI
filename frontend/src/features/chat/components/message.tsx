@@ -149,8 +149,8 @@ export const Message = memo<MessageProps>(
               </div>
               <div className="bg-muted/30 px-4 py-3 rounded-xl rounded-tl">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <span>{message.model} is thinking...</span>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>{message.model} is initializing...</span>
+                  <Loader2 className="animate-spin size-3" />
                 </div>
               </div>
             </div>
@@ -305,7 +305,7 @@ export const Message = memo<MessageProps>(
               <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
             </div>
 
-            <div className="max-w-[70%]">
+            <div className="flex flex-col justify-end items-end w-full max-w-[70%]">
               {message.image_ids?.length > 0 && (
                 <div className="flex flex-wrap justify-end gap-2">
                   <AsyncMessageImage
@@ -316,7 +316,7 @@ export const Message = memo<MessageProps>(
                 </div>
               )}
 
-              <div className="bg-primary selection:bg-background/40 px-4 py-3 rounded-xl rounded-tr-sm text-primary-foreground">
+              <div className="bg-primary selection:bg-background/40 px-4 py-3 rounded-xl rounded-tr-sm w-fit text-primary-foreground">
                 <motion.div className="max-w-none prose-invert prose prose-sm">
                   {messageContent.length > 0 ? (
                     <MarkdownRenderer markdown={messageContent} />

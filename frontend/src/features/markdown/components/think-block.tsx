@@ -21,7 +21,7 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({ children, isComplete = f
   }, [isComplete]);
 
   return (
-    <div className="my-0.5 w-full rounded-lg border bg-secondary/75 backdrop-blur-xs overflow-hidden">
+    <div className="bg-secondary/75 backdrop-blur-xs border rounded-lg w-full overflow-hidden">
       <button
         onClick={() => isComplete && setIsExpanded(!isExpanded)}
         className={cn(
@@ -36,7 +36,7 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({ children, isComplete = f
           ) : (
             <Loader2 className="w-4 h-4 text-primary animate-spin" />
           )}
-          <span className="text-sm font-medium">
+          <span className="font-medium text-sm">
             {isComplete ? "Reasoning complete" : "Reasoning in progress..."}
           </span>
         </div>
@@ -57,9 +57,9 @@ export const ThinkBlock: React.FC<ThinkBlockProps> = ({ children, isComplete = f
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="max-h-72 text-sm text-muted-foreground overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
+            className="scrollbar-thumb-muted-foreground/20 max-h-72 text-muted-foreground text-sm overflow-y-auto scrollbar-thin scrollbar-track-transparent"
           >
-            <div className="p-4 prose prose-sm max-w-none prose-pre:my-0">
+            <div className="prose-pre:my-0 p-4 max-w-none prose prose-sm">
               {children}
             </div>
           </motion.div>

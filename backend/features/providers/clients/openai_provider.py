@@ -1,9 +1,10 @@
 import base64
 import logging
-from typing import AnyStr, List, Union
+from typing import AnyStr, Dict, List, Union
 
 from django.conf import settings
 from openai import Client
+import json
 
 from features.providers.clients.base_provider import BaseProvider
 
@@ -34,53 +35,85 @@ class OpenAiProvider(BaseProvider):
         Streams a response from the OpenAI service.
         """
         processed_messages = self._process_messages(messages)
+        
+        if not processed_messages:
+            raise ValueError("Messages array cannot be empty")
 
         response = self._client.chat.completions.create(
-            model=model, messages=processed_messages, stream=True
+            model=model,
+            messages=processed_messages,
+            stream=True
         )
 
         buffer = ""
         for chunk in response:
-            if chunk.choices[0].delta.content:
-                buffer += chunk.choices[0].delta.content
+            if chunk.choices and chunk.choices[0].delta.content:
+                content = chunk.choices[0].delta.content
+                buffer += content
                 if len(buffer) >= 4 or any(p in buffer for p in ".!?,\n"):
-                    yield buffer
+                    yield json.dumps({
+                        "content": buffer,
+                        "status": "generating"
+                    })
                     buffer = ""
 
         if buffer:
-            yield buffer
+            yield json.dumps({
+                "content": buffer,
+                "status": "generating"
+            })
 
-    def _process_messages(self, messages: Union[List, AnyStr]):
-        """Helper method to process messages and images"""
+    def _process_messages(self, messages: Union[List, AnyStr]) -> List[Dict]:
+        """
+        Process messages into OpenAI's expected format.
+        """
         processed_messages = []
         for message in messages:
-            processed_message = {"role": message["role"], "content": []}
+            # Skip empty messages
+            if not message.get("content") and not message.get("images"):
+                continue
+                
+            processed_message = {
+                "role": message["role"],
+                "content": []
+            }
 
+            # Handle text content
             if message.get("content"):
-                processed_message["content"].append({"type": "text", "text": message["content"]})
+                if isinstance(message["content"], str):
+                    processed_message["content"] = message["content"]
+                else:
+                    # For multimodal messages, format as list of content parts
+                    processed_message["content"] = [{"type": "text", "text": message["content"]}]
 
+            # Handle images if present
             if message.get("images"):
+                if not isinstance(processed_message["content"], list):
+                    processed_message["content"] = [{"type": "text", "text": processed_message["content"]}]
+                
                 for image in message["images"]:
                     if isinstance(image, bytes):
                         image_data = base64.b64encode(image).decode("utf-8")
-                    elif isinstance(image, str) and "\\x" in image:
-                        image_bytes = (
-                            bytes(image, "utf-8").decode("unicode_escape").encode("latin1")
-                        )
-                        image_data = base64.b64encode(image_bytes).decode("utf-8")
-                    else:
-                        image_data = image
+                    elif isinstance(image, str):
+                        if "\\x" in image:
+                            image_bytes = bytes(image, "utf-8").decode("unicode_escape").encode("latin1")
+                            image_data = base64.b64encode(image_bytes).decode("utf-8")
+                        else:
+                            image_data = image
 
-                    processed_message["content"].append(
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/jpeg;base64,{image_data}"},
+                    processed_message["content"].append({
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{image_data}"
                         }
-                    )
+                    })
 
-                processed_messages.append(processed_message)
+            processed_messages.append(processed_message)
 
         return processed_messages
+
+    def models(self):
+        return self._client.models.list()
 
     def model(self): ...
 

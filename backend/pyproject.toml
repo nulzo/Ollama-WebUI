@@ -22,6 +22,9 @@ django-cryptography = "^1.1"
 django = "^5.1.4"
 chromadb = "^0.5.23"
 pydot = "^3.0.4"
+pytest = "^8.3.4"
+pytest-django = "^4.9.0"
+pytest-asyncio = "^0.25.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"
@@ -54,8 +57,10 @@ extend-exclude = '''
 '''
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "base.settings"
+DJANGO_SETTINGS_MODULE = "settings.settings"
 python_files = ["test_*.py", "*_test.py"]
+pythonpath = ["."]
+django_find_project = true
 
 [tool.ruff]
 exclude = [".venv", "tests/", "scripts"]

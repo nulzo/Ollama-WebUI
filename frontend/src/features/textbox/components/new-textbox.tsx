@@ -1,5 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Command, Copy, CornerDownLeft, Image as ImageIcon, Redo, Undo, X } from 'lucide-react';
+import {
+  Command,
+  CornerDownLeft,
+  Paperclip,
+  X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -18,7 +23,6 @@ interface DynamicTextareaProps {
   isGenerating?: boolean;
   onKeyDown?: (e: React.KeyboardEvent) => void;
 }
-
 
 export default function DynamicTextarea({
   placeholder = 'Message CringeGPT ...',
@@ -104,20 +108,6 @@ export default function DynamicTextarea({
     }
   };
 
-  const handleUndo = () => {
-    if (historyIndex > 0) {
-      setHistoryIndex(prev => prev - 1);
-      setText(history[historyIndex - 1]);
-    }
-  };
-
-  const handleRedo = () => {
-    if (historyIndex < history.length - 1) {
-      setHistoryIndex(prev => prev + 1);
-      setText(history[historyIndex + 1]);
-    }
-  };
-
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -130,12 +120,10 @@ export default function DynamicTextarea({
     };
   }, []);
 
-  const handleCopy = () => navigator.clipboard.writeText(text);
-
   return (
     <TooltipProvider>
-      <div className="inset-x-0 border-spacing-2 bg-transparent mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-6xl overflow-hidden">
-        <div className="relative z-10 inset-x-0 border-input focus-within:border-primary shadow-xs mx-auto border rounded-lg ring-primary/50 w-full overflow-hidden">
+      <div className="inset-x-0 border-spacing-2 bg-transparent mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-4xl overflow-hidden">
+        <div className="bg-input relative z-10 inset-x-0 border-input focus-within:border-primary shadow-xs mx-auto border rounded-lg ring-primary/50 w-full overflow-hidden">
           <textarea
             ref={textareaRef}
             value={text}
@@ -143,7 +131,7 @@ export default function DynamicTextarea({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             rows={1}
-            className="bg-transparent px-4 pt-3 rounded-lg focus:ring-0 focus:ring-none w-full text-foreground text-sm placeholder:text-muted-foreground focus:outline-none resize-none"
+            className="bg-input px-4 pt-3 rounded-lg focus:ring-0 focus:ring-none w-full text-foreground text-sm placeholder:text-muted-foreground focus:outline-none resize-none"
             style={{ minHeight: '47px', maxHeight: '200px' }}
             disabled={disabled}
           />
@@ -168,63 +156,58 @@ export default function DynamicTextarea({
             </div>
           )}
 
-          <div className="flex justify-between items-center px-2 pb-2">
-            <div className="flex space-x-2">
+          <div className="flex justify-end items-center px-2 pb-2">
+            {/* <div className="flex">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    className="w-5 h-5"
-                    variant="ghost"
+                    className="text-xs"
                     size="icon"
-                    onClick={handleUndo}
-                    disabled={historyIndex === 0}
+                    variant="ghost"
+                    onClick={() => onMessageNavigate(currentMessageIndex + 1)}
+                    disabled={currentMessageIndex >= messageHistory.length - 1}
                   >
                     <Undo className="size-3" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Undo</p>
+                  <p>Previous message</p>
                 </TooltipContent>
               </Tooltip>
 
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    className="w-5 h-5"
-                    variant="ghost"
+                    className="text-xs"
                     size="icon"
-                    onClick={handleRedo}
-                    disabled={historyIndex === history.length - 1}
+                    variant="ghost"
+                    onClick={() => onMessageNavigate(currentMessageIndex + 1)}
+                    disabled={currentMessageIndex >= messageHistory.length - 1}
                   >
                     <Redo className="size-3" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Redo</p>
+                  <p>Next message</p>
                 </TooltipContent>
               </Tooltip>
+            </div> */}
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button className="w-5 h-5" variant="ghost" size="icon" onClick={handleCopy}>
-                    <Copy className="size-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Copy to clipboard</p>
-                </TooltipContent>
-              </Tooltip>
+            <div className="flex items-center space-x-2">
+              <span className="text-muted-foreground text-xs">
+                {text.length > 0 ? text.length : ''}
+              </span>
 
               {uploadedImages.length === 0 && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      className="w-5 h-5"
-                      variant="link"
+                      className="px-2 h-8 text-xs"
+                      variant="ghost"
                       size="icon"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <ImageIcon className="size-3 stroke-muted-foreground" />
+                      <Paperclip className='size-4' />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -232,26 +215,15 @@ export default function DynamicTextarea({
                   </TooltipContent>
                 </Tooltip>
               )}
-            </div>
 
-            <div className="flex items-center space-x-2">
-              <span className="text-muted-foreground text-xs">
-                {text.length > 0 ? text.length : ''}
-              </span>
               {isGenerating ? (
-                <Button
-                  size="icon"
-                  variant="outline"
-                  className="px-2 w-fit h-8 text-xs"
-                  onClick={onCancel}
-                >
+                <Button variant="outline" className="px-2 h-8 text-xs" onClick={onCancel}>
                   <X className="mr-1 size-3" />
                   Cancel
                 </Button>
               ) : (
                 <Button
-                  size="icon"
-                  className="px-2 w-fit h-8 text-xs"
+                  className="px-2 h-8 text-xs"
                   onClick={handleSubmit}
                   disabled={!text.trim() || model.length === 0}
                 >

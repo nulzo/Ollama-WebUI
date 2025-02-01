@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { mockPrompts, CustomPrompt } from '@/features/chat/data/mock-prompts';
 import { PromptSuggestions } from '@/features/chat/components/prompts/prompt-suggestions';
 import AutoResizeTextarea from './new-textbox';
@@ -8,9 +8,10 @@ import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
 interface ChatInputProps {
   onSubmit: (message: string, images: string[]) => void;
   disabled?: boolean;
+  messages?: { content: string; role: 'user' | 'assistant' }[];
 }
 
-export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
+export function ChatInput({ onSubmit, disabled, messages = [] }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<CustomPrompt[]>([]);
@@ -18,8 +19,10 @@ export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { model } = useModelStore(state => ({ model: state.model }));
   const { handleCancel, isGenerating } = useChatMutation();
+  const [messageHistory, setMessageHistory] = useState<string[]>([]);
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(-1);
 
-  // Reset selected index when suggestions change
+
   useEffect(() => {
     setSelectedIndex(0);
   }, [suggestions]);
@@ -80,9 +83,19 @@ export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
   const handleSubmit = () => {
     if (!message.trim() && images.length === 0) return;
     onSubmit(message, images);
+    setMessageHistory(prev => [...prev, message]);
+    setCurrentMessageIndex(prev => prev + 1);
     setMessage('');
     setImages([]);
   };
+
+  const userMessages = useMemo(() => 
+    messages
+      .filter(msg => msg.role === 'user')
+      .map(msg => msg.content)
+      .reverse(),
+    [messages]
+  );
 
   const handleImageUpload = (base64Images: string[]) => {
     setImages(prev => [...prev, ...base64Images]);
@@ -90,6 +103,13 @@ export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
 
   const handleRemoveImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleMessageNavigate = (index: number) => {
+    if (index >= 0 && index < messageHistory.length) {
+      setCurrentMessageIndex(index);
+      setMessage(messageHistory[index]);
+    }
   };
 
   return (
@@ -103,6 +123,9 @@ export function ChatInput({ onSubmit, disabled }: ChatInputProps) {
               searchTerm={message.slice(promptIndex + 1)}
               prompts={suggestions}
               selectedIndex={selectedIndex}
+              messageHistory={userMessages}
+              currentMessageIndex={currentMessageIndex}
+              onMessageNavigate={handleMessageNavigate}
             />
           </div>
         )}

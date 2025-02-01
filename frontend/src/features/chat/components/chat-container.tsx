@@ -18,8 +18,8 @@ export const ScrollToBottomButton: FC<ScrollToBottomButtonProps> = ({ onClick, i
   return (
     <Button
       onClick={onClick}
-      variant="outline"
-      className="flex items-center gap-1 shadow-lg border rounded-lg"
+      variant="ghost"
+      className="flex items-center gap-1 bg-input border rounded-lg"
       aria-label="Scroll to bottom"
     >
       <span>Scroll to bottom</span>
@@ -65,7 +65,6 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [showLoadMore, setShowLoadMore] = useState(false);
-  const lastScrollPositionRef = useRef<number>(0);
 
   const { handleCancel } = useChatMutation(conversation_id);
   const { messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages({

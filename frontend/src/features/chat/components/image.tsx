@@ -28,6 +28,78 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
+  const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
+  const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null);
+
+  const calculateBounds = useCallback(() => {
+    if (!containerRef || !imageRef) return {
+      bounds: { x: 0, y: 0 },
+      limits: { minX: 0, maxX: 0, minY: 0, maxY: 0 }
+    };
+
+    const containerRect = containerRef.getBoundingClientRect();
+    const imageRect = imageRef.getBoundingClientRect();
+
+    // If zoomed out (scale <= 1), center the image
+    if (scale <= 1) {
+      return {
+        bounds: { x: 0, y: 0 },
+        limits: { minX: 0, maxX: 0, minY: 0, maxY: 0 }
+      };
+    }
+
+    const scaledWidth = imageRect.width;
+    const scaledHeight = imageRect.height;
+    
+    // Adjust the bounds calculation
+    const maxX = Math.max((scaledWidth - containerRect.width) / 2, 0);
+    const minX = -maxX;
+    const maxY = Math.max((scaledHeight - containerRect.height) / 2, 0);
+    const minY = -maxY;
+
+    return {
+      bounds: { x: position.x, y: position.y },
+      limits: { minX, maxX, minY, maxY }
+    };
+  }, [containerRef, imageRef, position, scale]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (scale <= 1) return;
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    
+    const { limits } = calculateBounds();
+    
+    setPosition({
+      x: Math.min(Math.max(newX, limits.minX), limits.maxX),
+      y: Math.min(Math.max(newY, limits.minY), limits.maxY)
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Apply bounds when not dragging
+  useEffect(() => {
+    if (isDragging) return;
+    const { limits } = calculateBounds();
+    setPosition(prev => ({
+      x: Math.min(Math.max(prev.x, limits.minX), limits.maxX),
+      y: Math.min(Math.max(prev.y, limits.minY), limits.maxY)
+    }));
+  }, [isDragging, calculateBounds]);
 
   // Parse image URL
   useEffect(() => {
@@ -75,32 +147,6 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
     setCarouselIndex(prev => (prev - 1 + images.length) % images.length);
   }, [images.length]);
 
-  // Handle mouse down for dragging
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (scale === 1) return;
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
-    });
-    e.preventDefault();
-  };
-
-  // Handle mouse move for dragging
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setPosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y,
-    });
-    e.preventDefault();
-  };
-
-  // Handle mouse up to stop dragging
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
   // Reset zoom and position when closing dialog or changing images
   useEffect(() => {
     setScale(1);
@@ -110,11 +156,8 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
   const handleWheel = (e: React.WheelEvent<HTMLImageElement>) => {
     e.preventDefault();
     
-    // Calculate new scale (zoom in/out by 10%)
     const delta = e.deltaY < 0 ? 1.1 : 0.9;
-    const newScale = scale * delta;
-    
-    // Limit scale between 0.5 and 5
+    const newScale = Math.min(Math.max(scale * delta, 0.1), 5); // Changed minimum scale to 0.1
     setScale(newScale);
   };
 
@@ -160,12 +203,14 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
+          ref={setContainerRef}
           style={{ 
-            cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
+            cursor: scale != 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
           }}
         >
           <AnimatePresence mode="wait">
           <motion.img
+              ref={setImageRef}
               key={carouselIndex}
               src={currentImage}
               initial={{ opacity: 0 }}
@@ -176,8 +221,10 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
                 y: position.y,
               }}
               transition={{
-                type: "tween",
-                duration: 0.1
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                opacity: { duration: 0.1 }
               }}
               exit={{ opacity: 0 }}
               className="rounded-lg select-none"

@@ -32,27 +32,29 @@ class ProviderSettingsService:
             raise NotFoundException(f"Settings not found for provider {provider_type}")
         return self._sanitize_settings(settings)
 
-    def create_settings(self, user_id: int, data: dict) -> Dict:
-        """Create new provider settings"""
+    def create_settings(self, user: User, data: dict) -> dict:
+        """Create provider settings."""
         try:
-            # Validate data
-            serializer = ProviderSettingsSerializer(data=data)
-            if not serializer.is_valid():
-                raise ValidationError(serializer.errors)
+            provider_type = data.get("provider_type")
+            if not provider_type:
+                raise ValidationError({"provider_type": ["Provider type is required"]})
+
+            # Validate required fields based on provider type
+            self.validate_provider_settings(provider_type, data)
 
             # Create settings
-            settings = self.repository.create({**serializer.validated_data, "user_id": user_id})
-
-            # Update provider configuration
-            self._update_provider_config(settings)
-
-            return self._sanitize_settings(settings)
-
-        except IntegrityError as e:
-            self.logger.error(f"Database integrity error: {str(e)}")
-            raise ValidationError("Provider settings already exist for this user")
+            settings = ProviderSettings.objects.create(
+                user=user,
+                provider_type=provider_type,
+                api_key=data.get("api_key"),
+                host=data.get("host"),
+                organization_id=data.get("organization_id"),
+                is_enabled=data.get("is_enabled", False)
+            )
+            
+            return self.serialize_settings(settings)
         except Exception as e:
-            self.logger.error(f"Error creating provider settings: {str(e)}")
+            self.logger.error(f"Failed to create provider settings: {str(e)}")
             raise ServiceError(f"Failed to create provider settings: {str(e)}")
 
     def update_settings(self, user_id: int, provider_type: str, data: dict) -> Dict:

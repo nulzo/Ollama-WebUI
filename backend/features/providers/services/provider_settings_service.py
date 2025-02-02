@@ -3,6 +3,7 @@ import logging
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
+from features.authentication.models import CustomUser
 from features.providers.repositories.provider_settings_repository import ProviderSettingsRepository
 from features.providers.models import  ProviderSettings
 from api.utils.exceptions import NotFoundException, ServiceError
@@ -32,7 +33,7 @@ class ProviderSettingsService:
             raise NotFoundException(f"Settings not found for provider {provider_type}")
         return self._sanitize_settings(settings)
 
-    def create_settings(self, user: User, data: dict) -> dict:
+    def create_settings(self, user: CustomUser, data: dict) -> dict:
         """Create provider settings."""
         try:
             provider_type = data.get("provider_type")

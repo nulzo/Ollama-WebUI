@@ -11,12 +11,22 @@ import { useAuthLogin } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 
 const FormSchema = z.object({
-  username: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
-  }),
-  password: z.string().min(6, {
-    message: 'Password must be at least 6 characters.',
-  }),
+  username: z
+    .string()
+    .min(2, {
+      message: 'Username must be at least 2 characters.',
+    })
+    .max(50, {
+      message: 'Username cannot exceed 50 characters.',
+    }),
+  password: z
+    .string()
+    .min(6, { message: 'Password must be at least 6 characters.' })
+    .max(100, { message: 'Password cannot exceed 100 characters.' })
+    // .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    //   message:
+    //     'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+    // }),
 });
 
 export const LoginRoute = () => {
@@ -36,7 +46,7 @@ export const LoginRoute = () => {
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     try {
       await login.mutateAsync(data);
-      
+
       toast({
         title: 'Success',
         description: 'Login successful',
@@ -46,11 +56,14 @@ export const LoginRoute = () => {
       navigate(from, { replace: true });
     } catch (error) {
       console.error('Login error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Invalid username or password';
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Login failed',
+        description: errorMessage + ' could not be logged in!',
       });
+
+      form.setValue('password', '');
     }
   }
 
@@ -68,7 +81,7 @@ export const LoginRoute = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input autoComplete="off" placeholder="Username" {...field} />
+                    <Input autoComplete="username" placeholder="Username" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -80,7 +93,12 @@ export const LoginRoute = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input type="password" placeholder="Password" {...field} />
+                    <Input
+                      type="password"
+                      autoComplete="current-password"
+                      placeholder="Password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

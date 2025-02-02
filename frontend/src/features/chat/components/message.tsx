@@ -201,13 +201,13 @@ export const Message = memo<MessageProps>(
             </div>
 
             <div className="flex flex-col w-full">
-              <div className="flex items-baseline gap-2 mb-0.5 ml-1">
+              <div className="flex items-baseline mb-0.5 ml-1">
                 <span className="font-medium text-primary text-sm">{message.model}</span>
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
               </div>
 
               <div className="p-2 rounded-xl rounded-tl">
-                {message.image_ids?.length > 0 && (
+                {message.image_ids?.length && message.image_ids.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     <AsyncMessageImage
                       imageId={message.image_ids[0] as number}
@@ -217,11 +217,11 @@ export const Message = memo<MessageProps>(
                   </div>
                 )}
 
-                <div className="p-2 max-w-none prose prose-sm">
+                <div className="max-w-none prose prose-sm">
                   {messageContent ? (
                     <MarkdownRenderer markdown={messageContent} />
                   ) : (
-                    <div className="h-6" /> // Placeholder for empty content
+                    <div className="h-6" />
                   )}
                 </div>
               </div>
@@ -306,7 +306,7 @@ export const Message = memo<MessageProps>(
             </div>
 
             <div className="flex flex-col justify-end items-end w-full max-w-[70%]">
-              {message.image_ids?.length > 0 && (
+              {message.image_ids?.length && message.image_ids.length > 0 && (
                 <div className="flex flex-wrap justify-end gap-2">
                   <AsyncMessageImage
                     imageId={message.image_ids[0] as number}

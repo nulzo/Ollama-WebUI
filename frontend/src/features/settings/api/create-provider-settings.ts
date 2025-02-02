@@ -1,37 +1,63 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api-client.ts';
-import { ProviderSettings } from '@/types/provider-settings.ts';
-import { ApiResponse } from '@/types/api.ts';
-import { MutationConfig } from '@/lib/query.ts';
-import { getProviderSettingsQueryOptions } from './get-provider-settings.ts';
+import { z } from 'zod';
+import { api } from '@/lib/api-client';
+import { MutationConfig } from '@/lib/query';
+import { ProviderSettings } from '@/types/provider-settings';
+import { getProviderSettingsQueryOptions } from './get-provider-settings';
+import { useNotifications } from '@/components/notification/notification-store';
+import { ApiResponse } from '@/types/api';
+import { useErrorStore } from '@/components/errors/error-store';
 
-export const createProviderSetting = ({
+export const createProviderSettingsSchema = z.object({
+  provider_type: z.string(),
+  api_key: z.string().optional(),
+  endpoint: z.string().optional(),
+  organization_id: z.string().optional(),
+  is_enabled: z.boolean(),
+});
+
+export type CreateProviderSettingsInput = z.infer<typeof createProviderSettingsSchema>;
+
+export const createProviderSettings = async ({
   data,
 }: {
-  data: Partial<ProviderSettings>;
+  data: CreateProviderSettingsInput;
 }): Promise<ProviderSettings> => {
-  return api.post<ApiResponse<ProviderSettings>>('/providers/', data).then(response => {
-    if (!response.success) {
-      throw new Error(response.error?.message || 'Failed to create provider setting');
-    }
-    return response.data;
-  });
+  const response = await api.post<ApiResponse<ProviderSettings>>('/providers/', data);
+  if (!response.success) {
+    throw new Error(response.error?.message || 'Failed to create provider settings');
+  }
+  return response.data;
 };
 
-type UseCreateProviderSettingOptions = {
-  mutationConfig?: MutationConfig<typeof createProviderSetting>;
+type UseCreateProviderSettingsOptions = {
+  mutationConfig?: MutationConfig<typeof createProviderSettings>;
 };
 
-export const useCreateProviderSetting = ({
-  mutationConfig,
-}: UseCreateProviderSettingOptions = {}) => {
+export const useCreateProviderSettings = ({ 
+  mutationConfig 
+}: UseCreateProviderSettingsOptions = {}) => {
   const queryClient = useQueryClient();
+  const notifications = useNotifications();
 
   return useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getProviderSettingsQueryOptions().queryKey });
+      queryClient.invalidateQueries({ 
+        queryKey: getProviderSettingsQueryOptions().queryKey 
+      });
+      notifications.addNotification({
+        type: 'success',
+        title: 'Settings Created',
+        message: 'Provider settings have been successfully created',
+      });
+    },
+    onError: (error: Error) => {
+      useErrorStore.getState().showError({
+        status: 500,
+        message: error.message,
+      });
     },
     ...mutationConfig,
-    mutationFn: createProviderSetting,
+    mutationFn: createProviderSettings,
   });
 };

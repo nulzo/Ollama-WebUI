@@ -1,48 +1,72 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api-client.ts';
-import { ProviderSettings } from '@/types/provider-settings.ts';
-import { ApiResponse } from '@/types/api.ts';
-import { MutationConfig } from '@/lib/query.ts';
-import { getProviderSettingsQueryOptions } from './get-provider-settings.ts';
-import { useNotifications } from '@/components/notification/notification-store.ts';
+import { z } from 'zod';
+import { api } from '@/lib/api-client';
+import { MutationConfig } from '@/lib/query';
+import { ProviderSettings } from '@/types/provider-settings';
+import { getProviderSettingsQueryOptions } from './get-provider-settings';
+import { useNotifications } from '@/components/notification/notification-store';
+import { ApiResponse } from '@/types/api';
+import { useErrorStore } from '@/components/errors/error-store';
 
-export const updateProviderSetting = ({
+export const updateProviderSettingsSchema = z.object({
+  provider_type: z.string(),
+  api_key: z.string().optional(),
+  endpoint: z.string().optional(),
+  organization_id: z.string().optional(),
+  is_enabled: z.boolean(),
+  default_model: z.string().optional(),
+});
+
+export type UpdateProviderSettingsInput = z.infer<typeof updateProviderSettingsSchema>;
+
+export const updateProviderSettings = async ({
   providerId,
   data,
 }: {
   providerId: string;
-  data: Partial<ProviderSettings>;
+  data: UpdateProviderSettingsInput;
 }): Promise<ProviderSettings> => {
-  return api
-    .patch<ApiResponse<ProviderSettings>>(`/providers/${providerId}/`, data)
-    .then(response => {
-      if (!response.success) {
-        throw new Error(response.error?.message || 'Failed to update provider setting');
-      }
-      return response.data;
-    });
+  const response = await api.patch<ApiResponse<ProviderSettings>>(
+    `/providers/${providerId}/`, 
+    data
+  );
+  if (!response.success) {
+    throw new Error(response.error?.message || 'Failed to update provider settings');
+  }
+  return response.data;
 };
 
-type UseUpdateProviderSettingOptions = {
-  mutationConfig?: MutationConfig<typeof updateProviderSetting>;
+type UseUpdateProviderSettingsOptions = {
+  mutationConfig?: MutationConfig<typeof updateProviderSettings>;
 };
 
-export const useUpdateProviderSetting = ({
-  mutationConfig,
-}: UseUpdateProviderSettingOptions = {}) => {
+export const useUpdateProviderSettings = ({ 
+  mutationConfig 
+}: UseUpdateProviderSettingsOptions = {}) => {
   const queryClient = useQueryClient();
+  const notifications = useNotifications();
 
   return useMutation({
     onSuccess: (_, { providerId }) => {
-      queryClient.invalidateQueries({ queryKey: getProviderSettingsQueryOptions().queryKey });
-      queryClient.invalidateQueries({ queryKey: ['providerSettings', providerId] });
-      useNotifications.getState().addNotification({
+      queryClient.invalidateQueries({ 
+        queryKey: getProviderSettingsQueryOptions().queryKey 
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: ['models'] // Also invalidate models query
+      });
+      notifications.addNotification({
         type: 'success',
         title: 'Settings Updated',
         message: 'Provider settings have been successfully updated',
       });
     },
+    onError: (error: Error) => {
+      useErrorStore.getState().showError({
+        status: 500,
+        message: error.message,
+      });
+    },
     ...mutationConfig,
-    mutationFn: updateProviderSetting,
+    mutationFn: updateProviderSettings,
   });
 };

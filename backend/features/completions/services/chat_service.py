@@ -204,8 +204,8 @@ class ChatService:
 
     def generate_response(self, data: dict, user) -> Generator[str, None, None]:
         """Generate streaming response for chat"""
-        generation_id = id(self)
         self._cancel_event.clear()
+        generation_id = id(self)
         start = timer()
 
         try:
@@ -281,6 +281,9 @@ class ChatService:
             tokens_generated = 0
             full_content = ""
             for chunk in provider.stream(data.get("model", "llama3.2:3b"), formatted_messages):
+                if self._cancel_event.is_set():
+                    full_content += " [cancelled]"
+                    break
                 if isinstance(chunk, str):
                     chunk_data = json.loads(chunk)
                     full_content += chunk_data.get("content", "")
@@ -292,20 +295,21 @@ class ChatService:
 
             # Update final message content if not cancelled
             if not self._cancel_event.is_set():
-                assistant_message = self.message_repository.create(
-                    {
-                        "conversation": user_message.conversation,
-                        "content": full_content,
-                        "role": "assistant",
-                        "user": user,
-                        "tokens_used": tokens_generated,
-                        "model": data.get("model"),
-                        "generation_time": generation_time,
-                        "finish_reason": "stop",
-                    }
-                )
-                yield json.dumps({"status": "done", "message_id": str(assistant_message.id)})
-
+                assistant_message = self.message_repository.create({
+                    "conversation": user_message.conversation,
+                    "content": full_content,
+                    "role": "assistant",
+                    "user": user,
+                    "tokens_used": tokens_generated,
+                    "model": data.get("model"),
+                    "generation_time": generation_time,
+                    "finish_reason": "cancelled" if self._cancel_event.is_set() else "stop",
+                })
+            yield json.dumps({
+                        "status": "cancelled" if self._cancel_event.is_set() else "done",
+                        "message_id": str(assistant_message.id)
+                    })
+            
         except Exception as e:
             logger.error(f"Error in generation {generation_id}: {str(e)}\n{traceback.format_exc()}")
             yield json.dumps({"error": str(e), "status": "error"})

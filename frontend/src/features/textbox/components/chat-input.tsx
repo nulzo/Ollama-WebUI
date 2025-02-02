@@ -89,14 +89,6 @@ export function ChatInput({ onSubmit, disabled, messages = [] }: ChatInputProps)
     setImages([]);
   };
 
-  const userMessages = useMemo(() => 
-    messages
-      .filter(msg => msg.role === 'user')
-      .map(msg => msg.content)
-      .reverse(),
-    [messages]
-  );
-
   const handleImageUpload = (base64Images: string[]) => {
     setImages(prev => [...prev, ...base64Images]);
   };
@@ -105,17 +97,10 @@ export function ChatInput({ onSubmit, disabled, messages = [] }: ChatInputProps)
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleMessageNavigate = (index: number) => {
-    if (index >= 0 && index < messageHistory.length) {
-      setCurrentMessageIndex(index);
-      setMessage(messageHistory[index]);
-    }
-  };
-
   return (
     <div className="relative w-full transition">
       {suggestions.length > 0 && (
-          <div className="mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-7xl">
+          <div className="mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-6xl">
             <PromptSuggestions
               isOpen={suggestions.length > 0}
               onClose={() => setSuggestions([])}
@@ -123,9 +108,6 @@ export function ChatInput({ onSubmit, disabled, messages = [] }: ChatInputProps)
               searchTerm={message.slice(promptIndex + 1)}
               prompts={suggestions}
               selectedIndex={selectedIndex}
-              messageHistory={userMessages}
-              currentMessageIndex={currentMessageIndex}
-              onMessageNavigate={handleMessageNavigate}
             />
           </div>
         )}

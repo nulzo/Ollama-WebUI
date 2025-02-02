@@ -2,6 +2,8 @@ import { ReactNode } from 'react';
 import { Sidebar } from '@/components/sidebar/sidebar';
 import { ConversationList } from '@/features/chat/components/message-list/conversation-list';
 import { useSidebar } from '../sidebar/sidebar-context';
+import { useErrorStore } from '../errors/error-store';
+import { ErrorDialog } from '../errors/error-dialog';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -9,6 +11,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { isCollapsed } = useSidebar();
+  const { isOpen, error, hideError } = useErrorStore();
 
   return (
     <div className="flex h-screen max-h-[100dvh] overflow-hidden">
@@ -26,6 +29,11 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="flex flex-col bg-background rounded-xl h-full overflow-hidden">
           {children}
         </div>
+        <ErrorDialog 
+          open={isOpen}
+          onOpenChange={(open: boolean) => !open && hideError()}
+          error={error || {}}
+        />
       </main>
     </div>
   );

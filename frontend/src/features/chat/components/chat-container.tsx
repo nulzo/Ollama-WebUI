@@ -5,7 +5,7 @@ import { useMessages } from '../api/get-messages';
 import { useChatMutation } from '../hooks/use-chat-mutation';
 import { useChatContext } from '../stores/chat-context';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Loader2, X } from 'lucide-react';
+import { ChevronDown, Loader2, X } from 'lucide-react';
 
 interface ScrollToBottomButtonProps {
   onClick: () => void;
@@ -45,20 +45,6 @@ export const CancelButton: FC<CancelButtonProps> = ({ onClick }) => {
     </Button>
   );
 };
-
-// Add a MessageSkeleton component
-const MessageSkeleton = () => (
-  <div className="flex flex-col gap-2 animate-pulse">
-    <div className="flex items-center gap-2">
-      <div className="bg-muted rounded-full w-8 h-8" />
-      <div className="bg-muted rounded w-24 h-4" />
-    </div>
-    <div className="space-y-2">
-      <div className="bg-muted rounded w-3/4 h-4" />
-      <div className="bg-muted rounded w-1/2 h-4" />
-    </div>
-  </div>
-);
 
 export function ChatContainer({ conversation_id }: { conversation_id: string }) {
   const containerRef = useRef<HTMLDivElement>(null);

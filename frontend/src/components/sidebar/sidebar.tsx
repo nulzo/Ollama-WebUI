@@ -38,7 +38,7 @@ export const Sidebar = ({ conversationList }: SidebarProps) => {
           animationDuration={animationDuration}
         />
 
-        <div className="flex flex-col flex-1 h-full overflow-hidden">
+        <div className="flex flex-col flex-1 my-2 h-full overflow-hidden">
           <SidebarActions isCollapsed={isCollapsed} animationDuration={animationDuration} />
 
           <SidebarConversationList isCollapsed={isCollapsed} conversationList={conversationList} />

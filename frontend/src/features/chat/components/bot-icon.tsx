@@ -17,12 +17,6 @@ interface BotIconProps {
 export const BotIcon = ({ assistantId, isOnline, modelName }: BotIconProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleClose = () => setIsOpen(false);
-
-  const renderIcon = () => {
-    return <Origami strokeWidth="1.5" className="m-2 text-primary-foreground size-6" />;
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <TooltipProvider>
@@ -43,7 +37,6 @@ export const BotIcon = ({ assistantId, isOnline, modelName }: BotIconProps) => {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      {/*  THIS IS WHERE THE MODEL INFORMATION CARD WILL GO */}
     </Dialog>
   );
 };

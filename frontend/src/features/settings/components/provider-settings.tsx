@@ -1,16 +1,21 @@
 import { useProviderSettings } from '@/features/settings/api/get-settings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { z } from 'zod';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useUpdateProviderSetting } from '@/features/settings/api/update-provider-settings';
-import { useCreateProviderSetting } from '@/features/settings/api/create-provider-settings';
+import { useUpdateProviderSettings } from '@/features/settings/api/update-provider-settings';
+import { useCreateProviderSettings } from '@/features/settings/api/create-provider-settings';
 import { useForm } from 'react-hook-form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { zodResolver } from '@hookform/resolvers/zod';
+
 export interface ProviderField {
   name: string;
   label: string;
   type: 'text' | 'password' | 'number';
   placeholder: string;
+  required?: boolean | undefined | null;
 }
 
 export interface ProviderConfig {
@@ -27,12 +32,14 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
         label: 'API Key',
         type: 'password',
         placeholder: 'Enter your OpenAI API key',
+        required: true,  // Add required field
       },
       {
         name: 'organization_id',
         label: 'Organization ID',
         type: 'text',
         placeholder: 'Enter your organization ID (optional)',
+        required: false,  // Optional field
       },
     ],
   },
@@ -44,6 +51,7 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
         label: 'API Key',
         type: 'password',
         placeholder: 'Enter your Anthropic API key',
+        required: true,
       },
     ],
   },
@@ -55,6 +63,7 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
         label: 'Host',
         type: 'text',
         placeholder: 'Enter Ollama host URL',
+        required: true,
       },
     ],
   },
@@ -69,40 +78,117 @@ export interface ProviderSettings {
   is_enabled: boolean;
   [key: string]: any;
 }
+
+const providerFormSchema = z.object({
+  provider_type: z.string(),
+  api_key: z.string().optional(),
+  host: z.string().optional(),  // Change endpoint to host
+  organization_id: z.string().optional(),
+  is_enabled: z.boolean().default(false),
+});
+
+type ProviderFormData = z.infer<typeof providerFormSchema>;
+
+// Separate component for each provider's form
+function ProviderSettingsForm({
+  providerType,
+  config,
+  existingSettings,
+  onSubmit,
+}: {
+  providerType: string;
+  config: ProviderConfig;
+  existingSettings?: ProviderSettings;
+  onSubmit: (data: ProviderFormData) => Promise<void>;
+}) {
+  const form = useForm<ProviderFormData>({
+    resolver: zodResolver(providerFormSchema),
+    defaultValues: {
+      provider_type: providerType,
+      api_key: existingSettings?.api_key || "",
+      host: existingSettings?.host || "",
+      organization_id: existingSettings?.organization_id || "",
+      is_enabled: existingSettings?.is_enabled || false,
+    },
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{config.name}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {config.fields.map(field => (
+              <FormField
+                key={field.name}
+                control={form.control}
+                name={field.name as keyof ProviderFormData}
+                render={({ field: formField }) => (
+                  <FormItem>
+                    <FormLabel>{field.label}</FormLabel>
+                    <FormControl>
+                      <Input
+                        type={field.type}
+                        placeholder={field.placeholder}
+                        value={formField.value as string}
+                        onChange={formField.onChange}
+                        onBlur={formField.onBlur}
+                        name={formField.name}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+            <FormField
+              control={form.control}
+              name="is_enabled"
+              render={({ field }) => (
+                <FormItem className="flex justify-between items-center">
+                  <FormLabel>Enable Provider</FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <Button type="submit">Save Settings</Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ProviderSettingsSection() {
   const { data: settings, isLoading } = useProviderSettings();
-  const updateSetting = useUpdateProviderSetting();
-  const createSetting = useCreateProviderSetting();
-  console.log("Settings", settings);
+  const updateSetting = useUpdateProviderSettings();
+  const createSetting = useCreateProviderSettings();
 
-  const handleProviderUpdate = async (
-    providerType: string,
-    field: string,
-    value: string | boolean
-  ) => {
-    // Find existing settings for this provider
-    console.log("Settings", settings);
-    const providerSettings = Array.isArray(settings) ? 
-      settings.find(s => s.provider_type === providerType) : 
-      undefined;
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-    const data = {
-      [field]: value,
-      provider_type: providerType,
-    };
-
+  const handleSubmit = async (providerType: string, data: ProviderFormData) => {
     try {
-      if (providerSettings?.id) {
+      const existingSettings = Array.isArray(settings) ? 
+        settings.find(s => s.provider_type === providerType) : 
+        undefined;
+
+      if (existingSettings?.id) {
         await updateSetting.mutateAsync({
-          providerId: providerSettings.id.toString(),
+          providerId: existingSettings.id.toString(),
           data,
         });
       } else {
         await createSetting.mutateAsync({
-          data: {
-            ...data,
-            is_enabled: field === 'is_enabled' ? value : false,
-          }
+          data,
         });
       }
     } catch (error) {
@@ -110,13 +196,8 @@ export function ProviderSettingsSection() {
     }
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="flex flex-col space-y-6">
-
       <div className="flex flex-col space-y-4">
         {Object.entries(PROVIDER_CONFIGS).map(([providerType, config]) => {
           const providerSettings = Array.isArray(settings) ? 
@@ -124,35 +205,13 @@ export function ProviderSettingsSection() {
             undefined;
 
           return (
-            <Card key={providerType}>
-              <CardHeader>
-                <CardTitle>{config.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {config.fields.map(field => (
-                  <div key={field.name} className="space-y-2">
-                    <Label>{field.label}</Label>
-                    <Input
-                      type={field.type}
-                      placeholder={field.placeholder}
-                      defaultValue={providerSettings?.[field.name] || ''}
-                      onChange={(e) => 
-                        handleProviderUpdate(providerType, field.name, e.target.value)
-                      }
-                    />
-                  </div>
-                ))}
-                <div className="flex justify-between items-center">
-                  <Label>Enable Provider</Label>
-                  <Switch
-                    checked={providerSettings?.is_enabled || false}
-                    onCheckedChange={(checked) => 
-                      handleProviderUpdate(providerType, 'is_enabled', checked)
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            <ProviderSettingsForm
+              key={providerType}
+              providerType={providerType}
+              config={config}
+              existingSettings={providerSettings}
+              onSubmit={(data) => handleSubmit(providerType, data)}
+            />
           );
         })}
       </div>

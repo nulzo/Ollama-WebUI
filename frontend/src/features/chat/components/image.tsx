@@ -1,5 +1,15 @@
-import { useEffect, useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Download, Play, Pause, Info, X } from 'lucide-react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Play,
+  Pause,
+  Info,
+  X,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,40 +38,41 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
-  const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
-  const [imageRef, setImageRef] = useState<HTMLImageElement | null>(null);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  const MIN_SCALE = 0.5;
+  const MAX_SCALE = 4;
+  const SCALE_FACTOR = 0.1;
 
   const calculateBounds = useCallback(() => {
-    if (!containerRef || !imageRef) return {
-      bounds: { x: 0, y: 0 },
-      limits: { minX: 0, maxX: 0, minY: 0, maxY: 0 }
-    };
+    if (!containerRef.current || !imageRef.current)
+      return {
+        limits: { minX: 0, maxX: 0, minY: 0, maxY: 0 },
+      };
 
-    const containerRect = containerRef.getBoundingClientRect();
-    const imageRect = imageRef.getBoundingClientRect();
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const imageRect = imageRef.current.getBoundingClientRect();
 
-    // If zoomed out (scale <= 1), center the image
     if (scale <= 1) {
       return {
-        bounds: { x: 0, y: 0 },
-        limits: { minX: 0, maxX: 0, minY: 0, maxY: 0 }
+        limits: { minX: 0, maxX: 0, minY: 0, maxY: 0 },
       };
     }
 
-    const scaledWidth = imageRect.width;
-    const scaledHeight = imageRect.height;
-    
-    // Adjust the bounds calculation
+    const scaledWidth = imageRect.width * scale;
+    const scaledHeight = imageRect.height * scale;
+
     const maxX = Math.max((scaledWidth - containerRect.width) / 2, 0);
     const minX = -maxX;
     const maxY = Math.max((scaledHeight - containerRect.height) / 2, 0);
     const minY = -maxY;
 
     return {
-      bounds: { x: position.x, y: position.y },
-      limits: { minX, maxX, minY, maxY }
+      limits: { minX, maxX, minY, maxY },
     };
-  }, [containerRef, imageRef, position, scale]);
+  }, [scale]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (scale <= 1) return;
@@ -75,15 +86,15 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return;
-    
+
     const newX = e.clientX - dragStart.x;
     const newY = e.clientY - dragStart.y;
-    
+
     const { limits } = calculateBounds();
-    
+
     setPosition({
       x: Math.min(Math.max(newX, limits.minX), limits.maxX),
-      y: Math.min(Math.max(newY, limits.minY), limits.maxY)
+      y: Math.min(Math.max(newY, limits.minY), limits.maxY),
     });
   };
 
@@ -91,15 +102,49 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
     setIsDragging(false);
   };
 
-  // Apply bounds when not dragging
+  const handleZoom = useCallback(
+    (delta: number) => {
+      const newScale = Math.min(Math.max(scale + delta, MIN_SCALE), MAX_SCALE);
+
+      if (newScale !== scale) {
+        setScale(newScale);
+        if (newScale <= 1) {
+          setPosition({ x: 0, y: 0 });
+        }
+      }
+    },
+    [scale]
+  );
+
+  // Handle zoom with wheel
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? SCALE_FACTOR : -SCALE_FACTOR;
+      handleZoom(delta);
+    };
+
+    element.addEventListener('wheel', handleWheel, { passive: false });
+    return () => element.removeEventListener('wheel', handleWheel);
+  }, [handleZoom]);
+
+  // Keep position within bounds when scale changes
   useEffect(() => {
     if (isDragging) return;
+
     const { limits } = calculateBounds();
-    setPosition(prev => ({
-      x: Math.min(Math.max(prev.x, limits.minX), limits.maxX),
-      y: Math.min(Math.max(prev.y, limits.minY), limits.maxY)
-    }));
-  }, [isDragging, calculateBounds]);
+    const newPosition = {
+      x: Math.min(Math.max(position.x, limits.minX), limits.maxX),
+      y: Math.min(Math.max(position.y, limits.minY), limits.maxY),
+    };
+
+    if (newPosition.x !== position.x || newPosition.y !== position.y) {
+      setPosition(newPosition);
+    }
+  }, [isDragging, calculateBounds, position.x, position.y]);
 
   // Parse image URL
   useEffect(() => {
@@ -153,14 +198,6 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
     setPosition({ x: 0, y: 0 });
   }, [isOpen, carouselIndex]);
 
-  const handleWheel = (e: React.WheelEvent<HTMLImageElement>) => {
-    e.preventDefault();
-    
-    const delta = e.deltaY < 0 ? 1.1 : 0.9;
-    const newScale = Math.min(Math.max(scale * delta, 0.1), 5); // Changed minimum scale to 0.1
-    setScale(newScale);
-  };
-
   // Auto-scroll functionality
   useEffect(() => {
     if (!isAutoScrolling) return;
@@ -196,44 +233,43 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
         </motion.div>
       </DialogTrigger>
 
-      <DialogContent className="bg-black/50 backdrop-blur-md p-0 border-none w-full max-w-7xl h-full">
-        <div 
+      <DialogContent className="bg-black/50 backdrop-blur-md p-0 border-none w-screen h-screen max-w-none">
+        <div
+          ref={containerRef}
           className="relative flex justify-center items-center w-full h-full"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          ref={setContainerRef}
-          style={{ 
-            cursor: scale != 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
+          style={{
+            cursor: scale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
           }}
         >
           <AnimatePresence mode="wait">
-          <motion.img
-              ref={setImageRef}
+            <motion.img
+              ref={imageRef}
               key={carouselIndex}
               src={currentImage}
               initial={{ opacity: 0 }}
-              animate={{ 
+              animate={{
                 opacity: 1,
                 scale: scale,
                 x: position.x,
                 y: position.y,
               }}
               transition={{
-                type: "spring",
+                type: 'spring',
                 stiffness: 300,
                 damping: 30,
-                opacity: { duration: 0.1 }
+                opacity: { duration: 0.1 },
               }}
               exit={{ opacity: 0 }}
               className="rounded-lg select-none"
-              style={{ 
+              style={{
                 maxWidth: '80vw',
                 maxHeight: '80vh',
                 objectFit: 'contain',
               }}
-              onWheel={handleWheel}
               alt="Full size preview"
               draggable={false}
             />
@@ -242,12 +278,31 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
           {/* Controls */}
           <div className="right-0 bottom-0 left-0 absolute flex justify-between items-center p-4">
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-background/50 hover:bg-background/75"
+                onClick={() => handleZoom(SCALE_FACTOR)}
+              >
+                <ZoomIn className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-background/50 hover:bg-background/75"
+                onClick={() => handleZoom(-SCALE_FACTOR)}
+              >
+                <ZoomOut className="w-4 h-4" />
+              </Button>
               {scale !== 1 && (
                 <Button
                   variant="ghost"
                   size="icon"
                   className="bg-background/50 hover:bg-background/75"
-                  onClick={() => setScale(1)}
+                  onClick={() => {
+                    setScale(1);
+                    setPosition({ x: 0, y: 0 });
+                  }}
                 >
                   <X className="w-4 h-4" />
                 </Button>

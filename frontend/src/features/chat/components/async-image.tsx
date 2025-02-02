@@ -20,12 +20,10 @@ export const AsyncMessageImage = ({
 }: AsyncMessageImageProps) => {
   const { data: mainImageData } = useMessageImage({ image_id: imageId });
 
-  // Fetch all images in parallel
   const otherImageQueries = images
     .filter(id => id !== imageId)
     .map(id => useMessageImage({ image_id: id }));
 
-  // Combine all image URLs
   const allImageUrls = [
     mainImageData?.data?.image,
     ...otherImageQueries.map(q => q.data?.data?.image),

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/features/authentication/hooks/use-auth';
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useChatContext } from '../stores/chat-context';
 import { useNavigate } from 'react-router-dom';
 import { useModelStore } from '@/features/models/store/model-store';
@@ -13,14 +13,27 @@ export function useChatMutation(conversation_id?: string) {
   const navigate = useNavigate();
   const { setStreamingMessages, setIsGenerating, setIsWaiting, isGenerating, isWaiting } = useChatContext();
   const model = useModelStore(state => state.model);
-  
+
+  const handleCancel = useCallback(() => {
+    console.log('handleCancel called', {
+      hasAbortController: !!abortControllerRef.current,
+      isGenerating
+    });
+    if (abortControllerRef.current) {
+      console.log('aborting');
+      abortControllerRef.current.abort();
+    }
+  }, [isGenerating]);
+
+
   const mutation = useMutation({
     mutationFn: async ({ message, images }: { message: string, images: string[] | undefined }) => {
       if (!user) throw new Error('Authentication required');
       if (!model) throw new Error('No model selected');
 
-      setIsGenerating(true);
       abortControllerRef.current = new AbortController();
+      setIsGenerating(true);
+      setIsWaiting(false);
 
       // Add initial messages only if we're in an existing conversation
       if (conversation_id) {
@@ -70,11 +83,11 @@ export function useChatMutation(conversation_id?: string) {
             } else if (parsedChunk.status === 'generating') {
               setIsWaiting(false);
             }
-            
+
             // If this is a new conversation
             if (parsedChunk.conversation_uuid && parsedChunk.status === 'created') {
               const newConversationId = parsedChunk.conversation_uuid;
-              
+
               // Set initial messages for the new conversation
               setStreamingMessages([
                 {
@@ -111,25 +124,29 @@ export function useChatMutation(conversation_id?: string) {
           },
           abortControllerRef.current.signal
         );
+      } catch (error) {
+        console.log('Caught error in mutation:', error);
+        throw error; // Let onError handle all errors
       } finally {
-        setIsGenerating(false);
-        setIsWaiting(false);
-        abortControllerRef.current = null;
+        // Only cleanup if it's not an abort error
+        if (!abortControllerRef.current?.signal.aborted) {
+          setIsGenerating(false);
+          setIsWaiting(false);
+          abortControllerRef.current = null;
 
-        // Don't clear streaming messages immediately
-        // Instead, wait for the query invalidation to update the UI
-        const currentConversationId = conversation_id || queryClient.getQueryData(['currentConversation']);
-        if (currentConversationId) {
-          // Invalidate queries and wait for them to settle
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['conversations'] }),
-            queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: currentConversationId }] })
-          ]);
-          setStreamingMessages([]);
+          const currentConversationId = conversation_id || queryClient.getQueryData(['currentConversation']);
+          if (currentConversationId) {
+            await Promise.all([
+              queryClient.invalidateQueries({ queryKey: ['conversations'] }),
+              queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: currentConversationId }] })
+            ]);
+            setStreamingMessages([]);
+          }
         }
       }
     },
     onError: error => {
+      console.log('Caught error in mutation:', error);
       if (error.name === 'AbortError') {
         setStreamingMessages(prev => {
           const newMessages = [...prev];
@@ -155,13 +172,6 @@ export function useChatMutation(conversation_id?: string) {
       setIsGenerating(false);
     },
   });
-
-  const handleCancel = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      setIsGenerating(false);
-    }
-  };
 
   return {
     mutation,

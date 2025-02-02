@@ -122,22 +122,22 @@ export default function DynamicTextarea({
 
   return (
     <TooltipProvider>
-      <div className="inset-x-0 border-spacing-2 bg-transparent mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-4xl overflow-hidden">
-        <div className="bg-input relative z-10 inset-x-0 border-input focus-within:border-primary shadow-xs mx-auto border rounded-lg ring-primary/50 w-full overflow-hidden">
-          <textarea
-            ref={textareaRef}
-            value={text}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            rows={1}
-            className="bg-input px-4 pt-3 rounded-lg focus:ring-0 focus:ring-none w-full text-foreground text-sm placeholder:text-muted-foreground focus:outline-none resize-none"
-            style={{ minHeight: '47px', maxHeight: '200px' }}
-            disabled={disabled}
-          />
+      <div className="inset-x-0 bg-transparent mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl">
+      <div className="relative border ring-offset-0 border-input flex flex-col w-full py-2 px-2 bg-secondary backdrop-blur-sm ring-0 rounded-lg shadow-sm focus-within:border-primary focus-within:ring-primary focus-within:ring-1">
+        <textarea
+          ref={textareaRef}
+          value={text}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          rows={1}
+          className="min-h-[20px] w-full resize-none bg-transparent px-3 py-[10px] focus:outline-none text-sm placeholder:text-muted-foreground"
+          style={{ maxHeight: '200px' }}
+          disabled={disabled}
+        />
 
           {uploadedImages.length > 0 && (
-            <div className="flex flex-wrap gap-2 px-4 pb-2">
+            <div className="flex flex-wrap px-4">
               {uploadedImages.map((image, index) => (
                 <div key={index} className="relative group">
                   <img
@@ -146,53 +146,17 @@ export default function DynamicTextarea({
                     className="rounded w-12 h-12 object-cover"
                   />
                   <button
-                    onClick={() => onRemoveImage(index)}
-                    className="-top-1 -right-1 absolute bg-background opacity-0 group-hover:opacity-100 p-0.5 border rounded-full transition-opacity"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
+                  onClick={() => onRemoveImage(index)}
+                  className="absolute -top-1.5 -right-1.5 bg-background hover:bg-muted opacity-0 group-hover:opacity-100 p-0.5 border rounded-full transition-all duration-200"
+                >
+                  <X className="w-3 h-3" />
+                </button>
                 </div>
               ))}
             </div>
           )}
 
           <div className="flex justify-end items-center px-2 pb-2">
-            {/* <div className="flex">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className="text-xs"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => onMessageNavigate(currentMessageIndex + 1)}
-                    disabled={currentMessageIndex >= messageHistory.length - 1}
-                  >
-                    <Undo className="size-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Previous message</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    className="text-xs"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => onMessageNavigate(currentMessageIndex + 1)}
-                    disabled={currentMessageIndex >= messageHistory.length - 1}
-                  >
-                    <Redo className="size-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Next message</p>
-                </TooltipContent>
-              </Tooltip>
-            </div> */}
-
             <div className="flex items-center space-x-2">
               <span className="text-muted-foreground text-xs">
                 {text.length > 0 ? text.length : ''}

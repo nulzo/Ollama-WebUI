@@ -92,8 +92,6 @@ export const useAuthLogin = () => {
       const user = await login.mutate(data);
       // Force invalidate the user query after login
       await queryClient.invalidateQueries({ queryKey: ['authenticated-user'] });
-      console.log('user', user);
-      console.log('user.data', user.data);
       return user.data;
     }
   };

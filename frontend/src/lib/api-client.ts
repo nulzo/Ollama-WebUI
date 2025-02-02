@@ -1,3 +1,4 @@
+import { useErrorStore } from '@/components/errors/error-store';
 import { useNotifications } from '@/components/notification/notification-store';
 import { env } from '@/config/env';
 import urlJoin from 'url-join';
@@ -87,9 +88,14 @@ class ApiClient {
       }
 
       // Show toast notification
-      useNotifications.getState().addNotification({
-        type: 'error',
-        title: `Error ${response.status}`,
+      // useNotifications.getState().addNotification({
+      //   type: 'error',
+      //   title: `Error ${response.status}`,
+      //   message: errorMessage,
+      // });
+
+      useErrorStore.getState().showError({
+        status: response.status,
         message: errorMessage,
       });
 
@@ -206,6 +212,13 @@ class ApiClient {
     signal?: AbortSignal
   ): Promise<void> {
     try {
+
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          throw new DOMException('Request aborted', 'AbortError');
+        });
+      }
+
       const response = await fetch(this.getFullURL('/completions/chat/'), {
         method: 'POST',
         headers: this.getHeaders({
@@ -231,6 +244,10 @@ class ApiClient {
       const decoder = new TextDecoder();
 
       while (reader) {
+        if (signal?.aborted) {
+          throw new DOMException('Request aborted', 'AbortError');
+        }
+
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -249,11 +266,14 @@ class ApiClient {
         }
       }
     } catch (error) {
+      console.log('Error in streamCompletion:', error);
       if (error.name === 'AbortError') {
-        throw error;
+        console.log('Abort detected in streamCompletion');
+        throw error; // Re-throw abort errors
       }
-      console.error('Stream error:', error);
       throw error;
+    } finally {
+      
     }
   }
 }

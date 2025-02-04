@@ -5,7 +5,7 @@ from features.prompts.models import CustomPrompt
 class CustomPromptSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomPrompt
-        fields = ["id", "title", "command", "content", "created_at", "updated_at"]
+        fields = ["id", "title", "command", "description", "content", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
 
     def validate_command(self, value):

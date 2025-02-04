@@ -1,12 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  Command,
-  CornerDownLeft,
-  Paperclip,
-  X,
-} from 'lucide-react';
+import { Command, CornerDownLeft, Paperclip, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { PromptCommand } from '@/features/chat/components/prompts/prompt-command';
+import { usePrompts } from '@/features/prompts/api/get-prompts';
 
 interface DynamicTextareaProps {
   text: string;
@@ -37,12 +34,16 @@ export default function DynamicTextarea({
   disabled,
   onKeyDown,
   onCancel,
-  isGenerating
+  isGenerating,
 }: DynamicTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [history, setHistory] = useState<string[]>(['']);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [isPromptOpen, setIsPromptOpen] = useState(false);
+  const [promptSearchTerm, setPromptSearchTerm] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const { data: prompts } = usePrompts();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -83,6 +84,11 @@ export default function DynamicTextarea({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === '/') {
+      setIsPromptOpen(true);
+      setPromptSearchTerm('');
+      return;
+    }
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
       handleSubmit();
     } else {
@@ -108,6 +114,17 @@ export default function DynamicTextarea({
     }
   };
 
+  const handlePromptSelect = (content: string) => {
+    const cursorPosition = textareaRef.current?.selectionStart || 0;
+    const before = text.slice(0, cursorPosition);
+    const after = text.slice(cursorPosition);
+    
+    // Remove the trigger character
+    const newBefore = before.replace(/\/[^\s]*$/, '');
+    setText(`${newBefore}${content}${after}`);
+    setIsPromptOpen(false);
+  };
+
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -123,18 +140,27 @@ export default function DynamicTextarea({
   return (
     <TooltipProvider>
       <div className="inset-x-0 bg-transparent mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl">
-      <div className="relative border ring-offset-0 border-input flex flex-col w-full py-2 px-2 bg-secondary backdrop-blur-sm ring-0 rounded-lg shadow-sm focus-within:border-primary focus-within:ring-primary focus-within:ring-1">
-        <textarea
-          ref={textareaRef}
-          value={text}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          rows={1}
-          className="min-h-[20px] w-full resize-none bg-transparent px-3 py-[10px] focus:outline-none text-sm placeholder:text-muted-foreground"
-          style={{ maxHeight: '200px' }}
-          disabled={disabled}
-        />
+        {isPromptOpen && (
+          <PromptCommand
+            isOpen={isPromptOpen}
+            onClose={() => setIsPromptOpen(false)}
+            onSelect={handlePromptSelect}
+            searchTerm={promptSearchTerm}
+          />
+        )}
+        
+        <div className="relative border ring-offset-0 border-input flex flex-col w-full py-2 px-2 bg-secondary backdrop-blur-sm ring-0 rounded-lg focus-within:border-primary focus-within:ring-primary focus-within:ring-1">
+          <textarea
+            ref={textareaRef}
+            value={text}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            rows={1}
+            className="min-h-[20px] w-full resize-none bg-transparent px-3 py-[10px] focus:outline-none text-sm placeholder:text-muted-foreground"
+            style={{ maxHeight: '200px' }}
+            disabled={disabled}
+          />
 
           {uploadedImages.length > 0 && (
             <div className="flex flex-wrap px-4">
@@ -146,11 +172,11 @@ export default function DynamicTextarea({
                     className="rounded w-12 h-12 object-cover"
                   />
                   <button
-                  onClick={() => onRemoveImage(index)}
-                  className="absolute -top-1.5 -right-1.5 bg-background hover:bg-muted opacity-0 group-hover:opacity-100 p-0.5 border rounded-full transition-all duration-200"
-                >
-                  <X className="w-3 h-3" />
-                </button>
+                    onClick={() => onRemoveImage(index)}
+                    className="absolute -top-1.5 -right-1.5 bg-background hover:bg-muted opacity-0 group-hover:opacity-100 p-0.5 border rounded-full transition-all duration-200"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -171,7 +197,7 @@ export default function DynamicTextarea({
                       size="icon"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <Paperclip className='size-4' />
+                      <Paperclip className="size-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>

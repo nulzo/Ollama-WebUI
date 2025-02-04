@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { Prompt } from '../prompt';
+import { ApiResponse } from '@/types/api';
 
-export const getPrompts = (): Promise<Prompt[]> => {
+export const getPrompts = (): Promise<ApiResponse<Prompt[]>> => {
   return api.get('/custom-prompts/');
 };
 

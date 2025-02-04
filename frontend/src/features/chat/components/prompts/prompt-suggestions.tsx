@@ -1,13 +1,13 @@
-import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from '@/components/ui/command';
+import { Command, CommandList, CommandItem, CommandEmpty } from '@/components/ui/command';
 import { Command as CommandIcon, ArrowRight } from 'lucide-react';
-import { CustomPrompt } from '../../data/mock-prompts';
+import { Prompt } from '@/features/prompts/prompt';
+import { usePrompts } from '@/features/prompts/api/get-prompts';
 
 interface PromptSuggestionsProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (prompt: CustomPrompt) => void;
+  onSelect: (prompt: Prompt) => void;
   searchTerm: string;
-  prompts: CustomPrompt[];
   selectedIndex: number;
 }
 
@@ -16,13 +16,25 @@ export const PromptSuggestions = ({
   onClose, 
   onSelect, 
   searchTerm,
-  prompts,
   selectedIndex 
 }: PromptSuggestionsProps) => {
+  const { data, isLoading } = usePrompts();
+  
   if (!isOpen) return null;
 
+  console.log(data);
+
+  // Ensure we have an array of prompts
+  const prompts = Array.isArray(data?.data) ? data.data : [];
+
+  // Filter prompts based on search term
+  const filteredPrompts = prompts.filter(prompt => 
+    prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (prompt.command || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="right-0 bottom-full left-0 z-50 absolute mx-auto mb-2 w-full w-full md:max-w-2xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-7xl">
+    <div className="right-0 bottom-full left-0 z-50 absolute mx-auto mb-2 md:max-w-lg lg:max-w-xl xl:max-w-3xl 2xl:max-w-4xl">
       <Command 
         className="bg-background/95 shadow-lg backdrop-blur-md border rounded-lg w-full overflow-hidden"
         shouldFilter={false}
@@ -35,15 +47,19 @@ export const PromptSuggestions = ({
         </div>
 
         <CommandList className="py-1 max-h-[280px] overflow-y-auto">
-          {prompts.length === 0 ? (
+          {isLoading ? (
+            <CommandEmpty className="py-4 text-center text-muted-foreground text-sm">
+              Loading commands...
+            </CommandEmpty>
+          ) : filteredPrompts.length === 0 ? (
             <CommandEmpty className="py-4 text-center text-muted-foreground text-sm">
               No commands found.
             </CommandEmpty>
           ) : (
-            prompts.map((prompt, index) => (
+            filteredPrompts.map((prompt: Prompt, index: number) => (
               <CommandItem
                 key={prompt.id}
-                value={prompt.command}
+                value={prompt.command || prompt.title}
                 onSelect={() => onSelect(prompt)}
                 className={`relative flex items-center gap-3 mx-1 px-2 py-2 rounded-md transition-colors cursor-pointer group
                   ${index === selectedIndex ? 'bg-accent/60' : 'hover:bg-accent/60'}`}
@@ -57,7 +73,7 @@ export const PromptSuggestions = ({
                     {prompt.title}
                   </span>
                   <span className="text-muted-foreground text-xs truncate">
-                    /{prompt.command}
+                    /{prompt.command || prompt.title.toLowerCase().replace(/\s+/g, '-')}
                   </span>
                 </div>
 

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Code2, MessageSquare, Wand2, Database, Bot } from 'lucide-react';
+import { Search, Plus, Code2, MessageSquare, Database, Bot } from 'lucide-react';
 import { Head } from '@/components/helmet';
 import { AgentForm } from '@/features/agents/components/agent-form';
 import { Agent } from '@/features/agents/types/agent';
@@ -10,7 +10,6 @@ import { useAgents } from '@/features/agents/api/get-agents';
 import { useCreateAgent } from '@/features/agents/api/create-agent';
 import { useUpdateAgent } from '@/features/agents/api/update-agent';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useDeleteAgent } from '@/features/agents/api/delete-agent';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MoreHorizontal } from 'lucide-react';
@@ -27,6 +26,11 @@ import { useUpdatePrompt } from '@/features/prompts/api/update-prompt';
 import { useDeletePrompt } from '@/features/prompts/api/delete-prompt';
 import { PromptCard } from '@/features/prompts/prompt-card';
 import { PromptForm } from '@/features/prompts/prompt-form';
+import { useTools, useDeleteTool } from '@/features/tools/api';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ToolEditor } from '@/features/tools/components/tools-editor';
+import { useToast } from '@/components/ui/use-toast';
+import { Tool } from '@/features/tools/types/tool';
 
 const AgentCard = ({
   agent,
@@ -73,15 +77,13 @@ const AgentCard = ({
         </Avatar>
         <div className="flex-1">
           <h2 className="text-xl font-semibold whitespace-nowrap truncate">{agent.display_name}</h2>
+          <div className="w-full text-xs font-bold text-muted-foreground">{agent.model}</div>
         </div>
       </div>
       <p className="text-sm text-muted-foreground truncate">{agent.description}</p>
 
       {/* Badges section */}
       <div className="flex flex-wrap gap-2 mt-4">
-        <Badge variant="outline" className="text-xs border-primary bg-primary/10 text-primary">
-          {agent.model}
-        </Badge>
         {agent.vision && (
           <Badge variant="outline" className="text-xs">
             Vision
@@ -160,10 +162,7 @@ const ModelTuning = () => {
           onChange={e => setSearchTerm(e.target.value)}
           className="pl-10"
         />
-        <Search
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-          size={20}
-        />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -205,137 +204,278 @@ const ModelTuning = () => {
 };
 
 const CustomFunctions = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-secondary rounded-lg p-6"
-      >
-        <h3 className="text-lg font-semibold mb-4">Create Function</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Build custom functions that can be called by your AI models.
-        </p>
-        <Button className="w-full gap-2">
-          <Code2 className="size-4" />
-          New Function
-        </Button>
-      </motion.div>
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { data: tools } = useTools();
+  const deleteTool = useDeleteTool();
 
-      {/* Add more cards for existing functions */}
-    </div>
+  // Filter tools based on search term
+  const filteredTools =
+    tools?.data && tools?.data?.length > 0
+      ? tools?.data?.filter(
+          tool =>
+            tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            tool.description.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : [];
+
+  const handleDelete = async (toolId: string) => {
+    try {
+      await deleteTool.mutateAsync({ toolId });
+      toast({
+        title: 'Function deleted',
+        description: 'The function was successfully deleted.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete function.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return (
+    <>
+      {/* Search bar */}
+      <div className="relative mb-8">
+        <Input
+          type="text"
+          placeholder="Search functions..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-secondary rounded-lg p-6"
+        >
+          <h3 className="text-lg font-semibold mb-4">Create Function</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Build custom functions that can be called by your AI models.
+          </p>
+          <Button
+            className="w-full gap-2"
+            onClick={() => {
+              setSelectedTool(null);
+              setIsCreateDialogOpen(true);
+            }}
+          >
+            <Code2 className="size-4" />
+            New Function
+          </Button>
+        </motion.div>
+
+        {filteredTools && filteredTools.length > 0 ? (
+          filteredTools.map(tool => (
+            <motion.div
+              key={tool.id}
+              className="bg-secondary rounded-lg p-6 transition-shadow duration-300 flex flex-col h-full relative"
+              whileHover={{ scale: 1.0 }}
+            >
+              {/* Menu button in top-right corner */}
+              <div className="absolute top-4 right-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelectedTool(tool.id);
+                        setIsCreateDialogOpen(true);
+                      }}
+                    >
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDelete(tool.id)}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Card content */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex justify-center items-center bg-primary/10 rounded-md w-8 h-8">
+                    <Code2 className="size-4 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold truncate">{tool.name}</h2>
+                    <div className="text-xs font-medium text-muted-foreground">{tool.language}</div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                  {tool.description}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    Function
+                  </Badge>
+                  {tool.is_enabled && (
+                    <Badge variant="outline" className="text-xs">
+                      Enabled
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ))
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-transparent rounded-lg p-6 border border-dashed border-muted-foreground flex flex-col items-center justify-center"
+          >
+            <div className="flex flex-col items-center justify-center">
+              <h3 className="text-lg font-semibold mb-4 mx-auto text-center text-muted-foreground">No functions found</h3>
+              <div className="text-sm text-muted-foreground mb-4 mx-auto text-center">
+                Build custom functions that can be called by your AI models.
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedTool ? 'Edit Function' : 'Create Function'}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <ToolEditor />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
 const SavedPrompts = () => {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
-    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  
-    const { data: prompts } = usePrompts();
-    const createPrompt = useCreatePrompt();
-    const updatePrompt = useUpdatePrompt();
-    const deletePrompt = useDeletePrompt();
-  
-    const filteredPrompts = prompts?.data && prompts?.data?.length > 0 ? prompts?.data?.filter(prompt =>
-      prompt.title.toLowerCase().includes(searchTerm.toLowerCase())
-    ) : [];
-  
-    const handleCreatePrompt = () => {
-      setSelectedPrompt(null);
-      setIsCreateDialogOpen(true);
-    };
-  
-    const handleEditPrompt = (prompt: Prompt) => {
-      setSelectedPrompt(prompt);
-      setIsCreateDialogOpen(true);
-    };
-  
-    const handleSubmit = async (values: any) => {
-      try {
-        if (selectedPrompt) {
-          await updatePrompt.mutateAsync({
-            promptId: selectedPrompt.id,
-            data: values,
-          });
-        } else {
-          await createPrompt.mutateAsync({
-            data: values,
-          });
-        }
-        setIsCreateDialogOpen(false);
-      } catch (error) {
-        console.error('Error saving prompt:', error);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  const { data: prompts } = usePrompts();
+  const createPrompt = useCreatePrompt();
+  const updatePrompt = useUpdatePrompt();
+  const deletePrompt = useDeletePrompt();
+
+  const filteredPrompts =
+    prompts?.data && prompts?.data?.length > 0
+      ? prompts?.data?.filter(prompt =>
+          prompt.title.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : [];
+
+  const handleCreatePrompt = () => {
+    setSelectedPrompt(null);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleEditPrompt = (prompt: Prompt) => {
+    setSelectedPrompt(prompt);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleSubmit = async (values: any) => {
+    try {
+      if (selectedPrompt) {
+        await updatePrompt.mutateAsync({
+          promptId: selectedPrompt.id,
+          data: values,
+        });
+      } else {
+        await createPrompt.mutateAsync({
+          data: values,
+        });
       }
-    };
-  
-    const handleDelete = async (prompt: Prompt) => {
-      try {
-        await deletePrompt.mutateAsync({ promptId: prompt.id });
-      } catch (error) {
-        console.error('Error deleting prompt:', error);
-      }
-    };
-  
-    return (
-      <>
-        <div className="relative mb-8">
-          <Input
-            type="text"
-            placeholder="Search prompts..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-          <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-            size={20}
-          />
-        </div>
-  
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-secondary rounded-lg p-6"
-          >
-            <h3 className="text-lg font-semibold mb-4">Create Prompt Template</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Save and organize your most effective prompts for quick access.
-            </p>
-            <Button className="w-full gap-2" onClick={handleCreatePrompt}>
-              <MessageSquare className="size-4" />
-              New Template
-            </Button>
-          </motion.div>
-  
-          {(filteredPrompts && filteredPrompts?.length > 0) ? filteredPrompts?.map((prompt) => (
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving prompt:', error);
+    }
+  };
+
+  const handleDelete = async (prompt: Prompt) => {
+    try {
+      await deletePrompt.mutateAsync({ promptId: prompt.id });
+    } catch (error) {
+      console.error('Error deleting prompt:', error);
+    }
+  };
+
+  return (
+    <>
+      <div className="relative mb-8">
+        <Input
+          type="text"
+          placeholder="Search prompts..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+        <Search
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+          size={20}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-secondary rounded-lg p-6"
+        >
+          <h3 className="text-lg font-semibold mb-4">Create Prompt Template</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Save and organize your most effective prompts for quick access.
+          </p>
+          <Button className="w-full gap-2" onClick={handleCreatePrompt}>
+            <MessageSquare className="size-4" />
+            New Template
+          </Button>
+        </motion.div>
+
+        {filteredPrompts && filteredPrompts?.length > 0 ? (
+          filteredPrompts?.map(prompt => (
             <PromptCard
               key={prompt.id}
               prompt={prompt}
               onEdit={handleEditPrompt}
               onDelete={() => handleDelete(prompt)}
             />
-          )) : (
-            <div className="bg-secondary rounded-lg p-6">
-              <p className="text-sm text-muted-foreground">No prompts found</p>
-            </div>
-          )}
-        </div>
-  
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedPrompt ? 'Edit Prompt' : 'Create New Prompt'}
-              </DialogTitle>
-            </DialogHeader>
-            <PromptForm prompt={selectedPrompt} onSubmit={handleSubmit} />
-          </DialogContent>
-        </Dialog>
-      </>
-    );
-  };
+          ))
+        ) : (
+          <div className="bg-secondary rounded-lg p-6">
+            <p className="text-sm text-muted-foreground">No prompts found</p>
+          </div>
+        )}
+      </div>
+
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedPrompt ? 'Edit Prompt' : 'Create New Prompt'}</DialogTitle>
+          </DialogHeader>
+          <PromptForm prompt={selectedPrompt as Prompt} onSubmit={handleSubmit} />
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
 
 const tabs = [
   {
@@ -442,7 +582,7 @@ export function WorkspaceRoute() {
 
                 {/* Active Indicator */}
                 <div
-                  className="absolute bottom-[-6px] h-[2px] bg-primary transition-all duration-300 ease-out"
+                  className="absolute bottom-[-6px] h-[2px] bg-primary transition-all duration-300 ease-out rounded-full"
                   style={activeStyle}
                 />
 

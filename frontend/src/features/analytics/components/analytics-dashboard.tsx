@@ -2,11 +2,17 @@ import { useState, useRef, useEffect } from 'react';
 import { useAnalytics } from '../api/get-analytics';
 import { Card } from '@/components/ui/card';
 import { Head } from '@/components/helmet';
-import { MessageSquare, DollarSign, Zap, Clock, Loader2, LineChart, PieChart, BarChart2 } from 'lucide-react';
+import { MessageSquare, DollarSign, Zap, Clock, Loader2, LineChart, PieChart, BarChart2, Banknote } from 'lucide-react';
 import { StatsCard } from './stats-card';
 import { TokenUsageChart } from './charts/token-usage';
 import { MessageStatsChart } from './charts/message-stats';
 import { ModelUsageChart } from './charts/model-usage';
+import { ModelDistribution } from './charts/model-distribution';
+import { CostAnalysis } from './charts/cost-analysis';
+import { PeakUsageHeatmap } from './charts/peak-usage';
+import { HourlyActivity } from './charts/time-activity';
+import { UsageOverview } from './charts/usage-overview';
+
 
 const tabs = [
   {
@@ -16,6 +22,10 @@ const tabs = [
   {
     name: 'Messages',
     icon: <BarChart2 className="size-4" />,
+  },
+  {
+    name: 'Spending',
+    icon: <Banknote className="size-4" />,
   },
   {
     name: 'Models',
@@ -84,8 +94,8 @@ export function AnalyticsDashboard() {
   );
 
   const renderOverview = () => (
-    <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-6">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Tokens"
           value={analytics?.data.totalTokens.toLocaleString() || '0'}
@@ -111,21 +121,49 @@ export function AnalyticsDashboard() {
           description="from last period"
         />
       </div>
-      <div className="mt-8">
-        <TokenUsageChart data={analytics?.data.tokenUsage} />
-      </div>
-    </>
+      <div className="grid gap-6 md:grid-cols-2">
+      <UsageOverview data={analytics?.data.tokenUsage} />
+      <CostAnalysis data={analytics?.data.tokenUsage} />
+    </div>
+    <div>
+      <PeakUsageHeatmap data={analytics?.data.timeAnalysis} />
+    </div>
+    </div>
   );
 
   const renderMessages = () => (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <MessageStatsChart data={analytics?.data.messageStats} />
+      <div className="grid gap-6 md:grid-cols-2">
+        <HourlyActivity 
+          data={analytics?.data.timeAnalysis.map(item => ({
+            hour: item.hour,
+            count: item.requests
+          }))} 
+        />
+        <TokenUsageChart data={analytics?.data.tokenUsage} />
+      </div>
     </div>
   );
 
   const renderModels = () => (
-    <div className="space-y-8">
-      <ModelUsageChart data={analytics?.data.modelUsage} />
+    <div className="space-y-6">
+      <div className="grid gap-6 md:grid-cols-2">
+        <ModelDistribution data={analytics?.data.modelUsage} />
+        <div className="grid gap-4">
+          <StatsCard
+            title="Most Used Model"
+            value={analytics?.data.modelUsage.sort((a, b) => b.tokens - a.tokens)[0]?.model || 'N/A'}
+            icon={<Zap className="h-4 w-4 text-muted-foreground" />}
+          />
+          <StatsCard
+            title="Lowest Error Rate"
+            value={`${(analytics?.data.modelUsage.sort((a, b) => a.errorRate - b.errorRate)[0]?.errorRate || 0).toFixed(2)}%`}
+            icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+          />
+        </div>
+      </div>
+      <TokenUsageChart data={analytics?.data.tokenUsage} />
     </div>
   );
 
@@ -136,6 +174,8 @@ export function AnalyticsDashboard() {
       case 1:
         return renderMessages();
       case 2:
+        return <></>;
+      case 3:
         return renderModels();
       default:
         return null;
@@ -143,79 +183,81 @@ export function AnalyticsDashboard() {
   };
 
   return (
-    <div className="relative z-10 pt-12 flex flex-col flex-auto justify-between scrollbar-hidden w-[100%] max-w-full h-0 overflow-auto">
-      <div className="relative mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl h-full">
-        <div className="flex flex-col h-full">
+    <div className="flex h-full w-full overflow-hidden">
+      <div className="flex-1 overflow-auto">
+        <div className="container mx-auto py-6">
           <Head title="Analytics" description="Monitor your AI usage and performance" />
 
-          <div className="flex-1 overflow-auto">
-            <div className="px-4 py-8">
-              <div className="flex justify-between items-center mb-8">
-                <div>
-                  <h1 className="text-4xl font-bold">Analytics</h1>
-                  <p className="text-lg text-muted-foreground">
-                    Monitor your AI usage and performance metrics
-                  </p>
-                </div>
-
-                {/* Timeframe selector */}
-                <Card className="flex space-x-1 p-1">
-                  {timeframes.map((tf) => (
-                    <button
-                      key={tf.value}
-                      onClick={() => setTimeframe(tf.value)}
-                      className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                        timeframe === tf.value
-                          ? 'bg-primary text-primary-foreground'
-                          : 'hover:bg-muted text-muted-foreground'
-                      }`}
-                    >
-                      {tf.label}
-                    </button>
-                  ))}
-                </Card>
-              </div>
-
-              <div className="relative mb-8">
-                {/* Hover Highlight */}
-                <div
-                  className="absolute h-[30px] transition-all duration-300 ease-out bg-secondary rounded-[6px] flex items-center"
-                  style={{
-                    ...hoverStyle,
-                    opacity: hoveredIndex !== null ? 1 : 0,
-                  }}
-                />
-
-                {/* Active Indicator */}
-                <div
-                  className="absolute bottom-[-6px] h-[2px] bg-primary transition-all duration-300 ease-out rounded-full"
-                  style={activeStyle}
-                />
-
-                {/* Tabs */}
-                <div className="relative flex space-x-[6px] items-center">
-                  {tabs.map((tab, index) => (
-                    <div
-                      key={index}
-                      ref={el => (tabRefs.current[index] = el)}
-                      className={`px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] ${
-                        index === activeIndex ? 'text-foreground' : 'text-muted-foreground'
-                      }`}
-                      onMouseEnter={() => setHoveredIndex(index)}
-                      onMouseLeave={() => setHoveredIndex(null)}
-                      onClick={() => setActiveIndex(index)}
-                    >
-                      <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-2">
-                        {tab.icon}
-                        {tab.name}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-6">{renderActiveContent()}</div>
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-4xl font-bold">Analytics</h1>
+              <p className="text-lg text-muted-foreground">
+                Monitor your AI usage and performance metrics
+              </p>
             </div>
+
+            {/* Timeframe selector */}
+            <Card className="flex space-x-1 p-1">
+              {timeframes.map((tf) => (
+                <button
+                  key={tf.value}
+                  onClick={() => setTimeframe(tf.value)}
+                  className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                    timeframe === tf.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {tf.label}
+                </button>
+              ))}
+            </Card>
+          </div>
+
+          {/* Tabs */}
+          <div className="mb-8">
+            <div className="relative">
+              {/* Hover Highlight */}
+              <div
+                className="absolute h-[30px] transition-all duration-300 ease-out bg-secondary rounded-[6px] flex items-center"
+                style={{
+                  ...hoverStyle,
+                  opacity: hoveredIndex !== null ? 1 : 0,
+                }}
+              />
+
+              {/* Active Indicator */}
+              <div
+                className="absolute bottom-[-6px] h-[2px] bg-primary transition-all duration-300 ease-out rounded-full"
+                style={activeStyle}
+              />
+
+              {/* Tab Buttons */}
+              <div className="relative flex space-x-[6px] items-center">
+                {tabs.map((tab, index) => (
+                  <div
+                    key={index}
+                    ref={el => (tabRefs.current[index] = el)}
+                    className={`px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] ${
+                      index === activeIndex ? 'text-foreground' : 'text-muted-foreground'
+                    }`}
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    onClick={() => setActiveIndex(index)}
+                  >
+                    <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-2">
+                      {tab.icon}
+                      {tab.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="space-y-6">
+            {renderActiveContent()}
           </div>
         </div>
       </div>

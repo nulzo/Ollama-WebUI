@@ -3,8 +3,10 @@ import json
 import logging
 from dataclasses import dataclass
 from threading import Event
+from timeit import default_timer as timer
 from typing import AnyStr, Dict, Generator, List, Optional, Union
 
+from features.analytics.services.analytics_service import AnalyticsService
 import httpx
 from django.conf import settings
 from ollama import Client, Options
@@ -51,7 +53,7 @@ class OllamaProvider(BaseProvider):
         self._client = Client(host=self.config.endpoint)
         self._cancel_event = Event()
         self.logger = logger
-        super().__init__()
+        super().__init__(analytics_service=AnalyticsService())
 
     def update_config(self, config: dict) -> None:
         """Update provider configuration"""
@@ -167,15 +169,20 @@ class OllamaProvider(BaseProvider):
             raise ServiceError(f"Ollama chat failed: {str(e)}")
 
     def stream(
-        self, model: str, messages: list, options: Optional[Options] = None
+        self, model: str, messages: list, options: Optional[Options] = None, user_id: Optional[int] = None, conversation_id: Optional[str] = None
     ) -> Generator[str, None, None]:
         """
         Streams a response from the ollama service.
         """
         self._cancel_event.clear()
+        start_time = timer()
         self.logger.info(f"Starting Ollama stream for model: {model}")
         generation_id = id(self)
-        tokens_generated = 0
+        token_usage = {
+            'prompt_tokens': 0,
+            'completion_tokens': 0,
+            'total_tokens': 0
+        }
 
         try:
             # Process messages to ensure images are in correct format
@@ -213,28 +220,73 @@ class OllamaProvider(BaseProvider):
             for chunk in response:
                 if self._cancel_event.is_set():
                     self.logger.info(f"Generation {generation_id} was cancelled after {tokens_generated} tokens")
+                    generation_time = timer() - start_time
+                    self.log_chat_completion(
+                        model=model,
+                        messages=messages,
+                        token_usage=token_usage,
+                        user_id=user_id,
+                        conversation_id=conversation_id,
+                        generation_time=generation_time,
+                        metadata={"cancelled": True}
+                    )
                     yield json.dumps({
                         'content': ' [Generation cancelled]',
-                        'status': 'cancelled'
+                        'status': 'cancelled',
+                        'usage': token_usage
                     })
                     return
 
                 if 'message' in chunk and 'content' in chunk['message']:
                     content = chunk['message']['content']
-                    tokens_generated += 1
+                    token_usage['completion_tokens'] += 1
+                    token_usage['total_tokens'] += 1
                     yield json.dumps({
                         'content': content,
                         'status': 'generating'
                     })
 
+                if chunk.get('done'):
+                    token_usage.update({
+                        'prompt_tokens': chunk.get('prompt_eval_count', 0),
+                        'completion_tokens': chunk.get('eval_count', 0),
+                        'total_tokens': (chunk.get('prompt_eval_count', 0) + 
+                                    chunk.get('eval_count', 0))
+                    })
+                    
+                    generation_time = timer() - start_time
+                    self.log_chat_completion(
+                        model=model,
+                        messages=messages,
+                        token_usage=token_usage,
+                        user_id=user_id,
+                        conversation_id=conversation_id,
+                        generation_time=generation_time
+                    )
+                    
+                    yield json.dumps({
+                        'status': 'done',
+                        'usage': token_usage
+                    })
+
         except Exception as e:
             self.logger.error(f"Error in generation {generation_id}: {str(e)}")
+            generation_time = timer() - start_time
+            self.log_chat_completion(
+                model=model,
+                messages=messages,
+                token_usage=token_usage,
+                user_id=user_id,
+                conversation_id=conversation_id,
+                generation_time=generation_time,
+                error=str(e)
+            )
             yield json.dumps({
                 'error': str(e),
                 'status': 'error'
             })
         finally:
-            self.logger.info(f"Generation {generation_id} completed with {tokens_generated} tokens generated")
+            self.logger.info(f"Generation {generation_id} completed with {token_usage} tokens generated")
 
     def model(self): ...
 
@@ -242,3 +294,20 @@ class OllamaProvider(BaseProvider):
         return self._client.list()
 
     def generate(self): ...
+
+    def calculate_cost(self, tokens: Dict[str, int], model: str) -> float:
+        """
+        Calculate cost for Ollama models (always 0 as they're run locally)
+        """
+        prompt_tokens = tokens.get('prompt_tokens', 0)
+        completion_tokens = tokens.get('completion_tokens', 0)
+        
+        self.logger.debug(
+            f"Ollama token usage for {model}: "
+            f"prompt_tokens={prompt_tokens}, "
+            f"completion_tokens={completion_tokens}, "
+            f"total={prompt_tokens + completion_tokens}, "
+            f"cost=$0.00 (local model)"
+        )
+        
+        return 0.0

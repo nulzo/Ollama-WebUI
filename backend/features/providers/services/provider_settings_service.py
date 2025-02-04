@@ -7,14 +7,14 @@ from features.authentication.models import CustomUser
 from features.providers.repositories.provider_settings_repository import ProviderSettingsRepository
 from features.providers.models import  ProviderSettings
 from api.utils.exceptions import NotFoundException, ServiceError
-from features.providers.clients.provider_factory import ProviderFactory
+from features.providers.clients.provider_factory import provider_factory
 from features.providers.serializers.provider_settings_serializer import ProviderSettingsSerializer
 
 
 class ProviderSettingsService:
     def __init__(self):
         self.repository = ProviderSettingsRepository()
-        self.provider_factory = ProviderFactory()
+        self.provider_factory = provider_factory
         self.logger = logging.getLogger(__name__)
 
     def get_user_settings(self, user_id: int) -> List[Dict]:

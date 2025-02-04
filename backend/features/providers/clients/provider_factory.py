@@ -1,6 +1,7 @@
 import logging
 from typing import Dict, Type
 
+from features.analytics.services.analytics_service import AnalyticsService
 from features.providers.clients.base_provider import BaseProvider
 from features.providers.clients.ollama_provider import OllamaProvider
 from features.providers.clients.openai_provider import OpenAiProvider
@@ -9,8 +10,9 @@ from api.utils.exceptions.exceptions import ProviderException
 
 
 class ProviderFactory:
-    def __init__(self):
+    def __init__(self, analytics_service: AnalyticsService = None):
         self.logger = logging.getLogger(__name__)
+        self.analytics_service = analytics_service or AnalyticsService()
         self._providers: Dict[str, Dict[int, BaseProvider]] = (
             {}
         )  # Nested dict for user-specific providers
@@ -42,6 +44,7 @@ class ProviderFactory:
 
                 provider_class = self._provider_classes[provider_name]
                 self._providers[key] = provider_class()
+                self._providers[key].analytics_service = self.analytics_service
 
             return self._providers[key]
 
@@ -61,4 +64,4 @@ class ProviderFactory:
 
 
 # Create a singleton instance
-provider_factory = ProviderFactory()
+provider_factory = ProviderFactory(AnalyticsService())

@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from api.utils.exceptions.exceptions import NotFoundException
 from features.agents.models import Agent, AgentProvider, AgentModel
 from features.agents.repositories.agent_repository import AgentRepository
-from features.providers.clients.provider_factory import ProviderFactory
+from features.providers.clients.provider_factory import provider_factory
 from features.providers.services.provider_settings_service import ProviderSettingsService
 
 
@@ -11,7 +11,7 @@ class AgentService:
     def __init__(self):
         self.repository = AgentRepository()
         self.provider_settings_service = ProviderSettingsService()
-        self.provider_factory = ProviderFactory()
+        self.provider_factory = provider_factory
 
     def create_agent(self, data: Dict) -> Agent:
         """Create a new agent"""

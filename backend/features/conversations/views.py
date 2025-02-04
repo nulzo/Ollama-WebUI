@@ -1,6 +1,6 @@
 import logging
 
-from features.providers.clients.provider_factory import ProviderFactory
+from features.providers.clients.provider_factory import provider_factory
 from features.completions.models import Message
 from features.conversations.serializers.conversation import ConversationSerializer
 from features.conversations.services.conversation_service import ConversationService
@@ -216,7 +216,7 @@ class ConversationViewSet(
             print(messages)
 
             # Initialize Ollama provider
-            provider_factory = ProviderFactory()
+            provider_factory = provider_factory
             provider = provider_factory.get_provider("ollama", request.user.id)
 
             # Get AI response using non-streaming chat

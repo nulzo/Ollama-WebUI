@@ -90,10 +90,15 @@
     --border-width: 5rem;
     --sidebar-width-collapsed: '50px';
     --sidebar-width: '250px';
-    --success: 	151 73% 41%;
+    --success: 151 73% 41%;
     --success-foreground: 151 80% 98%;
     --message: 0 0% 98%;
     --message-foreground: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
 
     *::-webkit-scrollbar-thumb {
       background-color: #111111 !important;
@@ -129,6 +134,11 @@
     --success-foreground: 149.3 80.4% 90%;
     --message: 0 0% 98%;
     --message-foreground: 0 0% 3.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
 
     *::-webkit-scrollbar-thumb {
       background-color: #cccccc !important;
@@ -153,7 +163,6 @@
     margin-top: 1rem;
   }
 
- 
   .markdown a {
     @apply underline;
   }
@@ -162,161 +171,163 @@
     font-family: 'Archivo', sans-serif;
   }
 
-  ol > li,
-  ul > li {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 0.5em;
-  }
+  @layer base {
+    .markdown-prose ol > li,
+    .markdown-prose ul > li {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 0.5em;
+    }
 
-  ol > li {
-    counter-increment: list-number;
-    display: flex;
-    margin-bottom: 0;
-    margin-top: 0;
-    min-height: 28px;
-  }
+    .markdown-prose ol > li {
+      counter-increment: list-number;
+      display: flex;
+      margin-bottom: 0;
+      margin-top: 0;
+      min-height: 28px;
+    }
 
-  /* General style for all list items */
-  ol,
-  ul {
-    list-style-position: outside;
-    margin: 0;
-    padding: 0;
-  }
+    /* General style for all list items */
+    .markdown-prose ol,
+    .markdown-prose ul {
+      list-style-position: outside;
+      margin: 0;
+      padding: 0;
+    }
 
-  ol > li,
-  ul > li {
-    margin-bottom: 0.5em;
-  }
+    .markdown-prose ol > li,
+    .markdown-prose ul > li {
+      margin-bottom: 0.5em;
+    }
 
-  /* Style for nested lists with cascading indentation */
-  ol ol,
-  ol ul,
-  ul ol,
-  ul ul {
-    margin-left: 1.5em;
-  }
+    /* Style for nested lists with cascading indentation */
+    .markdown-prose ol ol,
+    .markdown-prose ol ul,
+    .markdown-prose ul ol,
+    .markdown-prose ul ul {
+      margin-left: 1.5em;
+    }
 
-  /* Ensuring uniform block display for list items */
-  ol > li,
-  ul > li {
-    display: block;
-    position: relative; /* For any pseudo-elements */
-  }
+    /* Ensuring uniform block display for list items */
+    .markdown-prose ol > li,
+    .markdown-prose ul > li {
+      display: block;
+      position: relative; /* For any pseudo-elements */
+    }
 
-  .prose ol > li::before, /* Optional: custom styling for ordered list numbers */
-  .prose ul > li::before {
-    position: absolute;
-    left: -1.5em; /* Adjust based on your layout/indentation needs */
-    min-width: 1em;
-    text-align: right;
-    color: hsl(var(--primary));
-  }
+    .markdown-prose ol > li::before, /* Optional: custom styling for ordered list numbers */
+  .markdown-prose ul > li::before {
+      position: absolute;
+      left: -1.5em; /* Adjust based on your layout/indentation needs */
+      min-width: 1em;
+      text-align: right;
+      color: hsl(var(--primary));
+    }
 
-  .prose ol > li::before {
-    content: counter(list-item) '.';
-    counter-increment: list-item;
-    font-weight: bold;
-    color: hsl(var(--primary));
-  }
+    .markdown-prose ol > li::before {
+      content: counter(list-item) '.';
+      counter-increment: list-item;
+      font-weight: bold;
+      color: hsl(var(--primary));
+    }
 
-  .prose ul > li::before {
-    content: '•';
-    font-weight: bold;
-    color: hsl(var(--primary));
-  }
+    .markdown-prose ul > li::before {
+      content: '•';
+      font-weight: bold;
+      color: hsl(var(--primary));
+    }
 
-  /* Remove any span display flex of the li spans */
-  li > span {
-    display: block;
-    width: 100%;
-  }
+    /* Remove any span display flex of the li spans */
+    .markdown-prose li > span {
+      display: block;
+      width: 100%;
+    }
 
-  /* General styles for ordered list items */
-  ol {
-    counter-reset: list-item; /* Initialize the counter for each list */
-    list-style: none; /* Remove default list styles */
-    padding-left: 1em; /* Remove default padding */
-  }
+    /* General styles for ordered list items */
+    .markdown-prose ol {
+      counter-reset: list-item; /* Initialize the counter for each list */
+      list-style: none; /* Remove default list styles */
+      padding-left: 1em; /* Remove default padding */
+    }
 
-  /* Style individual list items */
-  ol > li {
-    counter-increment: list-number; /* Increment the counter */
-    position: relative; /* Necessary for positioning pseudo-element */
-    margin-bottom: 0.5em; /* Space between list items */
-    padding-left: 0.5em; /* Indent to make space for number */
-  }
+    /* Style individual list items */
+    .markdown-prose ol > li {
+      counter-increment: list-number; /* Increment the counter */
+      position: relative; /* Necessary for positioning pseudo-element */
+      margin-bottom: 0.5em; /* Space between list items */
+      padding-left: 0.5em; /* Indent to make space for number */
+    }
 
-  /* Modern browser support using ::marker */
-  ol > li::marker {
-    content: counter(list-number) '. '; /* Display the counter as a list-item number */
-    font-weight: bold; /* Bold styling for the number */
-    margin-right: 0.5em; /* Space between the number and text */
-    color: hsl(var(--primary));
-  }
+    /* Modern browser support using ::marker */
+    .markdown-prose ol > li::marker {
+      content: counter(list-number) '. '; /* Display the counter as a list-item number */
+      font-weight: bold; /* Bold styling for the number */
+      margin-right: 0.5em; /* Space between the number and text */
+      color: hsl(var(--primary));
+    }
 
-  /* Pseudo-element fallback for broader support */
-  ol > li::before {
-    content: counter(list-number) '. '; /* Display the counter */
-    position: absolute; /* Position relative to the li */
-    left: 0; /* Adjust as necessary to match padding */
-    font-weight: bold;
-    width: 1.5em; /* Width of the number area */
-    text-align: right; /* Align right for neat appearance */
-    margin-right: 0.5em; /* Space between the number and text */
-    color: hsl(var(--primary));
-  }
+    /* Pseudo-element fallback for broader support */
+    .markdown-prose ol > li::before {
+      content: counter(list-number) '. '; /* Display the counter */
+      position: absolute; /* Position relative to the li */
+      left: 0; /* Adjust as necessary to match padding */
+      font-weight: bold;
+      width: 1.5em; /* Width of the number area */
+      text-align: right; /* Align right for neat appearance */
+      margin-right: 0.5em; /* Space between the number and text */
+      color: hsl(var(--primary));
+    }
 
-  /* Ensure paragraphs in lists render as expected */
-  li p {
-    margin: 0;
-  }
+    /* Ensure paragraphs in lists render as expected */
+    .markdown-prose li p {
+      margin: 0;
+    }
 
-  .image-modal {
-    z-index: 99999;
-  }
+    .image-modal {
+      z-index: 99999;
+    }
 
-  .prose ol > li::before {
-    content: counter(list-item) '.';
-    counter-increment: list-item;
-    font-weight: bold;
-    min-width: 1.5em;
-    margin-right: 0.5em;
-    text-align: right;
-    color: hsl(var(--primary));
-  }
+    .markdown-prose ol > li::before {
+      content: counter(list-item) '.';
+      counter-increment: list-item;
+      font-weight: bold;
+      min-width: 1.5em;
+      margin-right: 0.5em;
+      text-align: right;
+      color: hsl(var(--primary));
+    }
 
-  ul > li::before {
-    content: '•';
-    font-weight: bold;
-    min-width: 1em;
-    margin-right: 0.5em;
-    color: hsl(var(--muted-foreground));
-  }
+    .markdown-prose ul > li::before {
+      content: '•';
+      font-weight: bold;
+      min-width: 1em;
+      margin-right: 0.5em;
+      color: hsl(var(--muted-foreground));
+    }
 
-  li > span {
-    display: inline-block;
-    vertical-align: top;
-    width: 100%;
-  }
+    .markdown-prose li > span {
+      display: inline-block;
+      vertical-align: top;
+      width: 100%;
+    }
 
-  li > span > div {
-    display: inline;
-  }
+    .markdown-prose li > span > div {
+      display: inline;
+    }
 
-  .markdown a {
-    color: #1b6ac9;
-    text-decoration: none;
-  }
+    .markdown a {
+      color: #1b6ac9;
+      text-decoration: none;
+    }
 
-  .markdown a:hover {
-    text-decoration: underline;
-  }
+    .markdown a:hover {
+      text-decoration: underline;
+    }
 
-  li p {
-    margin: 0;
-    display: inline;
+    .markdown-prose li p {
+      margin: 0;
+      display: inline;
+    }
   }
 
   .hljs {

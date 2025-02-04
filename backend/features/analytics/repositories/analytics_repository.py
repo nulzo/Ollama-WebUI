@@ -4,6 +4,8 @@ from django.utils import timezone
 from datetime import timedelta
 import logging
 from decimal import Decimal
+from django.db.models.functions import ExtractHour, ExtractDay
+
 
 from features.analytics.models import AnalyticsEvent
 from api.utils.interfaces.base_repository import BaseRepository
@@ -33,8 +35,11 @@ class AnalyticsRepository(BaseRepository[AnalyticsEvent]):
             self.logger.debug(f"Token usage data: {token_usage}")
             return [{
                 'timestamp': item['timestamp'].isoformat(),
-                'model': item['model'],
-                'count': int(item['count']) if item['count'] else 0
+                'promptTokens': int(item.get('prompt_tokens') or 0),
+                'completionTokens': int(item.get('completion_tokens') or 0),
+                'model': item.get('model'),
+                'cost': str(item.get('cost') or 0),
+                'count': int(item.get('count') or 0)
             } for item in token_usage]
         except Exception as e:
             self.logger.error(f"Error in _get_token_usage: {str(e)}")
@@ -53,8 +58,8 @@ class AnalyticsRepository(BaseRepository[AnalyticsEvent]):
             self.logger.debug(f"Message stats data: {message_stats}")
             return [{
                 'timestamp': item['timestamp'].isoformat(),
-                'sent': int(item['sent']),
-                'received': int(item['received'])
+                'sent': int(item.get('sent') or 0),
+                'received': int(item.get('received') or 0)
             } for item in message_stats]
         except Exception as e:
             self.logger.error(f"Error in _get_message_stats: {str(e)}")
@@ -72,11 +77,40 @@ class AnalyticsRepository(BaseRepository[AnalyticsEvent]):
             self.logger.debug(f"Model usage data: {model_usage}")
             return [{
                 'model': item['model'],
-                'tokens': int(item['tokens']) if item['tokens'] else 0,
-                'cost': str(item['cost']) if item['cost'] else '0'
+                'tokens': int(item['tokens']) if item.get('tokens') else 0,
+                'cost': str(item['cost']) if item.get('cost') else '0',
+                'requests': int(item['requests']) if item.get('requests') else 0,
+                'errorRate': float(item['errors'] / item['requests']) if (item.get('requests') and item.get('errors')) else 0
             } for item in model_usage]
         except Exception as e:
             self.logger.error(f"Error in _get_model_usage: {str(e)}")
+            raise
+
+    def _get_time_analysis(self, events) -> List[Dict]:
+        self.logger.debug("Fetching time analysis statistics")
+        try:
+            time_analysis = list(events
+            .annotate(
+                hour=ExtractHour('timestamp'),
+                day=ExtractDay('timestamp')
+            )
+            .values('hour', 'day')
+            .annotate(
+                requests=Count('id'),
+                tokens=Sum('tokens'),
+                cost=Sum('cost')
+            )
+            .order_by('day', 'hour'))
+            self.logger.debug(f"Time analysis data: {time_analysis}")
+            return [{
+                'hour': item['hour'],
+                'day': item['day'],
+                'requests': int(item['requests']) if item.get('requests') else 0,
+                'tokens': int(item['tokens']) if item.get('tokens') else 0,
+                'cost': str(item['cost']) if item.get('cost') else '0'
+            } for item in time_analysis]
+        except Exception as e:
+            self.logger.error(f"Error in _get_time_analysis: {str(e)}")
             raise
 
     def get_analytics(self, user_id: int, timeframe: str) -> Dict:
@@ -126,11 +160,12 @@ class AnalyticsRepository(BaseRepository[AnalyticsEvent]):
             token_usage = self._get_token_usage(events)
             message_stats = self._get_message_stats(events)
             model_usage = self._get_model_usage(events)
-
+            time_analysis = self._get_time_analysis(events)
             result = {
                 'tokenUsage': token_usage,
                 'messageStats': message_stats,
                 'modelUsage': model_usage,
+                'timeAnalysis': time_analysis,
                 'totalTokens': int(total_tokens),
                 'totalCost': str(total_cost),
                 'totalMessages': total_messages,

@@ -317,7 +317,7 @@ export const Message = memo<MessageProps>(
               )}
 
               <div className="bg-primary selection:bg-background/40 px-4 py-3 rounded-xl rounded-tr-sm w-fit text-primary-foreground">
-                <motion.div className="max-w-none prose-invert prose prose-sm">
+                <motion.div className="max-w-none prose-invert prose markdown-prose prose-sm">
                   {messageContent.length > 0 ? (
                     <MarkdownRenderer markdown={messageContent} />
                   ) : (

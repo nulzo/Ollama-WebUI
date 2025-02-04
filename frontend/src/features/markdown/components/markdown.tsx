@@ -184,7 +184,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ markdown }) =>
     return renderTokens(tokens);
   }, [tokens]);
 
-  return <div className="mb-1 w-full overflow-none markdown markdown-prose">{renderedContent}</div>;
+  return <div className="mb-1 w-full overflow-none markdown markdown-prose prose">{renderedContent}</div>;
 });
 
 export default MarkdownRenderer;

@@ -7,6 +7,8 @@ class AnalyticsEvent(BaseModel):
     event_type = models.CharField(max_length=50)
     model = models.CharField(max_length=100, null=True, blank=True)
     tokens = models.IntegerField(default=0, null=True, blank=True)
+    prompt_tokens = models.IntegerField(default=0, null=True, blank=True)
+    completion_tokens = models.IntegerField(default=0, null=True, blank=True)
     cost = models.DecimalField(max_digits=10, decimal_places=6, default=0, null=True, blank=True)
     metadata = models.JSONField(default=dict)
     timestamp = models.DateTimeField(auto_now_add=True)

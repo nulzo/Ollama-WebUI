@@ -1,6 +1,8 @@
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { formatDate } from '@/utils/format';
+import { ChartContainer } from '@/components/ui/chart';
+import { formatNumber } from '@/lib/utils';
 
 interface TokenUsageChartProps {
   data?: Array<{
@@ -10,52 +12,76 @@ interface TokenUsageChartProps {
   }>;
 }
 
+const chartConfig = {
+  count: {
+    label: "Token Usage",
+    color: "hsl(var(--chart-1))",
+  },
+};
+
 export function TokenUsageChart({ data }: TokenUsageChartProps) {
   if (!data) return null;
+
+  const totalTokens = data.reduce((acc, item) => acc + item.count, 0);
+  const avgTokens = Math.round(totalTokens / data.length);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Token Usage Over Time</CardTitle>
+        <CardDescription>
+          Average Usage: {formatNumber(avgTokens)} tokens per period
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-[350px]">
+        <ChartContainer config={chartConfig} className="h-[350px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={data}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
             >
               <defs>
-                <linearGradient id="tokenUsage" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                <linearGradient id="tokenGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartConfig.count.color} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={chartConfig.count.color} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis 
+              <XAxis
                 dataKey="timestamp"
-                tickFormatter={(value) => formatDate(value)}
-                className="text-xs"
+                tickFormatter={formatDate}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
               />
-              <YAxis 
-                tickFormatter={(value) => value.toLocaleString()}
-                className="text-xs"
+              <YAxis
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={formatNumber}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))' }}
-                labelFormatter={(value) => formatDate(value)}
-                formatter={(value: number) => [value.toLocaleString(), 'Tokens']}
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--background))',
+                  borderColor: 'hsl(var(--border))',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  boxShadow: 'hsl(var(--border)) 0px 1px 3px 0px',
+                }}
+                labelFormatter={formatDate}
+                formatter={(value: number) => [formatNumber(value), 'Tokens']}
               />
               <Area
                 type="monotone"
                 dataKey="count"
-                stroke="hsl(var(--primary))"
-                fillOpacity={1}
-                fill="url(#tokenUsage)"
+                stroke={chartConfig.count.color}
+                fill="url(#tokenGradient)"
+                strokeWidth={2}
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </ChartContainer>
       </CardContent>
     </Card>
   );

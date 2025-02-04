@@ -1,27 +1,42 @@
-export interface TokenUsage {
-    count: number;
-    timestamp: string;
-    model: string;
-}
-
-export interface MessageStats {
-    sent: number;
-    received: number;
-    timestamp: string;
-}
-
-export interface ModelUsage {
-    model: string;
-    tokens: number;
-    cost: string;
-}
-
 export interface AnalyticsData {
-    tokenUsage: TokenUsage[];
-    messageStats: MessageStats[];
-    modelUsage: ModelUsage[];
+    tokenUsage: TokenUsageData[];
+    messageStats: MessageStatsData[];
+    modelUsage: ModelUsageData[];
+    timeAnalysis: TimeAnalysisData[];
     totalTokens: number;
-    totalCost: string;
+    totalCost: number;
     totalMessages: number;
     averageResponseTime: number;
+}
+
+export interface TokenUsageData {
+    timestamp: string;
+    promptTokens: number;
+    completionTokens: number;
+    model: string;
+    cost: number;
+    count: number;
+}
+
+export interface MessageStatsData {
+    timestamp: string;
+    sent: number;
+    received: number;
+    avgResponseTime: number;
+}
+
+export interface ModelUsageData {
+    model: string;
+    tokens: number;
+    cost: number;
+    requests: number;
+    errorRate: number;
+}
+
+export interface TimeAnalysisData {
+    hour: number;
+    day: number;
+    requests: number;
+    tokens: number;
+    cost: number;
 }

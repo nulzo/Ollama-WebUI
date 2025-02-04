@@ -667,6 +667,9 @@
   .col-span-4 {
     grid-column: span 4 / span 4;
   }
+  .col-start-2 {
+    grid-column-start: 2;
+  }
   .container {
     width: 100%;
     @media (width >= 40rem) {
@@ -1189,9 +1192,6 @@
   .max-w-\[300px\] {
     max-width: 300px;
   }
-  .max-w-\[1400px\] {
-    max-width: 1400px;
-  }
   .max-w-full {
     max-width: 100%;
   }
@@ -1309,6 +1309,12 @@
   .grid-cols-4 {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+  .grid-cols-24 {
+    grid-template-columns: repeat(24, minmax(0, 1fr));
+  }
+  .grid-cols-\[auto_1fr\] {
+    grid-template-columns: auto 1fr;
+  }
   .flex-col {
     flex-direction: column;
   }
@@ -1341,6 +1347,9 @@
   }
   .items-stretch {
     align-items: stretch;
+  }
+  .justify-around {
+    justify-content: space-around;
   }
   .justify-between {
     justify-content: space-between;
@@ -1445,6 +1454,9 @@
       margin-block-start: calc(calc(var(--spacing) * 8) * var(--tw-space-y-reverse));
       margin-block-end: calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)));
     }
+  }
+  .gap-y-2 {
+    row-gap: calc(var(--spacing) * 2);
   }
   .space-x-1 {
     :where(& > :not(:last-child)) {
@@ -1806,9 +1818,6 @@
   .stroke-foreground {
     stroke: hsl(var(--foreground));
   }
-  .stroke-muted {
-    stroke: hsl(var(--muted));
-  }
   .stroke-muted-foreground {
     stroke: hsl(var(--muted-foreground));
   }
@@ -2051,6 +2060,9 @@
   }
   .text-\[0\.8rem\] {
     font-size: 0.8rem;
+  }
+  .text-\[0\.70rem\] {
+    font-size: 0.70rem;
   }
   .text-\[10px\] {
     font-size: 10px;
@@ -2440,6 +2452,13 @@
   .not-first\:mt-10 {
     &:not(*:first-child) {
       margin-top: calc(var(--spacing) * 10);
+    }
+  }
+  .group-hover\:block {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        display: block;
+      }
     }
   }
   .group-hover\:inline-flex {
@@ -3801,6 +3820,11 @@
     --success-foreground: 151 80% 98%;
     --message: 0 0% 98%;
     --message-foreground: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
     *::-webkit-scrollbar-thumb {
       background-color: #111111 !important;
       border-radius: 15px;
@@ -3834,6 +3858,11 @@
     --success-foreground: 149.3 80.4% 90%;
     --message: 0 0% 98%;
     --message-foreground: 0 0% 3.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
     *::-webkit-scrollbar-thumb {
       background-color: #cccccc !important;
       border-radius: 14px;
@@ -3858,122 +3887,124 @@
   .font-primary {
     font-family: 'Archivo', sans-serif;
   }
-  ol > li, ul > li {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 0.5em;
-  }
-  ol > li {
-    counter-increment: list-number;
-    display: flex;
-    margin-bottom: 0;
-    margin-top: 0;
-    min-height: 28px;
-  }
-  ol, ul {
-    list-style-position: outside;
-    margin: 0;
-    padding: 0;
-  }
-  ol > li, ul > li {
-    margin-bottom: 0.5em;
-  }
-  ol ol, ol ul, ul ol, ul ul {
-    margin-left: 1.5em;
-  }
-  ol > li, ul > li {
-    display: block;
-    position: relative;
-  }
-  .prose ol > li::before,  .prose ul > li::before {
-    position: absolute;
-    left: -1.5em;
-    min-width: 1em;
-    text-align: right;
-    color: hsl(var(--primary));
-  }
-  .prose ol > li::before {
-    content: counter(list-item) '.';
-    counter-increment: list-item;
-    font-weight: bold;
-    color: hsl(var(--primary));
-  }
-  .prose ul > li::before {
-    content: '•';
-    font-weight: bold;
-    color: hsl(var(--primary));
-  }
-  li > span {
-    display: block;
-    width: 100%;
-  }
-  ol {
-    counter-reset: list-item;
-    list-style: none;
-    padding-left: 1em;
-  }
-  ol > li {
-    counter-increment: list-number;
-    position: relative;
-    margin-bottom: 0.5em;
-    padding-left: 0.5em;
-  }
-  ol > li::marker {
-    content: counter(list-number) '. ';
-    font-weight: bold;
-    margin-right: 0.5em;
-    color: hsl(var(--primary));
-  }
-  ol > li::before {
-    content: counter(list-number) '. ';
-    position: absolute;
-    left: 0;
-    font-weight: bold;
-    width: 1.5em;
-    text-align: right;
-    margin-right: 0.5em;
-    color: hsl(var(--primary));
-  }
-  li p {
-    margin: 0;
-  }
-  .image-modal {
-    z-index: 99999;
-  }
-  .prose ol > li::before {
-    content: counter(list-item) '.';
-    counter-increment: list-item;
-    font-weight: bold;
-    min-width: 1.5em;
-    margin-right: 0.5em;
-    text-align: right;
-    color: hsl(var(--primary));
-  }
-  ul > li::before {
-    content: '•';
-    font-weight: bold;
-    min-width: 1em;
-    margin-right: 0.5em;
-    color: hsl(var(--muted-foreground));
-  }
-  li > span {
-    display: inline-block;
-    vertical-align: top;
-    width: 100%;
-  }
-  li > span > div {
-    display: inline;
-  }
-  .markdown a {
-    color: #1b6ac9;
-    text-decoration: none;
-  }
-  .markdown a:hover {
-    text-decoration: underline;
-  }
-  li p {
-    margin: 0;
-    display: inline;
+  @layer base {
+    .markdown-prose ol > li, .markdown-prose ul > li {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 0.5em;
+    }
+    .markdown-prose ol > li {
+      counter-increment: list-number;
+      display: flex;
+      margin-bottom: 0;
+      margin-top: 0;
+      min-height: 28px;
+    }
+    .markdown-prose ol, .markdown-prose ul {
+      list-style-position: outside;
+      margin: 0;
+      padding: 0;
+    }
+    .markdown-prose ol > li, .markdown-prose ul > li {
+      margin-bottom: 0.5em;
+    }
+    .markdown-prose ol ol, .markdown-prose ol ul, .markdown-prose ul ol, .markdown-prose ul ul {
+      margin-left: 1.5em;
+    }
+    .markdown-prose ol > li, .markdown-prose ul > li {
+      display: block;
+      position: relative;
+    }
+    .markdown-prose ol > li::before,  .markdown-prose ul > li::before {
+      position: absolute;
+      left: -1.5em;
+      min-width: 1em;
+      text-align: right;
+      color: hsl(var(--primary));
+    }
+    .markdown-prose ol > li::before {
+      content: counter(list-item) '.';
+      counter-increment: list-item;
+      font-weight: bold;
+      color: hsl(var(--primary));
+    }
+    .markdown-prose ul > li::before {
+      content: '•';
+      font-weight: bold;
+      color: hsl(var(--primary));
+    }
+    .markdown-prose li > span {
+      display: block;
+      width: 100%;
+    }
+    .markdown-prose ol {
+      counter-reset: list-item;
+      list-style: none;
+      padding-left: 1em;
+    }
+    .markdown-prose ol > li {
+      counter-increment: list-number;
+      position: relative;
+      margin-bottom: 0.5em;
+      padding-left: 0.5em;
+    }
+    .markdown-prose ol > li::marker {
+      content: counter(list-number) '. ';
+      font-weight: bold;
+      margin-right: 0.5em;
+      color: hsl(var(--primary));
+    }
+    .markdown-prose ol > li::before {
+      content: counter(list-number) '. ';
+      position: absolute;
+      left: 0;
+      font-weight: bold;
+      width: 1.5em;
+      text-align: right;
+      margin-right: 0.5em;
+      color: hsl(var(--primary));
+    }
+    .markdown-prose li p {
+      margin: 0;
+    }
+    .image-modal {
+      z-index: 99999;
+    }
+    .markdown-prose ol > li::before {
+      content: counter(list-item) '.';
+      counter-increment: list-item;
+      font-weight: bold;
+      min-width: 1.5em;
+      margin-right: 0.5em;
+      text-align: right;
+      color: hsl(var(--primary));
+    }
+    .markdown-prose ul > li::before {
+      content: '•';
+      font-weight: bold;
+      min-width: 1em;
+      margin-right: 0.5em;
+      color: hsl(var(--muted-foreground));
+    }
+    .markdown-prose li > span {
+      display: inline-block;
+      vertical-align: top;
+      width: 100%;
+    }
+    .markdown-prose li > span > div {
+      display: inline;
+    }
+    .markdown a {
+      color: #1b6ac9;
+      text-decoration: none;
+    }
+    .markdown a:hover {
+      text-decoration: underline;
+    }
+    .markdown-prose li p {
+      margin: 0;
+      display: inline;
+    }
   }
   .hljs {
     margin-top: 0.5rem !important;

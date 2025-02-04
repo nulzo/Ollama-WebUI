@@ -28,6 +28,5 @@ export interface Agent {
   penalize_newline: boolean;
   stop: string[];
   created_at: string;
-  modified_at: string;
-  user_id: string;
+  updated_at: string;
 }

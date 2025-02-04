@@ -21,28 +21,30 @@ class AgentRepository(BaseRepository[Agent]):
                 icon=data.get("icon", ""),
                 model=data["model"],
                 system_prompt=data.get("system_prompt", ""),
-                enabled=data.get("enabled", True),
-                files=data.get("files", False),
-                function_call=data.get("function_call", False),
-                vision=data.get("vision", False),
-                max_output=data.get("max_output", 2048),
-                tokens=data.get("tokens", 2048),
-                num_ctx=data.get("num_ctx", 4096),
-                low_vram=data.get("low_vram", False),
-                embedding_only=data.get("embedding_only", False),
-                seed=data.get("seed", 0),
-                num_predict=data.get("num_predict", 128),
-                temperature=data.get("temperature", 0.8),
-                top_k=data.get("top_k", 40),
-                top_p=data.get("top_p", 0.95),
-                tfs_z=data.get("tfs_z", 1.0),
-                typical_p=data.get("typical_p", 1.0),
-                repeat_last_n=data.get("repeat_last_n", 64),
-                repeat_penalty=data.get("repeat_penalty", 1.1),
-                presence_penalty=data.get("presence_penalty", 0.0),
-                frequency_penalty=data.get("frequency_penalty", 0.0),
-                penalize_newline=data.get("penalize_newline", False),
-                stop=data.get("stop", []),
+                parameters={
+                    "enabled": data.get("enabled", True),
+                    "files": data.get("files", False),
+                    "function_call": data.get("function_call", False),
+                    "vision": data.get("vision", False),
+                    "max_output": data.get("max_output", 2048),
+                    "tokens": data.get("tokens", 2048),
+                    "num_ctx": data.get("num_ctx", 4096),
+                    "low_vram": data.get("low_vram", False),
+                    "embedding_only": data.get("embedding_only", False),
+                    "seed": data.get("seed", 0),
+                    "num_predict": data.get("num_predict", 128),
+                    "temperature": data.get("temperature", 0.8),
+                    "top_k": data.get("top_k", 40),
+                    "top_p": data.get("top_p", 0.95),
+                    "tfs_z": data.get("tfs_z", 1.0),
+                    "typical_p": data.get("typical_p", 1.0),
+                    "repeat_last_n": data.get("repeat_last_n", 64),
+                    "repeat_penalty": data.get("repeat_penalty", 1.1),
+                    "presence_penalty": data.get("presence_penalty", 0.0),
+                    "frequency_penalty": data.get("frequency_penalty", 0.0),
+                    "penalize_newline": data.get("penalize_newline", False),
+                    "stop": data.get("stop", []),
+                },
                 user=data["user"],
             )
             self.logger.info(f"Created agent {agent.id}")
@@ -60,7 +62,7 @@ class AgentRepository(BaseRepository[Agent]):
 
     def get_by_uuid(self, uuid: str) -> Optional[Agent]:
         try:
-            return Agent.objects.get(uuid=uuid)
+            return Agent.objects.get(id=uuid)
         except Agent.DoesNotExist:
             self.logger.warning(f"Agent with UUID {uuid} not found")
             return None

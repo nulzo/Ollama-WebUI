@@ -67,6 +67,13 @@ export const createAppRouter = (_queryClient: QueryClient) =>
           },
         },
         {
+          path: 'workspace',
+          lazy: async () => {
+            const { WorkspaceRoute } = await import('@/app/routes/app/workspace');
+            return { Component: WorkspaceRoute };
+          },
+        },
+        {
           path: 'tools',
           children: [
             {

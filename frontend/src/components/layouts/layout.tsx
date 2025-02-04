@@ -4,6 +4,7 @@ import { ConversationList } from '@/features/chat/components/message-list/conver
 import { useSidebar } from '../sidebar/sidebar-context';
 import { useErrorStore } from '../errors/error-store';
 import { ErrorDialog } from '../errors/error-dialog';
+import { ContentArea } from './main';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -27,6 +28,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         }}
       >
         <div className="flex flex-col bg-background rounded-xl h-full overflow-hidden">
+          {/* <ContentArea>{children}</ContentArea> */}
           {children}
         </div>
         <ErrorDialog 

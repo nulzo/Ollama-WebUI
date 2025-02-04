@@ -34,25 +34,13 @@ class AgentModel(models.Model):
 
 class Agent(BaseModel):
     """User-created agent instances"""
-
-    # Basic Information
     display_name = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     icon = models.TextField(null=True, blank=True)
-
-    # Provider & Model
-    provider = models.ForeignKey(AgentProvider, on_delete=models.CASCADE)
-    model = models.ForeignKey(AgentModel, on_delete=models.CASCADE)
-
-    # Configuration
+    model = models.CharField(max_length=100)
     system_prompt = models.TextField(null=True, blank=True)
-    parameters = models.JSONField(default=dict)  # Stores provider-specific parameters
-    enabled = models.BooleanField(default=True)
-
-    # Relationships
+    parameters = models.JSONField(default=dict)
     user = models.ForeignKey("authentication.CustomUser", on_delete=models.CASCADE)
-    tools = models.ManyToManyField("tools.Tool", blank=True)
-    knowledge_base = models.ManyToManyField("knowledge.Knowledge", blank=True)
 
     class Meta:
         unique_together = ["user", "display_name"]

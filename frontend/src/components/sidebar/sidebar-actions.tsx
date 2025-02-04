@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { Plus, ArrowUpDown, Bot, Code2, ChevronRight, LayoutGrid, Image } from 'lucide-react';
+import { Plus, ArrowUpDown, Bot, Code2, ChevronRight, LayoutGrid, Image, Box, Spline, AreaChart } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 import { Input } from '@/components/ui/input.tsx';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
@@ -172,12 +172,6 @@ const slideAnimation = {
   },
 };
 
-const mockAgents = [
-  { id: '1', name: 'Code Assistant', model: 'codellama', icon: Code2 },
-  { id: '2', name: 'Writing Helper', model: 'mistral', icon: Image },
-  { id: '3', name: 'Image Expert', model: 'llama2', icon: Image },
-];
-
 // Search component
 const SearchBar = ({ isCollapsed }: { isCollapsed: boolean }) => {
   if (isCollapsed) return null;
@@ -219,7 +213,23 @@ export const SidebarActions = ({ isCollapsed, animationDuration }: SidebarAction
         animationDuration={animationDuration}
       />
 
-      <SidebarDropdownButton
+      <SidebarButton
+        icon={Box}
+        label="Workspace"
+        onClick={() => navigate('/workspace')}
+        isCollapsed={isCollapsed}
+        animationDuration={animationDuration}
+      />
+
+      <SidebarButton
+        icon={AreaChart}
+        label="Analytics"
+        onClick={() => navigate('/analytics')}
+        isCollapsed={isCollapsed}
+        animationDuration={animationDuration}
+      />
+
+      {/* <SidebarDropdownButton
         icon={Bot}
         label="Fine-Tune Agents"
         isCollapsed={isCollapsed}
@@ -235,7 +245,7 @@ export const SidebarActions = ({ isCollapsed, animationDuration }: SidebarAction
         animationDuration={animationDuration}
       >
         <FunctionsList tools={tools} navigate={navigate} isCollapsed={isCollapsed} />
-      </SidebarDropdownButton>
+      </SidebarDropdownButton> */}
 
       <SearchBar isCollapsed={isCollapsed} />
     </div>

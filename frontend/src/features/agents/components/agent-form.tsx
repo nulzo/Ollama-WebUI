@@ -16,37 +16,28 @@ import { Agent } from '../types/agent';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { ModelSelectSimple } from '@/features/models/components/model-select-simple';
+import { ModelSelect } from '@/features/models/components/model-select';
 import { ImagePlus, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEffect, useRef } from 'react';
 
 const agentFormSchema = z.object({
-  // Basic Information
   icon: z.string().optional().nullable(),
   display_name: z.string().min(2, { message: 'Display name must be at least 2 characters.' }),
   description: z.string().optional(),
   model: z.string().min(1, { message: 'Please select a model.' }),
   system_prompt: z.string().optional(),
   enabled: z.boolean().default(true),
-
-  // Capabilities
   files: z.boolean().default(false),
   function_call: z.boolean().default(false),
   vision: z.boolean().default(false),
-
-  // Basic Parameters
   max_output: z.number().min(1).max(32768),
   tokens: z.number().min(1).max(32768),
-
-  // Advanced Parameters
   num_ctx: z.number().min(512).max(32768),
   low_vram: z.boolean().default(false),
   embedding_only: z.boolean().default(false),
   seed: z.number().min(0),
   num_predict: z.number().min(1).max(32768),
-
-  // Generation Parameters
   temperature: z.number().min(0).max(2),
   top_k: z.number().min(0).max(100),
   top_p: z.number().min(0).max(1),
@@ -274,7 +265,7 @@ export function AgentForm({
               <FormItem>
                 <FormLabel>Base Model</FormLabel>
                 <FormControl>
-                  <ModelSelectSimple value={field.value} onValueChange={field.onChange} />
+                  <ModelSelect value={field.value} onValueChange={field.onChange} className="border" />
                 </FormControl>
                 <FormDescription>Select the base model for this agent.</FormDescription>
                 <FormMessage />

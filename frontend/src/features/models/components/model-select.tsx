@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 interface ModelSelectProps {
   value?: string;
   onValueChange: (value: string) => void;
+  className?: string;
 }
 
 type Model = {
@@ -28,7 +29,7 @@ type Model = {
   details: Record<string, string>;
 };
 
-export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
+export function ModelSelect({ value, onValueChange, className }: ModelSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const { data: modelsData, isLoading } = useModels();
@@ -83,7 +84,7 @@ export function ModelSelect({ value, onValueChange }: ModelSelectProps) {
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="justify-between w-full"
+          className={cn("justify-between w-full", className)}
         >
           <div className="flex items-center truncate">
             <span className="truncate">

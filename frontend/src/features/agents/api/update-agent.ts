@@ -14,7 +14,7 @@ export const updateAgent = ({
   agentId: string;
   data: UpdateAgentInput;
 }): Promise<Agent> => {
-  return api.patch(`/agents/${agentId}/`, data);
+  return api.put(`/agents/${agentId}/`, data);
 };
 
 type UseUpdateAgentOptions = {

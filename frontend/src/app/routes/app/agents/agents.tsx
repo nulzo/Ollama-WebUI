@@ -80,8 +80,21 @@ export function AgentsRoute() {
   };
 
   const handleSubmit = async (values: any) => {
-    // Handle create/update logic here
-    setIsCreateDialogOpen(false);
+    try {
+      if (selectedAgent) {
+        await updateAgent.mutateAsync({
+          agentId: selectedAgent.id,
+          data: values,
+        });
+      } else {
+        await createAgent.mutateAsync({
+          data: values,
+        });
+      }
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving agent:', error);
+    }
   };
 
   return (

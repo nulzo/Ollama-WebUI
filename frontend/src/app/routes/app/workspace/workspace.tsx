@@ -20,6 +20,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Prompt } from '@/features/prompts/prompt';
+import { useCreatePrompt } from '@/features/prompts/api/create-prompt';
+import { usePrompts } from '@/features/prompts/api/get-prompts';
+import { useUpdatePrompt } from '@/features/prompts/api/update-prompt';
+import { useDeletePrompt } from '@/features/prompts/api/delete-prompt';
+import { PromptCard } from '@/features/prompts/prompt-card';
+import { PromptForm } from '@/features/prompts/prompt-form';
 
 const AgentCard = ({
   agent,
@@ -221,27 +228,114 @@ const CustomFunctions = () => {
 };
 
 const SavedPrompts = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-secondary rounded-lg p-6"
-      >
-        <h3 className="text-lg font-semibold mb-4">Create Prompt Template</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Save and organize your most effective prompts for quick access.
-        </p>
-        <Button className="w-full gap-2">
-          <MessageSquare className="size-4" />
-          New Template
-        </Button>
-      </motion.div>
-
-      {/* Add more cards for existing prompt templates */}
-    </div>
-  );
-};
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
+    const { data: prompts } = usePrompts();
+    const createPrompt = useCreatePrompt();
+    const updatePrompt = useUpdatePrompt();
+    const deletePrompt = useDeletePrompt();
+  
+    const filteredPrompts = prompts?.data && prompts?.data?.length > 0 ? prompts?.data?.filter(prompt =>
+      prompt.title.toLowerCase().includes(searchTerm.toLowerCase())
+    ) : [];
+  
+    const handleCreatePrompt = () => {
+      setSelectedPrompt(null);
+      setIsCreateDialogOpen(true);
+    };
+  
+    const handleEditPrompt = (prompt: Prompt) => {
+      setSelectedPrompt(prompt);
+      setIsCreateDialogOpen(true);
+    };
+  
+    const handleSubmit = async (values: any) => {
+      try {
+        if (selectedPrompt) {
+          await updatePrompt.mutateAsync({
+            promptId: selectedPrompt.id,
+            data: values,
+          });
+        } else {
+          await createPrompt.mutateAsync({
+            data: values,
+          });
+        }
+        setIsCreateDialogOpen(false);
+      } catch (error) {
+        console.error('Error saving prompt:', error);
+      }
+    };
+  
+    const handleDelete = async (prompt: Prompt) => {
+      try {
+        await deletePrompt.mutateAsync({ promptId: prompt.id });
+      } catch (error) {
+        console.error('Error deleting prompt:', error);
+      }
+    };
+  
+    return (
+      <>
+        <div className="relative mb-8">
+          <Input
+            type="text"
+            placeholder="Search prompts..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+            size={20}
+          />
+        </div>
+  
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-secondary rounded-lg p-6"
+          >
+            <h3 className="text-lg font-semibold mb-4">Create Prompt Template</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Save and organize your most effective prompts for quick access.
+            </p>
+            <Button className="w-full gap-2" onClick={handleCreatePrompt}>
+              <MessageSquare className="size-4" />
+              New Template
+            </Button>
+          </motion.div>
+  
+          {(filteredPrompts && filteredPrompts?.length > 0) ? filteredPrompts?.map((prompt) => (
+            <PromptCard
+              key={prompt.id}
+              prompt={prompt}
+              onEdit={handleEditPrompt}
+              onDelete={() => handleDelete(prompt)}
+            />
+          )) : (
+            <div className="bg-secondary rounded-lg p-6">
+              <p className="text-sm text-muted-foreground">No prompts found</p>
+            </div>
+          )}
+        </div>
+  
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedPrompt ? 'Edit Prompt' : 'Create New Prompt'}
+              </DialogTitle>
+            </DialogHeader>
+            <PromptForm prompt={selectedPrompt} onSubmit={handleSubmit} />
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  };
 
 const tabs = [
   {

@@ -821,6 +821,12 @@
   .ml-auto {
     margin-left: auto;
   }
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
   .block {
     display: block;
   }
@@ -1949,6 +1955,9 @@
   }
   .font-geistmono {
     font-family: Geist Mono, monospace;
+  }
+  .font-mono {
+    font-family: var(--font-mono);
   }
   .text-2xl {
     font-size: var(--text-2xl);

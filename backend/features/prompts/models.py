@@ -7,6 +7,7 @@ class CustomPrompt(BaseModel):
     title = models.CharField(max_length=255)
     command = models.CharField(max_length=100, unique=True)
     content = models.TextField()
+    description = models.TextField(blank=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="custom_prompts")
 
     class Meta:

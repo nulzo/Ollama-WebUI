@@ -146,7 +146,7 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
       </div>
 
       <div className="right-0 bottom-0 left-0 absolute pointer-events-none">
-        <div className="-top-14 left-1/2 z-10 absolute transform -translate-x-1/2 pointer-events-auto">
+        <div className="-top-10 left-1/2 z-10 absolute transform -translate-x-1/2 pointer-events-auto">
           <ScrollToBottomButton
             isVisible={showScrollButton}
             onClick={() => {

@@ -94,6 +94,13 @@ export const createAppRouter = (_queryClient: QueryClient) =>
           ],
         },
         {
+          path: 'analytics',
+          lazy: async () => {
+            const { AnalyticsRoute } = await import('@/app/routes/app/analytics');
+            return { Component: AnalyticsRoute };
+          },
+        },
+        {
           path: 'diffusion',
           lazy: async () => {
             const { DiffusionRoute } = await import('@/app/routes/app/diffusion');

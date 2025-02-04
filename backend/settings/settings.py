@@ -97,6 +97,7 @@ INSTALLED_APPS = [
     "features.providers.apps.ProvidersConfig",
     "features.tags.apps.TagsConfig",
     "features.tools.apps.ToolsConfig",
+    "features.analytics.apps.AnalyticsConfig",
 ]
 
 MIDDLEWARE = [
@@ -222,11 +223,11 @@ LOGGING = {
         },
     },
     "loggers": {
-        # 'django': {
-        #     'handlers': ['console', 'file'],
-        #     'level': 'DEBUG',
-        #     'propagate': True,
-        # },
+        "features.analytics": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
         "django.request": {
             "handlers": ["console", "file"],
             "level": "ERROR",

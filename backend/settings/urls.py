@@ -10,6 +10,7 @@ from features.prompts.urls import router as prompts_router
 from features.providers.urls import router as providers_router
 from features.tags.urls import router as tags_router
 from features.tools.urls import router as tools_router
+from features.analytics.urls import router as analytics_router
 
 # Combine all router URLs
 api_v1_patterns = [
@@ -22,6 +23,7 @@ api_v1_patterns = [
     path('', include(providers_router.urls)),
     path('', include(tags_router.urls)),
     path('', include(tools_router.urls)),
+    path('', include(analytics_router.urls)),
 ]
 
 urlpatterns = [

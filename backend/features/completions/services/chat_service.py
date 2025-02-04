@@ -9,6 +9,7 @@ from typing import Generator
 
 from asgiref.sync import sync_to_async
 from django.http import StreamingHttpResponse
+from features.analytics.services.analytics_service import AnalyticsService
 from ollama import Options
 
 from features.agents.models import Agent
@@ -38,6 +39,7 @@ class ChatService:
         self.provider_factory = ProviderFactory()
         self.message_repository = MessageRepository()
         self.knowledge_service = KnowledgeService()
+        self.analytics_service = AnalyticsService()
         self.logger = logging.getLogger(__name__)
         self._cancel_event = Event()
 
@@ -258,6 +260,16 @@ class ChatService:
                 }
             )
 
+            self.analytics_service.track_event({
+                'user_id': conversation.user.id,
+                'event_type': 'message',
+                'metadata': {
+                    'direction': 'sent',
+                    'conversation_id': str(conversation.uuid),
+                    'model': user_message.model
+                }
+            })
+
             # Get the appropriate provider
             provider = self._get_provider(data.get("model", "llama3.2:3b"))
 
@@ -292,6 +304,19 @@ class ChatService:
 
             end = timer()
             generation_time = end - start
+            
+            self.analytics_service.track_event({
+                'user_id': conversation.user.id,
+                'event_type': 'token_usage',
+                'model': user_message.model,
+                'tokens': tokens_generated,
+                'cost': self._calculate_cost(tokens_generated, user_message.model),
+                'metadata': {
+                    'conversation_id': str(conversation.uuid),
+                    'generation_time': generation_time,
+                    'finish_reason': 'cancelled' if self._cancel_event.is_set() else 'stop'
+                }
+            })
 
             # Update final message content if not cancelled
             if not self._cancel_event.is_set():
@@ -305,13 +330,35 @@ class ChatService:
                     "generation_time": generation_time,
                     "finish_reason": "cancelled" if self._cancel_event.is_set() else "stop",
                 })
+
+                self.analytics_service.track_event({
+                    'user_id': conversation.user.id,
+                    'event_type': 'message',
+                    'metadata': {
+                        'direction': 'received',
+                        'conversation_id': str(conversation.uuid),
+                        'model': user_message.model,
+                        'response_time': generation_time
+                    }
+                })
+
             yield json.dumps({
-                        "status": "cancelled" if self._cancel_event.is_set() else "done",
-                        "message_id": str(assistant_message.id)
-                    })
+                "status": "cancelled" if self._cancel_event.is_set() else "done",
+                "message_id": str(assistant_message.id)
+            })
             
         except Exception as e:
             logger.error(f"Error in generation {generation_id}: {str(e)}\n{traceback.format_exc()}")
+            self.analytics_service.track_event({
+                'user_id': conversation.user.id,
+                'event_type': 'error',
+                'metadata': {
+                    'error_type': type(e).__name__,
+                    'error_message': str(e),
+                    'conversation_id': str(conversation.uuid),
+                    'model': user_message.model
+                }
+            })
             yield json.dumps({"error": str(e), "status": "error"})
 
     def _get_provider(self, model_name: str, user_id: int = None):
@@ -352,3 +399,14 @@ class ChatService:
     def cancel_generation(self):
         """Mark the current generation as cancelled"""
         self._cancel_event.set()
+
+    def _calculate_cost(self, tokens: int, model: str) -> float:
+        """Calculate cost based on model and tokens"""
+        # Example cost calculation - adjust based on your pricing
+        costs = {
+            'gpt-4': 0.03,  # $0.03 per 1K tokens
+            'gpt-3.5-turbo': 0.002,  # $0.002 per 1K tokens
+            'llama2': 0.0001,  # Example cost for local models
+        }
+        base_cost = costs.get(model, 0.0001)  # Default to lowest cost
+        return (tokens * base_cost) / 1000

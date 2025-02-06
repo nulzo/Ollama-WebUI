@@ -75,25 +75,6 @@ class OllamaProvider(BaseProvider):
             },
         }
 
-    async def achat(self, model: str, messages: Union[List, AnyStr]):
-        """
-        Async version of chat that yields responses
-        """
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"http://{self._ollama_host}:{self._ollama_port}/api/chat",
-                json={"model": model, "messages": messages, "stream": True},
-                timeout=None,
-            )
-            async for line in response.aiter_lines():
-                if line:
-                    try:
-                        chunk = json.loads(line)
-                        if "message" in chunk and "content" in chunk["message"]:
-                            yield chunk["message"]["content"]
-                    except json.JSONDecodeError:
-                        continue
-
     def chat(
         self,
         messages: List[Dict],
@@ -219,7 +200,7 @@ class OllamaProvider(BaseProvider):
             
             for chunk in response:
                 if self._cancel_event.is_set():
-                    self.logger.info(f"Generation {generation_id} was cancelled after {tokens_generated} tokens")
+                    self.logger.info(f"Generation {generation_id} was cancelled after tokens")
                     generation_time = timer() - start_time
                     self.log_chat_completion(
                         model=model,

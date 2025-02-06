@@ -1,6 +1,12 @@
 from django.db import models
 from api.models.base import BaseModel
 
+class EventTypeEnum(models.TextChoices):
+    MESSAGE = "MESSAGE"
+    EVENT = "EVENT"
+    TOKEN = "TOKEN"
+    MODEL = "MODEL"
+
 class AnalyticsEvent(BaseModel):
     """Analytics events for tracking user activity"""
     user = models.ForeignKey("authentication.CustomUser", on_delete=models.CASCADE)

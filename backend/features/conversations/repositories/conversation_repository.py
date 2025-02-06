@@ -1,10 +1,25 @@
 import logging
-from typing import List, Optional
+from typing import List, Optional, TypedDict
 
 from django.db import transaction
 
+from features.authentication.models import CustomUser
 from features.conversations.models import Conversation
 from api.utils.interfaces.base_repository import BaseRepository
+
+
+class CreateConversation(TypedDict):
+    user: CustomUser
+    'User who is creating conversation'
+
+    name: str
+    'Title of the conversation'
+
+    model: str
+    'Model used to instantiate conversation'
+
+    system_prompt: str
+    'System prompt of the conversation'
 
 
 class ConversationRepository(BaseRepository[Conversation]):
@@ -12,12 +27,12 @@ class ConversationRepository(BaseRepository[Conversation]):
         self.logger = logging.getLogger(__name__)
 
     @transaction.atomic
-    def create(self, data: dict) -> Conversation:
+    def create(self, data: CreateConversation) -> Conversation:
         """Create a new conversation"""
         try:
             conversation = Conversation.objects.create(
-                user=data["user"],
-                title=data.get("title", "New Conversation"),
+                user=data.get('user'),
+                name=data.get("name", "New Conversation"),
                 model=data.get("model"),
                 system_prompt=data.get("system_prompt", ""),
             )

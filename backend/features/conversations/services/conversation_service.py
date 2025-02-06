@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from features.conversations.repositories.conversation_repository import ConversationRepository
 from api.utils.exceptions import NotFoundException
@@ -9,10 +10,9 @@ class ConversationService:
         self.repository = ConversationRepository()
         self.logger = logging.getLogger(__name__)
 
-    def create_conversation(self, user, data: dict):
+    def create_conversation(self, data: dict):
         """Create a new conversation"""
         try:
-            data["user"] = user
             return self.repository.create(data)
         except Exception as e:
             self.logger.error(f"Error creating conversation: {str(e)}")
@@ -38,3 +38,8 @@ class ConversationService:
         """Delete a conversation"""
         conversation = self.get_conversation(uuid, user_id)
         return self.repository.delete(uuid)
+
+    def get_or_create_conversation(self, uuid: Optional[str], data: dict):
+        """Get a conversation, or create one if it doesn't exist"""
+        conversation = self.repository.get_by_uuid(uuid)
+        return conversation if conversation else self.create_conversation(data)

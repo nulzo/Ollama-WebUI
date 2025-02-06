@@ -6,9 +6,9 @@ import logging
 from decimal import Decimal
 from django.db.models.functions import ExtractHour, ExtractDay
 
-
 from features.analytics.models import AnalyticsEvent
-from api.utils.interfaces.base_repository import BaseRepository
+from api.utils.interfaces.base_repository import BaseRepository, T
+
 
 class AnalyticsRepository(BaseRepository[AnalyticsEvent]):
     def __init__(self):
@@ -17,22 +17,20 @@ class AnalyticsRepository(BaseRepository[AnalyticsEvent]):
     def create_event(self, data: Dict) -> AnalyticsEvent:
         """Create a new analytics event"""
         try:
-            self.logger.debug(f"Creating analytics event with data: {data}")
-            event = AnalyticsEvent.objects.create(**data)
-            self.logger.debug(f"Successfully created analytics event: {event.id}")
-            return event
+            return AnalyticsEvent.objects.create(**data)
         except Exception as e:
             self.logger.error(f"Error creating analytics event: {str(e)}")
             raise
 
     def _get_token_usage(self, events) -> List[Dict]:
-        self.logger.debug("Fetching token usage statistics")
+        """
+        Private method to compute token usage for analytics
+        """
         try:
             token_usage = list(events.filter(event_type='token_usage')
-                .values('timestamp', 'model')
-                .annotate(count=Sum('tokens'))
-                .order_by('timestamp'))
-            self.logger.debug(f"Token usage data: {token_usage}")
+                               .values('timestamp', 'model')
+                               .annotate(count=Sum('tokens'))
+                               .order_by('timestamp'))
             return [{
                 'timestamp': item['timestamp'].isoformat(),
                 'promptTokens': int(item.get('prompt_tokens') or 0),
@@ -46,16 +44,17 @@ class AnalyticsRepository(BaseRepository[AnalyticsEvent]):
             raise
 
     def _get_message_stats(self, events) -> List[Dict]:
-        self.logger.debug("Fetching message statistics")
+        """
+        Private method to compute message stats for analytics
+        """
         try:
             message_stats = list(events.filter(event_type='message')
-                .values('timestamp')
-                .annotate(
-                    sent=Count('id', filter=Q(metadata__direction='sent')),
-                    received=Count('id', filter=Q(metadata__direction='received'))
-                )
-                .order_by('timestamp'))
-            self.logger.debug(f"Message stats data: {message_stats}")
+                                 .values('timestamp')
+                                 .annotate(
+                sent=Count('id', filter=Q(metadata__direction='sent')),
+                received=Count('id', filter=Q(metadata__direction='received'))
+            )
+                                 .order_by('timestamp'))
             return [{
                 'timestamp': item['timestamp'].isoformat(),
                 'sent': int(item.get('sent') or 0),
@@ -66,42 +65,41 @@ class AnalyticsRepository(BaseRepository[AnalyticsEvent]):
             raise
 
     def _get_model_usage(self, events) -> List[Dict]:
-        self.logger.debug("Fetching model usage statistics")
+        """
+        Private method to compute model usage for analytics
+        """
         try:
             model_usage = list(events.filter(event_type='token_usage')
-                .values('model')
-                .annotate(
-                    tokens=Sum('tokens'),
-                    cost=Sum('cost')
-                ))
-            self.logger.debug(f"Model usage data: {model_usage}")
+            .values('model')
+            .annotate(
+                tokens=Sum('tokens'),
+                cost=Sum('cost')
+            ))
             return [{
                 'model': item['model'],
                 'tokens': int(item['tokens']) if item.get('tokens') else 0,
                 'cost': str(item['cost']) if item.get('cost') else '0',
                 'requests': int(item['requests']) if item.get('requests') else 0,
-                'errorRate': float(item['errors'] / item['requests']) if (item.get('requests') and item.get('errors')) else 0
+                'errorRate': float(item['errors'] / item['requests']) if (
+                            item.get('requests') and item.get('errors')) else 0
             } for item in model_usage]
         except Exception as e:
             self.logger.error(f"Error in _get_model_usage: {str(e)}")
             raise
 
     def _get_time_analysis(self, events) -> List[Dict]:
-        self.logger.debug("Fetching time analysis statistics")
+        """
+        Private method to compute time analysis for analytics
+        """
         try:
-            time_analysis = list(events
-            .annotate(
+            time_analysis = list(events.annotate(
                 hour=ExtractHour('timestamp'),
                 day=ExtractDay('timestamp')
-            )
-            .values('hour', 'day')
-            .annotate(
+            ).values('hour', 'day').annotate(
                 requests=Count('id'),
                 tokens=Sum('tokens'),
                 cost=Sum('cost')
-            )
-            .order_by('day', 'hour'))
-            self.logger.debug(f"Time analysis data: {time_analysis}")
+            ).order_by('day', 'hour'))
             return [{
                 'hour': item['hour'],
                 'day': item['day'],
@@ -137,7 +135,7 @@ class AnalyticsRepository(BaseRepository[AnalyticsEvent]):
                 event_type='message',
                 metadata__has_key='response_time'
             )
-            
+
             # Calculate average response time manually to avoid JSON parsing issues
             response_times = [
                 float(event.metadata.get('response_time', 0))
@@ -146,38 +144,22 @@ class AnalyticsRepository(BaseRepository[AnalyticsEvent]):
             ]
             avg_response_time = sum(response_times) / len(response_times) if response_times else 0.0
 
-            self.logger.debug(f"Response times: {response_times}")
-            self.logger.debug(f"Average response time: {avg_response_time}")
-
             total_tokens = events.aggregate(total=Sum('tokens'))['total'] or 0
-            total_cost = events.filter(event_type='token_usage').aggregate(
-                total=Sum('cost'))['total'] or Decimal('0')
+            total_cost = events.filter(event_type='token_usage').aggregate(total=Sum('cost'))['total'] or Decimal('0')
             total_messages = events.filter(event_type='message').count()
 
-            self.logger.debug(f"Aggregated values - Tokens: {total_tokens}, Cost: {total_cost}, "
-                            f"Messages: {total_messages}, Avg Response Time: {avg_response_time}")
-
-            token_usage = self._get_token_usage(events)
-            message_stats = self._get_message_stats(events)
-            model_usage = self._get_model_usage(events)
-            time_analysis = self._get_time_analysis(events)
             result = {
-                'tokenUsage': token_usage,
-                'messageStats': message_stats,
-                'modelUsage': model_usage,
-                'timeAnalysis': time_analysis,
+                'tokenUsage': self._get_token_usage(events),
+                'messageStats': self._get_message_stats(events),
+                'modelUsage': self._get_model_usage(events),
+                'timeAnalysis': self._get_time_analysis(events),
                 'totalTokens': int(total_tokens),
                 'totalCost': str(total_cost),
                 'totalMessages': total_messages,
                 'averageResponseTime': float(avg_response_time)
             }
-            
-            self.logger.debug(f"Final analytics result: {result}")
-            return result
 
-        except Exception as e:
-            self.logger.error(f"Error getting analytics: {str(e)}", exc_info=True)
-            raise
+            return result
 
         except Exception as e:
             self.logger.error(f"Error getting analytics: {str(e)}", exc_info=True)

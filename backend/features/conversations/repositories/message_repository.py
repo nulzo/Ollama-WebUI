@@ -1,53 +1,60 @@
 import base64
 import logging
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, TypedDict, Literal
 
 from django.core.files.base import ContentFile
 from django.db import transaction
 
+from features.authentication.models import CustomUser
 from features.conversations.models import Conversation
 from features.completions.models import Message
 from features.completions.models import MessageImage
 from api.utils.interfaces.base_repository import BaseRepository
 
+class MessageType(TypedDict):
+    conversation: Conversation
+    content: str
+    role: Literal["assistant", "user", "system"]
+    user: CustomUser
+    model: str
+    images: List[MessageImage]
 
 class MessageRepository(BaseRepository[Message]):
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
     @transaction.atomic
-    def create(self, data: dict) -> Message:
-        """Create a new message with images"""
+    def create(
+            self,
+            conversation: Conversation,
+            content: str,
+            role: Literal["assistant", "user", "system"],
+            user: CustomUser,
+            model: str,
+            images: Optional[List[MessageImage]] = None,
+            generation_time: Optional[datetime] = None,
+            finish_reason: Optional[str] = None,
+            tokens_used: Optional[str] = None
+    ) -> Message:
+        """
+        Store a new message to the database
+        """
+        if images is None: images = []
         try:
-            # Extract images before creating message
-            images = data.pop("images", [])
-            self.logger.info(f"Processing message with {len(images)} images")
+            message = Message.objects.create(
+                conversation=conversation,
+                content=content,
+                role=role,
+                user=user,
+                model=model,
+                has_images=bool(images),
+                generation_time=generation_time,
+                prompt_tokens=tokens_used,
+                completed_tokens=tokens_used,
+                finish_reason=finish_reason,
+            )
 
-            if data["role"] == "assistant":
-                message = Message.objects.create(
-                    conversation=data["conversation"],
-                    content=data["content"],
-                    role=data["role"],
-                    user=data["user"],
-                    model=data["model"],
-                    has_images=bool(images),
-                    tokens_used=data.get("tokens_used"),
-                    generation_time=data.get("generation_time"),
-                    prompt_tokens=None,
-                    completion_tokens=None,
-                    finish_reason=None,
-                )
-            else:
-                message = Message.objects.create(
-                    conversation=data["conversation"],
-                    content=data["content"],
-                    role=data["role"],
-                    user=data["user"],
-                    model=data["model"],
-                    has_images=bool(images),
-                )
-            
             # Process and create MessageImage instances
             if images:
                 for index, base64_image in enumerate(images):

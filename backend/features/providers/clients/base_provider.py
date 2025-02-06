@@ -4,25 +4,57 @@ from typing import AnyStr, List, Union, Dict, Optional
 from features.analytics.services.analytics_service import AnalyticsService
 import logging
 
+from features.authentication.models import CustomUser
+from features.conversations.models import Conversation
+from timeit import default_timer as timer
+
+
 class BaseProvider(ABC):
     def __init__(self, analytics_service: AnalyticsService = None) -> None:
         self._analytics_service = analytics_service
         self.logger = logging.getLogger(__name__)
-    
-    @abstractmethod
-    def chat(self, model: str, messages: Union[List, AnyStr], stream: bool = False): ...
+
+    def chat(
+            self,
+            model: str,
+            user: CustomUser,
+            conversation: Conversation,
+            messages: Union[List, AnyStr],
+            stream: bool = False
+    ) -> None:
+        """Forced implementation for chat entry (regardless of stream)"""
+        try:
+            # Initialize a timer
+            start = timer()
+            if stream:
+                self.stream(model, messages)
+            else:
+                self.generate(model, messages)
+            generation_time = timer() - start
+            self.log_chat_completion(model, messages, stream)
+        except Exception as e:
+            self.logger.error(e)
 
     @abstractmethod
-    def stream(self, model: str, messages: Union[List, AnyStr]): ...
+    def stream(self, model: str, messages: Union[List, AnyStr]):
+        """Stream a response"""
+        ...
 
     @abstractmethod
-    def model(self): ...
+    def generate(self, model: str, messages: Union[List, AnyStr]):
+        """Generate a response without streaming"""
+        ...
 
     @abstractmethod
-    def models(self): ...
+    def model(self):
+        ...
 
     @abstractmethod
-    def generate(self): ...
+    def models(self):
+        ...
+
+    @abstractmethod
+    def calculate_cost(self): ...
 
     @property
     def analytics_service(self) -> Optional[AnalyticsService]:
@@ -33,15 +65,14 @@ class BaseProvider(ABC):
         self._analytics_service = service
 
     def log_chat_completion(
-        self, 
-        model: str,
-        messages: List,
-        token_usage: Dict[str, int],
-        user_id: Optional[int],
-        conversation_id: Optional[str],
-        generation_time: float,
-        error: Optional[str] = None,
-        metadata: Optional[Dict] = None
+            self,
+            model: str,
+            token_usage: Dict[str, int],
+            user_id: Optional[int],
+            conversation_id: Optional[str],
+            generation_time: float,
+            error: Optional[str] = None,
+            metadata: Optional[Dict] = None
     ) -> None:
         """Log chat completion analytics"""
         if not self.analytics_service:
@@ -61,7 +92,7 @@ class BaseProvider(ABC):
                     "conversation_id": conversation_id,
                     "generation_time": generation_time,
                     "tokens_per_second": (
-                        token_usage.get("completion_tokens", 0) / generation_time 
+                        token_usage.get("completion_tokens", 0) / generation_time
                         if generation_time > 0 else 0
                     ),
                     **(metadata or {})

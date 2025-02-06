@@ -3,6 +3,9 @@ from features.analytics.models import AnalyticsEvent
 from features.authentication.serializers.user_serializer import UserSerializer
 
 class TokenUsageSerializer(serializers.Serializer):
+    """
+    Serializer for the token usage data.
+    """
     count = serializers.IntegerField()
     timestamp = serializers.DateTimeField()
     promptTokens = serializers.IntegerField()
@@ -11,11 +14,17 @@ class TokenUsageSerializer(serializers.Serializer):
     cost = serializers.FloatField()
 
 class MessageStatsSerializer(serializers.Serializer):
+    """
+    Serializer for the message stats data.
+    """
     timestamp = serializers.DateTimeField()
     sent = serializers.IntegerField()
     received = serializers.IntegerField()
 
 class ModelUsageSerializer(serializers.Serializer):
+    """
+    Serializer for the model usage data.
+    """
     model = serializers.CharField()
     tokens = serializers.IntegerField()
     cost = serializers.DecimalField(max_digits=10, decimal_places=6)
@@ -23,6 +32,9 @@ class ModelUsageSerializer(serializers.Serializer):
     errorRate = serializers.FloatField()
 
 class TimeAnalysisSerializer(serializers.Serializer):
+    """
+    Serializer for the time analysis data.
+    """
     hour = serializers.IntegerField()
     day = serializers.IntegerField()
     requests = serializers.IntegerField()
@@ -30,6 +42,9 @@ class TimeAnalysisSerializer(serializers.Serializer):
     cost = serializers.FloatField()
 
 class AnalyticsDataSerializer(serializers.Serializer):
+    """
+    Serializer for the analytics data.
+    """
     tokenUsage = TokenUsageSerializer(many=True)
     messageStats = MessageStatsSerializer(many=True)
     modelUsage = ModelUsageSerializer(many=True)
@@ -40,6 +55,9 @@ class AnalyticsDataSerializer(serializers.Serializer):
     averageResponseTime = serializers.FloatField()
 
 class AnalyticsEventSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the analytics event data.
+    """
     user = UserSerializer(read_only=True)
 
     class Meta:

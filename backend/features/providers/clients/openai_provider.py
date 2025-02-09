@@ -8,8 +8,9 @@ from openai import Client
 import json
 
 from features.providers.clients.base_provider import BaseProvider
-from features.analytics.services.analytics_service import AnalyticsService
+from features.analytics.services.analytics_service import AnalyticsEventService
 logger = logging.getLogger(__name__)
+
 
 
 class OpenAiProvider(BaseProvider):
@@ -17,7 +18,8 @@ class OpenAiProvider(BaseProvider):
         # _openai_host = settings.OPENAI_HOST
         _api_key = settings.OPENAI_API_KEY
         self._client = Client(api_key=_api_key)
-        super().__init__(analytics_service=AnalyticsService())
+        super().__init__(analytics_service=AnalyticsEventService())
+
 
     def chat(self, model: str, messages: Union[List, AnyStr]):
         """
@@ -31,67 +33,102 @@ class OpenAiProvider(BaseProvider):
 
         return response.choices[0].message.content
 
-    def stream(self, model: str, messages: Union[List, AnyStr]):
+    def stream(self, model: str, messages: Union[List, AnyStr], user_id: int = None, conversation_id: str = None):
         """
-        Streams a response from the OpenAI service.
+        Streams a response from the OpenAI service, accumulating prompt and completion tokens.
+        Once done, logs the analytics event with token usage and cost details.
         """
         start_time = timer()
-
-        processed_messages = self._process_messages(messages)
-        
-        if not processed_messages:
-            raise ValueError("Messages array cannot be empty")
-        
         token_usage = {
             'prompt_tokens': 0,
             'completion_tokens': 0,
             'total_tokens': 0
         }
-
-        response = self._client.chat.completions.create(
-            model=model,
-            messages=processed_messages,
-            stream=True
-        )
-
         buffer = ""
-        for chunk in response:
-            if chunk.choices and chunk.choices[0].delta.content:
-                content = chunk.choices[0].delta.content
-                buffer += content
-                if len(buffer) >= 4 or any(p in buffer for p in ".!?,\n"):
+        try:
+            processed_messages = self._process_messages(messages)
+            if not processed_messages:
+                raise ValueError("Messages array cannot be empty")
+            
+            response = self._client.chat.completions.create(
+                model=model,
+                messages=processed_messages,
+                stream=True
+            )
+
+            for chunk in response:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    buffer += content
+                    # For streaming, you might count each yielded chunk as a token (or use a token counter)
+                    token_usage['completion_tokens'] += 1
+                    token_usage['total_tokens'] += 1
                     yield json.dumps({
                         "content": buffer,
                         "status": "generating"
                     })
                     buffer = ""
-            
-            # OpenAI provides usage info in the last chunk
-            if hasattr(chunk, 'usage'):
-                token_usage.update(chunk.usage)
-                print(token_usage)
 
-        if buffer:
+                # On the last chunk, OpenAI may supply a usage summary.
+                if hasattr(chunk, 'usage'):
+                    # Update token_usage with API-provided values
+                    token_usage.update(chunk.usage)
+
+            if buffer:
+                yield json.dumps({
+                    "content": buffer,
+                    "status": "generating"
+                })
+
+            # Final generation completed
+            generation_time = timer() - start_time
+
+            # Assemble event data.
+            event_data = {
+                "user_id": user_id,
+                "event_type": "chat_completion",
+                "model": model,
+                "tokens": token_usage.get("total_tokens", 0),
+                "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                "completion_tokens": token_usage.get("completion_tokens", 0),
+                "cost": self.calculate_cost(token_usage, model),
+                "metadata": {
+                    "conversation_id": conversation_id,
+                    "generation_time": generation_time,
+                    "tokens_per_second": (
+                        token_usage.get("completion_tokens", 0) / generation_time
+                        if generation_time > 0 else 0
+                    )
+                }
+            }
+
+            # Use the common logging method to create the analytics event
+            self.log_chat_completion(event_data)
+
             yield json.dumps({
-                "content": buffer,
-                "status": "generating"
+                "status": "done",
+                "usage": token_usage
             })
-        
-        generation_time = timer() - start_time
-        # self.log_chat_completion(
-        #     model=model,
-        #     messages=messages,
-        #     token_usage=token_usage,
-        #     user_id=user_id,
-        #     conversation_id=conversation_id,
-        #     generation_time=generation_time
-        # )
 
-        # Send final usage statistics
-        yield json.dumps({
-            "status": "done",
-            "usage": token_usage
-        })
+        except Exception as e:
+            generation_time = timer() - start_time
+            error_event_data = {
+                "user_id": user_id,
+                "event_type": "error",
+                "model": model,
+                "tokens": token_usage.get("total_tokens", 0),
+                "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                "completion_tokens": token_usage.get("completion_tokens", 0),
+                "cost": self.calculate_cost(token_usage, model),
+                "metadata": {
+                    "conversation_id": conversation_id,
+                    "generation_time": generation_time,
+                    "error": str(e)
+                }
+            }
+            self.log_chat_completion(error_event_data)
+            logger.error(f"Error in streaming generation: {str(e)}")
+            yield json.dumps({"error": str(e), "status": "error"})
 
     def _process_messages(self, messages: Union[List, AnyStr]) -> List[Dict]:
         """

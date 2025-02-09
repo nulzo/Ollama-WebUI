@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import AnyStr, List, Union, Dict, Optional
 
-from features.analytics.services.analytics_service import AnalyticsService
+from features.analytics.services.analytics_service import AnalyticsEventService
 import logging
+
 
 from features.authentication.models import CustomUser
 from features.conversations.models import Conversation
@@ -10,9 +11,10 @@ from timeit import default_timer as timer
 
 
 class BaseProvider(ABC):
-    def __init__(self, analytics_service: AnalyticsService = None) -> None:
+    def __init__(self, analytics_service: AnalyticsEventService = None) -> None:
         self._analytics_service = analytics_service
         self.logger = logging.getLogger(__name__)
+
 
     def chat(
             self,
@@ -31,7 +33,7 @@ class BaseProvider(ABC):
             else:
                 self.generate(model, messages)
             generation_time = timer() - start
-            self.log_chat_completion(model, messages, stream)
+            # self.log_chat_completion(model, messages, stream)
         except Exception as e:
             self.logger.error(e)
 
@@ -57,53 +59,40 @@ class BaseProvider(ABC):
     def calculate_cost(self): ...
 
     @property
-    def analytics_service(self) -> Optional[AnalyticsService]:
+    def analytics_service(self) -> Optional[AnalyticsEventService]:
         return self._analytics_service
 
+
     @analytics_service.setter
-    def analytics_service(self, service: Optional[AnalyticsService]) -> None:
+    def analytics_service(self, service: Optional[AnalyticsEventService]) -> None:
         self._analytics_service = service
 
-    def log_chat_completion(
-            self,
-            model: str,
-            token_usage: Dict[str, int],
-            user_id: Optional[int],
-            conversation_id: Optional[str],
-            generation_time: float,
-            error: Optional[str] = None,
-            metadata: Optional[Dict] = None
-    ) -> None:
-        """Log chat completion analytics"""
-        if not self.analytics_service:
-            self.logger.warning("Analytics service not configured")
-            return
-
+    def log_chat_completion(self, event_data: Dict) -> None:
+        """
+        Logs a chat completion analytics event.
+        The event_data is expected to include at least:
+        - "event_type": a string indicating the type of event (e.g. "chat_completion")
+        - "user_id": the primary key of the user that generated the event
+        """
         try:
-            event_data = {
-                "user_id": user_id,
-                "event_type": "chat_completion",
-                "model": model,
-                "tokens": token_usage.get("total_tokens", 0),
-                "prompt_tokens": token_usage.get("prompt_tokens", 0),
-                "completion_tokens": token_usage.get("completion_tokens", 0),
-                "cost": self.calculate_cost(token_usage, model),
-                "metadata": {
-                    "conversation_id": conversation_id,
-                    "generation_time": generation_time,
-                    "tokens_per_second": (
-                        token_usage.get("completion_tokens", 0) / generation_time
-                        if generation_time > 0 else 0
-                    ),
-                    **(metadata or {})
-                }
-            }
+            # Ensure an event type is provided.
+            event_type = event_data.get("event_type")
+            if not event_type:
+                raise ValueError("Event type is required for analytics logging.")
 
-            if error:
-                event_data["metadata"]["error"] = error
-                event_data["event_type"] = "error"
+            # Ensure that user_id is available to fetch the user instance.
+            user_id = event_data.get("user_id")
+            if not user_id:
+                raise ValueError("User ID is required for logging analytics events.")
 
-            self.analytics_service.track_event(event_data)
+            # Retrieve the user instance from the database.
+            user = CustomUser.objects.get(pk=user_id)
 
+            # Log the event with a valid user instance.
+            self.analytics_service.log_event(
+                event_type=event_type,
+                user=user,
+                data=event_data
+            )
         except Exception as e:
             self.logger.error(f"Error logging chat completion: {str(e)}")

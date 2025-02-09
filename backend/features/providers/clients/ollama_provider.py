@@ -6,10 +6,11 @@ from threading import Event
 from timeit import default_timer as timer
 from typing import AnyStr, Dict, Generator, List, Optional, Union
 
-from features.analytics.services.analytics_service import AnalyticsService
+from features.analytics.services.analytics_service import AnalyticsEventService
 import httpx
 from django.conf import settings
 from ollama import Client, Options
+
 
 from features.tools.models import Tool
 from features.providers.clients.base_provider import BaseProvider
@@ -53,7 +54,7 @@ class OllamaProvider(BaseProvider):
         self._client = Client(host=self.config.endpoint)
         self._cancel_event = Event()
         self.logger = logger
-        super().__init__(analytics_service=AnalyticsService())
+        super().__init__(analytics_service=AnalyticsEventService())
 
     def update_config(self, config: dict) -> None:
         """Update provider configuration"""
@@ -150,14 +151,15 @@ class OllamaProvider(BaseProvider):
             raise ServiceError(f"Ollama chat failed: {str(e)}")
 
     def stream(
-        self, model: str, messages: list, options: Optional[Options] = None, user_id: Optional[int] = None, conversation_id: Optional[str] = None
+        self, model: str, messages: list, options: Optional[Options] = None, 
+        user_id: int = None, conversation_id: str = None
     ) -> Generator[str, None, None]:
         """
-        Streams a response from the ollama service.
+        Streams a response from the Ollama service.
+        Accumulates both prompt and completion tokens and logs the event at completion.
         """
         self._cancel_event.clear()
         start_time = timer()
-        self.logger.info(f"Starting Ollama stream for model: {model}")
         generation_id = id(self)
         token_usage = {
             'prompt_tokens': 0,
@@ -166,51 +168,50 @@ class OllamaProvider(BaseProvider):
         }
 
         try:
-            # Process messages to ensure images are in correct format
             processed_messages = []
             for msg in messages:
                 processed_msg = {
                     'role': msg['role'],
                     'content': msg['content']
                 }
-                
                 if 'images' in msg and msg['images']:
-                    # Convert bytes to base64 if needed
                     base64_images = []
                     for img in msg['images']:
                         if isinstance(img, bytes):
-                            # If it's already bytes, encode to base64
                             base64_images.append(base64.b64encode(img).decode('utf-8'))
                         elif isinstance(img, str):
-                            # If it's a base64 string, remove data URI prefix if present
                             if img.startswith('data:'):
                                 base64_images.append(img.split(',')[1])
                             else:
                                 base64_images.append(img)
                     processed_msg['images'] = base64_images
-                
                 processed_messages.append(processed_msg)
-                
+
             response = self._client.chat(
                 model=model,
                 messages=processed_messages,
                 options=options,
                 stream=True
             )
-            
+
             for chunk in response:
                 if self._cancel_event.is_set():
-                    self.logger.info(f"Generation {generation_id} was cancelled after tokens")
                     generation_time = timer() - start_time
-                    self.log_chat_completion(
-                        model=model,
-                        messages=messages,
-                        token_usage=token_usage,
-                        user_id=user_id,
-                        conversation_id=conversation_id,
-                        generation_time=generation_time,
-                        metadata={"cancelled": True}
-                    )
+                    self.logger.info(f"Generation {generation_id} cancelled.")
+                    error_event_data = {
+                        "user_id": user_id,
+                        "event_type": "error",
+                        "model": model,
+                        "tokens": token_usage.get("total_tokens", 0),
+                        "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                        "completion_tokens": token_usage.get("completion_tokens", 0),
+                        "cost": self.calculate_cost(token_usage, model),
+                        "metadata": {
+                            "conversation_id": conversation_id,
+                            "generation_time": generation_time,
+                            "error": str(e)
+                        }
+                    }
                     yield json.dumps({
                         'content': ' [Generation cancelled]',
                         'status': 'cancelled',
@@ -228,46 +229,65 @@ class OllamaProvider(BaseProvider):
                     })
 
                 if chunk.get('done'):
+                    # Update token usage from returned metadata.
                     token_usage.update({
                         'prompt_tokens': chunk.get('prompt_eval_count', 0),
                         'completion_tokens': chunk.get('eval_count', 0),
-                        'total_tokens': (chunk.get('prompt_eval_count', 0) + 
-                                    chunk.get('eval_count', 0))
+                        'total_tokens': (
+                            chunk.get('prompt_eval_count', 0) +
+                            chunk.get('eval_count', 0)
+                        )
                     })
-                    
                     generation_time = timer() - start_time
-                    self.log_chat_completion(
-                        model=model,
-                        messages=messages,
-                        token_usage=token_usage,
-                        user_id=user_id,
-                        conversation_id=conversation_id,
-                        generation_time=generation_time
-                    )
-                    
+                    # Assemble event data.
+                    event_data = {
+                        "user_id": user_id,
+                        "event_type": "chat_completion",
+                        "model": model,
+                        "tokens": token_usage.get("total_tokens", 0),
+                        "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                        "completion_tokens": token_usage.get("completion_tokens", 0),
+                        "cost": self.calculate_cost(token_usage, model),
+                        "metadata": {
+                            "conversation_id": conversation_id,
+                            "generation_time": generation_time,
+                            "tokens_per_second": (
+                                token_usage.get("completion_tokens", 0) / generation_time
+                                if generation_time > 0 else 0
+                            )
+                        }
+                    }
+
+                    # Use the common logging method to create the analytics event
+                    print(f"Event data: {event_data}")
+                    self.log_chat_completion(event_data)
                     yield json.dumps({
                         'status': 'done',
                         'usage': token_usage
                     })
 
         except Exception as e:
-            self.logger.error(f"Error in generation {generation_id}: {str(e)}")
             generation_time = timer() - start_time
-            self.log_chat_completion(
-                model=model,
-                messages=messages,
-                token_usage=token_usage,
-                user_id=user_id,
-                conversation_id=conversation_id,
-                generation_time=generation_time,
-                error=str(e)
-            )
-            yield json.dumps({
-                'error': str(e),
-                'status': 'error'
-            })
+            error_event_data = {
+                "user_id": user_id,
+                "event_type": "error",
+                "model": model,
+                "tokens": token_usage.get("total_tokens", 0),
+                "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                "completion_tokens": token_usage.get("completion_tokens", 0),
+                "cost": self.calculate_cost(token_usage, model),
+                "metadata": {
+                    "conversation_id": conversation_id,
+                    "generation_time": generation_time,
+                    "error": str(e)
+                }
+            }
+            self.log_chat_completion(error_event_data)
+            logger.error(f"Error in streaming generation: {str(e)}")
+            yield json.dumps({"error": str(e), "status": "error"})
+            
         finally:
-            self.logger.info(f"Generation {generation_id} completed with {token_usage} tokens generated")
+            self.logger.info(f"Generation {generation_id} completed with {token_usage} tokens")
 
     def model(self): ...
 

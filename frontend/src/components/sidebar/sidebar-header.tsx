@@ -48,7 +48,7 @@ export const SidebarHeader = ({
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="relative flex justify-center items-center w-10 h-9 font-bold text-sm group"
+            className="group relative flex justify-center items-center w-10 h-9 font-bold text-sm"
           >
             <PanelRightClose className="size-4 stroke-foreground" />
           </Button>
@@ -57,7 +57,7 @@ export const SidebarHeader = ({
         {/* Title and expand button when expanded */}
         <div className="flex justify-between items-center gap-1 ml-8 w-full">
           <motion.div
-            className="flex items-center gap-1 text-foreground text-nowrap overflow-hidden select-none"
+            className="flex items-baseline gap-1 text-foreground text-nowrap overflow-hidden select-none"
             animate={{
               width: isCollapsed ? 0 : 'auto',
               opacity: isCollapsed ? 0 : 1,
@@ -68,7 +68,7 @@ export const SidebarHeader = ({
             }}
           >
             CringeAI
-            <span className="font-light text-primary text-xs">beta</span>
+            <span className="font-normal text-primary text-xs">beta 0.0.1</span>
           </motion.div>
 
           <motion.div
@@ -84,7 +84,7 @@ export const SidebarHeader = ({
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="relative flex justify-center items-center w-10 h-9 font-bold text-sm group"
+              className="group relative flex justify-center items-center w-10 h-9 font-bold text-sm"
             >
               <PanelRightOpen className="size-4 stroke-foreground" />
             </Button>

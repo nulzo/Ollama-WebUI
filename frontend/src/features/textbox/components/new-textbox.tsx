@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Command, CornerDownLeft, Paperclip, X } from 'lucide-react';
+import { Command, Copy, CornerDownLeft, Paperclip, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PromptCommand } from '@/features/chat/components/prompts/prompt-command';
 import { usePrompts } from '@/features/prompts/api/get-prompts';
+import { useClipboard } from '@/hooks/use-clipboard';
 
 interface DynamicTextareaProps {
   text: string;
@@ -42,8 +43,12 @@ export default function DynamicTextarea({
   const [historyIndex, setHistoryIndex] = useState(0);
   const [isPromptOpen, setIsPromptOpen] = useState(false);
   const [promptSearchTerm, setPromptSearchTerm] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const { data: prompts } = usePrompts();
+
+  const { copy } = useClipboard();
+
+  const handleCopy = (text: string) => {
+    copy(text);
+  };
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -114,11 +119,17 @@ export default function DynamicTextarea({
     }
   };
 
+  function estimateTokenCount(text: string): number {
+    // GPT models typically use ~4 characters per token on average
+    // This is a rough estimate - actual tokenization is more complex
+    return Math.ceil(text.length / 4);
+  }
+
   const handlePromptSelect = (content: string) => {
     const cursorPosition = textareaRef.current?.selectionStart || 0;
     const before = text.slice(0, cursorPosition);
     const after = text.slice(cursorPosition);
-    
+
     // Remove the trigger character
     const newBefore = before.replace(/\/[^\s]*$/, '');
     setText(`${newBefore}${content}${after}`);
@@ -148,8 +159,8 @@ export default function DynamicTextarea({
             searchTerm={promptSearchTerm}
           />
         )}
-        
-        <div className="relative border ring-offset-0 border-input flex flex-col w-full py-2 px-2 bg-secondary backdrop-blur-sm ring-0 rounded-lg focus-within:border-primary focus-within:ring-primary focus-within:ring-1">
+
+        <div className="relative border ring-offset-0 border-input w-full py-2 px-3 bg-secondary backdrop-blur-sm ring-0 rounded-xl focus-within:border-primary focus-within:ring-primary focus-within:ring-1">
           <textarea
             ref={textareaRef}
             value={text}
@@ -157,13 +168,77 @@ export default function DynamicTextarea({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             rows={1}
-            className="min-h-[20px] w-full resize-none bg-transparent px-3 py-[10px] focus:outline-none text-sm placeholder:text-muted-foreground"
+            className="w-full resize-none bg-transparent py-[6px] pr-[50px] focus:outline-none text-sm placeholder:text-muted-foreground"
             style={{ maxHeight: '200px' }}
             disabled={disabled}
           />
 
+          {/* Gradient fade effect */}
+          {/* <div className="absolute bottom-0 h-12 w-full bg-gradient-to-b from-transparent to-secondary pointer-events-none" />
+          <div className="absolute bottom-0 h-12 w-full bg-secondary pointer-events-none" /> */}
+          <span className="text-muted-foreground text-xs">
+            {text.length > 0 ? (
+              `${estimateTokenCount(text)} tokens`
+            ) : (
+              <span className="text-xs opacity-0">0 tokens</span>
+            )}
+          </span>
+          {/* Bottom-aligned buttons */}
+          <div className="absolute right-2 bottom-2 flex items-center bg-secondary">
+            {!isGenerating && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="px-2 h-7 w-7 text-xs bg-transparent hover:bg-transparent shadow-none hover:text-foreground text-muted-foreground"
+                    onClick={() => handleCopy(text)}
+                  >
+                    <Copy className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Copy text</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {uploadedImages.length === 0 && !isGenerating && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="px-2 h-7 w-7 text-xs bg-transparent hover:bg-transparent shadow-none hover:text-foreground text-muted-foreground"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Paperclip className="size-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Upload Image (requires vision capable model)</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {isGenerating ? (
+              <Button variant="outline" className="px-2 h-8 text-xs" onClick={onCancel}>
+                <X className="mr-1 size-3" />
+                Cancel
+              </Button>
+            ) : (
+              <Button
+                className="px-2 ml-2 h-8 text-xs whitespace-nowrap"
+                onClick={handleSubmit}
+                disabled={!text.trim() || model.length === 0}
+              >
+                Send
+                <kbd className="inline-flex justify-center items-center gap-1 px-1 py-1 rounded font-geistmono text-sm">
+                  <Command className="size-2" />
+                  <CornerDownLeft className="size-2" />
+                </kbd>
+                <span className="sr-only">Send message</span>
+              </Button>
+            )}
+          </div>
+
           {uploadedImages.length > 0 && (
-            <div className="flex flex-wrap px-4">
+            <div className="flex flex-wrap gap-2 mt-2">
               {uploadedImages.map((image, index) => (
                 <div key={index} className="relative group">
                   <img
@@ -182,51 +257,6 @@ export default function DynamicTextarea({
             </div>
           )}
 
-          <div className="flex justify-end items-center px-2 pb-2">
-            <div className="flex items-center space-x-2">
-              <span className="text-muted-foreground text-xs">
-                {text.length > 0 ? text.length : ''}
-              </span>
-
-              {uploadedImages.length === 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      className="px-2 h-8 text-xs"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Paperclip className="size-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Upload Image (requires vision capable model)</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-
-              {isGenerating ? (
-                <Button variant="outline" className="px-2 h-8 text-xs" onClick={onCancel}>
-                  <X className="mr-1 size-3" />
-                  Cancel
-                </Button>
-              ) : (
-                <Button
-                  className="px-2 h-8 text-xs"
-                  onClick={handleSubmit}
-                  disabled={!text.trim() || model.length === 0}
-                >
-                  Send
-                  <kbd className="inline-flex justify-center items-center gap-1 px-1 py-1 rounded font-geistmono text-sm">
-                    <Command className="size-2" />
-                    <CornerDownLeft className="size-2" />
-                  </kbd>
-                  <span className="sr-only">Send message</span>
-                </Button>
-              )}
-            </div>
-          </div>
           <input
             type="file"
             ref={fileInputRef}

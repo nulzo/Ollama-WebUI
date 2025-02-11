@@ -95,12 +95,14 @@ export const Message = memo<MessageProps>(
     const isModelOnline = useMemo(() => {
       if (!modelsData || !message.model) return false;
 
+      console.log(modelsData, message.model);
+
       const isOllamaModel = modelsData.ollama?.models?.some(
         model => model.name?.toLowerCase() === message.model?.toLowerCase()
       );
 
       const isOpenAIModel = modelsData.openai?.some(
-        model => model.id?.toLowerCase() === message.model?.toLowerCase()
+        model => model[0][1].toLowerCase() === message.model?.toLowerCase()
       );
 
       return isOllamaModel || isOpenAIModel;
@@ -201,7 +203,7 @@ export const Message = memo<MessageProps>(
             </div>
 
             <div className="flex flex-col w-full">
-              <div className="flex items-baseline mb-0.5 ml-1">
+              <div className="flex items-baseline mb-0.5 ml-1 gap-1.5">
                 <span className="font-medium text-primary text-sm">{message.model}</span>
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
               </div>

@@ -1622,6 +1622,9 @@
   .border-destructive\/50 {
     border-color: color-mix(in oklab, hsl(var(--destructive)) 50%, transparent);
   }
+  .border-foreground\/75 {
+    border-color: color-mix(in oklab, hsl(var(--foreground)) 75%, transparent);
+  }
   .border-input {
     border-color: hsl(var(--border));
   }

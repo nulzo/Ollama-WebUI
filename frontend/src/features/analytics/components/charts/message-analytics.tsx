@@ -12,22 +12,22 @@ interface MessageAnalyticsProps {
 const tokenChartConfig = {
   prompt_tokens: {
     label: 'Prompt Tokens',
-    color: 'var(--chart-1)',
+    color: 'hsl(var(--chart-1))',
   },
   completion_tokens: {
     label: 'Completion Tokens',
-    color: 'var(--chart-2)',
+    color: 'hsl(var(--chart-2))',
   },
 } as const;
 
 const performanceChartConfig = {
   generation_time: {
     label: 'Generation Time',
-    color: 'var(--chart-1)',
+    color: 'hsl(var(--chart-1))',
   },
   tokens_per_second: {
     label: 'Tokens/Second',
-    color: 'var(--chart-2)',
+    color: 'hsl(var(--chart-2))',
   },
 } as const;
 

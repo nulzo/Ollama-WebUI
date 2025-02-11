@@ -550,9 +550,6 @@
   .inset-y-0 {
     inset-block: calc(var(--spacing) * 0);
   }
-  .-top-0\.5 {
-    top: calc(var(--spacing) * -0.5);
-  }
   .-top-1\.5 {
     top: calc(var(--spacing) * -1.5);
   }
@@ -565,14 +562,8 @@
   .top-1 {
     top: calc(var(--spacing) * 1);
   }
-  .top-1\.5 {
-    top: calc(var(--spacing) * 1.5);
-  }
   .top-1\/2 {
     top: calc(1/2 * 100%);
-  }
-  .top-2 {
-    top: calc(var(--spacing) * 2);
   }
   .top-2\.5 {
     top: calc(var(--spacing) * 2.5);
@@ -604,17 +595,11 @@
   .right-2 {
     right: calc(var(--spacing) * 2);
   }
-  .right-3 {
-    right: calc(var(--spacing) * 3);
-  }
   .right-4 {
     right: calc(var(--spacing) * 4);
   }
   .right-\[10px\] {
     right: 10px;
-  }
-  .right-\[48px\] {
-    right: 48px;
   }
   .-bottom-0\.5 {
     bottom: calc(var(--spacing) * -0.5);
@@ -625,17 +610,8 @@
   .bottom-0 {
     bottom: calc(var(--spacing) * 0);
   }
-  .bottom-1\.5 {
-    bottom: calc(var(--spacing) * 1.5);
-  }
   .bottom-2 {
     bottom: calc(var(--spacing) * 2);
-  }
-  .bottom-3 {
-    bottom: calc(var(--spacing) * 3);
-  }
-  .bottom-4 {
-    bottom: calc(var(--spacing) * 4);
   }
   .bottom-\[-6px\] {
     bottom: -6px;
@@ -1000,9 +976,6 @@
   .h-\[20px\] {
     height: 20px;
   }
-  .h-\[30px\] {
-    height: 30px;
-  }
   .h-\[52px\] {
     height: 52px;
   }
@@ -1014,6 +987,9 @@
   }
   .h-\[300px\] {
     height: 300px;
+  }
+  .h-\[30px\] {
+    height: 30px;
   }
   .h-\[350px\] {
     height: 350px;
@@ -1074,9 +1050,6 @@
   }
   .min-h-24 {
     min-height: calc(var(--spacing) * 24);
-  }
-  .min-h-\[20px\] {
-    min-height: 20px;
   }
   .min-h-\[60px\] {
     min-height: 60px;
@@ -1285,14 +1258,6 @@
   }
   .translate-x-\[-50\%\] {
     --tw-translate-x: -50%;
-    translate: var(--tw-translate-x) var(--tw-translate-y);
-  }
-  .translate-y-1 {
-    --tw-translate-y: calc(var(--spacing) * 1);
-    translate: var(--tw-translate-x) var(--tw-translate-y);
-  }
-  .translate-y-5 {
-    --tw-translate-y: calc(var(--spacing) * 5);
     translate: var(--tw-translate-x) var(--tw-translate-y);
   }
   .translate-y-\[-50\%\] {
@@ -1521,9 +1486,6 @@
   }
   .self-center {
     align-self: center;
-  }
-  .self-end {
-    align-self: flex-end;
   }
   .truncate {
     overflow: hidden;
@@ -1838,14 +1800,6 @@
     --tw-gradient-position: to bottom in oklab,;
     background-image: linear-gradient(var(--tw-gradient-stops));
   }
-  .bg-gradient-to-r {
-    --tw-gradient-position: to right in oklab,;
-    background-image: linear-gradient(var(--tw-gradient-stops));
-  }
-  .bg-gradient-to-t {
-    --tw-gradient-position: to top in oklab,;
-    background-image: linear-gradient(var(--tw-gradient-stops));
-  }
   .bg-linear-to-l {
     --tw-gradient-position: to left in oklab,;
     background-image: linear-gradient(var(--tw-gradient-stops));
@@ -1875,9 +1829,6 @@
   .to-transparent {
     --tw-gradient-to: transparent;
     --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
-  }
-  .bg-scroll {
-    background-attachment: scroll;
   }
   .fill-current {
     fill: currentColor;
@@ -2026,9 +1977,6 @@
   .pt-16 {
     padding-top: calc(var(--spacing) * 16);
   }
-  .pt-\[6px\] {
-    padding-top: 6px;
-  }
   .pr-2 {
     padding-right: calc(var(--spacing) * 2);
   }
@@ -2044,12 +1992,6 @@
   .pr-\[50px\] {
     padding-right: 50px;
   }
-  .pr-\[120px\] {
-    padding-right: 120px;
-  }
-  .pr-\[140px\] {
-    padding-right: 140px;
-  }
   .pb-1 {
     padding-bottom: calc(var(--spacing) * 1);
   }
@@ -2061,9 +2003,6 @@
   }
   .pb-4 {
     padding-bottom: calc(var(--spacing) * 4);
-  }
-  .pb-6 {
-    padding-bottom: calc(var(--spacing) * 6);
   }
   .pl-1 {
     padding-left: calc(var(--spacing) * 1);
@@ -3993,124 +3932,136 @@
   .font-primary {
     font-family: 'Archivo', sans-serif;
   }
-  @layer base {
-    .markdown-prose ol > li, .markdown-prose ul > li {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 0.5em;
-    }
-    .markdown-prose ol > li {
-      counter-increment: list-number;
-      display: flex;
-      margin-bottom: 0;
-      margin-top: 0;
-      min-height: 28px;
-    }
-    .markdown-prose ol, .markdown-prose ul {
-      list-style-position: outside;
-      margin: 0;
-      padding: 0;
-    }
-    .markdown-prose ol > li, .markdown-prose ul > li {
-      margin-bottom: 0.5em;
-    }
-    .markdown-prose ol ol, .markdown-prose ol ul, .markdown-prose ul ol, .markdown-prose ul ul {
-      margin-left: 1.5em;
-    }
-    .markdown-prose ol > li, .markdown-prose ul > li {
-      display: block;
-      position: relative;
-    }
-    .markdown-prose ol > li::before,  .markdown-prose ul > li::before {
-      position: absolute;
-      left: -1.5em;
-      min-width: 1em;
-      text-align: right;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose ol > li::before {
-      content: counter(list-item) '.';
-      counter-increment: list-item;
-      font-weight: bold;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose ul > li::before {
-      content: '•';
-      font-weight: bold;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose li > span {
-      display: block;
-      width: 100%;
-    }
-    .markdown-prose ol {
-      counter-reset: list-item;
-      list-style: none;
-      padding-left: 1em;
-    }
-    .markdown-prose ol > li {
-      counter-increment: list-number;
-      position: relative;
-      margin-bottom: 0.5em;
-      padding-left: 0.5em;
-    }
-    .markdown-prose ol > li::marker {
-      content: counter(list-number) '. ';
-      font-weight: bold;
-      margin-right: 0.5em;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose ol > li::before {
-      content: counter(list-number) '. ';
-      position: absolute;
-      left: 0;
-      font-weight: bold;
-      width: 1.5em;
-      text-align: right;
-      margin-right: 0.5em;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose li p {
-      margin: 0;
-    }
-    .image-modal {
-      z-index: 99999;
-    }
-    .markdown-prose ol > li::before {
-      content: counter(list-item) '.';
-      counter-increment: list-item;
-      font-weight: bold;
-      min-width: 1.5em;
-      margin-right: 0.5em;
-      text-align: right;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose ul > li::before {
-      content: '•';
-      font-weight: bold;
-      min-width: 1em;
-      margin-right: 0.5em;
-      color: hsl(var(--muted-foreground));
-    }
-    .markdown-prose li > span {
-      display: inline-block;
-      vertical-align: top;
-      width: 100%;
-    }
-    .markdown-prose li > span > div {
-      display: inline;
-    }
-    .markdown a {
-      color: #1b6ac9;
-      text-decoration: none;
-    }
-    .markdown a:hover {
-      text-decoration: underline;
-    }
-    .markdown-prose li p {
-      margin: 0;
-      display: inline;
-    }
+  html {
+    word-break: break-word;
+  }
+  code {
+    overflow-x: auto;
+    width: auto;
+    display: inline;
+  }
+  math {
+    margin-top: 1rem;
+  }
+  .markdown a {
+    text-decoration-line: underline;
+  }
+  .font-primary {
+    font-family: 'Archivo', sans-serif;
+  }
+  ol > li, ul > li {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.5em;
+  }
+  ol > li {
+    counter-increment: list-number;
+    display: flex;
+    margin-bottom: 0;
+    margin-top: 0;
+    min-height: 28px;
+  }
+  ol, ul {
+    list-style-position: outside;
+    margin: 0;
+    padding: 0;
+  }
+  ol > li, ul > li {
+    margin-bottom: 0.5em;
+  }
+  ol ol, ol ul, ul ol, ul ul {
+    margin-left: 1.5em;
+  }
+  ol > li, ul > li {
+    display: block;
+    position: relative;
+  }
+  .prose ol > li::before,  .prose ul > li::before {
+    position: absolute;
+    left: -1.5em;
+    min-width: 1em;
+    text-align: right;
+    color: hsl(var(--primary));
+  }
+  .prose ol > li::before {
+    content: counter(list-item) '.';
+    counter-increment: list-item;
+    font-weight: bold;
+    color: hsl(var(--primary));
+  }
+  .prose ul > li::before {
+    content: '•';
+    font-weight: bold;
+    color: hsl(var(--primary));
+  }
+  li > span {
+    display: block;
+    width: 100%;
+  }
+  ol {
+    counter-reset: list-item;
+    list-style: none;
+    padding-left: 1em;
+  }
+  ol > li {
+    counter-increment: list-number;
+    position: relative;
+    margin-bottom: 0.5em;
+    padding-left: 0.5em;
+  }
+  ol > li::marker {
+    content: counter(list-number) '. ';
+    font-weight: bold;
+    margin-right: 0.5em;
+    color: hsl(var(--primary));
+  }
+  ol > li::before {
+    content: counter(list-number) '. ';
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+    width: 1.5em;
+    text-align: right;
+    margin-right: 0.5em;
+    color: hsl(var(--primary));
+  }
+  li p {
+    margin: 0;
+  }
+  .prose ol > li::before {
+    content: counter(list-item) '.';
+    counter-increment: list-item;
+    font-weight: bold;
+    min-width: 1.5em;
+    margin-right: 0.5em;
+    text-align: right;
+    color: hsl(var(--primary));
+  }
+  ul > li::before {
+    content: '•';
+    font-weight: bold;
+    min-width: 1em;
+    margin-right: 0.5em;
+    color: hsl(var(--muted-foreground));
+  }
+  li > span {
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
+  }
+  li > span > div {
+    display: inline;
+  }
+  .markdown a {
+    color: #1b6ac9;
+    text-decoration: none;
+  }
+  .markdown a:hover {
+    text-decoration: underline;
+  }
+  li p {
+    margin: 0;
+    display: inline;
   }
   .hljs {
     margin-top: 0.5rem !important;
@@ -4123,10 +4074,6 @@
   }
   pre {
     white-space: pre-wrap;
-    font-family: 'Geist Mono', monospace;
-  }
-  code {
-    font-family: 'Geist Mono', monospace;
   }
   .explode {
     animation-name: explode;
@@ -4160,7 +4107,7 @@
     }
   }
 }
-@layer utilities {
+@layer base {
   * {
     border-color: hsl(var(--border));
   }

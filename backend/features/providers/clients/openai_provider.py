@@ -34,10 +34,6 @@ class OpenAiProvider(BaseProvider):
         return response.choices[0].message.content
 
     def stream(self, model: str, messages: Union[List, AnyStr], user_id: int = None, conversation_id: str = None):
-        """
-        Streams a response from the OpenAI service, accumulating prompt and completion tokens.
-        Once done, logs the analytics event with token usage and cost details.
-        """
         start_time = timer()
         token_usage = {
             'prompt_tokens': 0,
@@ -47,6 +43,9 @@ class OpenAiProvider(BaseProvider):
         buffer = ""
         try:
             processed_messages = self._process_messages(messages)
+            logger.debug(f"Model: {model}")
+            logger.debug(f"Processed messages: {processed_messages}")
+
             if not processed_messages:
                 raise ValueError("Messages array cannot be empty")
             
@@ -56,59 +55,47 @@ class OpenAiProvider(BaseProvider):
                 stream=True
             )
 
+            # The response is an iterator that yields chunks
             for chunk in response:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    content = chunk.choices[0].delta.content
-                    buffer += content
-                    # For streaming, you might count each yielded chunk as a token (or use a token counter)
+                if not chunk.choices:
+                    continue
+                    
+                delta = chunk.choices[0].delta
+                
+                # Check if there's content in this delta
+                if hasattr(delta, 'content') and delta.content is not None:
+                    content = delta.content
+                    buffer += content  # Accumulate in buffer
                     token_usage['completion_tokens'] += 1
                     token_usage['total_tokens'] += 1
                     yield json.dumps({
-                        "content": buffer,
+                        "content": content,  # Only yield the new chunk
                         "status": "generating"
                     })
-                    buffer = ""
 
-                # On the last chunk, OpenAI may supply a usage summary.
-                if hasattr(chunk, 'usage'):
-                    # Update token_usage with API-provided values
-                    token_usage.update(chunk.usage)
-
+            # Final yield with complete buffer and usage stats
             if buffer:
-                yield json.dumps({
-                    "content": buffer,
-                    "status": "generating"
-                })
-
-            # Final generation completed
-            generation_time = timer() - start_time
-
-            # Assemble event data.
-            event_data = {
-                "user_id": user_id,
-                "event_type": "chat_completion",
-                "model": model,
-                "tokens": token_usage.get("total_tokens", 0),
-                "prompt_tokens": token_usage.get("prompt_tokens", 0),
-                "completion_tokens": token_usage.get("completion_tokens", 0),
-                "cost": self.calculate_cost(token_usage, model),
-                "metadata": {
-                    "conversation_id": conversation_id,
-                    "generation_time": generation_time,
-                    "tokens_per_second": (
-                        token_usage.get("completion_tokens", 0) / generation_time
-                        if generation_time > 0 else 0
-                    )
+                logger.debug(f"Final response buffer: {buffer}")
+                
+                event_data = {
+                    "user_id": user_id,
+                    "event_type": "chat_completion",
+                    "model": model,
+                    "tokens": token_usage.get("total_tokens", 0),
+                    "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                    "completion_tokens": token_usage.get("completion_tokens", 0),
+                    "cost": self.calculate_cost(token_usage, model),
+                    "metadata": {
+                        "conversation_id": conversation_id,
+                        "generation_time": timer() - start_time
+                    }
                 }
-            }
+                self.log_chat_completion(event_data)
 
-            # Use the common logging method to create the analytics event
-            self.log_chat_completion(event_data)
-
-            yield json.dumps({
-                "status": "done",
-                "usage": token_usage
-            })
+                yield json.dumps({
+                    "status": "done",
+                    "usage": token_usage
+                })
 
         except Exception as e:
             generation_time = timer() - start_time
@@ -134,6 +121,8 @@ class OpenAiProvider(BaseProvider):
         """
         Process messages into OpenAI's expected format.
         """
+        print(f"Processing messages: {messages}")  # Add this line
+        
         processed_messages = []
         for message in messages:
             # Skip empty messages
@@ -177,7 +166,8 @@ class OpenAiProvider(BaseProvider):
 
             processed_messages.append(processed_message)
 
-        return processed_messages
+        print(f"Processed messages: {processed_messages}")  # Add this line
+        return processed_messages if processed_messages else None  # Change this line
 
     def models(self):
         return self._client.models.list()

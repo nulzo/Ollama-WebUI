@@ -72,7 +72,7 @@ export const Message = memo<MessageProps>(
           // Revert on error
           onError: () => {
             queryClient.setQueryData(
-              ['messages', { conversation_id: message.conversation_id }],
+              ['messages', { conversation_id: message.conversation_uuid }],
               (oldData: any) => {
                 if (!oldData) return oldData;
 
@@ -295,7 +295,7 @@ export const Message = memo<MessageProps>(
                     </Tooltip>
                   </TooltipProvider>
 
-                  <MessageDetails messageId={message.id} />
+                  <MessageDetails messageId={message.id.toString()} />
                 </div>
               )}
             </div>

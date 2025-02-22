@@ -6,19 +6,12 @@ import logging
 import traceback
 from threading import Event
 from typing import Generator
-
-from asgiref.sync import sync_to_async
-from django.http import StreamingHttpResponse
-from features.analytics.services.analytics_service import AnalyticsService
-from ollama import Options
-
-from features.agents.models import Agent
+from features.analytics.services.analytics_service import AnalyticsEventService
 from features.conversations.services.conversation_service import ConversationService
 from features.providers.clients.provider_factory import provider_factory
-from features.conversations.models import Conversation
 from features.conversations.repositories.message_repository import MessageRepository
-from features.conversations.serializers.message import MessageSerializer
 from features.authentication.models import CustomUser
+
 from features.knowledge.services.knowledge_service import KnowledgeService
 from features.prompts.services.prompt_service import (
     PromptBuilderService,
@@ -40,7 +33,7 @@ class ChatService:
         self.provider_factory = provider_factory
         self.message_repository = MessageRepository()
         self.knowledge_service = KnowledgeService()
-        self.analytics_service = AnalyticsService()
+        self.analytics_service = AnalyticsEventService()
         self.conversation_service = ConversationService()
         self.logger = logging.getLogger(__name__)
         self._cancel_event = Event()
@@ -99,8 +92,9 @@ class ChatService:
         try:
             # Try to get conversation or create new one if not provided
             # TODO: there is probably a better way to do this
+            print("DATA", data)
             conversation = self.conversation_service.get_or_create_conversation(
-                data.get("conversation_id"), {
+                data.get("conversation_uuid"), {
                     "user": user,
                     "name": data.get("content", "New Conversation")[:50],
                 }
@@ -124,14 +118,12 @@ class ChatService:
 
             # Create the user's message with conversation instance
             user_message = self.message_repository.create(
-                {
-                    "conversation": conversation,  # Pass the conversation instance instead of UUID
-                    "content": data.get("content", ""),
-                    "role": "user",
-                    "user": user,
-                    "model": data.get("model", "llama3.2:3b"),
-                    "images": images,
-                }
+                conversation=conversation,
+                content=data.get("content", ""),
+                role="user",
+                user=user,
+                model=data.get("model", "llama3.2:3b"),
+                images=images,
             )
 
             # Get the appropriate provider
@@ -156,7 +148,7 @@ class ChatService:
             # Stream the response
             tokens_generated = 0
             full_content = ""
-            for chunk in provider.stream(data.get("model", "llama3.2:3b"), formatted_messages, user.id, str(conversation.uuid)):
+            for chunk in provider.stream(data.get("model", "llama3.2:3b"), formatted_messages, user_id=user.id, conversation_id=str(conversation.uuid)):
                 if self._cancel_event.is_set():
                     full_content += " [cancelled]"
                     break
@@ -168,20 +160,20 @@ class ChatService:
 
             end = timer()
             generation_time = end - start
+            
+            print("FULL CONTENT", full_content)
 
             # Update final message content if not cancelled
             if not self._cancel_event.is_set():
                 assistant_message = self.message_repository.create(
-                    {
-                        "conversation": user_message.conversation,
-                        "content": full_content,
-                        "role": "assistant",
-                        "user": user,
-                        "tokens_used": tokens_generated,
-                        "model": data.get("model"),
-                        "generation_time": generation_time,
-                        "finish_reason": "cancelled" if self._cancel_event.is_set() else "stop",
-                    }
+                    conversation=user_message.conversation,
+                    content=full_content,
+                    role="assistant",
+                    user=user,
+                    tokens_used=tokens_generated,
+                    model=data.get("model"),
+                    generation_time=generation_time,
+                    finish_reason="cancelled" if self._cancel_event.is_set() else "stop",
                 )
 
             yield json.dumps(

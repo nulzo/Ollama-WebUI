@@ -857,6 +857,9 @@
   .table {
     display: table;
   }
+  .aspect-auto {
+    aspect-ratio: auto;
+  }
   .aspect-square {
     aspect-ratio: 1 / 1;
   }
@@ -973,14 +976,14 @@
   .h-\[20px\] {
     height: 20px;
   }
+  .h-\[52px\] {
+    height: 52px;
+  }
   .h-\[250px\] {
     height: 250px;
   }
   .h-\[2px\] {
     height: 2px;
-  }
-  .h-\[52px\] {
-    height: 52px;
   }
   .h-\[300px\] {
     height: 300px;
@@ -1047,9 +1050,6 @@
   }
   .min-h-24 {
     min-height: calc(var(--spacing) * 24);
-  }
-  .min-h-\[20px\] {
-    min-height: 20px;
   }
   .min-h-\[60px\] {
     min-height: 60px;
@@ -1140,6 +1140,9 @@
   }
   .w-\[150px\] {
     width: 150px;
+  }
+  .w-\[160px\] {
+    width: 160px;
   }
   .w-\[200px\] {
     width: 200px;
@@ -1455,9 +1458,6 @@
       margin-block-end: calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)));
     }
   }
-  .gap-y-2 {
-    row-gap: calc(var(--spacing) * 2);
-  }
   .space-x-1 {
     :where(& > :not(:last-child)) {
       --tw-space-x-reverse: 0;
@@ -1622,6 +1622,9 @@
   .border-destructive\/50 {
     border-color: color-mix(in oklab, hsl(var(--destructive)) 50%, transparent);
   }
+  .border-foreground\/75 {
+    border-color: color-mix(in oklab, hsl(var(--foreground)) 75%, transparent);
+  }
   .border-input {
     border-color: hsl(var(--border));
   }
@@ -1663,6 +1666,12 @@
   }
   .bg-\[--color-bg\] {
     background-color: --color-bg;
+  }
+  .bg-\[var\(--chart-1\)\] {
+    background-color: var(--chart-1);
+  }
+  .bg-\[var\(--chart-2\)\] {
+    background-color: var(--chart-2);
   }
   .bg-accent {
     background-color: hsl(var(--accent));
@@ -1790,6 +1799,10 @@
   .bg-yellow-500 {
     background-color: var(--color-yellow-500);
   }
+  .bg-gradient-to-b {
+    --tw-gradient-position: to bottom in oklab,;
+    background-image: linear-gradient(var(--tw-gradient-stops));
+  }
   .bg-linear-to-l {
     --tw-gradient-position: to left in oklab,;
     background-image: linear-gradient(var(--tw-gradient-stops));
@@ -1802,11 +1815,19 @@
     --tw-gradient-from: hsl(var(--tertiary));
     --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
   }
+  .from-transparent {
+    --tw-gradient-from: transparent;
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
   .from-70\% {
     --tw-gradient-from-position: 70%;
   }
   .from-80\% {
     --tw-gradient-from-position: 80%;
+  }
+  .to-secondary {
+    --tw-gradient-to: hsl(var(--secondary));
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position,) var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
   }
   .to-transparent {
     --tw-gradient-to: transparent;
@@ -1911,6 +1932,9 @@
   .py-4 {
     padding-block: calc(var(--spacing) * 4);
   }
+  .py-5 {
+    padding-block: calc(var(--spacing) * 5);
+  }
   .py-6 {
     padding-block: calc(var(--spacing) * 6);
   }
@@ -1923,8 +1947,8 @@
   .py-\[0\.2rem\] {
     padding-block: 0.2rem;
   }
-  .py-\[10px\] {
-    padding-block: 10px;
+  .py-\[6px\] {
+    padding-block: 6px;
   }
   .ps-8 {
     padding-inline-start: calc(var(--spacing) * 8);
@@ -1967,6 +1991,9 @@
   }
   .pr-10 {
     padding-right: calc(var(--spacing) * 10);
+  }
+  .pr-\[50px\] {
+    padding-right: 50px;
   }
   .pb-1 {
     padding-bottom: calc(var(--spacing) * 1);
@@ -2257,6 +2284,10 @@
   }
   .shadow-md {
     --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-none {
+    --tw-shadow: 0 0 #0000;
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
   .shadow-sm {
@@ -2765,6 +2796,13 @@
     &:hover {
       @media (hover: hover) {
         background-color: color-mix(in oklab, hsl(var(--tertiary)) 75%, transparent);
+      }
+    }
+  }
+  .hover\:bg-transparent {
+    &:hover {
+      @media (hover: hover) {
+        background-color: transparent;
       }
     }
   }
@@ -3312,6 +3350,11 @@
       margin-top: calc(var(--spacing) * 0);
     }
   }
+  .sm\:ml-auto {
+    @media (width >= 40rem) {
+      margin-left: auto;
+    }
+  }
   .sm\:max-w-\[425px\] {
     @media (width >= 40rem) {
       max-width: 425px;
@@ -3371,9 +3414,19 @@
       padding: calc(var(--spacing) * 8);
     }
   }
+  .sm\:px-6 {
+    @media (width >= 40rem) {
+      padding-inline: calc(var(--spacing) * 6);
+    }
+  }
   .sm\:py-32 {
     @media (width >= 40rem) {
       padding-block: calc(var(--spacing) * 32);
+    }
+  }
+  .sm\:pt-6 {
+    @media (width >= 40rem) {
+      padding-top: calc(var(--spacing) * 6);
     }
   }
   .sm\:text-left {
@@ -3440,11 +3493,6 @@
   .lg\:grid-cols-3 {
     @media (width >= 64rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  .lg\:grid-cols-4 {
-    @media (width >= 64rem) {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
   .lg\:px-8 {
@@ -3887,124 +3935,136 @@
   .font-primary {
     font-family: 'Archivo', sans-serif;
   }
-  @layer base {
-    .markdown-prose ol > li, .markdown-prose ul > li {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 0.5em;
-    }
-    .markdown-prose ol > li {
-      counter-increment: list-number;
-      display: flex;
-      margin-bottom: 0;
-      margin-top: 0;
-      min-height: 28px;
-    }
-    .markdown-prose ol, .markdown-prose ul {
-      list-style-position: outside;
-      margin: 0;
-      padding: 0;
-    }
-    .markdown-prose ol > li, .markdown-prose ul > li {
-      margin-bottom: 0.5em;
-    }
-    .markdown-prose ol ol, .markdown-prose ol ul, .markdown-prose ul ol, .markdown-prose ul ul {
-      margin-left: 1.5em;
-    }
-    .markdown-prose ol > li, .markdown-prose ul > li {
-      display: block;
-      position: relative;
-    }
-    .markdown-prose ol > li::before,  .markdown-prose ul > li::before {
-      position: absolute;
-      left: -1.5em;
-      min-width: 1em;
-      text-align: right;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose ol > li::before {
-      content: counter(list-item) '.';
-      counter-increment: list-item;
-      font-weight: bold;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose ul > li::before {
-      content: '•';
-      font-weight: bold;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose li > span {
-      display: block;
-      width: 100%;
-    }
-    .markdown-prose ol {
-      counter-reset: list-item;
-      list-style: none;
-      padding-left: 1em;
-    }
-    .markdown-prose ol > li {
-      counter-increment: list-number;
-      position: relative;
-      margin-bottom: 0.5em;
-      padding-left: 0.5em;
-    }
-    .markdown-prose ol > li::marker {
-      content: counter(list-number) '. ';
-      font-weight: bold;
-      margin-right: 0.5em;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose ol > li::before {
-      content: counter(list-number) '. ';
-      position: absolute;
-      left: 0;
-      font-weight: bold;
-      width: 1.5em;
-      text-align: right;
-      margin-right: 0.5em;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose li p {
-      margin: 0;
-    }
-    .image-modal {
-      z-index: 99999;
-    }
-    .markdown-prose ol > li::before {
-      content: counter(list-item) '.';
-      counter-increment: list-item;
-      font-weight: bold;
-      min-width: 1.5em;
-      margin-right: 0.5em;
-      text-align: right;
-      color: hsl(var(--primary));
-    }
-    .markdown-prose ul > li::before {
-      content: '•';
-      font-weight: bold;
-      min-width: 1em;
-      margin-right: 0.5em;
-      color: hsl(var(--muted-foreground));
-    }
-    .markdown-prose li > span {
-      display: inline-block;
-      vertical-align: top;
-      width: 100%;
-    }
-    .markdown-prose li > span > div {
-      display: inline;
-    }
-    .markdown a {
-      color: #1b6ac9;
-      text-decoration: none;
-    }
-    .markdown a:hover {
-      text-decoration: underline;
-    }
-    .markdown-prose li p {
-      margin: 0;
-      display: inline;
-    }
+  html {
+    word-break: break-word;
+  }
+  code {
+    overflow-x: auto;
+    width: auto;
+    display: inline;
+  }
+  math {
+    margin-top: 1rem;
+  }
+  .markdown a {
+    text-decoration-line: underline;
+  }
+  .font-primary {
+    font-family: 'Archivo', sans-serif;
+  }
+  ol > li, ul > li {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.5em;
+  }
+  ol > li {
+    counter-increment: list-number;
+    display: flex;
+    margin-bottom: 0;
+    margin-top: 0;
+    min-height: 28px;
+  }
+  ol, ul {
+    list-style-position: outside;
+    margin: 0;
+    padding: 0;
+  }
+  ol > li, ul > li {
+    margin-bottom: 0.5em;
+  }
+  ol ol, ol ul, ul ol, ul ul {
+    margin-left: 1.5em;
+  }
+  ol > li, ul > li {
+    display: block;
+    position: relative;
+  }
+  .prose ol > li::before,  .prose ul > li::before {
+    position: absolute;
+    left: -1.5em;
+    min-width: 1em;
+    text-align: right;
+    color: hsl(var(--primary));
+  }
+  .prose ol > li::before {
+    content: counter(list-item) '.';
+    counter-increment: list-item;
+    font-weight: bold;
+    color: hsl(var(--primary));
+  }
+  .prose ul > li::before {
+    content: '•';
+    font-weight: bold;
+    color: hsl(var(--primary));
+  }
+  li > span {
+    display: block;
+    width: 100%;
+  }
+  ol {
+    counter-reset: list-item;
+    list-style: none;
+    padding-left: 1em;
+  }
+  ol > li {
+    counter-increment: list-number;
+    position: relative;
+    margin-bottom: 0.5em;
+    padding-left: 0.5em;
+  }
+  ol > li::marker {
+    content: counter(list-number) '. ';
+    font-weight: bold;
+    margin-right: 0.5em;
+    color: hsl(var(--primary));
+  }
+  ol > li::before {
+    content: counter(list-number) '. ';
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+    width: 1.5em;
+    text-align: right;
+    margin-right: 0.5em;
+    color: hsl(var(--primary));
+  }
+  li p {
+    margin: 0;
+  }
+  .prose ol > li::before {
+    content: counter(list-item) '.';
+    counter-increment: list-item;
+    font-weight: bold;
+    min-width: 1.5em;
+    margin-right: 0.5em;
+    text-align: right;
+    color: hsl(var(--primary));
+  }
+  ul > li::before {
+    content: '•';
+    font-weight: bold;
+    min-width: 1em;
+    margin-right: 0.5em;
+    color: hsl(var(--muted-foreground));
+  }
+  li > span {
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
+  }
+  li > span > div {
+    display: inline;
+  }
+  .markdown a {
+    color: #1b6ac9;
+    text-decoration: none;
+  }
+  .markdown a:hover {
+    text-decoration: underline;
+  }
+  li p {
+    margin: 0;
+    display: inline;
   }
   .hljs {
     margin-top: 0.5rem !important;
@@ -4017,10 +4077,6 @@
   }
   pre {
     white-space: pre-wrap;
-    font-family: 'Geist Mono', monospace;
-  }
-  code {
-    font-family: 'Geist Mono', monospace;
   }
   .explode {
     animation-name: explode;
@@ -4054,7 +4110,7 @@
     }
   }
 }
-@layer utilities {
+@layer base {
   * {
     border-color: hsl(var(--border));
   }

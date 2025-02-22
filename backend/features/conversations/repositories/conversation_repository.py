@@ -33,8 +33,6 @@ class ConversationRepository(BaseRepository[Conversation]):
             conversation = Conversation.objects.create(
                 user=data.get('user'),
                 name=data.get("name", "New Conversation"),
-                model=data.get("model"),
-                system_prompt=data.get("system_prompt", ""),
             )
             self.logger.info(
                 f"Created conversation {conversation.uuid} for user {conversation.user.id}"

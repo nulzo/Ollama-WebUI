@@ -92,12 +92,31 @@ export default {
           DEFAULT: 'hsl(var(--message))',
           foreground: 'hsl(var(--message-foreground))',
         },
+        chart: {
+          DEFAULT: 'hsl(var(--chart-1))',
+          foreground: 'hsl(var(--chart-2))',
+        },
+        chart2: {
+          DEFAULT: 'hsl(var(--chart-2))',
+          foreground: 'hsl(var(--chart-1))',
+        },
+        chart3: {
+          DEFAULT: 'hsl(var(--chart-3))',
+          foreground: 'hsl(var(--chart-4))',
+        },
+        chart4: {
+          DEFAULT: 'hsl(var(--chart-4))',
+          foreground: 'hsl(var(--chart-3))',
+        },
+        
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
         '2xl': 'calc(var(--radius) + 25px)',
+
+
       },
       borderWidth: {
         DEFAULT: 'var(--border-width)',

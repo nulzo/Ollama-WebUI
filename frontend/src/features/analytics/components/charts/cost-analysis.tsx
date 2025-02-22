@@ -22,6 +22,7 @@ const colors = [
 ];
 
 export function CostAnalysis({ data }: CostAnalysisProps) {
+  console.log('DATA', data);
   if (!data) return null;
 
   // Get unique models from the data
@@ -89,18 +90,18 @@ export function CostAnalysis({ data }: CostAnalysisProps) {
                 content={({ active, payload, label }) => {
                   if (!active || !payload) return null;
                   return (
-                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                    <div className="bg-background shadow-sm p-2 border rounded-lg">
                       <div className="font-semibold">{formatDate(label)}</div>
-                      <div className="grid gap-2 pt-2">
+                      <div className="gap-2 grid pt-2">
                         {payload.map((entry: any) => {
                           const modelConfig = chartConfig[entry.name.replace('costs.', '')];
                           return (
                             <div key={entry.name} className="flex items-center gap-2">
                               <div
-                                className="h-2 w-2 rounded-full"
+                                className="rounded-full w-2 h-2"
                                 style={{ backgroundColor: modelConfig?.color }}
                               />
-                              <span className="text-[0.70rem] uppercase text-muted-foreground">
+                              <span className="text-[0.70rem] text-muted-foreground uppercase">
                                 {modelConfig?.label || entry.name}
                               </span>
                               <span className="font-bold">

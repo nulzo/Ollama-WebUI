@@ -102,13 +102,13 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
         );
       case 'list':
         return token.ordered ? (
-          <ol key={index} start={token.start || 1} className="my-6 ml-6 list-decimal [&>li]:mt-2">
+          <ol key={index} start={token.start || 1} className="my-6 ml-6 list-decimal prose markdown-prose [&>li]:mt-2">
             {token.items.map((item: any, itemIdx: number) => (
               <li key={`${index}-${itemIdx}`}>{renderTokens(item.tokens)}</li>
             ))}
           </ol>
         ) : (
-          <ul key={index} className="my-6 ml-6 list-disc [&>li]:mt-2">
+          <ul key={index} className="my-6 ml-6 list-disc prose markdown-prose [&>li]:mt-2">
             {token.items.map((item: any, itemIdx: number) => (
               <li key={`${index}-${itemIdx}`}>{renderTokens(item.tokens)}</li>
             ))}
@@ -116,7 +116,7 @@ const renderTokens = (tokens: any): React.ReactNode[] => {
         );
       case 'list_item':
         return (
-          <li className="flex whitespace-wrap" key={index}>
+          <li className="flex whitespace-wrap prose markdown-prose" key={index}>
             {renderTokens(token.tokens)}
           </li>
         );

@@ -8,8 +8,9 @@ from openai import Client
 import json
 
 from features.providers.clients.base_provider import BaseProvider
-from features.analytics.services.analytics_service import AnalyticsService
+from features.analytics.services.analytics_service import AnalyticsEventService
 logger = logging.getLogger(__name__)
+
 
 
 class OpenAiProvider(BaseProvider):
@@ -17,7 +18,8 @@ class OpenAiProvider(BaseProvider):
         # _openai_host = settings.OPENAI_HOST
         _api_key = settings.OPENAI_API_KEY
         self._client = Client(api_key=_api_key)
-        super().__init__(analytics_service=AnalyticsService())
+        super().__init__(analytics_service=AnalyticsEventService())
+
 
     def chat(self, model: str, messages: Union[List, AnyStr]):
         """
@@ -31,72 +33,96 @@ class OpenAiProvider(BaseProvider):
 
         return response.choices[0].message.content
 
-    def stream(self, model: str, messages: Union[List, AnyStr]):
-        """
-        Streams a response from the OpenAI service.
-        """
+    def stream(self, model: str, messages: Union[List, AnyStr], user_id: int = None, conversation_id: str = None):
         start_time = timer()
-
-        processed_messages = self._process_messages(messages)
-        
-        if not processed_messages:
-            raise ValueError("Messages array cannot be empty")
-        
         token_usage = {
             'prompt_tokens': 0,
             'completion_tokens': 0,
             'total_tokens': 0
         }
-
-        response = self._client.chat.completions.create(
-            model=model,
-            messages=processed_messages,
-            stream=True
-        )
-
         buffer = ""
-        for chunk in response:
-            if chunk.choices and chunk.choices[0].delta.content:
-                content = chunk.choices[0].delta.content
-                buffer += content
-                if len(buffer) >= 4 or any(p in buffer for p in ".!?,\n"):
+        try:
+            processed_messages = self._process_messages(messages)
+            logger.debug(f"Model: {model}")
+            logger.debug(f"Processed messages: {processed_messages}")
+
+            if not processed_messages:
+                raise ValueError("Messages array cannot be empty")
+            
+            response = self._client.chat.completions.create(
+                model=model,
+                messages=processed_messages,
+                stream=True
+            )
+
+            # The response is an iterator that yields chunks
+            for chunk in response:
+                if not chunk.choices:
+                    continue
+                    
+                delta = chunk.choices[0].delta
+                
+                # Check if there's content in this delta
+                if hasattr(delta, 'content') and delta.content is not None:
+                    content = delta.content
+                    buffer += content  # Accumulate in buffer
+                    token_usage['completion_tokens'] += 1
+                    token_usage['total_tokens'] += 1
                     yield json.dumps({
-                        "content": buffer,
+                        "content": content,  # Only yield the new chunk
                         "status": "generating"
                     })
-                    buffer = ""
-            
-            # OpenAI provides usage info in the last chunk
-            if hasattr(chunk, 'usage'):
-                token_usage.update(chunk.usage)
-                print(token_usage)
 
-        if buffer:
-            yield json.dumps({
-                "content": buffer,
-                "status": "generating"
-            })
-        
-        generation_time = timer() - start_time
-        # self.log_chat_completion(
-        #     model=model,
-        #     messages=messages,
-        #     token_usage=token_usage,
-        #     user_id=user_id,
-        #     conversation_id=conversation_id,
-        #     generation_time=generation_time
-        # )
+            # Final yield with complete buffer and usage stats
+            if buffer:
+                logger.debug(f"Final response buffer: {buffer}")
+                
+                event_data = {
+                    "user_id": user_id,
+                    "event_type": "chat_completion",
+                    "model": model,
+                    "tokens": token_usage.get("total_tokens", 0),
+                    "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                    "completion_tokens": token_usage.get("completion_tokens", 0),
+                    "cost": self.calculate_cost(token_usage, model),
+                    "metadata": {
+                        "conversation_id": conversation_id,
+                        "generation_time": timer() - start_time
+                    }
+                }
+                self.log_chat_completion(event_data)
 
-        # Send final usage statistics
-        yield json.dumps({
-            "status": "done",
-            "usage": token_usage
-        })
+                yield json.dumps({
+                    "status": "done",
+                    "usage": token_usage
+                })
+
+        except Exception as e:
+            generation_time = timer() - start_time
+            error_event_data = {
+                "user_id": user_id,
+                "event_type": "error",
+                "model": model,
+                "tokens": token_usage.get("total_tokens", 0),
+                "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                "completion_tokens": token_usage.get("completion_tokens", 0),
+                "cost": self.calculate_cost(token_usage, model),
+                "metadata": {
+                    "conversation_id": conversation_id,
+                    "generation_time": generation_time,
+                    "error": str(e)
+                }
+            }
+            self.log_chat_completion(error_event_data)
+            logger.error(f"Error in streaming generation: {str(e)}")
+            yield json.dumps({"error": str(e), "status": "error"})
 
     def _process_messages(self, messages: Union[List, AnyStr]) -> List[Dict]:
         """
         Process messages into OpenAI's expected format.
         """
+        print(f"Processing messages: {messages}")  # Add this line
+        
         processed_messages = []
         for message in messages:
             # Skip empty messages
@@ -140,7 +166,8 @@ class OpenAiProvider(BaseProvider):
 
             processed_messages.append(processed_message)
 
-        return processed_messages
+        print(f"Processed messages: {processed_messages}")  # Add this line
+        return processed_messages if processed_messages else None  # Change this line
 
     def models(self):
         return self._client.models.list()

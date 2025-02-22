@@ -27,7 +27,7 @@ export const BotIcon = ({ assistantId, isOnline, modelName }: BotIconProps) => {
                 <Origami strokeWidth="1.5" className="m-2 text-primary-foreground size-6" />
                 <div
                   className={`absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full ring-2 ring-background
-                  ${isOnline ? 'bg-green-500' : 'bg-background border border-muted'}`}
+                  ${isOnline ? 'bg-green-500' : 'bg-background border border-foreground/75'}`}
                 />
               </div>
             </DialogTrigger>

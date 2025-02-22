@@ -58,21 +58,22 @@ const CustomLabel = ({
     <g>
       <path
         d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
-        stroke="hsl(var(--muted-foreground))"
+        stroke="hsl(var(--primary))"
         fill="none"
       />
       <circle
         cx={ex}
         cy={ey}
         r={2}
-        fill="hsl(var(--muted-foreground))"
+        fill="hsl(var(--primary))"
         stroke="none"
       />
       <text
+
         x={ex + (cos >= 0 ? 1 : -1) * 12}
         y={ey}
         textAnchor={textAnchor}
-        fill="hsl(var(--muted-foreground))"
+        fill="hsl(var(--foreground))"
         className="text-xs"
       >{`${name} (${(percent * 100).toFixed(1)}%)`}</text>
     </g>
@@ -120,7 +121,7 @@ export function ModelDistribution({ data }: ModelDistributionProps) {
                     key={`cell-${index}`}
                     fill={Object.values(chartConfig)[index % Object.keys(chartConfig).length].color}
                     strokeWidth={2}
-                    stroke="hsl(var(--background))"
+                    stroke="hsl(var(--foreground))"
                   />
                 ))}
               </Pie>
@@ -128,16 +129,16 @@ export function ModelDistribution({ data }: ModelDistributionProps) {
                 verticalAlign="bottom"
                 height={36}
                 content={({ payload }) => (
-                  <div className="flex gap-4 justify-center mt-4">
+                  <div className="flex justify-center gap-4 mt-4">
                     {payload?.map((entry: any, index: number) => (
                       <div key={`legend-${index}`} className="flex items-center gap-2">
                         <div
-                          className="w-3 h-3 rounded-full"
+                          className="rounded-full w-3 h-3"
                           style={{ backgroundColor: entry.color }}
                         />
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium">{entry.value}</span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="font-medium text-sm">{entry.value}</span>
+                          <span className="text-muted-foreground text-xs">
                             ${chartData[index].cost.toFixed(4)}
                           </span>
                         </div>

@@ -1,112 +1,160 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChartContainer } from '@/components/ui/chart';
-import { formatNumber } from '@/lib/utils';
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { TrendingUp, TrendingDown, MessageSquare } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { formatNumber, formatDate } from '@/lib/utils';
 
 interface MessageStatsChartProps {
-  data?: Array<{
+  data: Array<{
+    timestamp: string;
     sent: number;
     received: number;
-    timestamp: string;
   }>;
 }
 
 const chartConfig = {
   sent: {
     label: "Sent",
-    color: "hsl(var(--chart-1))",
+    color: "var(--chart-1)",
   },
   received: {
     label: "Received",
-    color: "hsl(var(--chart-2))",
+    color: "var(--chart-2)",
   },
-};
+} as const;
 
 export function MessageStatsChart({ data }: MessageStatsChartProps) {
-  if (!data) return null;
+  // Calculate total messages (sent + received)
+  const totalMessages = data.reduce((acc, item) => 
+    acc + (item.sent || 0) + (item.received || 0), 0
+  );
 
-  // Group messages by hour for better visualization
-  const groupedData = data.reduce((acc, item) => {
-    const hour = new Date(item.timestamp).getHours();
-    const existing = acc.find(x => x.hour === hour);
-    
-    if (existing) {
-      existing.sent += item.sent;
-      existing.received += item.received;
-    } else {
-      acc.push({ hour, sent: item.sent, received: item.received });
-    }
-    
-    return acc;
-  }, [] as Array<{ hour: number; sent: number; received: number }>);
+  const avgMessages = data.length > 0 
+    ? Math.round(totalMessages / data.length)
+    : 0;
 
-  // Calculate response rate
-  const totalSent = data.reduce((acc, item) => acc + item.sent, 0);
-  const totalReceived = data.reduce((acc, item) => acc + item.received, 0);
-  const responseRate = ((totalReceived / totalSent) * 100).toFixed(1);
+  // Calculate trend (last 3 points)
+  const lastThreePoints = data.slice(-3);
+  const trend = lastThreePoints.length === 3 
+    ? (lastThreePoints[2].sent + lastThreePoints[2].received) - 
+      (lastThreePoints[0].sent + lastThreePoints[0].received)
+    : 0;
+  
+  const trendPercentage = lastThreePoints.length === 3 && 
+    (lastThreePoints[0].sent + lastThreePoints[0].received) !== 0
+      ? ((trend / (lastThreePoints[0].sent + lastThreePoints[0].received)) * 100).toFixed(1)
+      : "0.0";
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Message Activity</CardTitle>
-        <CardDescription className="flex flex-wrap gap-x-6 gap-y-2">
-          <span>Messages Sent: {formatNumber(totalSent)}</span>
-          <span>Messages Received: {formatNumber(totalReceived)}</span>
-          <span>Response Rate: {responseRate}%</span>
-        </CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Message Activity</CardTitle>
+            <CardDescription>
+              {formatNumber(avgMessages)} messages per interval
+            </CardDescription>
+          </div>
+          <MessageSquare className="w-4 h-4 text-muted-foreground" />
+        </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[350px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={groupedData}
-              margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
-              barGap={0}
-            >
-              <XAxis
-                dataKey="hour"
-                tickFormatter={(hour) => `${hour}:00`}
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={formatNumber}
-              />
-              <Tooltip
-                cursor={{ fill: 'hsl(var(--muted)/0.1)' }}
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  borderColor: 'hsl(var(--border))',
-                  borderRadius: '8px',
-                  padding: '12px',
-                }}
-                formatter={(value: number, name: string) => [
-                  formatNumber(value),
-                  chartConfig[name as keyof typeof chartConfig].label
-                ]}
-              />
-              <Bar
-                dataKey="sent"
-                fill={chartConfig.sent.color}
-                radius={[4, 4, 0, 0]}
-                maxBarSize={32}
-              />
-              <Bar
-                dataKey="received"
-                fill={chartConfig.received.color}
-                radius={[4, 4, 0, 0]}
-                maxBarSize={32}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+        <ChartContainer config={chartConfig}>
+          <BarChart
+            data={data}
+            margin={{
+              left: 12,
+              right: 12,
+            }}
+          >
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="timestamp"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={formatDate}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => formatNumber(value)}
+            />
+            <ChartTooltip
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                return (
+                  <div className="bg-background shadow-sm p-2 border rounded-lg">
+                    <div className="gap-2 grid">
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-[0.70rem] text-muted-foreground uppercase">
+                          {formatDate(payload[0].payload.timestamp)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="bg-[var(--chart-1)] rounded-full w-2 h-2" />
+                        <span className="text-[0.70rem] text-muted-foreground uppercase">
+                          Sent
+                        </span>
+                        <span className="font-bold">
+                          {formatNumber(payload[0].payload.sent)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="bg-[var(--chart-2)] rounded-full w-2 h-2" />
+                        <span className="text-[0.70rem] text-muted-foreground uppercase">
+                          Received
+                        </span>
+                        <span className="font-bold">
+                          {formatNumber(payload[0].payload.received)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }}
+            />
+            <Bar
+              dataKey="sent"
+              fill="var(--color-sent)"
+              radius={[4, 4, 0, 0]}
+              maxBarSize={40}
+              stackId="a"
+            />
+            <Bar
+              dataKey="received"
+              fill="var(--color-received)"
+              radius={[4, 4, 0, 0]}
+              maxBarSize={40}
+              stackId="a"
+            />
+          </BarChart>
         </ChartContainer>
       </CardContent>
+      <CardFooter>
+        <div className="gap-4 grid w-full">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2 text-sm leading-none">
+              {trend >= 0 ? (
+                <>
+                  <TrendingUp className="w-4 h-4 text-green-500" />
+                  <span className="font-medium">Up {trendPercentage}%</span>
+                </>
+              ) : (
+                <>
+                  <TrendingDown className="w-4 h-4 text-red-500" />
+                  <span className="font-medium">Down {Math.abs(Number(trendPercentage))}%</span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex justify-between items-center text-muted-foreground text-sm">
+            <div>Total messages: {formatNumber(totalMessages)}</div>
+            <div>Avg per interval: {formatNumber(avgMessages)}</div>
+          </div>
+        </div>
+      </CardFooter>
     </Card>
   );
 }

@@ -3,7 +3,6 @@ import DOMPurify from 'dompurify';
 import type { Token } from 'marked';
 import he from 'he';
 import KatexRenderer from './katex';
-import { ThinkBlock } from './think-block';
 
 interface MarkdownInlineTokensProps {
   id: string;

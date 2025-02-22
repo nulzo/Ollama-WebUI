@@ -51,7 +51,7 @@ class MessageRepository(BaseRepository[Message]):
                 has_images=bool(images),
                 generation_time=generation_time,
                 prompt_tokens=tokens_used,
-                completed_tokens=tokens_used,
+                completion_tokens=tokens_used,
                 finish_reason=finish_reason,
             )
 

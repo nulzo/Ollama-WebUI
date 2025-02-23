@@ -57,6 +57,7 @@ export function ConversationAreaHeader() {
       setModel({
         name: selectedModelData.label,
         model: selectedModelData.value,
+        provider: selectedModelData.provider,
         modified_at: new Date().toISOString(),
         size: "0",
         digest: '',
@@ -78,7 +79,7 @@ export function ConversationAreaHeader() {
 
   return (
     <div className="top-0 z-10 sticky flex flex-row justify-between items-center gap-3 col-span-4 bg-background/25 backdrop-blur-sm px-4 py-2.5 rounded-b-none grow-0 w-full h-14">
-      <div className="flex items-center gap-3 font-semibold text-lg ps-8">
+      <div className="flex items-center gap-3 ps-8 font-semibold text-lg">
         <ModelSelect value={currentModelValue} onValueChange={handleModelSelect} />
       </div>
       <div className="flex items-center gap-1 pe-6">

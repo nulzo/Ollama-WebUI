@@ -29,9 +29,14 @@ class UserResponseSerializer(serializers.ModelSerializer):
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
+    # Map full_name to the model field "name"
+    full_name = serializers.CharField(source='name', required=False, allow_blank=True)
+    # Map avatar to the model field "icon". Use ImageField if it's an image.
+    avatar = serializers.ImageField(source='icon', required=False)
+
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'name', 'description', 'icon')
+        fields = ('username', 'email', 'full_name', 'description', 'avatar')
 
 
 class LoginSerializer(serializers.Serializer):

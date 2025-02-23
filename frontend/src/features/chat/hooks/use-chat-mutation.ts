@@ -46,6 +46,7 @@ export function useChatMutation(conversation_id?: string) {
             has_images: false,
             conversation_uuid: conversation_id,
             user: user?.id?.toString() ?? '',
+            provider: model?.provider,
             created_at: new Date().toISOString(),
           },
           {
@@ -54,6 +55,7 @@ export function useChatMutation(conversation_id?: string) {
             model: model?.name,
             liked_by: [],
             has_images: false,
+            provider: model?.provider,
             conversation_uuid: conversation_id,
             created_at: new Date().toISOString(),
           },
@@ -68,6 +70,7 @@ export function useChatMutation(conversation_id?: string) {
           role: 'user',
           user: user?.id,
           model: model?.name,
+          provider: model?.provider,
           images: images || [],
         }
         console.log("new_msg", new_msg);
@@ -96,6 +99,7 @@ export function useChatMutation(conversation_id?: string) {
                   model: model?.name,
                   liked_by: [],
                   has_images: false,
+                  provider: model?.provider,
                   conversation_uuid: newConversationId,
                   created_at: new Date().toISOString(),
                 },

@@ -7,20 +7,19 @@ from django.db import transaction
 from features.authentication.models import CustomUser
 from api.utils.interfaces.base_repository import BaseRepository
 
-
 class UserRepository(BaseRepository[CustomUser]):
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
     @transaction.atomic
-    async def create(self, data: dict) -> CustomUser:
+    def create(self, data: dict) -> CustomUser:
         """Create a new user"""
         try:
-            # Hash password if provided
+            # Hash password if provided.
             if password := data.get("password"):
                 data["password"] = make_password(password)
 
-            user = await CustomUser.objects.acreate(
+            user = CustomUser.objects.create(
                 username=data["username"],
                 email=data["email"],
                 password=data["password"],
@@ -34,57 +33,56 @@ class UserRepository(BaseRepository[CustomUser]):
             self.logger.error(f"Error creating user: {str(e)}")
             raise
 
-    async def get_by_id(self, id: int) -> Optional[CustomUser]:
+    def get_by_id(self, id: int) -> Optional[CustomUser]:
         try:
-            return await CustomUser.objects.aget(id=id)
+            return CustomUser.objects.get(id=id)
         except CustomUser.DoesNotExist:
             self.logger.warning(f"User {id} not found")
             return None
 
-    async def get_by_uuid(self, uuid: str) -> Optional[CustomUser]:
+    def get_by_uuid(self, uuid: str) -> Optional[CustomUser]:
         try:
-            return await CustomUser.objects.aget(uuid=uuid)
+            return CustomUser.objects.get(uuid=uuid)
         except CustomUser.DoesNotExist:
             self.logger.warning(f"User with UUID {uuid} not found")
             return None
 
-    async def list(self, filters: dict = None) -> List[CustomUser]:
+    def list(self, filters: dict = None) -> List[CustomUser]:
         queryset = CustomUser.objects.all()
         if filters:
             queryset = queryset.filter(**filters)
-        return await queryset.order_by("username").all()
+        return list(queryset.order_by("username").all())
 
-    async def update(self, id: int, data: dict) -> Optional[CustomUser]:
+    def update(self, id: int, data: dict) -> Optional[CustomUser]:
         try:
-            user = await self.get_by_id(id)
+            user = self.get_by_id(id)
             if not user:
                 return None
 
-            # Hash password if it's being updated
             if password := data.get("password"):
                 data["password"] = make_password(password)
 
             for key, value in data.items():
                 setattr(user, key, value)
-            await user.asave()
+            user.save()
             return user
         except Exception as e:
             self.logger.error(f"Error updating user {id}: {str(e)}")
             return None
 
-    async def delete(self, id: int) -> bool:
+    def delete(self, id: int) -> bool:
         try:
-            user = await self.get_by_id(id)
+            user = self.get_by_id(id)
             if not user:
                 return False
-            await user.adelete()
+            user.delete()
             return True
         except Exception as e:
             self.logger.error(f"Error deleting user {id}: {str(e)}")
             return False
 
     @transaction.atomic
-    async def bulk_create(self, data_list: List[dict]) -> List[CustomUser]:
+    def bulk_create(self, data_list: List[dict]) -> List[CustomUser]:
         try:
             users = []
             for data in data_list:
@@ -100,35 +98,34 @@ class UserRepository(BaseRepository[CustomUser]):
                         is_active=data.get("is_active", True),
                     )
                 )
-            return await CustomUser.objects.abulk_create(users)
+            created_users = CustomUser.objects.bulk_create(users)
+            return created_users
         except Exception as e:
             self.logger.error(f"Error bulk creating users: {str(e)}")
             raise
 
     @transaction.atomic
-    async def bulk_update(self, data_list: List[dict]) -> List[CustomUser]:
+    def bulk_update(self, data_list: List[dict]) -> List[CustomUser]:
         try:
             updated_users = []
             for data in data_list:
                 if user_id := data.get("id"):
-                    if updated_user := await self.update(user_id, data):
+                    updated_user = self.update(user_id, data)
+                    if updated_user:
                         updated_users.append(updated_user)
             return updated_users
         except Exception as e:
             self.logger.error(f"Error bulk updating users: {str(e)}")
             raise
 
-    # Additional helper methods
-    async def get_by_email(self, email: str) -> Optional[CustomUser]:
-        """Get user by email"""
+    def get_by_email(self, email: str) -> Optional[CustomUser]:
         try:
-            return await CustomUser.objects.aget(email=email)
+            return CustomUser.objects.get(email=email)
         except CustomUser.DoesNotExist:
             return None
 
-    async def get_by_username(self, username: str) -> Optional[CustomUser]:
-        """Get user by username"""
+    def get_by_username(self, username: str) -> Optional[CustomUser]:
         try:
-            return await CustomUser.objects.aget(username=username)
+            return CustomUser.objects.get(username=username)
         except CustomUser.DoesNotExist:
             return None

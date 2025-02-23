@@ -1,9 +1,9 @@
-import { OpenAIModelData, OllamaModel, ProviderModels } from '../types/models';
+import { OpenAIModelData, OllamaModel, ProviderModels, GoogleModel, AnthropicModel } from '../types/models';
 
 interface FormattedModel {
   value: string;
   label: string;
-  provider: 'ollama' | 'openai';
+  provider: 'ollama' | 'openai' | 'anthropic' | 'google';
   details: {
     size?: string;
     format?: string;
@@ -43,6 +43,25 @@ export const formatOpenAIModel = (modelData: OpenAIModelData): FormattedModel =>
   };
 };
 
+export const formatAnthropicModel = (modelData: AnthropicModel): FormattedModel => {
+  return {
+    value: modelData.id,
+    label: modelData.id,
+    provider: 'anthropic',
+    details: {},
+  };
+};
+
+export const formatGoogleModel = (modelData: GoogleModel): FormattedModel => {
+  return {
+    value: modelData.id,
+    label: modelData.id,
+    provider: 'google',
+    details: {},
+  };
+};
+
+
 export const formatModels = (modelsData?: ProviderModels): FormattedModel[] => {
   if (!modelsData) return [];
    const formattedModels: FormattedModel[] = [];
@@ -51,6 +70,12 @@ export const formatModels = (modelsData?: ProviderModels): FormattedModel[] => {
   }
   if (modelsData.openai) {
     formattedModels.push(...modelsData.openai.map(formatOpenAIModel));
+  }
+  if (modelsData.anthropic) {
+    formattedModels.push(...modelsData.anthropic.map(formatAnthropicModel));
+  }
+  if (modelsData.google) {
+    formattedModels.push(...modelsData.google.map(formatGoogleModel));
   }
   return formattedModels;
 };

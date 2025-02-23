@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import login, logout, authenticate
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from api.utils.responses.response import api_response
 from features.authentication.serializers.user_serializer import UserCreateSerializer, UserResponseSerializer, \
@@ -113,7 +113,7 @@ class UserViewSet(viewsets.ViewSet):
     ViewSet for managing user profile operations.
     """
     permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     @action(detail=False, methods=['get'])
     def profile(self, request):

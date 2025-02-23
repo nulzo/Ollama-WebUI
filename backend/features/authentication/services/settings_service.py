@@ -19,9 +19,23 @@ class ProviderSettingsService:
         return ProviderSettings.objects.filter(user=user)
 
     def create_settings(self, user, data):
-        """Create new provider settings"""
+        """Create or update provider settings"""
         try:
-            serializer = ProviderSettingsSerializer(data=data)
+            provider_type = data.get('provider_type')
+            existing_settings = ProviderSettings.objects.filter(
+                user=user,
+                provider_type=provider_type
+            ).first()
+
+            if existing_settings:
+                serializer = ProviderSettingsSerializer(
+                    existing_settings,
+                    data=data,
+                    partial=True
+                )
+            else:
+                serializer = ProviderSettingsSerializer(data=data)
+
             if not serializer.is_valid():
                 raise ValidationError(serializer.errors)
 
@@ -30,12 +44,11 @@ class ProviderSettingsService:
 
             return serializer.data
 
-        except IntegrityError as e:
-            self.logger.error(f"Database integrity error: {str(e)}")
-            raise ValidationError("Provider settings already exist for this user")
+        except ValidationError:
+            raise
         except Exception as e:
-            self.logger.error(f"Error creating provider settings: {str(e)}")
-            raise ServiceError(f"Failed to create provider settings: {str(e)}")
+            self.logger.error(f"Error creating/updating provider settings: {str(e)}")
+            raise ServiceError(f"Failed to create/update provider settings: {str(e)}")
 
     def update_settings(self, user, provider_id, data):
         """Update provider settings"""
@@ -67,6 +80,7 @@ class ProviderSettingsService:
                     "api_key": instance.api_key,
                     "endpoint": instance.endpoint,
                     "organization_id": instance.organization_id,
+                    "is_enabled": instance.is_enabled,
                 },
             )
         except Exception as e:

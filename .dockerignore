@@ -2,6 +2,9 @@
 **/docs 
 **/.venv/
 **/__pycache__/
+.venv
+__pycache__
+*.pyc
 
 # Node should be built from scratch inside the container
 # See https://stackoverflow.com/a/67431349 for the reason why

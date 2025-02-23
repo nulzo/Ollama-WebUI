@@ -21,7 +21,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, lang }) => {
     : hljs.highlightAuto(code, hljs.getLanguage(lang || '')?.aliases);
 
   return (
-    <div className="relative mx-4 my-6 rounded-lg text-sm overflow-hidden">
+    <div className="relative mx-4 my-6 rounded-lg overflow-hidden text-sm">
       <div className="flex justify-between items-center bg-secondary/50 backdrop-blur-sm p-2">
         <span className="pl-2 text-muted-foreground text-xs">
           {lang || language || 'plaintext'}

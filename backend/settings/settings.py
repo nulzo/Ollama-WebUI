@@ -21,11 +21,10 @@ DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 DEBUG = True
 
-OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "192.168.0.25")
-OLLAMA_PORT = os.environ.get("OLLAMA_PORT", "11434")
-OLLAMA_ENDPOINT = f"http://{OLLAMA_HOST}:{OLLAMA_PORT}"
+OLLAMA_ENDPOINT = os.environ.get("OLLAMA_ENDPOINT", "host.docker.internal:11434")
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 ALLOWED_HOSTS = [
     "localhost",
@@ -110,6 +109,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    # "whitenoise.middleware.WhiteNoiseMiddleware",
     # "api.middleware.AuthenticationMiddleware",
 ]
 
@@ -188,6 +188,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

@@ -51,5 +51,26 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
       },
     ],
   },
-  // ... other providers
+  google: {
+    name: 'Google',
+    fields: [
+      {
+        name: 'api_key',
+        type: 'password',
+        label: 'API Key',
+        required: true,
+      },
+    ],
+  },
+  anthropic: {
+    name: 'Anthropic',
+    fields: [
+      {
+        name: 'api_key',
+        type: 'password',
+        label: 'API Key',
+        required: true,
+      },
+    ],
+  },
 };

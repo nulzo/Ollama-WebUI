@@ -1,69 +1,53 @@
 import logging
-from typing import Dict, Type
-
+from typing import Dict, Optional
 from features.analytics.services.analytics_service import AnalyticsEventService
-from features.providers.clients.base_provider import BaseProvider
-from features.providers.clients.ollama_provider import OllamaProvider
-from features.providers.clients.openai_provider import OpenAiProvider
+from .base_provider import BaseProvider
+from ..registry import provider_registry
 from api.utils.exceptions import ServiceError
-from api.utils.exceptions.exceptions import ProviderException
-
-
+from features.providers.repositories.provider_settings_repository import ProviderSettingsRepository
 
 class ProviderFactory:
-    def __init__(self, analytics_service: AnalyticsEventService = None):
+    def __init__(self, analytics_service: Optional[AnalyticsEventService] = None):
         self.logger = logging.getLogger(__name__)
         self.analytics_service = analytics_service or AnalyticsEventService()
-        self._providers: Dict[str, Dict[int, BaseProvider]] = (
-            {}
-        )  # Nested dict for user-specific providers
+        # Cache provider instances keyed by provider and user
+        self._provider_instances: Dict[str, BaseProvider] = {}
+        self.provider_settings_repo = ProviderSettingsRepository()  # instantiate repository layer
 
-        self._provider_classes: Dict[str, Type[BaseProvider]] = {
-            "openai": OpenAiProvider,
-            "ollama": OllamaProvider,
-        }
+    def _fetch_config_for_user(self, provider_name: str, user_id: int) -> dict:
+        settings_instance = self.provider_settings_repo.get_by_user_and_provider(user_id, provider_name)
+        self.logger.info(f"Settings instance: {settings_instance}")
+        print(f"Settings instance: {settings_instance}")
+        if settings_instance:
+            return {
+                "api_key": settings_instance.api_key,
+                "endpoint": settings_instance.endpoint,
+                "organization_id": settings_instance.organization_id,
+                "is_enabled": settings_instance.is_enabled,
+            }
+        # Return an empty config (or defaults) if the user's settings do not exist.
+        return {}
 
-    def get_provider(self, provider_name: str, user_id: int) -> BaseProvider:
-        """
-        Get or create a provider instance by name for a specific user.
-
-        Args:
-            provider_name: Name of the provider ('openai' or 'ollama')
-            user_id: ID of the user requesting the provider
-
-        Returns:
-            BaseProvider: Instance of the requested provider
-
-        Raises:
-            ServiceError: If provider name is invalid
-        """
+    def get_provider(self, provider_name: str, config_or_user) -> object:
+        if not isinstance(config_or_user, dict):
+            config = self._fetch_config_for_user(provider_name, config_or_user)
+        else:
+            config = config_or_user
         try:
-            key = f"{provider_name}_{user_id}" if user_id else provider_name
-
-            if key not in self._providers:
-                if provider_name not in self._provider_classes:
-                    raise ProviderException(f"Unknown provider: {provider_name}")
-
-                provider_class = self._provider_classes[provider_name]
-                self._providers[key] = provider_class()
-                self._providers[key].analytics_service = self.analytics_service
-
-            return self._providers[key]
-
+            provider_class = provider_registry.get_provider_class(provider_name)
+            instance = provider_class(config)
+            return instance
         except Exception as e:
-            self.logger.error(f"Error creating provider {provider_name}: {str(e)}")
-            raise ServiceError(f"Failed to create provider: {str(e)}")
+            raise ServiceError(f"Provider {provider_name} initialization failed: {e}")
 
-    def update_provider_config(self, provider_name: str, user_id: int, config: Dict):
-        """Update the configuration for a specific provider instance"""
+    def update_provider_config(self, provider_name: str, user_id: int, config: dict):
+        # Use only the user_id to fetch the provider instance.
+        provider = self.get_provider(provider_name, user_id)
         try:
-            provider = self.get_provider(provider_name, user_id)
             provider.update_config(config)
-            self.logger.info(f"Updated config for provider {provider_name} (user: {user_id})")
+            self.logger.info(f"Updated configuration for provider {provider_name} (user: {user_id})")
         except Exception as e:
-            self.logger.error(f"Error updating provider config: {str(e)}")
-            raise ServiceError(f"Failed to update provider config: {str(e)}")
+            self.logger.error(f"Error updating provider config: {e}")
+            raise ServiceError(f"Failed to update provider config: {e}")
 
-
-# Create a singleton instance
-provider_factory = ProviderFactory(AnalyticsEventService())
+provider_factory = ProviderFactory()

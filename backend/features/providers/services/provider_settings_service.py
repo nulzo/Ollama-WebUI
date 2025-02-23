@@ -1,18 +1,15 @@
 from typing import List, Dict
 import logging
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
-
 from features.authentication.models import CustomUser
 from features.providers.repositories.provider_settings_repository import ProviderSettingsRepository
 from features.providers.models import  ProviderSettings
 from api.utils.exceptions import NotFoundException, ServiceError
-from features.providers.clients.provider_factory import provider_factory
 from features.providers.serializers.provider_settings_serializer import ProviderSettingsSerializer
 
 
 class ProviderSettingsService:
-    def __init__(self):
+    def __init__(self, provider_factory):
         self.repository = ProviderSettingsRepository()
         self.provider_factory = provider_factory
         self.logger = logging.getLogger(__name__)
@@ -95,18 +92,18 @@ class ProviderSettingsService:
     def create_default_settings(self, user_id: int) -> List[Dict]:
         """Create default provider settings for a new user"""
         default_providers = [
-            {"provider_type": "ollama", "is_enabled": True, "endpoint": "http://localhost:11434"},
+            {"provider_type": "ollama", "is_enabled": False, "endpoint": ""},
             {"provider_type": "openai", "is_enabled": False},
             {"provider_type": "anthropic", "is_enabled": False},
             {"provider_type": "azure", "is_enabled": False},
         ]
 
-        settings = []
+        settings_list = []
         for provider in default_providers:
-            setting = self.repository.create({**provider, "user_id": user_id})
-            settings.append(self._sanitize_settings(setting))
-
-        return settings
+            data = {**provider, "user_id": user_id}
+            setting = self.repository.create(data)
+            settings_list.append(self._sanitize_settings(setting))
+        return settings_list
 
     def _update_provider_config(self, settings: ProviderSettings) -> None:
         """Update the provider configuration in the factory"""
@@ -118,6 +115,7 @@ class ProviderSettingsService:
                     "api_key": settings.api_key,
                     "endpoint": settings.endpoint,
                     "organization_id": settings.organization_id,
+                    "is_enabled": settings.is_enabled,
                 },
             )
         except Exception as e:

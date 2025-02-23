@@ -10,6 +10,7 @@ export const createMessageInputSchema = z.object({
   model: z.string(),
   user: z.string().nullable().optional(),
   images: z.array(z.string()).optional(),
+  provider: z.string().optional(),
 });
 
 export type CreateMessageInput = z.infer<typeof createMessageInputSchema>;
@@ -31,6 +32,7 @@ export const createMessage = async ({
           model: data.model,
           created_at: new Date().toISOString(),
           images: data.images,
+          provider: data.provider,
         },
       },
     })
@@ -144,6 +146,7 @@ export const useCreateMessage = ({ conversation_id, mutationConfig }: UseCreateM
               content: variables.data.content,
               user: variables.data.user,
               model: variables.data.model,
+              provider: variables.data.provider,
               created_at: new Date().toISOString(),
               conversation_uuid: conversation_id,
               images: variables.data.images || [],

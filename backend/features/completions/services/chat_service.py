@@ -127,7 +127,12 @@ class ChatService:
             )
 
             # Get the appropriate provider
-            provider = self._get_provider(data.get("model", "llama3.2:3b"))
+            provider_name = data.get("provider")
+            if provider_name:
+                provider = self.provider_factory.get_provider(provider_name, user.id)
+            else:
+                provider = self._get_provider(data.get("model", "llama3.2:3b"))
+
 
             # Process conversation history
             messages = list(user_message.conversation.messages.all().order_by("created_at"))

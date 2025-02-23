@@ -73,6 +73,22 @@ export interface OllamaModel {
   details: ModelDetails;
 }
 
+export interface AnthropicModel {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GoogleModel {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type OpenAIModelData = [
   ['id', string],
   ['created', number],
@@ -85,4 +101,6 @@ export interface ProviderModels {
     models: OllamaModel[];
   };
   openai: OpenAIModel[];
+  anthropic: AnthropicModel[];
+  google: GoogleModel[];
 }

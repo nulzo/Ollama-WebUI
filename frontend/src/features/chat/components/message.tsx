@@ -152,7 +152,7 @@ export const Message = memo<MessageProps>(
               <div className="bg-muted/30 px-4 py-3 rounded-xl rounded-tl">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <span>{message.model} is initializing...</span>
-                  <Loader2 className="animate-spin size-3" />
+                  <Loader2 className="size-3 animate-spin" />
                 </div>
               </div>
             </div>
@@ -203,7 +203,7 @@ export const Message = memo<MessageProps>(
             </div>
 
             <div className="flex flex-col w-full">
-              <div className="flex items-baseline mb-0.5 ml-1 gap-1.5">
+              <div className="flex items-baseline gap-1.5 mb-0.5 ml-1">
                 <span className="font-medium text-primary text-sm">{message.model}</span>
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
               </div>
@@ -245,7 +245,7 @@ export const Message = memo<MessageProps>(
                         >
                           {isLiked ? (
                             <HeartCrack
-                              className="w-3.5 h-3.5 hover:text-destructive hover:fill-background hover:stroke-3 stroke-1"
+                              className="hover:fill-background stroke-1 hover:stroke-3 w-3.5 h-3.5 hover:text-destructive"
                               strokeWidth={3}
                               fill="currentColor"
                             />
@@ -295,7 +295,7 @@ export const Message = memo<MessageProps>(
                     </Tooltip>
                   </TooltipProvider>
 
-                  <MessageDetails messageId={message.id.toString()} />
+                  <MessageDetails messageId={message?.id} />
                 </div>
               )}
             </div>
@@ -319,7 +319,7 @@ export const Message = memo<MessageProps>(
               )}
 
               <div className="bg-primary selection:bg-background/40 px-4 py-3 rounded-xl rounded-tr-sm w-fit text-primary-foreground">
-                <motion.div className="max-w-none prose-invert prose markdown-prose prose-sm">
+                <motion.div className="prose-invert max-w-none prose markdown-prose prose-sm">
                   {messageContent.length > 0 ? (
                     <MarkdownRenderer markdown={messageContent} />
                   ) : (

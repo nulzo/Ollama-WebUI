@@ -22,6 +22,22 @@ export interface ProviderConfig {
   modelOptions: string[];
 }
 
+// frontend/src/features/settings/types/settings.d.ts
+
+export interface ProviderField {
+  name: string;
+  type: string;
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+}
+
+export interface ProviderConfig {
+  name: string;
+  fields: ProviderField[];
+  modelOptions: string[];
+}
+
 export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
   ollama: {
     name: 'Ollama',
@@ -82,6 +98,19 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
       },
     ],
     modelOptions: ['claude-3-opus', 'claude-3-sonnet'],
+  },
+  google: {
+    name: 'Google AI',
+    fields: [
+      {
+        name: 'api_key',
+        type: 'password',
+        label: 'API Key',
+        required: true,
+      },
+    ],
+    // Example model options. Adjust these options based on your backend's supported models.
+    modelOptions: ['gemini-1', 'gemini-1.5', 'gemini-2', 'gemini-2.0-chat'],
   },
 };
 

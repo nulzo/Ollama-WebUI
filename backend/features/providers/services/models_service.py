@@ -13,18 +13,23 @@ class ModelsService:
 
     def get_provider_models(self, user_id: int, provider_type: str = None) -> Dict[str, List[str]]:
         """
-        Get available models for specified provider(s)
+        Get available models for specified provider(s).
 
         Args:
-            user_id: The ID of the user requesting models
-            provider_type: Optional provider type to filter results
+            user_id: The ID of the user requesting models.
+            provider_type: Optional provider type to filter results. When not provided,
+                           the models for all supported providers will be returned.
 
         Returns:
-            Dict of provider names and their available models
+            Dict mapping each provider name to its available models.
         """
         try:
             models = {}
-            providers = ["ollama", "openai"] if not provider_type else [provider_type]
+            # If a specific provider type is provided, limit to that provider; otherwise, query all.
+            if provider_type:
+                providers = [provider_type]
+            else:
+                providers = ["ollama", "openai", "google", "anthropic"]
 
             for provider_name in providers:
                 try:

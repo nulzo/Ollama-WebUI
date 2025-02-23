@@ -10,23 +10,45 @@ services:
         - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
         - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
         - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
-        - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT:-http://host.docker.internal:11434}
-        - OLLAMA_HOST=${OLLAMA_HOST:-host.docker.internal}
-        - OLLAMA_PORT=${OLLAMA_PORT:-11434}
+        - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT:-host.docker.internal:11434}
         - OPENAI_API_KEY=${OPENAI_API_KEY}
+        - OPENAI_ENDPOINT=${OPENAI_ENDPOINT}
+        - OPENAI_ORGANIZATION_ID=${OPENAI_ORGANIZATION_ID}
+        - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+        - ANTHROPIC_ENDPOINT=${ANTHROPIC_ENDPOINT}
+        - AZURE_API_KEY=${AZURE_API_KEY}
+        - AZURE_ENDPOINT=${AZURE_ENDPOINT}
+        - AZURE_ORGANIZATION_ID=${AZURE_ORGANIZATION_ID}
+        - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+        - GOOGLE_ENDPOINT=${GOOGLE_ENDPOINT}
     environment:
       - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
       - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
       - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
       - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - OLLAMA_HOST=${OLLAMA_HOST}
-      - OLLAMA_PORT=${OLLAMA_PORT}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_ENDPOINT=${OPENAI_ENDPOINT}
+      - OPENAI_ORGANIZATION_ID=${OPENAI_ORGANIZATION_ID}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - ANTHROPIC_ENDPOINT=${ANTHROPIC_ENDPOINT}
+      - AZURE_API_KEY=${AZURE_API_KEY}
+      - AZURE_ENDPOINT=${AZURE_ENDPOINT}
+      - AZURE_ORGANIZATION_ID=${AZURE_ORGANIZATION_ID}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_ENDPOINT=${GOOGLE_ENDPOINT}
+    env_file:
+      - .env
     restart: always  # Restart the backend service always (even if it exits normally)
     ports:
       - 6969:6969  # Map port 6969 on the host to port 6969 on the container
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - ./backend/api:/home/backend/api
+      - ./backend/features:/home/backend/features
+      - ./backend/settings:/home/backend/settings
+      - ./backend/staticfiles:/home/backend/staticfile
+
     # volumes:
       # We want a way to persist the database from the container to the local machine
       # - ./backend/db.sqlite3:/home/backend/db.sqlite3

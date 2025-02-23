@@ -43,18 +43,36 @@ class GoogleProvider(BaseProvider):
     def models(self) -> List[str]:
         """
         Return a list of available Google AI (Gemini) models.
-        Since Gemini API does not provide a dynamic model listing endpoint,
-        a static list is returned.
+        Each model returned is a dict containing:
+        - id: model identifier
+        - name: model name
+        - model: display name of the model
+        - max_input_tokens: maximum allowed input tokens (default: 2048)
+        - max_output_tokens: maximum allowed output tokens (default: 2048)
+        - vision_enabled: whether the model supports vision (default: False)
+        - embedding_enabled: whether the model supports embeddings (default: False)
+        - tools_enabled: whether the model supports tools (default: False)
+        - provider: "google"
         """
         if not self.is_enabled:
             logger.info("Google AI provider is not enabled; skipping model retrieval.")
             return []
         try:
             models = list(self._client.models.list())
-            # Extract the model name if available; otherwise, use the string
-            # representation of the model.
-            model_names = [{"id": getattr(model, "name", str(model)), "name": getattr(model, "display_name=", str(model))} for model in models]
-            return model_names
+            return [
+                {
+                    "id": f"{model.name}-google",
+                    "name": model.display_name,
+                    "model": model.name,
+                    "max_input_tokens": model.input_token_limit,
+                    "max_output_tokens": model.output_token_limit,
+                    "vision_enabled": False,
+                    "embedding_enabled": "embedContent" in model.supported_actions,
+                    "tools_enabled": "generateContent" in model.supported_actions,
+                    "provider": "google",
+                }
+                for model in models
+            ]
         except Exception as e:
             logger.error(f"Error retrieving models: {e}")
             raise ServiceError(f"Failed to retrieve models: {e}")

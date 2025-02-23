@@ -173,14 +173,38 @@ class OllamaProvider(BaseProvider):
 
     def models(self) -> List[str]:
         """
-        Return a list of available models from Ollama if the configuration is enabled.
+        Return a list of available models from Ollama in a standardized format.
+        Each model returned is a dict containing:
+        - id: model identifier
+        - name: model name
+        - model: display name of the model
+        - max_input_tokens: maximum allowed input tokens (default: 2048)
+        - max_output_tokens: maximum allowed output tokens (default: 2048)
+        - vision_enabled: whether the model supports vision (default: False)
+        - embedding_enabled: whether the model supports embeddings (default: False)
+        - tools_enabled: whether the model supports tools (default: False)
+        - provider: "ollama"
         """
         if not self.is_enabled:
             self.logger.info("Ollama provider is not enabled; skipping model loading.")
             return []
         try:
-            model_list = self._client.list()  # assumes the client supports a list() method
-            return model_list
+            model_list = self._client.list()
+            # For simplicity, we can assume all models have a max_tokens of 2048.
+            return [
+                {
+                    "id": f"{model.get('name')}-{model.get('digest')}",
+                    "name": model.get("name"),
+                    "model": model.get("model"),
+                    "max_input_tokens": 2048,
+                    "max_output_tokens": 2048,
+                    "vision_enabled": False,
+                    "embedding_enabled": False,
+                    "tools_enabled": False,
+                    "provider": "ollama",
+                }
+                for model in model_list.get("models", [])
+            ]
         except Exception as e:
             self.logger.error(f"Error fetching models: {str(e)}")
             return []

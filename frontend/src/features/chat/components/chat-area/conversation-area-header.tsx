@@ -5,7 +5,7 @@ import { useTheme } from '@/components/theme/theme-provider.tsx';
 import { useMemo, useState } from 'react';
 import { useModelStore } from '@/features/models/store/model-store.ts';
 import { useModels } from '@/features/models/api/get-models.ts';
-import { formatModels } from '@/features/models/utils/format-models.ts';
+import { StandardModel } from '@/features/models/types/models';
 
 const ThemeToggleButton = () => {
   const { theme, setTheme } = useTheme();
@@ -38,35 +38,27 @@ const ThemeToggleButton = () => {
 
 export function ConversationAreaHeader() {
   const { model, setModel } = useModelStore();
-  const { data: modelsData } = useModels();
+  const { data: providerModelsData } = useModels();
 
-  const formattedModels = useMemo(() => {
-    if (!modelsData) return [];
-    try {
-      return formatModels(modelsData);
-    } catch (error) {
-      console.error('Error formatting models:', error);
-      return [];
-    }
-  }, [modelsData]);
+  // Flatten the ProviderModels object into a single array of StandardModel.
+  const formattedModels: StandardModel[] = useMemo(() => {
+    if (!providerModelsData) return [];
+    // Object.values() returns an array of arrays (one per provider); flat() flattens them into one array.
+    return Object.values(providerModelsData).flat();
+  }, [providerModelsData]);
 
   const handleModelSelect = (selectedValue: string) => {
-    const selectedModelData = formattedModels.find(m => m.value === selectedValue);
-
+    const selectedModelData = formattedModels.find((m) => m.id === selectedValue);
     if (selectedModelData) {
       setModel({
-        name: selectedModelData.label,
-        model: selectedModelData.value,
+        name: selectedModelData.name,
+        model: selectedModelData.model,
         provider: selectedModelData.provider,
-        modified_at: new Date().toISOString(),
-        size: "0",
-        digest: '',
-        details: {
-          format: selectedModelData.details.format || '',
-          families: [],
-          parameter_size: selectedModelData.details.size || '',
-          quantization_level: selectedModelData.details.quantization || '',
-        },
+        max_input_tokens: selectedModelData.max_input_tokens,
+        max_output_tokens: selectedModelData.max_output_tokens,
+        vision_enabled: selectedModelData.vision_enabled,
+        embedding_enabled: selectedModelData.embedding_enabled,
+        tools_enabled: selectedModelData.tools_enabled,
       });
     }
   };
@@ -74,7 +66,9 @@ export function ConversationAreaHeader() {
   // Find the current model's value to pass to ModelSelect
   const currentModelValue = useMemo(() => {
     if (!model?.model || !formattedModels.length) return undefined;
-    return formattedModels.find(m => m.value === model.model)?.value;
+    // Here we match based on the display name of the model.
+    const currentModel = formattedModels.find((m) => m.model === model.model);
+    return currentModel?.id;
   }, [model?.model, formattedModels]);
 
   return (

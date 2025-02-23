@@ -182,13 +182,36 @@ class OpenAiProvider(BaseProvider):
     def models(self):
         """
         Return a list of available models from Ollama if the configuration is enabled.
+        Each model returned is a dict containing:
+        - id: model identifier
+        - name: model name
+        - model: display name of the model
+        - max_input_tokens: maximum allowed input tokens (default: 2048)
+        - max_output_tokens: maximum allowed output tokens (default: 2048)
+        - vision_enabled: whether the model supports vision (default: False)
+        - embedding_enabled: whether the model supports embeddings (default: False)
+        - tools_enabled: whether the model supports tools (default: False)
+        - provider: "openai"
         """
         if not self.is_enabled:
             self.logger.info("OpenAI provider is not enabled; skipping model loading.")
             return []
         try:
             model_list = self._client.models.list()
-            return model_list
+            return [
+                {
+                    "id": f"{model.id}-openai",
+                    "name": model.id,
+                    "model": model.id,
+                    "max_input_tokens": 2048,
+                    "max_output_tokens": 2048,
+                    "vision_enabled": False,
+                    "embedding_enabled": False,
+                    "tools_enabled": False,
+                    "provider": "openai",
+                }
+                for model in model_list
+            ]
         except Exception as e:
             self.logger.error(f"Error fetching models: {str(e)}")
             return []

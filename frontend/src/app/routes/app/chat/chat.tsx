@@ -23,8 +23,6 @@ export function ChatRoute() {
   }, [searchParamString, conversation]);
 
   const handleSubmit = (message: string, images: string[] | undefined) => {
-    console.log("images", images);
-    console.log("message", message);
     mutation.mutate({ message, images });
   };
 

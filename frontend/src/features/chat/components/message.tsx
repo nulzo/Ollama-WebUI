@@ -18,6 +18,7 @@ import { MessageDetails } from './message-details.tsx';
 import { useUpdateMessage } from '../api/update-message.ts';
 import { cn } from '@/lib/utils.ts';
 import { useQueryClient } from '@tanstack/react-query';
+import { StandardModel } from '@/features/models/types/models.js';
 
 interface MessageProps {
   message: MessageType;
@@ -94,18 +95,22 @@ export const Message = memo<MessageProps>(
 
     const isModelOnline = useMemo(() => {
       if (!modelsData || !message.model) return false;
-
-      console.log(modelsData, message.model);
-
-      const isOllamaModel = modelsData.ollama?.models?.some(
-        model => model.name?.toLowerCase() === message.model?.toLowerCase()
+    
+      const lowerMessageModel = message.model.toLowerCase();
+    
+      // Helper to check if any model in the given provider's list has a matching name or display name.
+      const checkModels = (modelsArray?: StandardModel[]) =>
+        modelsArray ? modelsArray.some(m =>
+          (m.name && m.name.toLowerCase() === lowerMessageModel) ||
+          (m.model && m.model.toLowerCase() === lowerMessageModel)
+        ) : false;
+    
+      return (
+        checkModels(modelsData.ollama) ||
+        checkModels(modelsData.openai) ||
+        checkModels(modelsData.google) ||
+        checkModels(modelsData.anthropic)
       );
-
-      const isOpenAIModel = modelsData.openai?.some(
-        model => model[0][1].toLowerCase() === message.model?.toLowerCase()
-      );
-
-      return isOllamaModel || isOpenAIModel;
     }, [modelsData, message.model]);
 
     // Update the streaming effect to be smoother
@@ -151,7 +156,7 @@ export const Message = memo<MessageProps>(
               </div>
               <div className="bg-muted/30 px-4 py-3 rounded-xl rounded-tl">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <span>{message.model} is initializing...</span>
+                  <span className='text-xs'>{message.model} is initializing...</span>
                   <Loader2 className="size-3 animate-spin" />
                 </div>
               </div>
@@ -204,7 +209,7 @@ export const Message = memo<MessageProps>(
 
             <div className="flex flex-col w-full">
               <div className="flex items-baseline gap-1.5 mb-0.5 ml-1">
-                <span className="font-medium text-primary text-sm">{message.model}</span>
+                <span className="font-medium text-primary text-sm">{message.name}</span>
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
               </div>
 

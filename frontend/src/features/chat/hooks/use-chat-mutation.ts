@@ -11,8 +11,9 @@ export function useChatMutation(conversation_id?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { setStreamingMessages, setIsGenerating, setIsWaiting, isGenerating, isWaiting } = useChatContext();
+  const { setStreamingMessages, setIsGenerating, setIsWaiting, isGenerating } = useChatContext();
   const model = useModelStore(state => state.model);
+  console.log("model", model);
 
   const handleCancel = useCallback(() => {
     console.log('handleCancel called', {
@@ -41,18 +42,20 @@ export function useChatMutation(conversation_id?: string) {
           {
             role: 'user',
             content: message,
-            model: model?.name,
+            model: model?.model,
+            name: model?.name,
             liked_by: [],
             has_images: false,
             conversation_uuid: conversation_id,
-            user: user?.id?.toString() ?? '',
+            user_id: user?.id,
             provider: model?.provider,
             created_at: new Date().toISOString(),
           },
           {
             role: 'assistant',
             content: '',
-            model: model?.name,
+            model: model?.model,
+            name: model?.name,
             liked_by: [],
             has_images: false,
             provider: model?.provider,
@@ -62,18 +65,17 @@ export function useChatMutation(conversation_id?: string) {
         ]);
       }
 
-
       try {
         const new_msg = {
           content: message,
           conversation_uuid: conversation_id,
           role: 'user',
           user: user?.id,
-          model: model?.name,
+          model: model?.model,
+          name: model?.name,
           provider: model?.provider,
           images: images || [],
         }
-        console.log("new_msg", new_msg);
         await api.streamCompletion(
           new_msg,
           chunk => {
@@ -96,7 +98,8 @@ export function useChatMutation(conversation_id?: string) {
                 {
                   role: 'assistant',
                   content: '',
-                  model: model?.name,
+                  model: model?.model,
+                  name: model?.name,
                   liked_by: [],
                   has_images: false,
                   provider: model?.provider,
@@ -170,6 +173,13 @@ export function useChatMutation(conversation_id?: string) {
           {
             content: 'Sorry, there was an error processing your request.',
             role: 'assistant',
+            model: model?.model || '',
+            name: model?.name || '',
+            liked_by: [],
+            has_images: false,
+            provider: model?.provider || '',
+            conversation_uuid: conversation_id || '',
+            created_at: new Date().toISOString(),
           },
         ]);
       }

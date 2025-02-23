@@ -11,6 +11,20 @@ export interface GenericModelResponse {
   created_at?: Date;
 }
 
+export type Provider = 'ollama' | 'openai' | 'anthropic' | 'google';
+
+export interface StandardModel {
+  id: string;                     // model identifier
+  name: string;                   // model name
+  model: string;                  // display name of the model
+  max_input_tokens: number;       // maximum allowed input tokens (default: 2048)
+  max_output_tokens: number;      // maximum allowed output tokens (default: 2048)
+  vision_enabled: boolean;        // whether the model supports vision (default: false)
+  embedding_enabled: boolean;     // whether the model supports embeddings (default: false)
+  tools_enabled: boolean;         // whether the model supports tools (default: false)
+  provider: Provider;
+}
+
 export interface OllamaChatResponse {
   model?: string;
   uuid?: string;
@@ -73,34 +87,9 @@ export interface OllamaModel {
   details: ModelDetails;
 }
 
-export interface AnthropicModel {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface GoogleModel {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export type OpenAIModelData = [
-  ['id', string],
-  ['created', number],
-  ['object', string],
-  ['owned_by', string],
-];
-
 export interface ProviderModels {
-  ollama: {
-    models: OllamaModel[];
-  };
-  openai: OpenAIModel[];
-  anthropic: AnthropicModel[];
-  google: GoogleModel[];
+  ollama: StandardModel[];
+  openai: StandardModel[];
+  anthropic: StandardModel[];
+  google: StandardModel[];
 }

@@ -68,7 +68,7 @@ export const SidebarHeader = ({
             }}
           >
             CringeAI
-            <span className="font-normal text-primary text-xs">beta 0.0.1</span>
+            <span className="font-normal text-primary text-xs">alpha 0.0.1</span>
           </motion.div>
 
           <motion.div

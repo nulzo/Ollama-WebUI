@@ -9,18 +9,20 @@
 // }
 
 export interface Message {
-  id: string | number;
+  id?: string | number;
   conversation_uuid: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
   created_at: string;
   model: string;
+  name: string;
   user_id?: number;
   has_images: boolean;
   image_ids?: (string | number)[];
   liked_by?: string[];
   is_liked?: boolean;
   is_hidden?: boolean;
+  provider: string;
   // New metadata fields
   tokens_used?: number;
   generation_time?: number;

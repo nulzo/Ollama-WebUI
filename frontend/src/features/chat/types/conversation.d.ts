@@ -28,6 +28,8 @@ export interface Message {
   content: string;
   role: 'user' | 'assistant' | 'system';
   created_at: string;
+  model: string;
+  name: string;
 }
 
 export interface Prompt {

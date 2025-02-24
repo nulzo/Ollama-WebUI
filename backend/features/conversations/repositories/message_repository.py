@@ -35,7 +35,10 @@ class MessageRepository(BaseRepository[Message]):
             images: Optional[List[MessageImage]] = None,
             generation_time: Optional[datetime] = None,
             finish_reason: Optional[str] = None,
-            tokens_used: Optional[str] = None
+            tokens_used: Optional[str] = None,
+            provider: Optional[str] = None,
+            name: Optional[str] = None,
+            is_error: Optional[bool] = False,
     ) -> Message:
         """
         Store a new message to the database
@@ -53,6 +56,9 @@ class MessageRepository(BaseRepository[Message]):
                 prompt_tokens=tokens_used,
                 completion_tokens=tokens_used,
                 finish_reason=finish_reason,
+                provider=provider,
+                name=name,
+                is_error=is_error,
             )
 
             # Process and create MessageImage instances

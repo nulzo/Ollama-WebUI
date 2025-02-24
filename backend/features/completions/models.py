@@ -41,6 +41,7 @@ class Message(BaseModel):
     prompt_tokens = models.IntegerField(null=True, blank=True)
     completion_tokens = models.IntegerField(null=True, blank=True)
     finish_reason = models.CharField(max_length=50, null=True, blank=True)
+    is_error = models.BooleanField(default=False)
 
     def clean(self):
         if self.role == "user" and not self.user:
@@ -74,7 +75,7 @@ class MessageImage(BaseModel):
     image = models.FileField(
         upload_to="message_images/%Y/%m/%d/",
     )
-    order = models.IntegerField(default=0)  # To maintain image order in message
+    order = models.IntegerField(default=0)
 
     def clean(self):
         if not self.message.has_images:
@@ -94,3 +95,23 @@ class MessageImage(BaseModel):
 
     class Meta:
         ordering = ["order"]
+
+
+class MessageError(BaseModel):
+    message = models.OneToOneField(
+        Message, 
+        on_delete=models.CASCADE, 
+        related_name="error_detail"
+    )
+    error_code = models.CharField(max_length=100, null=True, blank=True)
+    error_title = models.CharField(max_length=255)
+    error_description = models.TextField()
+
+    def __str__(self):
+        return f"{self.error_title} (Code: {self.error_code})"
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]

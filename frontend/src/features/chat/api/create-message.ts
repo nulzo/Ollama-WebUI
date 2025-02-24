@@ -11,6 +11,7 @@ export const createMessageInputSchema = z.object({
   user: z.string().nullable().optional(),
   images: z.array(z.string()).optional(),
   provider: z.string().optional(),
+  name: z.string().optional(),
 });
 
 export type CreateMessageInput = z.infer<typeof createMessageInputSchema>;
@@ -33,6 +34,7 @@ export const createMessage = async ({
           created_at: new Date().toISOString(),
           images: data.images,
           provider: data.provider,
+          name: data.name,
         },
       },
     })
@@ -77,6 +79,22 @@ export const createMessage = async ({
             }
             try {
               const parsed = JSON.parse(data);
+
+              // If an error is signaled in the incoming chunk, dispatch an error event.
+              if (parsed.status === 'error') {
+                // Dispatch a custom event to notify the rest of the app about the error.
+                window.dispatchEvent(new CustomEvent('chat-error', { detail: { error: parsed.error } }));
+                console.error('Chat error from provider:', parsed.error);
+                
+                // Signal that message generation is complete (even if with an error),
+                // so the UI can re-fetch the message which now includes the error details.
+                window.dispatchEvent(new CustomEvent('message-done'));
+              
+                // Invalidate queries to force a refetch of messages and conversations.
+                queryClient.invalidateQueries({ queryKey: ['messages'] });
+                queryClient.invalidateQueries({ queryKey: ['conversations'] });
+                return;
+              }
 
               if (parsed.conversation_uuid) {
                 window.dispatchEvent(

@@ -13,7 +13,6 @@ export function useChatMutation(conversation_id?: string) {
   const navigate = useNavigate();
   const { setStreamingMessages, setIsGenerating, setIsWaiting, isGenerating } = useChatContext();
   const model = useModelStore(state => state.model);
-  console.log("model", model);
 
   const handleCancel = useCallback(() => {
     console.log('handleCancel called', {

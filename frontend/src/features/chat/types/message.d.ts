@@ -39,4 +39,11 @@ export interface Message {
   total_cost?: number;
   finish_reason?: string;
   updated_at?: string;
+  is_error?: boolean;
+  provider?: string;
+  error?: {
+    error_code?: string;
+    error_title?: string;
+    error_description?: string;
+  };
 }

@@ -1,7 +1,10 @@
+import ast
+import json
 import logging
-from typing import Dict, List, Union, AsyncGenerator
+from timeit import default_timer as timer
+from typing import Dict, List, Union, AsyncGenerator, Generator
 
-from anthropic import Anthropic, AsyncAnthropic
+from anthropic import Anthropic, AsyncAnthropic, BadRequestError
 
 from features.analytics.services.analytics_service import AnalyticsEventService
 from features.providers.clients.base_provider import BaseProvider
@@ -104,15 +107,41 @@ class AnthropicProvider(BaseProvider):
             self.logger.error(f"Error streaming content with Anthropic: {e}")
             raise ServiceError(f"Streaming generation failed: {e}")
 
-    def models(self) -> List[str]:
+    def models(self) -> List[dict]:
         """
-        Return a static list of available Anthropic models.
+        Retrieve a list of available Anthropic models using the Anthropic SDK.
+        Each model returned is represented as a standardized dictionary containing:
+          - id: A unique model identifier with a provider suffix.
+          - name: The display name (fallback to model id if missing).
+          - model: The actual model id.
+          - max_input_tokens: Maximum allowed input tokens.
+          - max_output_tokens: Maximum allowed output tokens.
+          - vision_enabled: Whether the model supports vision (default: False).
+          - embedding_enabled: Whether the model supports embeddings (default: False).
+          - tools_enabled: Whether the model supports tools (default: False).
+          - provider: "anthropic"
         """
         if not self.is_enabled:
             self.logger.info("Anthropic provider is not enabled; skipping model retrieval.")
             return []
-        # Adjust or extend this list depending on the supported models.
-        return ["claude-2", "claude-2.0-100k", "claude-3-5-sonnet-latest"]
+        try:
+            results = []
+            for model in list(self._client.models.list()):
+                results.append({
+                    "id": f"{model.id}-anthropic",
+                    "name": model.display_name,
+                    "model": model.id,
+                    "max_input_tokens": 2048,
+                    "max_output_tokens": 2048,
+                    "vision_enabled": False,
+                    "embedding_enabled": False,
+                    "tools_enabled": False,
+                    "provider": "anthropic",
+                })
+            return results
+        except Exception as e:
+            self.logger.error(f"Error fetching models from Anthropic: {e}")
+            raise ServiceError(f"Failed to retrieve models: {e}")
 
     def update_config(self, config: Dict) -> None:
         """
@@ -138,5 +167,187 @@ class AnthropicProvider(BaseProvider):
     def generate(self, model: str, messages: Union[List, str], max_tokens: int = 1024) -> str:
         return self.chat(model, messages, max_tokens)
 
-    def stream(self, model: str, messages: Union[List, str], max_tokens: int = 1024) -> AsyncGenerator[str, None]:
-        return self.chat_stream(model, messages, max_tokens)
+    def stream(
+        self,
+        model: str,
+        messages: Union[List, str],
+        max_tokens: int = 1024,
+        **kwargs
+    ) -> Generator[str, None, None]:
+        """
+        Synchronous streaming method that generates a response from Anthropic.
+        This method replicates the streaming behavior seen in Google, OpenAI, and Ollama.
+        
+        It yields JSON-formatted chunks:
+          - Each intermediate chunk is wrapped as {"content": text, "status": "generating"}.
+          - When a stop condition is detected, a final chunk is yielded as {"status": "done", "usage": token_usage}.
+        
+        Extra keyword arguments (e.g. user_id, conversation_id) are used to log analytics events.
+        """
+        if not self.is_enabled:
+            raise ValueError("Anthropic Provider is not enabled.")
+
+        processed_messages = self._process_messages(messages)
+        token_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+        start_time = timer()
+        try:
+            # Request a streaming response using the synchronous client.
+            stream_response = self._client.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                messages=processed_messages,
+                stream=True
+            )
+            done = False
+            for event in stream_response:
+                # Check for a stop condition.
+                if getattr(event, "stop_reason", None):
+                    # If the event contains usage info, update token usage.
+                    if hasattr(event, "usage"):
+                        usage = event.usage
+                        if isinstance(usage, dict):
+                            token_usage["prompt_tokens"] = usage.get("prompt_tokens", 0)
+                            token_usage["completion_tokens"] = usage.get("completion_tokens", 0)
+                        else:
+                            token_usage["prompt_tokens"] = getattr(usage, "prompt_tokens", 0)
+                            token_usage["completion_tokens"] = getattr(usage, "completion_tokens", 0)
+                        token_usage["total_tokens"] = (
+                            token_usage["prompt_tokens"] + token_usage["completion_tokens"]
+                        )
+                    # Log analytics if a user_id is provided.
+                    if kwargs.get("user_id"):
+                        generation_time = timer() - start_time
+                        event_data = {
+                            "user_id": kwargs.get("user_id"),
+                            "event_type": "chat_completion",
+                            "model": model,
+                            "tokens": token_usage.get("total_tokens", 0),
+                            "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                            "completion_tokens": token_usage.get("completion_tokens", 0),
+                            "cost": self.calculate_cost("", model),
+                            "metadata": {
+                                "generation_time": generation_time,
+                                "conversation_id": kwargs.get("conversation_id"),
+                            },
+                        }
+                        self.log_chat_completion(event_data)
+                    yield json.dumps({"status": "done", "usage": token_usage})
+                    done = True
+                    break
+
+                # Otherwise, yield the generating chunk if there is any text.
+                text = event.content
+                if text and text.strip():
+                    yield json.dumps({"content": text, "status": "generating"})
+
+            # If we never encountered an explicit stop event, yield a final done message.
+            if not done:
+                if kwargs.get("user_id"):
+                    generation_time = timer() - start_time
+                    event_data = {
+                        "user_id": kwargs.get("user_id"),
+                        "event_type": "chat_completion",
+                        "model": model,
+                        "tokens": token_usage.get("total_tokens", 0),
+                        "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                        "completion_tokens": token_usage.get("completion_tokens", 0),
+                        "cost": self.calculate_cost("", model),
+                        "metadata": {
+                            "generation_time": generation_time,
+                            "conversation_id": kwargs.get("conversation_id"),
+                        },
+                    }
+                    self.log_chat_completion(event_data)
+                yield json.dumps({"status": "done", "usage": token_usage})
+
+        except BadRequestError as e:
+            error_details = e.body.get('error', {})
+            if kwargs.get("user_id"):
+                event_data = {
+                    "user_id": kwargs.get("user_id"),
+                    "event_type": "error",
+                    "model": model,
+                    "tokens": token_usage.get("total_tokens", 0),
+                    "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                    "completion_tokens": token_usage.get("completion_tokens", 0),
+                    "cost": self.calculate_cost("", model),
+                    "metadata": {"error": str(e)},
+                }
+                self.log_chat_completion(event_data)
+            yield json.dumps({
+                "error": str(e), 
+                "status": "error",
+                "error_code": e.status_code,
+                "error_title": f"Anthropic Error: {error_details.get('type', 'Unknown Error')}",
+                "error_description": error_details.get("message", "Unknown Error"),
+            })
+            return
+        except Exception as e:
+            generation_time = timer() - start_time
+            self.logger.error(f"Error streaming content with Anthropic: {e}")
+            print(f"Error details: {e.args, type(e)}")
+            error_details = self._parse_anthropic_error(str(e))
+            if kwargs.get("user_id"):
+                event_data = {
+                    "user_id": kwargs.get("user_id"),
+                    "event_type": "error",
+                    "model": model,
+                    "tokens": token_usage.get("total_tokens", 0),
+                    "prompt_tokens": token_usage.get("prompt_tokens", 0),
+                    "completion_tokens": token_usage.get("completion_tokens", 0),
+                    "cost": self.calculate_cost("", model),
+                    "metadata": {"generation_time": generation_time, "error": str(e)},
+                }
+                self.log_chat_completion(event_data)
+            yield json.dumps({
+                "error": str(e), 
+                "status": "error",
+                "error_code": error_details.get("error_code"),
+                "error_title": error_details.get("error_title"),
+                "error_description": error_details.get("error_description"),
+            })
+    
+    def _format_model_name(self, model_id: str) -> str:
+        """
+        Format the model name to be used in the UI.
+        """
+        return model_id.replace("claude-", "").replace("_", "")
+
+    def _parse_anthropic_error(self, error_msg: str) -> dict:
+        """
+        Parse an Anthropic error string into a structured dictionary.
+        
+        Expected format (example):
+            "Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}}"
+        Returns a dict with keys:
+            - error_code
+            - error_title
+            - error_description
+        """
+        try:
+            # Split by the delimiter " - "
+            prefix, details = error_msg.split(" - ", 1)
+            # Extract error code by removing the label.
+            error_code = prefix.replace("Error code:", "").strip()
+            
+            # Convert the string representation of the dict to an actual dictionary safely.
+            error_body = ast.literal_eval(details)
+            
+            # The expected structure:
+            # {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': '...'}}
+            inner_error = error_body.get("error", {})
+            error_title = inner_error.get("type", "Anthropic API Error")
+            error_description = inner_error.get("message", error_msg)
+            
+            return {
+                "error_code": error_code,
+                "error_title": error_title,
+                "error_description": error_description,
+            }
+        except Exception as parse_ex:
+            # In case parsing fails, return a fallback structure.
+            return {
+                "error_code": None,
+                "error_title": "Anthropic API Error",
+                "error_description": error_msg,
+            }

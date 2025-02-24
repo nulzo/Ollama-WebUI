@@ -66,9 +66,7 @@ export function ModelSelect({ value, onValueChange, className }: ModelSelectProp
     );
   }
 
-  // Helper to capitalize provider names
-  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-  console.log(formattedModels);
+  const capitalize = (s: string) => s?.charAt(0)?.toUpperCase() + s?.slice(1);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

@@ -2,6 +2,7 @@ import uuid
 
 from rest_framework import serializers
 
+from features.completions.models import MessageError
 from features.authentication.models import CustomUser
 from features.conversations.models import Conversation
 from features.conversations.models import Message
@@ -17,6 +18,10 @@ class UserField(serializers.RelatedField):
         except CustomUser.DoesNotExist:
             raise serializers.ValidationError("User does not exist")
 
+class MessageErrorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MessageError
+        fields = ["error_code", "error_title", "error_description"]
 
 class MessageSerializer(serializers.ModelSerializer):
     """
@@ -30,6 +35,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     # Read-only fields
     image_ids = serializers.ListField(child=serializers.IntegerField(), read_only=True)
+    error = MessageErrorSerializer(source='error_detail', read_only=True)
     conversation_uuid = serializers.SerializerMethodField()
 
     # Write-only fields
@@ -65,7 +71,11 @@ class MessageSerializer(serializers.ModelSerializer):
             "completion_tokens",
             "finish_reason",
             "is_liked",
-            "is_hidden"
+            "is_hidden",
+            "is_error",
+            "provider",
+            "name",
+            "error",
         ]
         read_only_fields = ["id", "created_at", "has_images"]
 

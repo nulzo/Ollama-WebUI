@@ -1,17 +1,14 @@
 import json
 import logging
-import base64
-from dataclasses import dataclass
 from timeit import default_timer as timer
-from typing import AnyStr, Dict, List, Optional, Union, Generator
+from typing import AnyStr, Dict, List, Union, Generator
 
-from django.conf import settings
-from ollama import Client as OllamaClient  # assuming this is the official Ollama client
+from ollama import Client as OllamaClient
 
 from features.analytics.services.analytics_service import AnalyticsEventService
 from features.providers.clients.base_provider import BaseProvider
 from api.utils.exceptions.exceptions import ServiceError
-from features.tools.models import Tool  # if you use tools for function calling
+from features.tools.models import Tool
 
 logger = logging.getLogger(__name__)
 

@@ -6,6 +6,7 @@ import logging
 import traceback
 from threading import Event
 from typing import Generator
+from features.completions.models import MessageError
 from features.analytics.services.analytics_service import AnalyticsEventService
 from features.conversations.services.conversation_service import ConversationService
 from features.providers.clients.provider_factory import provider_factory
@@ -121,6 +122,8 @@ class ChatService:
                 conversation=conversation,
                 content=data.get("content", ""),
                 role="user",
+                provider=data.get("provider", "ollama"),
+                name = data.get("name", ""),
                 user=user,
                 model=data.get("model", "llama3.2:3b"),
                 images=images,
@@ -159,14 +162,47 @@ class ChatService:
                     break
                 if isinstance(chunk, str):
                     chunk_data = json.loads(chunk)
+                    
+                    # If an error chunk is received, save an error message and yield the error response
+                    if chunk_data.get("status") == "error":
+                        error_message_text = chunk_data.get("error", "Unknown error")
+                        full_content += f"\nError: {error_message_text}"
+                        assistant_message = self.message_repository.create(
+                            conversation=user_message.conversation,
+                            content=full_content,
+                            role="assistant",
+                            user=user,
+                            tokens_used=tokens_generated,
+                            provider=data.get("provider", "ollama"),
+                            name=data.get("name", ""),
+                            model=data.get("model"),
+                            generation_time=timer() - start,
+                            finish_reason="error",
+                            is_error=True,
+                        )
+                        print(f"chunk_data: {chunk_data}")
+                        
+                        MessageError.objects.create(
+                            message=assistant_message,
+                            error_code=chunk_data.get("error_code", "400"),
+                            error_title=chunk_data.get("error_title", "Generation Error"),
+                            error_description=chunk_data.get("error_description", error_message_text)
+                        )
+                        
+                        yield json.dumps({
+                            "error": error_message_text,
+                            "status": "error",
+                            "message_id": str(assistant_message.id),
+                            "is_error": True,
+                        }) + "\n"
+                        return
+                    
                     full_content += chunk_data.get("content", "")
                     tokens_generated += 1
                     yield json.dumps(chunk_data) + "\n"
 
             end = timer()
             generation_time = end - start
-            
-            print("FULL CONTENT", full_content)
 
             # Update final message content if not cancelled
             if not self._cancel_event.is_set():
@@ -176,6 +212,8 @@ class ChatService:
                     role="assistant",
                     user=user,
                     tokens_used=tokens_generated,
+                    provider=data.get("provider", "ollama"),
+                    name = data.get("name", ""),
                     model=data.get("model"),
                     generation_time=generation_time,
                     finish_reason="cancelled" if self._cancel_event.is_set() else "stop",
@@ -190,7 +228,45 @@ class ChatService:
 
         except Exception as e:
             logger.error(f"Error in generation {generation_id}: {str(e)}\n{traceback.format_exc()}")
-            yield json.dumps({"error": str(e), "status": "error"})
+            try:
+                assistant_message = self.message_repository.create(
+                    conversation=user_message.conversation,
+                    content=full_content + "\nError: " + str(e),
+                    role="assistant",
+                    user=user,
+                    tokens_used=tokens_generated,
+                    provider=data.get("provider", "ollama"),
+                    name=data.get("name", ""),
+                    model=data.get("model"),
+                    generation_time=timer() - start,
+                    finish_reason="error",
+                    is_error=True,
+                )
+                
+                MessageError.objects.create(
+                    message=assistant_message,
+                    error_code="400",  # Replace with an actual dynamic error code if available
+                    error_title="Generation Error",
+                    error_description=str(e)
+                )
+                        
+                yield json.dumps({
+                    "error": str(e),
+                    "status": "error",
+                    "message_id": str(assistant_message.id),
+                    "is_error": True,
+                }) + "\n"
+                return
+                
+            except Exception as db_error:
+                self.logger.error(f"Error saving error message to DB: {str(db_error)}")
+                assistant_message = None
+            yield json.dumps({
+                "error": str(e),
+                "status": "error",
+                "message_id": str(assistant_message.id) if assistant_message else None,
+                "is_error": True,
+            })
 
     def _get_provider(self, model_name: str, user_id: int = None):
         """Get appropriate provider based on model name"""

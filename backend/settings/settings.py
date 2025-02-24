@@ -226,8 +226,12 @@ LOGGING = {
             "formatter": "standard",
         },
     },
+    "root": {
+        "handlers": ["console", "file"],
+        "level": "DEBUG",
+    },
     "loggers": {
-        "features.analytics": {
+            "features": {  # This logger will handle all loggers starting with 'features.'
             "handlers": ["console"],
             "level": "DEBUG",
             "propagate": True,

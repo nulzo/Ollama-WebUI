@@ -4,7 +4,7 @@ import { Copy, FrownIcon, Heart, HeartCrack, Loader2, RefreshCw } from 'lucide-r
 import { Message as MessageType } from '@/features/chat/types/message';
 import { BotIcon } from '@/features/chat/components/bot-icon.tsx';
 import { formatDate } from '@/utils/format.ts';
-import { motion, useMotionValue, animate } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { AsyncMessageImage } from './async-image.tsx';
 import { useModels } from '@/features/models/api/get-models.ts';
 import { Skeleton } from '@/components/ui/skeleton.tsx';
@@ -27,19 +27,88 @@ interface MessageProps {
   isWaiting?: boolean;
 }
 
+
+/*
+  Custom hook: useSmoothStreaming
+  
+  - targetText: the full text streamed in from the backend.
+  - isTyping: when true, we animate the displayed text from its current length to targetText.length.
+  
+  This hook uses requestAnimationFrame to add characters at a fixed RATE (set here to 100 characters per second).
+  
+  When isTyping is false the full text is rendered immediately.
+*/
+const useSmoothStreaming = (targetText: string, isTyping: boolean) => {
+  const [displayedText, setDisplayedText] = useState(targetText);
+  // current display index (as a fractional number)
+  const currentLengthRef = useRef(targetText.length);
+  // latest target text
+  const targetTextRef = useRef(targetText);
+  const rafRef = useRef<number>();
+  const SPEED = 100; // characters per second
+
+  // Always update our target reference when text changes.
+  useEffect(() => {
+    targetTextRef.current = targetText;
+  }, [targetText]);
+
+  useEffect(() => {
+    if (!isTyping) {
+      // When not streaming, show full text immediately.
+      setDisplayedText(targetText);
+      currentLengthRef.current = targetText.length;
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      return;
+    }
+
+    let prevTimestamp: number | null = null;
+
+    const tick = (timestamp: number) => {
+      if (prevTimestamp === null) {
+        prevTimestamp = timestamp;
+      }
+      const dt = timestamp - prevTimestamp;
+      prevTimestamp = timestamp;
+      const increment = (SPEED * dt) / 1000;
+      // Increase our current index but never exceed the target's length.
+      currentLengthRef.current = Math.min(
+        targetTextRef.current.length,
+        currentLengthRef.current + increment
+      );
+      // Update the displayed text from index 0 to current index.
+      setDisplayedText(targetTextRef.current.slice(0, Math.floor(currentLengthRef.current)));
+      if (currentLengthRef.current < targetTextRef.current.length) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [isTyping, targetText]);
+
+  return displayedText;
+};
+
+
 // eslint-disable-next-line react/display-name
 export const Message = memo<MessageProps>(
   ({ message, isTyping, isLoading, isWaiting }) => {
-    const [displayedContent, setDisplayedContent] = useState('');
     const formattedDate = formatDate(new Date(message.created_at).getTime());
     const { data: modelsData } = useModels();
-    const progress = useMotionValue(0);
-    const previousContentRef = useRef(message.content || '');
     const { copy } = useClipboard();
     const [isLiked, setIsLiked] = useState(message.is_liked);
 
     const queryClient = useQueryClient();
     const updateMessage = useUpdateMessage();
+    // Use our new smooth streaming hook.
+    const smoothText = useSmoothStreaming(message.content || '', !!isTyping);
+    const messageContent = isTyping ? smoothText : message.content || '';
 
     const handleLike = () => {
       const newIsLiked = !isLiked;
@@ -116,30 +185,6 @@ export const Message = memo<MessageProps>(
       );
     }, [modelsData, message.model]);
 
-    // Update the streaming effect to be smoother
-    useEffect(() => {
-      if (!isTyping) {
-        setDisplayedContent(message.content || '');
-        return;
-      }
-
-      if (message.content !== previousContentRef.current) {
-        const newContent = message.content;
-        const targetLength = newContent.length;
-
-        // Animate the progress value from current to target length
-        animate(progress, targetLength, {
-          type: 'tween',
-          duration: 0.5,
-          ease: 'linear',
-          onUpdate: latest => {
-            setDisplayedContent(newContent.slice(0, Math.floor(latest)));
-          },
-        });
-      }
-      previousContentRef.current = message.content;
-    }, [message.content, isTyping]);
-
     // Update local state when prop changes
     useEffect(() => {
       setIsLiked(message.is_liked);
@@ -198,7 +243,7 @@ export const Message = memo<MessageProps>(
       );
     }
 
-    const messageContent = isTyping ? displayedContent : message.content || '';
+    // const messageContent = isTyping ? stableText : message.content || '';
     const showActions = !isTyping && !isLoading && message.role === 'assistant';
 
     if (message.is_error) {

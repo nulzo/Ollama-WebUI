@@ -5,13 +5,12 @@ import { ConversationDefault } from '@/features/chat/components/default-chat/con
 import { ChatInput } from '@/features/textbox/components/chat-input';
 import { useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useConversation } from '@/features/chat/hooks/use-conversation.ts';
+import { useConversation } from '@/features/chat/hooks/use-conversation';
 import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
 
 export function ChatRoute() {
   const { conversation } = useConversation();
   const { mutation, isGenerating } = useChatMutation(conversation || undefined);
-
   const [searchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
   const navigate = useNavigate();
@@ -20,9 +19,9 @@ export function ChatRoute() {
     if (searchParamString && searchParamString !== conversation) {
       navigate(`/?c=${searchParamString}`);
     }
-  }, [searchParamString, conversation]);
+  }, [searchParamString, conversation, navigate]);
 
-  const handleSubmit = (message: string, images: string[] | undefined) => {
+  const handleSubmit = (message: string, images?: string[]) => {
     mutation.mutate({ message, images });
   };
 
@@ -38,15 +37,20 @@ export function ChatRoute() {
               </div>
             </div>
           ) : (
+            // Let ConversationDefault handle the input (centered) and landing view
             <ConversationDefault />
           )}
         </ConversationArea>
-        <div className="bg-background p-2 flex flex-col gap-2 items-center">
-          <ChatInput onSubmit={handleSubmit} disabled={isGenerating} />
-          <div className="flex text-xs text-muted-foreground items-center gap-1">
-            <span>CringeGPT Never Makes Mistakes</span>
+
+        {/* Only render bottom ChatInput if there is an active conversation */}
+        {searchParamString && (
+          <div className="bg-background p-2 flex flex-col gap-2 items-center">
+            <ChatInput onSubmit={handleSubmit} disabled={isGenerating} />
+            <div className="flex text-xs text-muted-foreground items-center gap-1">
+              <span>CringeGPT Never Makes Mistakes</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

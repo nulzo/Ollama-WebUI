@@ -104,10 +104,7 @@ class ChatService:
             # Send conversation UUID as first chunk
             yield json.dumps({"conversation_uuid": str(conversation.uuid), "status": "created"})
 
-            try:
-                validated_user = user if isinstance(user, int) else data.get("user")
-                user = CustomUser.objects.get(id=validated_user)
-            except CustomUser.DoesNotExist:
+            if not isinstance(user, CustomUser):
                 yield json.dumps({"error": "User not found", "status": "error"})
                 return
 

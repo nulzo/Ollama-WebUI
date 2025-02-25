@@ -595,23 +595,14 @@
   .right-2 {
     right: calc(var(--spacing) * 2);
   }
-  .right-3 {
-    right: calc(var(--spacing) * 3);
-  }
   .right-4 {
     right: calc(var(--spacing) * 4);
   }
   .right-\[10px\] {
     right: 10px;
   }
-  .-bottom-0 {
-    bottom: calc(var(--spacing) * -0);
-  }
   .-bottom-0\.5 {
     bottom: calc(var(--spacing) * -0.5);
-  }
-  .-bottom-1 {
-    bottom: calc(var(--spacing) * -1);
   }
   .-bottom-2 {
     bottom: calc(var(--spacing) * -2);
@@ -947,9 +938,6 @@
   .h-0 {
     height: calc(var(--spacing) * 0);
   }
-  .h-0\.5 {
-    height: calc(var(--spacing) * 0.5);
-  }
   .h-1 {
     height: calc(var(--spacing) * 1);
   }
@@ -1013,6 +1001,9 @@
   .h-\[20px\] {
     height: 20px;
   }
+  .h-\[30px\] {
+    height: 30px;
+  }
   .h-\[250px\] {
     height: 250px;
   }
@@ -1021,9 +1012,6 @@
   }
   .h-\[300px\] {
     height: 300px;
-  }
-  .h-\[30px\] {
-    height: 30px;
   }
   .h-\[350px\] {
     height: 350px;
@@ -1217,6 +1205,9 @@
   .max-w-2xl {
     max-width: var(--container-2xl);
   }
+  .max-w-3xl {
+    max-width: var(--container-3xl);
+  }
   .max-w-4xl {
     max-width: var(--container-4xl);
   }
@@ -1315,9 +1306,6 @@
   }
   .transform {
     transform: var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y);
-  }
-  .animate-bounce {
-    animation: bounce 0.6s infinite;
   }
   .animate-fade {
     animation: fade var(--tw-animate-duration, 1s) var(--tw-animate-easing, ease) var(--tw-animate-delay, 0s) var(--tw-animate-iteration, 1) var(--tw-animate-fill, both);
@@ -1682,9 +1670,6 @@
   .border-foreground\/75 {
     border-color: color-mix(in oklab, hsl(var(--foreground)) 75%, transparent);
   }
-  .border-gray-300 {
-    border-color: var(--color-gray-300);
-  }
   .border-input {
     border-color: hsl(var(--border));
   }
@@ -1828,9 +1813,6 @@
   }
   .bg-secondary\/75 {
     background-color: color-mix(in oklab, hsl(var(--secondary)) 75%, transparent);
-  }
-  .bg-secondary\/80 {
-    background-color: color-mix(in oklab, hsl(var(--secondary)) 80%, transparent);
   }
   .bg-success {
     background-color: hsl(var(--success));
@@ -2048,9 +2030,6 @@
   }
   .pr-10 {
     padding-right: calc(var(--spacing) * 10);
-  }
-  .pr-24 {
-    padding-right: calc(var(--spacing) * 24);
   }
   .pr-\[50px\] {
     padding-right: 50px;
@@ -2788,13 +2767,6 @@
       }
     }
   }
-  .hover\:bg-gray-100 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-gray-100);
-      }
-    }
-  }
   .hover\:bg-muted {
     &:hover {
       @media (hover: hover) {
@@ -2834,13 +2806,6 @@
     &:hover {
       @media (hover: hover) {
         background-color: hsl(var(--secondary));
-      }
-    }
-  }
-  .hover\:bg-secondary\/50 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: color-mix(in oklab, hsl(var(--secondary)) 50%, transparent);
       }
     }
   }

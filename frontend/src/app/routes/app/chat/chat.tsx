@@ -81,7 +81,7 @@ export function ChatRoute() {
                       : 'Start a conversation in your preferred style.'}
                   </p>
                 </motion.div>
-                <div className="space-y-6 w-full max-w-3xl mx-auto">
+                <div className="space-y-6 w-full max-w-2xl mx-auto">
                   <motion.div
                     layoutId="chat-input"
                     layout="position"
@@ -127,7 +127,7 @@ export function ChatRoute() {
                   transition={{
                     layout: { duration: 0.3, ease: [0.23, 1, 0.32, 1] },
                   }}
-                  className="w-full max-w-3xl mx-auto bg-background py-2 gap-2 flex flex-col items-center"
+                  className="w-full max-w-2xl mx-auto bg-background py-2 gap-2 flex flex-col items-center"
                 >
                   <AutoResizeTextarea
                     text={input}

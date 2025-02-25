@@ -1,299 +1,227 @@
-import { usePrompts } from '../../api/get-default-prompts';
-import { ChatInput } from '@/features/textbox/components/chat-input';
-import { useNavigate } from 'react-router-dom';
-import { useEffect, useState, useRef } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Flame, RefreshCcw, Sparkles, Brain, Lightbulb, Coffee, Send } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+// import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from 'framer-motion';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { useMutation } from '@tanstack/react-query';
-import { api } from '@/lib/api-client';
-import { useUser } from '@/lib/auth';
-// Adjust the import if you have a different hook/config for model details.
-import { useModelStore } from '@/features/models/store/model-store';
+import { Paperclip, Send, MessageCircle, RefreshCcw } from 'lucide-react';
+// import { usePrompts } from "../../api/get-default-prompts";
+import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
+// These components are assumed to exist (or create them based on your design)
+import { Message } from '../message';
+import CannedQuestions from './canned-questions';
+import AutoResizeTextarea from '@/features/textbox/components/new-textbox';
+import { useAuth } from '@/features/authentication/hooks/use-auth';
 
-interface Message {
-  content: string;
-  role: 'user' | 'assistant';
-  created_at: string;
-}
-
-const promptStyles = [
-  { name: 'Creative', icon: <Sparkles className="w-4 h-4" /> },
-  { name: 'Analytical', icon: <Brain className="w-4 h-4" /> },
-  { name: 'Inspirational', icon: <Lightbulb className="w-4 h-4" /> },
-  { name: 'Casual', icon: <Coffee className="w-4 h-4" /> },
-];
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.1,
-      duration: 0.3,
-    },
-  }),
+const exampleQuestions: Record<string, string[]> = {
+  casual: ["How's your day going?", "What's your favorite hobby?", 'Tell me a fun fact'],
+  creative: [
+    'Write a short story about a dragon',
+    'Design a unique superhero',
+    'Invent a new musical instrument',
+  ],
+  inspirational: [
+    'Share a motivational quote',
+    'How can I achieve my goals?',
+    'Tell me about overcoming challenges',
+  ],
+  analytical: [
+    'Explain quantum computing',
+    'Analyze market trends',
+    'Compare different algorithms',
+  ],
 };
 
+export function ExampleChips({
+  theme,
+  onChipClick,
+}: {
+  theme: string;
+  onChipClick: (question: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2 justify-center">
+      {exampleQuestions[theme].map(question => (
+        <Button
+          key={question}
+          variant="outline"
+          size="sm"
+          onClick={() => onChipClick(question)}
+          className="rounded-full hover:bg-secondary hover:text-secondary-foreground transition-colors"
+        >
+          {question}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+export interface Message {
+  id: number;
+  content: string;
+  role: 'user' | 'assistant';
+  created_at?: string;
+}
+
 export const ConversationDefault = () => {
-  // State to manage the landing view vs conversation mode
+  // State for landing view and when a chat has started
   const [chatStarted, setChatStarted] = useState(false);
-  // For conversation style selection and recommended prompts
-  const [selectedStyle, setSelectedStyle] = useState('');
-  const { data, isLoading, isFetching, refetch } = usePrompts({
-    style: selectedStyle.toLowerCase(),
-  });
-  // Messaging state
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
-  // For the cycling welcome text
-  const [displayText, setDisplayText] = useState('CringeAI');
-  const [fade, setFade] = useState(true);
+  // Local input state
+  const [input, setInput] = useState('');
+  // Local messages (for the user’s own messages) until the new conversation is created
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
+  // Allow the user to select a conversation style (theme)
+  const [currentTheme, setCurrentTheme] = useState<
+    'casual' | 'creative' | 'inspirational' | 'analytical'
+  >('casual');
 
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const navigate = useNavigate();
+  // Get recommended prompts (for example chips)
+  // const { data, isLoading, isFetching, refetch } = usePrompts({
+  //   style: currentTheme,
+  // });
 
-  // Get user and model information
-  const user = useUser();
-  const { model } = useModelStore();
+  // Use our chat mutation without an existing conversation id.
+  // The mutation will create a new chat (and navigate) if no conversation exists.
+  const { mutation, isGenerating } = useChatMutation(undefined);
+  // const navigate = useNavigate();
 
-  // Mutation that sends a message and then streams the assistant’s reply.
-  // Now we build the payload with all the fields your API expects.
-  const mutation = useMutation({
-    mutationFn: async (message: string) => {
-      if (!user) throw new Error('Authentication required');
+  // Refs to auto-adjust and scroll the text area / messages
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
-      // Build the payload with the desired properties.
-      const payload = {
-        content: message,
-        // For a new conversation leave this undefined (the API will assign one)
-        conversation_uuid: undefined,
-        role: 'user',
-        user: user?.id,
-        model: model?.model,
-        name: model?.name,
-        provider: model?.provider,
-        images: [] as string[],
-      };
-
-      setIsGenerating(true);
-      abortControllerRef.current = new AbortController();
-
-      // Update local messages to show the user message and add an assistant placeholder.
-      setMessages(prev => [
-        ...prev,
-        {
-          content: message,
-          role: 'user',
-          created_at: new Date().toISOString()
-        },
-        {
-          content: '',
-          role: 'assistant',
-          created_at: new Date().toISOString()
-        },
-      ]);
-
-      try {
-        await api.streamCompletion(
-          payload,
-          (chunk: string) => {
-            // Append chunks to the last (assistant) message.
-            setMessages(prev => {
-              const newMessages = [...prev];
-              const lastMessage = newMessages[newMessages.length - 1];
-              if (lastMessage.role === 'assistant') {
-                newMessages[newMessages.length - 1] = {
-                  ...lastMessage,
-                  content: lastMessage.content + chunk,
-                };
-              }
-              return newMessages;
-            });
-          },
-          abortControllerRef.current.signal
-        );
-      } finally {
-        setIsGenerating(false);
-        abortControllerRef.current = null;
-      }
-    },
-    onError: (error: any) => {
-      if (error.name === 'AbortError') {
-        setMessages(prev => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage.role === 'assistant') {
-            newMessages[newMessages.length - 1] = {
-              ...lastMessage,
-              content: lastMessage.content + ' [cancelled]',
-            };
-          }
-          return newMessages;
-        });
-      } else {
-        console.error('Chat error:', error);
-        setMessages(prev => [
-          ...prev,
-          {
-            content: 'Sorry, there was an error processing your request.',
-            role: 'assistant',
-            created_at: new Date().toISOString(),
-          },
-        ]);
-      }
-      setIsGenerating(false);
-    },
-  });
-
-  const handleMessage = (message: string) => {
-    if (isGenerating) return;
-    if (!chatStarted) setChatStarted(true);
-    mutation.mutate(message);
-  };
-
-  // Optional: listen for conversation creation events to auto-navigate.
-  useEffect(() => {
-    const handleConversationCreated = (event: CustomEvent) => {
-      const uuid = event.detail.uuid;
-      navigate(`/?c=${uuid}`, { replace: true });
-    };
-    window.addEventListener('conversation-created', handleConversationCreated as EventListener);
-    return () => {
-      window.removeEventListener('conversation-created', handleConversationCreated as EventListener);
-    };
-  }, [navigate]);
-
-  // Cycle through welcome texts every 5 seconds.
-  useEffect(() => {
-    const texts = ['CringeAI', 'Perfection', 'Novelty', 'Euphoria', 'CringeAI', 'Excellence', 'Nirvana'];
-    const cycle = () => {
-      setFade(false);
-      setTimeout(() => {
-        setDisplayText(prev => {
-          const nextIndex = (texts.indexOf(prev) + 1) % texts.length;
-          return texts[nextIndex];
-        });
-        setFade(true);
-      }, 200);
-    };
-    const interval = setInterval(cycle, 5000);
-    return () => clearInterval(interval);
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [localMessages, scrollToBottom]);
+
+  const adjustTextareaHeight = useCallback(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, []);
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [input, adjustTextareaHeight]);
+
+  // Update the handleMessageSubmit to not expect an event
+  const handleMessageSubmit = () => {
+    if (!input.trim()) return;
+
+    const userMessage: Message = {
+      id: Date.now(),
+      content: input,
+      role: 'user',
+      created_at: new Date().toISOString(),
+    };
+
+    setLocalMessages(prev => [...prev, userMessage]);
+    setInput('');
+    if (!chatStarted) {
+      setChatStarted(true);
+    }
+    mutation.mutate({ message: userMessage.content, images: [] });
+  };
+
+  const handleExampleClick = (question: string) => {
+    setInput(question);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Handle file uploads as needed.
+    console.log('File uploaded:', e.target.files);
+  };
+
+  const handleThemeChange = (newTheme: string) => {
+    setCurrentTheme(newTheme as 'casual' | 'creative' | 'inspirational' | 'analytical');
+  };
+
   return (
-    <div className="relative h-full bg-background">
-      <AnimatePresence>
-        {!chatStarted && (
-          <motion.div
-            key="landing-view"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="flex flex-col items-center justify-center h-full space-y-8 px-4"
-          >
-            {/* Welcome text */}
+    <div className="flex flex-col items-center min-h-screen bg-background text-foreground p-4">
+      <main className="flex-1 w-full max-w-4xl flex flex-col">
+        <AnimatePresence mode="wait">
+          {!chatStarted ? (
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center"
-            >
-              <div className="flex justify-center items-baseline gap-2 font-bold text-5xl">
-                Welcome to{' '}
-                <span
-                  className={`text-primary transition-opacity duration-300 ${fade ? 'opacity-100' : 'opacity-0'}`}
-                >
-                  {displayText}
-                </span>
-              </div>
-              <div className="mt-2 font-semibold text-muted-foreground text-xl">
-                How can I help you today{user?.data?.username ? `, ${user.data.username}?` : '?'}
-              </div>
-            </motion.div>
-
-            {/* Conversation style selection chips */}
-            <motion.div
+              key="landing-view"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="w-full max-w-4xl"
+              exit={{ opacity: 0, y: -20 }}
+              className="flex flex-col items-center justify-center min-h-[80vh] space-y-8"
             >
-              <h2 className="mb-4 font-semibold text-md text-muted-foreground">
-                Choose your conversation style
-              </h2>
-              <div className="gap-4 grid grid-cols-2 sm:grid-cols-4 mb-10">
-                {promptStyles.map(style => (
-                  <Button
-                    key={style.name}
-                    variant={selectedStyle === style.name ? 'default' : 'outline'}
-                    className="flex justify-center items-center gap-2 h-12"
-                    onClick={() => setSelectedStyle(style.name)}
-                  >
-                    {style.icon}
-                    {style.name}
-                  </Button>
-                ))}
+              <div className="text-center space-y-2">
+                <h1 className="text-4xl font-bold tracking-tight">
+                  Welcome to <span className="font-bold text-primary">CringeAI</span><span className='text-sm text-primary font-base align-top'>™</span>
+                </h1>
+                <p className="text-muted-foreground text-sm font-base">
+                  {user?.username
+                    ? `Hi, ${user.username}. Start a conversation in your preferred style.`
+                    : 'Start a conversation in your preferred style.'}
+                </p>
+              </div>
+              <div className="space-y-6 w-full max-w-2xl">
+                <AutoResizeTextarea
+                  text={input}
+                  setText={setInput}
+                  onSubmit={handleMessageSubmit}
+                  model="default"
+                  onImageUpload={() => {}}
+                  onRemoveImage={() => {}}
+                  uploadedImages={[]}
+                  placeholder="Send a message..."
+                  onCancel={() => {}}
+                  isGenerating={false}
+                />
+                <div className="space-y-4">
+                  <CannedQuestions
+                    theme={currentTheme}
+                    onQuestionClick={handleExampleClick}
+                    onThemeChange={handleThemeChange}
+                  />
+                </div>
               </div>
             </motion.div>
-
-            {/* Centered ChatInput */}
-            <motion.div layout className="w-full max-w-4xl">
-              <ChatInput
-                onSubmit={handleMessage}
-                disabled={isGenerating}
-                messages={messages}
-              />
-            </motion.div>
-
-            {/* Canned Questions chips */}
+          ) : (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              key="chat-mode"
+              initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex flex-wrap gap-2 justify-center mt-4"
+              exit={{ opacity: 0 }}
+              className="flex-1 space-y-6 overflow-y-auto"
             >
-              {!data || isLoading || isFetching ? (
-                <Skeleton className="w-16 h-6" />
-              ) : (
-                data.prompts.map((item, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleMessage(item.prompt)}
-                  >
-                    {item.title}
-                  </Button>
-                ))
-              )}
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
-                <RefreshCcw className={`w-3 h-3 ${isFetching ? 'animate-spin' : ''}`} />
-              </Button>
+              {localMessages.map(message => (
+                <Message key={message.id} message={message} />
+              ))}
+              <div ref={messagesEndRef} />
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
+          )}
+        </AnimatePresence>
         {chatStarted && (
           <motion.div
-            key="chat-mode"
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute bottom-0 left-0 right-0 p-4"
+            layout
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="sticky bottom-0 py-4 bg-background border-t"
           >
-            <ChatInput
-              onSubmit={handleMessage}
-              disabled={isGenerating}
-              messages={messages}
+            <AutoResizeTextarea
+              text={input}
+              setText={setInput}
+              onSubmit={handleMessageSubmit}
+              model="default"
+              onImageUpload={() => {}}
+              onRemoveImage={() => {}}
+              uploadedImages={[]}
+              placeholder="Send a message..."
+              onCancel={() => {}}
+              isGenerating={false}
             />
           </motion.div>
         )}
-      </AnimatePresence>
+      </main>
     </div>
   );
 };

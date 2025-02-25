@@ -212,52 +212,45 @@ class ApiClient {
     signal?: AbortSignal
   ): Promise<void> {
     try {
-
-      if (signal) {
-        signal.addEventListener('abort', () => {
-          throw new DOMException('Request aborted', 'AbortError');
-        });
-      }
-
       const response = await fetch(this.getFullURL('/completions/chat/'), {
         method: 'POST',
         headers: this.getHeaders({
-            headers: {
-                Accept: 'text/event-stream',
-                'Content-Type': 'application/json',
-            }
+          headers: {
+            Accept: 'text/event-stream',
+            'Content-Type': 'application/json',
+          }
         }),
         credentials: 'include',
         body: JSON.stringify(data),
         signal,
-    });
-
+      });
+  
       if (!response.ok) {
-        console.error('Response status:', response.status);
-        console.error('Response headers:', Object.fromEntries(response.headers));
         const errorText = await response.text();
-        console.error('Response body:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
-
+  
       const reader = response.body?.getReader();
+      if (!reader) return;
+  
       const decoder = new TextDecoder();
-
-      while (reader) {
-        if (signal?.aborted) {
-          throw new DOMException('Request aborted', 'AbortError');
-        }
-
+      let buffer = '';
+  
+      while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-
+  
+        // Decode the chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true });
+  
+        // Split on newlines, keeping any partial line in the buffer
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+  
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
-              const data: StreamChunk = JSON.parse(line.slice(6));
+              const data = JSON.parse(line.slice(6));
               onChunk(data);
             } catch (e) {
               console.error('Error parsing SSE data:', e);
@@ -265,15 +258,23 @@ class ApiClient {
           }
         }
       }
+  
+      // Handle any remaining data
+      const remaining = buffer.trim();
+      if (remaining && remaining.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(remaining.slice(6));
+          onChunk(data);
+        } catch (e) {
+          console.error('Error parsing final SSE data:', e);
+        }
+      }
     } catch (error) {
-      console.log('Error in streamCompletion:', error);
       if (error.name === 'AbortError') {
         console.log('Abort detected in streamCompletion');
-        throw error; // Re-throw abort errors
+        throw error;
       }
       throw error;
-    } finally {
-      
     }
   }
 }

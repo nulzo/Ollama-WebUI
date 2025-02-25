@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/features/authentication/hooks/use-auth';
 import { useCallback, useRef } from 'react';
-import { useChatContext } from '../stores/chat-context';
+import { useChatStore } from '../stores/chat-store';
 import { useNavigate } from 'react-router-dom';
 import { useModelStore } from '@/features/models/store/model-store';
 
@@ -11,8 +11,14 @@ export function useChatMutation(conversation_id?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { setStreamingMessages, setIsGenerating, setIsWaiting, isGenerating } = useChatContext();
   const model = useModelStore(state => state.model);
+  const {
+    setStreamingMessages,
+    updateLastMessage,
+    setIsGenerating,
+    setIsWaiting,
+    isGenerating
+  } = useChatStore();
 
   const handleCancel = useCallback(() => {
     console.log('handleCancel called', {
@@ -116,17 +122,9 @@ export function useChatMutation(conversation_id?: string) {
               return;
             }
 
-            setStreamingMessages(prev => {
-              const newMessages = [...prev];
-              const lastMessage = newMessages[newMessages.length - 1];
-              if (lastMessage?.role === 'assistant') {
-                newMessages[newMessages.length - 1] = {
-                  ...lastMessage,
-                  content: lastMessage.content + (parsedChunk.content || ''),
-                };
-              }
-              return newMessages;
-            });
+            if (parsedChunk.content) {
+              updateLastMessage(parsedChunk.content);
+            }
           },
           abortControllerRef.current.signal
         );
@@ -154,33 +152,10 @@ export function useChatMutation(conversation_id?: string) {
     onError: error => {
       console.log('Caught error in mutation:', error);
       if (error.name === 'AbortError') {
-        setStreamingMessages(prev => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage.role === 'assistant') {
-            newMessages[newMessages.length - 1] = {
-              ...lastMessage,
-              content: lastMessage.content + ' [cancelled]',
-            };
-          }
-          return newMessages;
-        });
+        updateLastMessage('Cancelled');
       } else {
         console.error('Chat error:', error);
-        setStreamingMessages(prev => [
-          ...prev,
-          {
-            content: 'Sorry, there was an error processing your request.',
-            role: 'assistant',
-            model: model?.model || '',
-            name: model?.name || '',
-            liked_by: [],
-            has_images: false,
-            provider: model?.provider || '',
-            conversation_uuid: conversation_id || '',
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        updateLastMessage('Error');
       }
       setIsGenerating(false);
     },

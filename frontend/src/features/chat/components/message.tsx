@@ -38,59 +38,41 @@ interface MessageProps {
   
   When isTyping is false the full text is rendered immediately.
 */
-const useSmoothStreaming = (targetText: string, isTyping: boolean) => {
-  const [displayedText, setDisplayedText] = useState(targetText);
-  // current display index (as a fractional number)
-  const currentLengthRef = useRef(targetText.length);
-  // latest target text
-  const targetTextRef = useRef(targetText);
-  const rafRef = useRef<number>();
-  const SPEED = 100; // characters per second
-
-  // Always update our target reference when text changes.
-  useEffect(() => {
-    targetTextRef.current = targetText;
-  }, [targetText]);
+const useSmoothStreaming = (targetText: string, isTyping: boolean, speed: number = 10): string => {
+  const [displayedText, setDisplayedText] = useState<string>(targetText);
+  const requestRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isTyping) {
-      // When not streaming, show full text immediately.
+      // When not typing, show the full text immediately.
       setDisplayedText(targetText);
-      currentLengthRef.current = targetText.length;
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
       return;
     }
 
-    let prevTimestamp: number | null = null;
+    // If the current displayed text isn’t a prefix of targetText,
+    // reset it. This handles cases where the text suddenly changes.
+    setDisplayedText((prev) => (targetText.startsWith(prev) ? prev : ''));
 
-    const tick = (timestamp: number) => {
-      if (prevTimestamp === null) {
-        prevTimestamp = timestamp;
-      }
-      const dt = timestamp - prevTimestamp;
-      prevTimestamp = timestamp;
-      const increment = (SPEED * dt) / 1000;
-      // Increase our current index but never exceed the target's length.
-      currentLengthRef.current = Math.min(
-        targetTextRef.current.length,
-        currentLengthRef.current + increment
-      );
-      // Update the displayed text from index 0 to current index.
-      setDisplayedText(targetTextRef.current.slice(0, Math.floor(currentLengthRef.current)));
-      if (currentLengthRef.current < targetTextRef.current.length) {
-        rafRef.current = requestAnimationFrame(tick);
-      }
+    const animate = () => {
+      setDisplayedText((current) => {
+        if (current.length < targetText.length) {
+          // Get the next characters based on the supplied speed
+          const nextChunk = targetText.slice(current.length, current.length + speed);
+          requestRef.current = requestAnimationFrame(animate);
+          return current + nextChunk;
+        }
+        return current;
+      });
     };
 
-    rafRef.current = requestAnimationFrame(tick);
+    requestRef.current = requestAnimationFrame(animate);
+
     return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
+      if (requestRef.current !== null) {
+        cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [isTyping, targetText]);
+  }, [targetText, isTyping, speed]);
 
   return displayedText;
 };
@@ -291,7 +273,7 @@ export const Message = memo<MessageProps>(
           ) : (
             <div className="flex flex-col gap-1 px-4 py-2">
               <div className="flex flex-col items-end selection:bg-muted-foreground">
-                <div className="flex items-baseline gap-2 mb-1">
+                <div className="flex items-baseline gap-2">
                   <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
                 </div>
               </div>
@@ -327,7 +309,7 @@ export const Message = memo<MessageProps>(
                   </div>
                 )}
 
-                <div className="max-w-none prose prose-sm">
+                <div className="max-w-none prose prose-sm scroll-smooth">
                   {messageContent ? (
                     <MarkdownRenderer markdown={messageContent} />
                   ) : (
@@ -411,7 +393,7 @@ export const Message = memo<MessageProps>(
         ) : (
           // User message
           <div className="flex flex-col items-end selection:bg-muted-foreground">
-            <div className="flex items-baseline gap-2 mb-1">
+            <div className="flex items-baseline gap-2">
               <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
             </div>
 

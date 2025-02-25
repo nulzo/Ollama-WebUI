@@ -201,7 +201,7 @@ export const SidebarActions = ({ isCollapsed, animationDuration }: SidebarAction
           onClick={() => navigate('/')}
           isCollapsed={isCollapsed}
           animationDuration={animationDuration}
-          variant="default"
+          variant="secondary"
         />
       </div>
 

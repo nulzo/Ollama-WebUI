@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { FC } from 'react';
 import { Message } from './message';
 import { useMessages } from '../api/get-messages';
 import { useChatMutation } from '../hooks/use-chat-mutation';
-import { useChatContext } from '../stores/chat-context';
+import { useChatStore } from '../stores/chat-store';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Loader2, X } from 'lucide-react';
 
@@ -12,9 +11,11 @@ interface ScrollToBottomButtonProps {
   isVisible: boolean;
 }
 
-export const ScrollToBottomButton: FC<ScrollToBottomButtonProps> = ({ onClick, isVisible }) => {
+export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({
+  onClick,
+  isVisible,
+}) => {
   if (!isVisible) return null;
-
   return (
     <Button
       onClick={onClick}
@@ -32,7 +33,7 @@ interface CancelButtonProps {
   onClick: () => void;
 }
 
-export const CancelButton: FC<CancelButtonProps> = ({ onClick }) => {
+export const CancelButton: React.FC<CancelButtonProps> = ({ onClick }) => {
   return (
     <Button
       onClick={onClick}
@@ -56,13 +57,14 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
   const { messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages({
     conversation_id,
   });
-  const { streamingMessages, isGenerating, isWaiting } = useChatContext();
+  const { streamingMessages, isGenerating, isWaiting } = useChatStore();
 
+  // Combine existing messages and any streaming updates.
   const allMessages = useMemo(() => {
     return [...messages, ...streamingMessages];
   }, [messages, streamingMessages]);
 
-  // Only auto-scroll for new messages at bottom
+  // Whenever messages or streaming updates change, scroll to the bottom if the user hasn’t scrolled up.
   useEffect(() => {
     if (
       shouldAutoScroll &&
@@ -74,11 +76,11 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
         behavior: 'smooth',
       });
     }
-  }, [streamingMessages, isGenerating, shouldAutoScroll]);
+  }, [allMessages, shouldAutoScroll]);
 
+  // Update scroll position state.
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
-
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
     const distanceFromBottom = Math.abs(scrollTop);
 
@@ -95,6 +97,15 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     setShowScrollButton(!isNearBottom);
   }, [hasNextPage]);
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll]);
+
   return (
     <div className="relative flex flex-col h-full">
       <div
@@ -104,45 +115,43 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
       >
         <div className="flex flex-col gap-2 px-4 py-2">
           {/* Load More Button */}
-          {showLoadMore && (
-            <div className="flex justify-center py-4">
-              <Button
-                variant="link"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                className="flex items-center gap-2"
-              >
-                {isFetchingNextPage ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  </>
-                ) : (
-                  <>Load older messages</>
-                )}
-              </Button>
-            </div>
-          )}
+        {showLoadMore && (
+          <div className="flex justify-center py-4">
+            <Button
+              variant="link"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="flex items-center gap-2"
+            >
+              {isFetchingNextPage ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                'Load older messages'
+              )}
+            </Button>
+          </div>
+        )}
 
-          {allMessages.map((message, index) => (
-            <Message
-              key={message.id || index}
-              message={message}
-              isTyping={
-                isGenerating &&
-                index === allMessages.length - 1 &&
-                message.role === 'assistant' &&
-                !isWaiting
-              }
-              isWaiting={
-                isGenerating &&
-                index === allMessages.length - 1 &&
-                message.role === 'assistant' &&
-                isWaiting
-              }
-              isLoading={false}
-            />
-          ))}
-        </div>
+        {allMessages.map((message, index) => (
+          <Message
+            key={message.id || index}
+            message={message}
+            isTyping={
+              isGenerating &&
+              index === allMessages.length - 1 &&
+              message.role === 'assistant' &&
+              !isWaiting
+            }
+            isWaiting={
+              isGenerating &&
+              index === allMessages.length - 1 &&
+              message.role === 'assistant' &&
+              isWaiting
+            }
+            isLoading={false}
+          />
+        ))}
+      </div>
       </div>
 
       <div className="right-0 bottom-0 left-0 absolute pointer-events-none">
@@ -150,14 +159,19 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
           <ScrollToBottomButton
             isVisible={showScrollButton}
             onClick={() => {
-              containerRef.current?.scrollTo({
-                top: 0,
-                behavior: 'smooth',
-              });
-              setShouldAutoScroll(true);
+              if (containerRef.current) {
+                containerRef.current.scrollTo({
+                  top: containerRef.current.scrollHeight,
+                  behavior: 'smooth',
+                });
+                setShouldAutoScroll(true);
+              }
             }}
           />
         </div>
+      </div>
+      <div className="absolute top-0 right-0 p-2">
+        {isGenerating && <CancelButton onClick={handleCancel} />}
       </div>
     </div>
   );

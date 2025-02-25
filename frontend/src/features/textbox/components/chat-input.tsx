@@ -1,11 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Prompt } from '@/features/prompts/prompt';
 import { PromptSuggestions } from '@/features/chat/components/prompts/prompt-suggestions';
 import AutoResizeTextarea from './new-textbox';
 import { useModelStore } from '@/features/models/store/model-store';
 import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
 import { usePrompts } from '@/features/prompts/api/get-prompts';
-import { CustomPrompt } from '@/features/chat/data/mock-prompts';
 
 interface ChatInputProps {
   onSubmit: (message: string, images: string[]) => void;

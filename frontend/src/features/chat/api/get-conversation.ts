@@ -8,20 +8,28 @@ export const getConversation = async ({
   conversation_id,
 }: {
   conversation_id: string;
-}): Promise<Conversation> => {
-  if (!conversation_id) throw new Error('No conversation ID provided');
-
-  const response = await api.get<ApiResponse<Conversation>>(`/conversations/${conversation_id}/`);
-  if (!response.success) {
-    throw new Error(response.error?.message || 'Failed to fetch conversation');
+}): Promise<Conversation | null> => {
+  if (!conversation_id || conversation_id.trim() === '') {
+    return null;
   }
-  return response.data;
+
+  try {
+    const response = await api.get<ApiResponse<Conversation>>(`/conversations/${conversation_id}/`);
+    if (!response.success) {
+      throw new Error(response.error?.message || 'Failed to fetch conversation');
+    }
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching conversation:', error);
+    throw error;
+  }
 };
 
 export const getConversationQueryOptions = (conversation_id: string) => {
   return queryOptions({
     queryKey: ['conversation', conversation_id],
     queryFn: () => getConversation({ conversation_id }),
+    enabled: Boolean(conversation_id?.trim()),
   });
 };
 
@@ -31,8 +39,13 @@ type UseConversationOptions = {
 };
 
 export const useConversation = ({ conversation_id, queryConfig }: UseConversationOptions) => {
+  // Use a stable query key that doesn't change if conversation_id is empty
+  const queryKey = conversation_id?.trim() 
+    ? ['conversation', conversation_id] 
+    : ['conversation', 'empty'];
+  
   const query = useQuery({
-    queryKey: ['conversation', conversation_id],
+    queryKey,
     queryFn: () => getConversation({ conversation_id }),
     ...queryConfig,
     enabled: Boolean(conversation_id?.trim()),

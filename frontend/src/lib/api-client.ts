@@ -2,6 +2,7 @@ import { useErrorStore } from '@/components/errors/error-store';
 import { useNotifications } from '@/components/notification/notification-store';
 import { env } from '@/config/env';
 import urlJoin from 'url-join';
+import { StreamChunk } from '@/types/api';
 
 type RequestConfig = {
   headers?: Record<string, string>;
@@ -9,12 +10,6 @@ type RequestConfig = {
   maxContentLength?: number;
   maxBodyLength?: number;
 };
-
-interface StreamChunk {
-  content?: string;
-  status?: 'generating' | 'cancelled' | 'error';
-  error?: string;
-}
 
 function authRequestHeaders(): Headers {
   const headers = new Headers({
@@ -120,99 +115,82 @@ class ApiClient {
     // Remove any double slashes (except after http:// or https://)
     return urlJoin(base, endpoint).replace(/([^:]\/)\/+/g, '$1');
   }
-
-  async get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-    const url = new URL(this.getFullURL(endpoint));
+  
+  async get<T>(path: string, params?: Record<string, string>): Promise<T> {
+    const url = new URL(this.getFullURL(path), window.location.origin);
+    
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, value);
       });
     }
-
+    
     const response = await fetch(url.toString(), {
       method: 'GET',
-      headers: authRequestHeaders(),
+      headers: this.getHeaders(),
       credentials: 'include',
     });
-
-    await this.handleResponse(response);
-    return response.json();
-  }
-
-  async post<T>(endpoint: string, data?: unknown, config: RequestConfig = {}): Promise<T> {
-    try {
-      console.log('POST Request Data:', data);
-      console.log('Making POST request to:', endpoint, 'with data:', data);
-
-      const response = await fetch(this.getFullURL(endpoint), {
-        method: 'POST',
-        headers: this.getHeaders(config),
-        credentials: 'include',
-        body: JSON.stringify(data),
-      });
-
-      console.log('POST Response:', response);
-
-      if (!response.ok) {
-        console.error('Response status:', response.status);
-        console.error('Response headers:', Object.fromEntries(response.headers));
-        const errorText = await response.text();
-        console.error('Response body:', errorText);
-        throw new Error(response.statusText || 'Network response was not ok');
-      }
-
-      if (config.headers?.Accept === 'text/event-stream') {
-        return response.body as unknown as T;
-      }
-
-      return response.json();
-    } catch (error) {
-      console.error('API Client Error:', error);
-      throw error;
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  }
-
-  async put<T>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await fetch(this.getFullURL(endpoint), {
-      method: 'PUT',
-      headers: authRequestHeaders(),
-      credentials: 'include',
-      body: JSON.stringify(data),
-    });
-
-    await this.handleResponse(response);
+    
     return response.json();
   }
-
-  async patch<T>(endpoint: string, data?: unknown): Promise<T> {
-    const response = await fetch(this.getFullURL(endpoint), {
+  
+  async post<T>(path: string, data?: unknown, options?: { headers?: Record<string, string> }): Promise<T> {
+    const response = await fetch(this.getFullURL(path), {
+      method: 'POST',
+      headers: this.getHeaders(options),
+      credentials: 'include',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  }
+  
+  async patch<T>(path: string, data?: unknown): Promise<T> {
+    const response = await fetch(this.getFullURL(path), {
       method: 'PATCH',
-      headers: authRequestHeaders(),
+      headers: this.getHeaders(),
       credentials: 'include',
-      body: JSON.stringify(data),
+      body: data ? JSON.stringify(data) : undefined,
     });
-    await this.handleResponse(response);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     return response.json();
   }
-
-  async delete<T>(endpoint: string): Promise<T> {
-    const response = await fetch(this.getFullURL(endpoint), {
+  
+  async delete<T>(path: string): Promise<T> {
+    const response = await fetch(this.getFullURL(path), {
       method: 'DELETE',
-      headers: authRequestHeaders(),
+      headers: this.getHeaders(),
       credentials: 'include',
     });
-
-    await this.handleResponse(response);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     return response.json();
   }
-
+  
   async streamCompletion(
     data: unknown,
-    onChunk: (chunk: string | StreamChunk) => void,
+    onChunk: (chunk: StreamChunk) => void,
     signal?: AbortSignal
   ): Promise<void> {
+    const url = this.getFullURL('/completions/chat/');
+    
     try {
-      const response = await fetch(this.getFullURL('/completions/chat/'), {
+      const response = await fetch(url, {
         method: 'POST',
         headers: this.getHeaders({
           headers: {
@@ -224,56 +202,155 @@ class ApiClient {
         body: JSON.stringify(data),
         signal,
       });
-  
+      
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        let errorMessage = `HTTP error ${response.status}`;
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error?.message || errorData.error || errorMessage;
+        } catch (e) {
+          // If we can't parse the error as JSON, use the raw text
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
-  
-      const reader = response.body?.getReader();
-      if (!reader) return;
-  
-      const decoder = new TextDecoder();
-      let buffer = '';
-  
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-  
-        // Decode the chunk and add to buffer
-        buffer += decoder.decode(value, { stream: true });
-  
-        // Split on newlines, keeping any partial line in the buffer
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-  
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              onChunk(data);
-            } catch (e) {
-              console.error('Error parsing SSE data:', e);
+      
+      if (!response.body) {
+        throw new Error('Response body is null');
+      }
+      
+      // Set up abort listener
+      const abortListener = () => {
+        console.log('Stream request aborted');
+      };
+      
+      signal?.addEventListener('abort', abortListener);
+      
+      try {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (done) {
+            // Process any remaining data in the buffer
+            if (buffer.trim()) {
+              const lines = buffer.split('\n');
+              for (const line of lines) {
+                if (line.trim() && line.startsWith('data: ')) {
+                  try {
+                    const jsonData = line.slice(6).trim();
+                    if (jsonData === '[DONE]') {
+                      onChunk({ status: 'done' });
+                    } else {
+                      const parsed = JSON.parse(jsonData);
+                      onChunk(parsed);
+                    }
+                  } catch (e) {
+                    console.error('Error parsing final SSE data:', e, line);
+                  }
+                }
+              }
+            }
+            break;
+          }
+          
+          // Decode the chunk and add it to our buffer
+          const chunk = decoder.decode(value, { stream: true });
+          buffer += chunk;
+          
+          // Process complete SSE messages from the buffer
+          let newlineIndex;
+          while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+            const line = buffer.slice(0, newlineIndex).trim();
+            buffer = buffer.slice(newlineIndex + 1);
+            
+            if (line.startsWith('data: ')) {
+              const jsonData = line.slice(6).trim();
+              
+              if (jsonData === '[DONE]') {
+                onChunk({ status: 'done' });
+                continue;
+              }
+              
+              try {
+                const parsed = JSON.parse(jsonData);
+                
+                // Handle different response formats
+                if (parsed.delta && parsed.delta.content) {
+                  // OpenAI-style delta format
+                  onChunk({
+                    content: parsed.delta.content,
+                    status: 'generating'
+                  });
+                } else if (parsed.content !== undefined) {
+                  // Direct content format
+                  onChunk({
+                    content: parsed.content,
+                    status: parsed.status || 'generating'
+                  });
+                } else if (parsed.conversation_uuid) {
+                  // Conversation creation
+                  onChunk(parsed);
+                } else if (parsed.error) {
+                  // Error message
+                  onChunk({
+                    error: parsed.error,
+                    status: 'error'
+                  });
+                } else if (parsed.status === 'done' || parsed.type === 'done') {
+                  // Completion message
+                  onChunk({
+                    status: 'done',
+                    message_id: parsed.message_id
+                  });
+                } else {
+                  // Pass through any other format
+                  onChunk(parsed);
+                }
+              } catch (e) {
+                console.error('Error parsing SSE data:', e, jsonData);
+                // Try to extract useful information from the raw data
+                if (typeof jsonData === 'string') {
+                  if (jsonData.includes('error')) {
+                    onChunk({
+                      error: 'Error in response: ' + jsonData.substring(0, 100),
+                      status: 'error'
+                    });
+                  } else {
+                    onChunk({
+                      content: jsonData,
+                      status: 'generating'
+                    });
+                  }
+                }
+              }
             }
           }
         }
+      } finally {
+        // Clean up the abort listener
+        signal?.removeEventListener('abort', abortListener);
       }
-  
-      // Handle any remaining data
-      const remaining = buffer.trim();
-      if (remaining && remaining.startsWith('data: ')) {
-        try {
-          const data = JSON.parse(remaining.slice(6));
-          onChunk(data);
-        } catch (e) {
-          console.error('Error parsing final SSE data:', e);
-        }
-      }
-    } catch (error) {
+    } catch (error: any) {
       if (error.name === 'AbortError') {
-        console.log('Abort detected in streamCompletion');
+        console.log('Stream request was aborted');
+        onChunk({ status: 'cancelled' });
         throw error;
       }
+      
+      // Handle other errors
+      console.error('Streaming error:', error);
+      onChunk({
+        error: error.message || 'Unknown error occurred',
+        status: 'error'
+      });
+      
       throw error;
     }
   }

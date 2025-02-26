@@ -10,7 +10,7 @@ import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
 import { Message } from '../message';
 import CannedQuestions from './canned-questions';
 import AutoResizeTextarea from '@/features/textbox/components/new-textbox';
-import { useAuth } from '@/features/authentication/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth';
 
 const exampleQuestions: Record<string, string[]> = {
   casual: ["How's your day going?", "What's your favorite hobby?", 'Tell me a fun fact'],
@@ -81,7 +81,7 @@ export const ConversationDefault = () => {
 
   // Use our chat mutation without an existing conversation id.
   // The mutation will create a new chat (and navigate) if no conversation exists.
-  const { mutation, isGenerating } = useChatMutation(undefined);
+  const { mutation } = useChatMutation(undefined);
   // const navigate = useNavigate();
 
   // Refs to auto-adjust and scroll the text area / messages

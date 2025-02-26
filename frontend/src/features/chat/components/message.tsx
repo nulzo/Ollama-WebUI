@@ -19,78 +19,49 @@ import { useUpdateMessage } from '../api/update-message.ts';
 import { cn } from '@/lib/utils.ts';
 import { useQueryClient } from '@tanstack/react-query';
 import { StandardModel } from '@/features/models/types/models.js';
+import { streamingService } from '../services/streaming-service';
+import { format } from 'date-fns';
 
-interface MessageProps {
-  message: MessageType;
-  isTyping?: boolean;
-  isLoading?: boolean;
-  isWaiting?: boolean;
+// Define a simplified message type that matches what we need
+interface SimplifiedMessageType {
+  id: string;
+  role: string;
+  content: string;
+  created_at: string;
+  updated_at?: string;
+  model?: string;
+  name?: string;
+  image_ids?: number[];
+  is_liked?: boolean;
+  conversation_uuid?: string;
+  has_images?: boolean;
 }
 
-
-/*
-  Custom hook: useSmoothStreaming
-  
-  - targetText: the full text streamed in from the backend.
-  - isTyping: when true, we animate the displayed text from its current length to targetText.length.
-  
-  This hook uses requestAnimationFrame to add characters at a fixed RATE (set here to 100 characters per second).
-  
-  When isTyping is false the full text is rendered immediately.
-*/
-const useSmoothStreaming = (targetText: string, isTyping: boolean, speed: number = 10): string => {
-  const [displayedText, setDisplayedText] = useState<string>(targetText);
-  const requestRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!isTyping) {
-      // When not typing, show the full text immediately.
-      setDisplayedText(targetText);
-      return;
-    }
-
-    // If the current displayed text isn’t a prefix of targetText,
-    // reset it. This handles cases where the text suddenly changes.
-    setDisplayedText((prev) => (targetText.startsWith(prev) ? prev : ''));
-
-    const animate = () => {
-      setDisplayedText((current) => {
-        if (current.length < targetText.length) {
-          // Get the next characters based on the supplied speed
-          const nextChunk = targetText.slice(current.length, current.length + speed);
-          requestRef.current = requestAnimationFrame(animate);
-          return current + nextChunk;
-        }
-        return current;
-      });
-    };
-
-    requestRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (requestRef.current !== null) {
-        cancelAnimationFrame(requestRef.current);
-      }
-    };
-  }, [targetText, isTyping, speed]);
-
-  return displayedText;
-};
-
+interface MessageProps {
+  message: SimplifiedMessageType;
+  isTyping?: boolean;
+  isWaiting?: boolean;
+  isLoading?: boolean;
+}
 
 // eslint-disable-next-line react/display-name
 export const Message = memo<MessageProps>(
-  ({ message, isTyping, isLoading, isWaiting }) => {
-    const formattedDate = formatDate(new Date(message.created_at).getTime());
+  ({ message, isTyping = false, isWaiting = false, isLoading = false }) => {
+    const formattedDate = useMemo(() => {
+      try {
+        return format(new Date(message.created_at), 'h:mm a');
+      } catch (e) {
+        return '';
+      }
+    }, [message.created_at]);
     const { data: modelsData } = useModels();
     const { copy } = useClipboard();
-    const [isLiked, setIsLiked] = useState(message.is_liked);
+    const [isLiked, setIsLiked] = useState(message.is_liked || false);
+    const [isModelOnline] = useState(true);
+    const [messageContent, setMessageContent] = useState('');
 
     const queryClient = useQueryClient();
     const updateMessage = useUpdateMessage();
-    // Use our new smooth streaming hook.
-    const smoothText = useSmoothStreaming(message.content || '', !!isTyping);
-    const messageContent = isTyping ? smoothText : message.content || '';
 
     const handleLike = () => {
       const newIsLiked = !isLiked;
@@ -169,30 +140,71 @@ export const Message = memo<MessageProps>(
 
     // Update local state when prop changes
     useEffect(() => {
-      setIsLiked(message.is_liked);
+      setIsLiked(message.is_liked || false);
     }, [message.is_liked]);
 
-    if (isWaiting) {
+    // Update message content when it changes
+    useEffect(() => {
+      setMessageContent(message.content || '');
+    }, [message.content]);
+
+    // For assistant messages that are waiting or typing
+    if (message.role === 'assistant' && (isWaiting || isTyping)) {
       return (
-        <div className="flex flex-col gap-1 px-4 py-2">
-          <div className="flex gap-3 w-full max-w-[85%]">
+        <motion.div 
+          className="flex flex-col gap-1 px-4 py-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex gap-3 w-full max-w-[95%]">
             <div className="flex flex-col items-center mb-0">
               <BotIcon assistantId={0} isOnline={isModelOnline} modelName={message.model} />
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-baseline gap-2 mb-0.5 ml-1">
-                <span className="font-medium text-primary text-sm">{message.model}</span>
+            <div className="flex flex-col w-full">
+              <div className="flex items-baseline gap-1.5 mb-0.5 ml-1">
+                <span className="font-medium text-primary text-sm">{message.name || 'Assistant'}</span>
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
               </div>
-              <div className="bg-muted/30 px-4 py-3 rounded-xl rounded-tl">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <span className="text-xs">{message.model} is initializing...</span>
-                  <Loader2 className="size-3 animate-spin" />
+
+              <div className="p-2 rounded-xl rounded-tl">
+                <div className="max-w-none prose prose-sm scroll-smooth">
+                  {isWaiting ? (
+                    <div className="bg-muted/30 px-4 py-3 rounded-xl rounded-tl">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="text-xs">{message.model || 'Assistant'} is thinking...</span>
+                        <Loader2 className="size-3 animate-spin" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div 
+                      style={{ minHeight: `${streamingService.getState().contentHeight}px` }}
+                    >
+                      {messageContent ? (
+                        <MarkdownRenderer markdown={messageContent} />
+                      ) : (
+                        <div className="h-6" />
+                      )}
+                      
+                      <motion.div 
+                        className="inline-flex items-center h-4 pl-1"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <span className="typing-indicator">
+                          <span className="dot"></span>
+                          <span className="dot"></span>
+                          <span className="dot"></span>
+                        </span>
+                      </motion.div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       );
     }
 
@@ -225,7 +237,6 @@ export const Message = memo<MessageProps>(
       );
     }
 
-    // const messageContent = isTyping ? stableText : message.content || '';
     const showActions = !isTyping && !isLoading && message.role === 'assistant';
 
     if (message.is_error) {
@@ -287,14 +298,19 @@ export const Message = memo<MessageProps>(
       <div className="flex flex-col gap-1 px-4 py-2">
         {message.role !== 'user' ? (
           // Bot message
-          <div className="flex gap-3 w-full max-w-[95%]">
+          <motion.div 
+            className="flex gap-3 w-full max-w-[95%]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             <div className="flex flex-col items-center mb-0">
               <BotIcon assistantId={0} isOnline={isModelOnline} modelName={message.model} />
             </div>
 
             <div className="flex flex-col w-full">
               <div className="flex items-baseline gap-1.5 mb-0.5 ml-1">
-                <span className="font-medium text-primary text-sm">{message.name}</span>
+                <span className="font-medium text-primary text-sm">{message.name || 'Assistant'}</span>
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
               </div>
 
@@ -311,7 +327,9 @@ export const Message = memo<MessageProps>(
 
                 <div className="max-w-none prose prose-sm scroll-smooth">
                   {messageContent ? (
-                    <MarkdownRenderer markdown={messageContent} />
+                    <div>
+                      <MarkdownRenderer markdown={messageContent} />
+                    </div>
                   ) : (
                     <div className="h-6" />
                   )}
@@ -385,14 +403,19 @@ export const Message = memo<MessageProps>(
                     </Tooltip>
                   </TooltipProvider>
 
-                  <MessageDetails messageId={message?.id} />
+                  <MessageDetails messageId={message?.id?.toString() || ''} />
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         ) : (
           // User message
-          <div className="flex flex-col items-end selection:bg-muted-foreground">
+          <motion.div 
+            className="flex flex-col items-end selection:bg-muted-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
             <div className="flex items-baseline gap-2">
               <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
             </div>
@@ -418,7 +441,7 @@ export const Message = memo<MessageProps>(
                 </motion.div>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     );
@@ -433,3 +456,6 @@ export const Message = memo<MessageProps>(
     );
   }
 );
+
+// Memoize the component to prevent unnecessary re-renders
+export const MemoizedMessage = memo(Message);

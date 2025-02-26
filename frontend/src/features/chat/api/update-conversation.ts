@@ -12,7 +12,6 @@ export const updateConversationInputSchema = z.object({
   updatedAt: z.date().nullable().optional(),
   uuid: z.string().min(1, 'UUID is required and must be unique'),
   name: z.string().max(150).nullable().optional(),
-  userId: z.number().nullable().optional(),
 });
 
 export type updateConversationInput = z.infer<typeof updateConversationInputSchema>;
@@ -31,7 +30,6 @@ export const updateConversation = ({
     is_hidden: data.isHidden,
     updated_at: data.updatedAt,
     name: data.name,
-    user_id: data.userId,
   };
 
   return api.patch(`/conversations/${conversationID}/`, transformedData);

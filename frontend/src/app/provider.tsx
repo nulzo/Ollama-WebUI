@@ -9,7 +9,7 @@ import { MainErrorFallback } from '@/components/errors/error-fallback.tsx';
 import { Notifications } from '@/components/notification/notification';
 import { Spinner } from '@/components/ui/spinner';
 import { queryConfig } from '@/lib/query';
-import { AuthProvider } from '@/features/authentication/components/auth-provider';
+import { AuthProvider } from '@/components/helmet/auth-provider';
 import { SidebarProvider } from '@/components/sidebar/sidebar-context.tsx';
 
 type AppProviderProps = {

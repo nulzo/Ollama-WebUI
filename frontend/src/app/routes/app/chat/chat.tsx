@@ -7,12 +7,12 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useConversation } from '@/features/chat/hooks/use-conversation';
 import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
-import { useAuth } from '@/features/authentication/hooks/use-auth';
+import { useAuth } from '@/hooks/use-auth';
 import CannedQuestions from '@/features/chat/components/default-chat/canned-questions';
 
 export function ChatRoute() {
   const { conversation } = useConversation();
-  const { mutation, isGenerating } = useChatMutation(conversation || undefined);
+  const { mutation } = useChatMutation(conversation || undefined);
   const [searchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ export function ChatRoute() {
 
   const handleSubmit = () => {
     if (!input.trim()) return;
-    mutation.mutate({ message: input, images: [] });
+    mutation.mutate({ content: input, images: [] });
     setInput('');
   };
 
@@ -99,7 +99,6 @@ export function ChatRoute() {
                       uploadedImages={[]}
                       placeholder="Send a message..."
                       onCancel={() => {}}
-                      isGenerating={isGenerating}
                     />
                   </motion.div>
                   <motion.div
@@ -139,7 +138,6 @@ export function ChatRoute() {
                     uploadedImages={[]}
                     placeholder="Send a message..."
                     onCancel={() => {}}
-                    isGenerating={isGenerating}
                   />
                   <motion.div
                     initial={{ opacity: 0 }}

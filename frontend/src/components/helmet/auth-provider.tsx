@@ -1,6 +1,5 @@
 import React from 'react';
 import { useUser } from '@/lib/auth';
-import { Loader2 } from 'lucide-react';
 import logo from '@/assets/cringenobackground.svg';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {

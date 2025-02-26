@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
-import { useAuth } from '@/features/authentication/hooks/use-auth.ts';
+import { useAuth } from '@/hooks/use-auth';
 import { UserDropdownMenu } from '@/components/sidebar/user-dropdown-menu.tsx';
 import avatar from '@/assets/avatar.png';
 

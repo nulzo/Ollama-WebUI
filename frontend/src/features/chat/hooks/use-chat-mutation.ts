@@ -1,169 +1,236 @@
+import { useRef, useCallback } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api-client';
-import { useAuth } from '@/features/authentication/hooks/use-auth';
-import { useCallback, useRef } from 'react';
-import { useChatStore } from '../stores/chat-store';
-import { useNavigate } from 'react-router-dom';
 import { useModelStore } from '@/features/models/store/model-store';
+import { streamingService } from '../services/streaming-service';
+import { useNavigate } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
+import { api } from '@/lib/api-client';
+import { StreamChunk } from '@/types/api';
 
-export function useChatMutation(conversation_id?: string) {
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const { user } = useAuth();
+/**
+ * Hook for creating and sending messages in a conversation
+ * Handles streaming, navigation, and error handling
+ */
+export const useChatMutation = (conversation_id?: string) => {
+  const { model } = useModelStore();
   const queryClient = useQueryClient();
+  const abortControllerRef = useRef<AbortController | null>(null);
   const navigate = useNavigate();
-  const model = useModelStore(state => state.model);
-  const {
-    setStreamingMessages,
-    updateLastMessage,
-    setIsGenerating,
-    setIsWaiting,
-    isGenerating
-  } = useChatStore();
-
-  const handleCancel = useCallback(() => {
-    console.log('handleCancel called', {
-      hasAbortController: !!abortControllerRef.current,
-      isGenerating
-    });
-    if (abortControllerRef.current) {
-      console.log('aborting');
-      abortControllerRef.current.abort();
-    }
-  }, [isGenerating]);
-
 
   const mutation = useMutation({
-    mutationFn: async ({ message, images }: { message: string, images: string[] | undefined }) => {
-      if (!user) throw new Error('Authentication required');
+    mutationFn: async ({ content, images }: { content: string, images: string[] }) => {
       if (!model) throw new Error('No model selected');
 
+      // Create a new AbortController for this request
       abortControllerRef.current = new AbortController();
-      setIsGenerating(true);
-      setIsWaiting(false);
-
-      // Add initial messages only if we're in an existing conversation
+      // Register with streaming service
+      streamingService.setAbortController(abortControllerRef.current);
+      
+      // Immediately add the user message to the UI
+      // This ensures the user message appears instantly
+      const tempUserMessage = {
+        id: `temp-user-${Date.now()}`,
+        role: 'user',
+        content,
+        created_at: new Date().toISOString(),
+        images: images || [],
+        model: model.model || model.name,
+        provider: model.provider,
+        name: model.name || model.model,
+        conversation_uuid: conversation_id,
+      };
+      
+      // Add the temporary user message to the query cache
       if (conversation_id) {
-        setStreamingMessages([
-          {
-            role: 'user',
-            content: message,
-            model: model?.model,
-            name: model?.name,
-            liked_by: [],
-            has_images: false,
-            conversation_uuid: conversation_id,
-            user_id: user?.id,
-            provider: model?.provider,
-            created_at: new Date().toISOString(),
-          },
-          {
-            role: 'assistant',
-            content: '',
-            model: model?.model,
-            name: model?.name,
-            liked_by: [],
-            has_images: false,
-            provider: model?.provider,
-            conversation_uuid: conversation_id,
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        queryClient.setQueryData(
+          ['messages', { conversation_id }],
+          (oldData: any) => {
+            if (!oldData) return oldData;
+            
+            // Create a new page with just our temp message if needed
+            const newPage = {
+              data: [tempUserMessage],
+              pagination: oldData.pages[0]?.pagination || { page: 1, hasMore: false },
+              success: true,
+              status: 200,
+              meta: oldData.pages[0]?.meta || {},
+              links: oldData.pages[0]?.links || {},
+            };
+            
+            // Add to the first page if it exists, otherwise create a new page
+            if (oldData.pages.length > 0) {
+              return {
+                ...oldData,
+                pages: oldData.pages.map((page: any, index: number) => 
+                  index === 0 ? { ...page, data: [...page.data, tempUserMessage] } : page
+                )
+              };
+            } else {
+              return {
+                ...oldData,
+                pages: [newPage]
+              };
+            }
+          }
+        );
       }
+      
+      // Dispatch event to notify that a message is being sent
+      window.dispatchEvent(new CustomEvent('message-sent'));
 
       try {
-        const new_msg = {
-          content: message,
-          conversation_uuid: conversation_id,
+        // Format data according to what worked in your previous implementation
+        const messageData = {
+          content: content || 'erm',
+          conversation_uuid: conversation_id, // Use conversation_uuid directly
           role: 'user',
-          user: user?.id,
-          model: model?.model,
-          name: model?.name,
-          provider: model?.provider,
+          model: model.model || model.name,
+          provider: model.provider,
+          name: model.name || model.model,
           images: images || [],
-        }
+        };
+        
+        console.log('Sending message data:', messageData);
+        
         await api.streamCompletion(
-          new_msg,
-          chunk => {
-            // Parse the chunk as JSON
-            const parsedChunk = typeof chunk === 'string' ? JSON.parse(chunk) : chunk;
-
-            if (parsedChunk.status === 'waiting') {
-              setIsWaiting(true);
+          messageData,
+          (chunk: StreamChunk) => {
+            // Handle conversation creation
+            if (chunk.conversation_uuid) {
+              window.dispatchEvent(
+                new CustomEvent('conversation-created', {
+                  detail: { uuid: chunk.conversation_uuid },
+                })
+              );
               return;
-            } else if (parsedChunk.status === 'generating') {
-              setIsWaiting(false);
             }
 
-            // If this is a new conversation
-            if (parsedChunk.conversation_uuid && parsedChunk.status === 'created') {
-              const newConversationId = parsedChunk.conversation_uuid;
+            // Handle errors
+            if (chunk.error) {
+              window.dispatchEvent(
+                new CustomEvent('chat-error', { 
+                  detail: { error: chunk.error } 
+                })
+              );
+              return;
+            }
 
-              // Set initial messages for the new conversation
-              setStreamingMessages([
-                {
-                  role: 'assistant',
-                  content: '',
-                  model: model?.model,
-                  name: model?.name,
-                  liked_by: [],
-                  has_images: false,
-                  provider: model?.provider,
-                  conversation_uuid: newConversationId,
-                  created_at: new Date().toISOString(),
-                },
-              ]);
+            // Handle content chunks
+            if (chunk.content || (chunk.delta?.content)) {
+              const chunkContent = chunk.content || chunk.delta?.content || '';
+              window.dispatchEvent(
+                new CustomEvent('message-chunk', {
+                  detail: {
+                    message: {
+                      role: 'assistant',
+                      content: chunkContent,
+                    },
+                  },
+                })
+              );
+            }
 
-              // Invalidate for sidebar
+            // Handle completion
+            if (chunk.status === 'done' || chunk.type === 'done') {
+              window.dispatchEvent(new CustomEvent('message-done'));
+              
+              // If we have a message ID, dispatch that event too
+              if (chunk.message_id) {
+                window.dispatchEvent(
+                  new CustomEvent('message-created', {
+                    detail: { id: chunk.message_id },
+                  })
+                );
+              }
+              
+              // Invalidate queries to ensure data is fresh
               queryClient.invalidateQueries({ queryKey: ['conversations'] });
-
-              // Route to the new conversation
-              navigate(`/?c=${newConversationId}`);
-              queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: newConversationId }] })
-              return;
-            }
-
-            if (parsedChunk.content) {
-              updateLastMessage(parsedChunk.content);
+              if (conversation_id) {
+                queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id }] });
+                queryClient.invalidateQueries({ queryKey: ['conversation', conversation_id] });
+              }
             }
           },
           abortControllerRef.current.signal
         );
-      } catch (error) {
-        console.log('Caught error in mutation:', error);
-        throw error; // Let onError handle all errors
-      } finally {
-        // Only cleanup if it's not an abort error
-        if (!abortControllerRef.current?.signal.aborted) {
-          setIsGenerating(false);
-          setIsWaiting(false);
-          abortControllerRef.current = null;
-
-          const currentConversationId = conversation_id || queryClient.getQueryData(['currentConversation']);
-          if (currentConversationId) {
-            await Promise.all([
-              queryClient.invalidateQueries({ queryKey: ['conversations'] }),
-              queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: currentConversationId }] })
-            ]);
-            setStreamingMessages([]);
+        
+        // If this was a new chat, the streaming service will have received the new conversation ID
+        // We can use this to navigate to the new conversation
+        if (!conversation_id) {
+          const state = streamingService.getState();
+          if (state.conversationId) {
+            navigate(`/chat/${state.conversationId}`);
           }
         }
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          console.error('Error in streaming completion:', error);
+          window.dispatchEvent(
+            new CustomEvent('chat-error', { 
+              detail: { error: error.message || 'An error occurred during streaming' } 
+            })
+          );
+          
+          // Show error toast
+          toast({
+            title: 'Error sending message',
+            description: error.message || 'An unknown error occurred',
+            variant: 'destructive',
+          });
+        }
+        
+        // Signal completion even on error to clean up UI state
+        window.dispatchEvent(new CustomEvent('message-done'));
+        throw error;
+      } finally {
+        // Clean up the AbortController
+        abortControllerRef.current = null;
+        streamingService.setAbortController(null);
       }
     },
-    onError: error => {
-      console.log('Caught error in mutation:', error);
-      if (error.name === 'AbortError') {
-        updateLastMessage('Cancelled');
-      } else {
-        console.error('Chat error:', error);
-        updateLastMessage('Error');
+    onError: (error) => {
+      console.error('Chat mutation error:', error);
+      
+      // Show error toast
+      if (error.name !== 'AbortError') {
+        toast({
+          title: 'Error sending message',
+          description: error instanceof Error ? error.message : 'An unknown error occurred',
+          variant: 'destructive',
+        });
       }
-      setIsGenerating(false);
     },
   });
 
+  const handleSubmit = useCallback(async (content: string, images: string[] = []) => {
+    if (!model) {
+      toast({
+        title: 'No model selected',
+        description: 'Please select a model before sending a message',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!content.trim()) {
+      return;
+    }
+
+    try {
+      await mutation.mutateAsync({ content, images });
+    } catch (error: unknown) {
+      // Error is already handled in the mutation
+    }
+  }, [model, mutation]);
+
+  const handleCancel = useCallback(() => {
+    streamingService.abort();
+  }, []);
+
   return {
     mutation,
-    isGenerating,
+    handleSubmit,
     handleCancel,
+    isLoading: mutation.isPending,
   };
-}
+};

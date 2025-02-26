@@ -1,5 +1,5 @@
 import { LogIn, LogOut, Settings, Settings2, Shield, SquareUser } from 'lucide-react';
-import { useAuth } from '@/features/authentication/hooks/use-auth.ts';
+import { useAuth } from '@/hooks/use-auth';
 import { ThemeSettings } from '@/features/settings/components/theme-settings.tsx';
 import {
   DropdownMenu,

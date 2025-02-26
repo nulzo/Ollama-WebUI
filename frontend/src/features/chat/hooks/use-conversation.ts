@@ -9,7 +9,7 @@ import { api } from '@/lib/api-client.ts';
 export function useConversation() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
-  const { model } = useModelStore(state => ({ model: state.model }));
+  const model = useModelStore(state => state.model);
   const [streamingContent, setStreamingContent] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const { data: user } = useUser();
@@ -31,8 +31,6 @@ export function useConversation() {
 
   const submitMessage = async (message: string, images: string[] = []): Promise<void> => {
     if (!message.trim()) return;
-
-    console.log(message);
 
     try {
       const userMessage = {

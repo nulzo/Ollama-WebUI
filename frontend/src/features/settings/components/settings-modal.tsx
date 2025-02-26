@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserProfile } from './user-profile';
@@ -17,8 +17,13 @@ interface SettingsModalProps {
 
 function SaveActiveButton({ activeTab }: { activeTab: string }) {
   const { submitForm } = useSettingsForms();
+  
+  const handleSubmit = useCallback(() => {
+    submitForm(activeTab);
+  }, [submitForm, activeTab]);
+  
   return (
-    <Button type="button" onClick={() => submitForm(activeTab)}>
+    <Button type="button" onClick={handleSubmit}>
       Save Changes
     </Button>
   );
@@ -26,8 +31,6 @@ function SaveActiveButton({ activeTab }: { activeTab: string }) {
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState('profile');
-
-  console.log('activeTab', activeTab);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

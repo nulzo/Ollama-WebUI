@@ -40,21 +40,75 @@ class AnthropicProvider(BaseProvider):
 
     def _process_messages(self, messages: Union[List, str]) -> List[Dict]:
         """
-        Ensure messages are in the expected format—a list of dictionaries
-        with 'role' and 'content'. If a raw string is provided, assume it's a user message.
+        Process messages into Anthropic's expected format.
+        Handles both text-only messages and messages with images.
         """
         if isinstance(messages, str):
             return [{"role": "user", "content": messages}]
+        
         elif isinstance(messages, list):
             processed = []
             for msg in messages:
-                if isinstance(msg, dict) and "role" in msg and "content" in msg:
-                    processed.append(msg)
+                if isinstance(msg, dict) and "role" in msg:
+                    # Start with a basic message structure
+                    processed_msg = {"role": msg["role"]}
+                    
+                    # Handle content and images
+                    if "content" in msg:
+                        # If there are images, we need to use content blocks
+                        if "images" in msg and msg["images"] and len(msg["images"]) > 0:
+                            content_blocks = []
+                            
+                            # Add text content as a block
+                            if msg["content"]:
+                                content_blocks.append({
+                                    "type": "text",
+                                    "text": msg["content"]
+                                })
+                            
+                            # Add each image as a block
+                            for image in msg["images"]:
+                                if isinstance(image, bytes):
+                                    import base64
+                                    image_data = base64.b64encode(image).decode("utf-8")
+                                elif isinstance(image, str):
+                                    if "\\x" in image:
+                                        # Handle escaped binary data
+                                        image_bytes = bytes(image, "utf-8").decode("unicode_escape").encode("latin1")
+                                        image_data = base64.b64encode(image_bytes).decode("utf-8")
+                                    else:
+                                        # Assume it's already base64 encoded
+                                        image_data = image
+                                else:
+                                    # Skip invalid image data
+                                    continue
+                                    
+                                # Add the image block in Anthropic's format
+                                content_blocks.append({
+                                    "type": "image",
+                                    "source": {
+                                        "type": "base64",
+                                        "media_type": "image/jpeg",  # Assuming JPEG, adjust if needed
+                                        "data": image_data
+                                    }
+                                })
+                            
+                            # Only set content blocks if we have at least one valid block
+                            if content_blocks:
+                                processed_msg["content"] = content_blocks
+                            else:
+                                # Fallback to text-only if no valid content blocks
+                                processed_msg["content"] = msg["content"] or ""
+                        else:
+                            # No images, just use the content as is
+                            processed_msg["content"] = msg["content"]
+                    
+                    processed.append(processed_msg)
                 elif isinstance(msg, str):
                     processed.append({"role": "user", "content": msg})
                 else:
-                    # If the message is not well-formed, convert it to a string.
                     processed.append({"role": "user", "content": str(msg)})
+            
             return processed
         else:
             raise ValueError("Messages must be a list or a string.")

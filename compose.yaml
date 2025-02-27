@@ -74,6 +74,7 @@ services:
     tty: true  # Allocate a pseudo-TTY for the frontend service
     volumes:
       # Mount specific directories and files to the container
+      - ./frontend/index.html:/home/frontend/index.html
       - ./frontend/src/:/home/frontend/src  # Mount the local ./frontend/src directory to /home/frontend/src in the container
       - ./frontend/vite.config.ts:/home/frontend/vite.config.js  # Mount the local vite.config.ts file to /home/frontend/vite.config.js in the container
       - ./frontend/tsconfig.json:/home/frontend/tsconfig.json  # Mount the local tsconfig.json file to /home/frontend/tsconfig.json in the container

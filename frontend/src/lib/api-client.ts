@@ -206,29 +206,6 @@ class ApiClient {
     return response.json();
   }
 
-  async cancelGeneration(): Promise<boolean> {
-    try {
-      console.log('Sending cancellation request to server');
-      const response = await fetch(this.getFullURL('/completions/cancel/'), {
-        method: 'POST',
-        headers: authRequestHeaders(),
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Cancellation request failed: ${response.status} - ${errorText}`);
-        return false;
-      }
-      
-      console.log('Cancellation request successful');
-      return true;
-    } catch (error) {
-      console.error('Error cancelling generation:', error);
-      return false;
-    }
-  }
-
   async streamCompletion(
     data: unknown,
     onChunk: (chunk: string | StreamChunk) => void,
@@ -264,6 +241,16 @@ class ApiClient {
   
       const decoder = new TextDecoder();
       let buffer = '';
+  
+      // Set up abort handler to properly close the reader
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          console.log('AbortController signal triggered, closing reader');
+          reader.cancel('User cancelled the request').catch(err => {
+            console.error('Error cancelling reader:', err);
+          });
+        });
+      }
   
       while (true) {
         const { done, value } = await reader.read();

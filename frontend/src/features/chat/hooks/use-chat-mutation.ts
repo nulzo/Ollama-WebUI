@@ -21,27 +21,32 @@ export function useChatMutation(conversation_id?: string) {
   } = useChatStore();
 
   const handleCancel = useCallback(() => {
-    console.log('Cancel button clicked, abort controller:', abortControllerRef.current);
+    console.log('Cancel button clicked in useChatMutation for conversation:', conversation_id);
+    console.log('Current isGenerating state:', isGenerating);
+    console.log('Abort controller reference:', abortControllerRef.current);
     
     if (abortControllerRef.current) {
       console.log('Aborting request with abort controller');
       abortControllerRef.current.abort();
-      
-      // Also try to call the backend cancel endpoint as a fallback
-      api.cancelGeneration().catch(err => {
-        console.error('Error calling cancel endpoint:', err);
-      });
+      abortControllerRef.current = null;
     } else {
-      console.log('No abort controller available, trying backend cancel endpoint');
-      api.cancelGeneration().catch(err => {
-        console.error('Error calling cancel endpoint:', err);
-      });
+      console.log('No abort controller available');
     }
     
     // Always set generating to false to update UI immediately
+    console.log('Setting isGenerating to false');
     setIsGenerating(false);
-  }, [setIsGenerating]);
-
+    
+    // Update the last message to show it was cancelled
+    const streamingMessages = useChatStore.getState().streamingMessages;
+    if (streamingMessages.length > 0) {
+      const lastMessage = streamingMessages[streamingMessages.length - 1];
+      if (lastMessage.role === 'assistant') {
+        console.log('Appending [cancelled] to last assistant message');
+        updateLastMessage(' [cancelled]');
+      }
+    }
+  }, [setIsGenerating, updateLastMessage, isGenerating, conversation_id]);
 
   const mutation = useMutation({
     mutationFn: async ({ message, images }: { message: string, images: string[] | undefined }) => {

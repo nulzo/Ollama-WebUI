@@ -326,18 +326,20 @@ export const Message = memo<MessageProps>(
             </div>
 
             <div className="flex flex-col w-full">
+              <div className='flex items-center gap-2'>
               <div className="flex items-baseline gap-1.5 mb-0.5 ml-1">
                 <span className="font-medium text-primary text-sm">{message.name}</span>
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
+              </div>
                 {isCancelled && (
                   <span className="flex items-center text-xs text-muted-foreground ml-2">
                     <XCircle className="w-3 h-3 mr-1 text-destructive" />
-                    Generation cancelled
+                    cancelled
                   </span>
                 )}
               </div>
 
-              <div className={`p-2 rounded-xl rounded-tl ${isCancelled ? 'border border-destructive/30' : ''}`}>
+              <div className={`p-2 rounded-xl rounded-tl ${isCancelled ? 'bg-muted/30' : ''}`}>
                 {message.image_ids?.length && message.image_ids.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     <AsyncMessageImage
@@ -348,7 +350,7 @@ export const Message = memo<MessageProps>(
                   </div>
                 )}
 
-                <div className="max-w-none prose prose-sm scroll-smooth">
+                <div className={`max-w-none prose prose-sm scroll-smooth ${isCancelled ? 'text-muted-foreground/75' : ''}`}>
                   {displayContent ? (
                     <MarkdownRenderer markdown={displayContent} />
                   ) : (
@@ -357,6 +359,7 @@ export const Message = memo<MessageProps>(
                 </div>
               </div>
 
+              <div className='flex items-center gap-2'>
               {showActions && (
                 <div className="flex mt-0 rounded-lg w-fit">
                   <TooltipProvider>
@@ -427,6 +430,7 @@ export const Message = memo<MessageProps>(
                   <MessageDetails messageId={message?.id?.toString() || ''} />
                 </div>
               )}
+              </div>
             </div>
           </div>
         ) : (

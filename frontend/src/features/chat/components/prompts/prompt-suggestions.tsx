@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Command, CommandList, CommandItem, CommandEmpty } from '@/components/ui/command';
 import { Command as CommandIcon, ArrowRight } from 'lucide-react';
 import { Prompt } from '@/features/prompts/prompt';
@@ -20,18 +21,20 @@ export const PromptSuggestions = ({
 }: PromptSuggestionsProps) => {
   const { data, isLoading } = usePrompts();
   
+  // Ensure we have an array of prompts - moved outside conditional return
+  const prompts = useMemo(() => Array.isArray(data?.data) ? data.data : [], [data?.data]);
+
+  // Filter prompts based on search term - moved outside conditional return
+  const filteredPrompts = useMemo(() => {
+    if (!isOpen) return []; // Early return if not open to avoid unnecessary computation
+    
+    return prompts.filter(prompt => 
+      prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (prompt.command || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [prompts, searchTerm, isOpen]);
+  
   if (!isOpen) return null;
-
-  console.log(data);
-
-  // Ensure we have an array of prompts
-  const prompts = Array.isArray(data?.data) ? data.data : [];
-
-  // Filter prompts based on search term
-  const filteredPrompts = prompts.filter(prompt => 
-    prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (prompt.command || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="right-0 bottom-full left-0 z-50 absolute mx-auto mb-2 md:max-w-lg lg:max-w-xl xl:max-w-3xl 2xl:max-w-4xl">

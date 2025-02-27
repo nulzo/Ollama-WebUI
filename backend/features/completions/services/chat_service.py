@@ -38,6 +38,14 @@ class ChatService:
         self.conversation_service = ConversationService()
         self.logger = logging.getLogger(__name__)
         self._cancel_event = Event()
+        
+        # State tracking for cancellation
+        self.current_user_message = None
+        self.current_full_content = ""
+        self.current_tokens_generated = 0
+        self.current_generation_start = None
+        self.current_request_data = None
+        self.current_user = None
 
     async def _prepare_context(self, message_content: str, user_id: int) -> str:
         """
@@ -67,7 +75,7 @@ class ChatService:
             return []
 
         images = []
-        for message_image in message.message_images.all():
+        for message_image in message.message_images.all().order_by("created_at"):
             try:
                 if isinstance(message_image.image, str):
                     # If it's already a base64 string, decode it to bytes
@@ -89,6 +97,18 @@ class ChatService:
         self._cancel_event.clear()
         generation_id = id(self)
         start = timer()
+        user_message = None
+        assistant_message = None
+        tokens_generated = 0
+        full_content = ""
+        
+        # Reset state tracking variables
+        self.current_user_message = None
+        self.current_full_content = ""
+        self.current_tokens_generated = 0
+        self.current_generation_start = start
+        self.current_request_data = data
+        self.current_user = user
 
         try:
             # Try to get conversation or create new one if not provided
@@ -125,6 +145,9 @@ class ChatService:
                 model=data.get("model", "llama3.2:3b"),
                 images=images,
             )
+            
+            # Update state tracking
+            self.current_user_message = user_message
 
             # Get the appropriate provider
             provider_name = data.get("provider")
@@ -132,7 +155,6 @@ class ChatService:
                 provider = self.provider_factory.get_provider(provider_name, user.id)
             else:
                 provider = self._get_provider(data.get("model", "llama3.2:3b"))
-
 
             # Process conversation history
             messages = list(user_message.conversation.messages.all().order_by("created_at"))
@@ -151,138 +173,140 @@ class ChatService:
             ]
 
             # Stream the response
-            tokens_generated = 0
-            full_content = ""
-            for chunk in provider.stream(data.get("model", "llama3.2:3b"), formatted_messages, user_id=user.id, conversation_id=str(conversation.uuid)):
-                if self._cancel_event.is_set():
-                    self.logger.info(f"Generation {generation_id} was cancelled after {tokens_generated} tokens")
-                    full_content += " [cancelled]"
+            try:
+                for chunk in provider.stream(data.get("model", "llama3.2:3b"), formatted_messages, user_id=user.id, conversation_id=str(conversation.uuid)):
+                    # Check if cancellation was requested
+                    if self._cancel_event.is_set():
+                        self.logger.info(f"Generation {generation_id} was cancelled after {tokens_generated} tokens")
+                        print("CANCELLED")
+                        full_content += " [cancelled]"
+                        break
 
-                    assistant_message = self.message_repository.create(
-                            conversation=user_message.conversation,
-                            content=full_content,
-                            role="assistant",
-                            user=user,
-                            tokens_used=tokens_generated,
-                            provider=data.get("provider", "ollama"),
-                            name=data.get("name", ""),
-                            model=data.get("model"),
-                            generation_time=timer() - start,
-                            finish_reason="cancelled",
-                            is_error=False,
-                        )
-
-                    yield json.dumps({
-                        "content": " [cancelled]",
-                        "status": "cancelled"
-                    }) + "\n"
-                    break
-                if isinstance(chunk, str):
-                    chunk_data = json.loads(chunk)
-                    
-                    # If an error chunk is received, save an error message and yield the error response
-                    if chunk_data.get("status") == "error":
-                        error_message_text = chunk_data.get("error", "Unknown error")
-                        full_content += f"\nError: {error_message_text}"
-                        assistant_message = self.message_repository.create(
-                            conversation=user_message.conversation,
-                            content=full_content,
-                            role="assistant",
-                            user=user,
-                            tokens_used=tokens_generated,
-                            provider=data.get("provider", "ollama"),
-                            name=data.get("name", ""),
-                            model=data.get("model"),
-                            generation_time=timer() - start,
-                            finish_reason="error",
-                            is_error=True,
-                        )
-                        print(f"chunk_data: {chunk_data}")
+                    if isinstance(chunk, str):
+                        chunk_data = json.loads(chunk)
                         
-                        MessageError.objects.create(
-                            message=assistant_message,
-                            error_code=chunk_data.get("error_code", "400"),
-                            error_title=chunk_data.get("error_title", "Generation Error"),
-                            error_description=chunk_data.get("error_description", error_message_text)
-                        )
+                        # If an error chunk is received, save an error message and yield the error response
+                        if chunk_data.get("status") == "error":
+                            error_message_text = chunk_data.get("error", "Unknown error")
+                            full_content += f"\nError: {error_message_text}"
+                            
+                            assistant_message = self.message_repository.create(
+                                conversation=user_message.conversation,
+                                content=full_content,
+                                role="assistant",
+                                user=user,
+                                tokens_used=tokens_generated,
+                                provider=data.get("provider", "ollama"),
+                                name=data.get("name", ""),
+                                model=data.get("model"),
+                                generation_time=timer() - start,
+                                finish_reason="error",
+                                is_error=True,
+                            )
+                            
+                            print(f"chunk_data: {chunk_data}")
+                            
+                            MessageError.objects.create(
+                                message=assistant_message,
+                                error_code=chunk_data.get("error_code", "400"),
+                                error_title=chunk_data.get("error_title", "Generation Error"),
+                                error_description=chunk_data.get("error_description", error_message_text)
+                            )
+                            
+                            yield json.dumps({
+                                "error": error_message_text,
+                                "status": "error",
+                                "message_id": str(assistant_message.id),
+                                "is_error": True,
+                            }) + "\n"
+                            return
                         
-                        yield json.dumps({
-                            "error": error_message_text,
-                            "status": "error",
-                            "message_id": str(assistant_message.id),
-                            "is_error": True,
-                        }) + "\n"
-                        return
-                    
-                    full_content += chunk_data.get("content", "")
-                    tokens_generated += 1
-                    yield json.dumps(chunk_data) + "\n"
+                        full_content += chunk_data.get("content", "")
+                        tokens_generated += 1
+                        
+                        # Update state tracking
+                        self.current_full_content = full_content
+                        self.current_tokens_generated = tokens_generated
+                        
+                        yield json.dumps(chunk_data) + "\n"
+            except Exception as stream_error:
+                self.logger.error(f"Error during streaming: {str(stream_error)}")
+                full_content += f"\nError: {str(stream_error)}"
+                # Let the outer exception handler deal with this
 
             end = timer()
             generation_time = end - start
 
-            # Create the assistant message regardless of cancellation status
-            assistant_message = self.message_repository.create(
-                conversation=user_message.conversation,
-                content=full_content,
-                role="assistant",
-                user=user,
-                tokens_used=tokens_generated,
-                provider=data.get("provider", "ollama"),
-                name = data.get("name", ""),
-                model=data.get("model"),
-                generation_time=generation_time,
-                finish_reason="cancelled" if self._cancel_event.is_set() else "stop",
-            )
-
-            yield json.dumps(
-                {
-                    "status": "cancelled" if self._cancel_event.is_set() else "done",
-                    "message_id": str(assistant_message.id),
-                }
-            )
-
-        except Exception as e:
-            logger.error(f"Error in generation {generation_id}: {str(e)}\n{traceback.format_exc()}")
-            try:
+            # Create the assistant message regardless of how we got here
+            # This ensures cancelled messages are saved
+            if not assistant_message:  # Only create if not already created due to error
+                finish_reason = "cancelled" if self._cancel_event.is_set() else "stop"
                 assistant_message = self.message_repository.create(
                     conversation=user_message.conversation,
-                    content=full_content + "\nError: " + str(e),
+                    content=full_content,
                     role="assistant",
                     user=user,
                     tokens_used=tokens_generated,
                     provider=data.get("provider", "ollama"),
                     name=data.get("name", ""),
                     model=data.get("model"),
-                    generation_time=timer() - start,
-                    finish_reason="error",
-                    is_error=True,
+                    generation_time=generation_time,
+                    finish_reason=finish_reason,
+                    is_error=False,
                 )
-                
-                MessageError.objects.create(
-                    message=assistant_message,
-                    error_code="400",  # Replace with an actual dynamic error code if available
-                    error_title="Generation Error",
-                    error_description=str(e)
-                )
-                        
+
+            # If we were cancelled, send a final cancellation message
+            if self._cancel_event.is_set():
+                yield json.dumps({
+                    "status": "cancelled",
+                    "message_id": str(assistant_message.id),
+                }) + "\n"
+            else:
+                yield json.dumps({
+                    "status": "done",
+                    "message_id": str(assistant_message.id),
+                }) + "\n"
+
+        except Exception as e:
+            logger.error(f"Error in generation {generation_id}: {str(e)}\n{traceback.format_exc()}")
+            try:
+                # Only create error message if we have a user message and no assistant message yet
+                if user_message and not assistant_message:
+                    assistant_message = self.message_repository.create(
+                        conversation=user_message.conversation,
+                        content=full_content + "\nError: " + str(e),
+                        role="assistant",
+                        user=user,
+                        tokens_used=tokens_generated,
+                        provider=data.get("provider", "ollama"),
+                        name=data.get("name", ""),
+                        model=data.get("model"),
+                        generation_time=timer() - start,
+                        finish_reason="error",
+                        is_error=True,
+                    )
+                    
+                    MessageError.objects.create(
+                        message=assistant_message,
+                        error_code="400",  # Replace with an actual dynamic error code if available
+                        error_title="Generation Error",
+                        error_description=str(e)
+                    )
+                            
+                    yield json.dumps({
+                        "error": str(e),
+                        "status": "error",
+                        "message_id": str(assistant_message.id),
+                        "is_error": True,
+                    }) + "\n"
+                    
+            except Exception as db_error:
+                self.logger.error(f"Error saving error message to DB: {str(db_error)}")
                 yield json.dumps({
                     "error": str(e),
                     "status": "error",
-                    "message_id": str(assistant_message.id),
                     "is_error": True,
                 }) + "\n"
-                return
-                
-            except Exception as db_error:
-                self.logger.error(f"Error saving error message to DB: {str(db_error)}")
-                assistant_message = None
-            yield json.dumps({
-                "error": str(e),
-                "status": "error",
-                "message_id": str(assistant_message.id) if assistant_message else None,
-                "is_error": True,
-            })
 
     def _get_provider(self, model_name: str, user_id: int = None):
         """Get appropriate provider based on model name"""
@@ -322,3 +346,40 @@ class ChatService:
     def cancel_generation(self):
         """Mark the current generation as cancelled"""
         self._cancel_event.set()
+
+    def save_cancelled_message(self, user_message, full_content, tokens_generated, data, user, start_time):
+        """
+        Save a cancelled message to the database.
+        This is called directly when a client disconnects to ensure the message is saved.
+        """
+        try:
+            if not user_message:
+                self.logger.warning("Cannot save cancelled message: No user message provided")
+                return None
+                
+            # Add cancelled marker to content
+            if not full_content.endswith(" [cancelled]"):
+                full_content += " [cancelled]"
+                
+            generation_time = timer() - start_time
+            
+            # Create the assistant message with cancelled status
+            assistant_message = self.message_repository.create(
+                conversation=user_message.conversation,
+                content=full_content,
+                role="assistant",
+                user=user,
+                tokens_used=tokens_generated,
+                provider=data.get("provider", "ollama"),
+                name=data.get("name", ""),
+                model=data.get("model"),
+                generation_time=generation_time,
+                finish_reason="cancelled",
+                is_error=False,
+            )
+            
+            self.logger.info(f"Saved cancelled message with ID: {assistant_message.id}")
+            return assistant_message
+        except Exception as e:
+            self.logger.error(f"Error saving cancelled message: {str(e)}")
+            return None

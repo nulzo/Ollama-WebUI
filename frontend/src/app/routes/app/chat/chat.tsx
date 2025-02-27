@@ -1,9 +1,9 @@
 import { ConversationArea } from '@/features/chat/components/chat-area/conversation-area';
 import { ConversationAreaHeader } from '@/features/chat/components/chat-area/conversation-area-header';
 import { ChatContainer } from '@/features/chat/components/chat-container';
-import { motion, AnimatePresence } from 'framer-motion';
-import AutoResizeTextarea from '@/features/textbox/components/new-textbox';
-import { useEffect, useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { ChatInput } from '@/features/textbox/components/chat-input';
+import { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useConversation } from '@/features/chat/hooks/use-conversation';
 import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
@@ -11,6 +11,103 @@ import { useAuth } from '@/features/authentication/hooks/use-auth';
 import CannedQuestions from '@/features/chat/components/default-chat/canned-questions';
 import { useChatStore } from '@/features/chat/stores/chat-store';
 import { useStreamingStore } from '@/features/chat/stores/streaming-store';
+
+// Memoize the landing page content to prevent re-renders
+const LandingContent = memo(({ 
+  handleSubmit, 
+  user, 
+  currentTheme, 
+  handleExampleClick, 
+  handleThemeChange,
+  disabled,
+  handleCancel,
+  isGenerating
+}: {
+  handleSubmit: (message: string, images: string[]) => void;
+  user: any;
+  currentTheme: 'casual' | 'creative' | 'inspirational' | 'analytical';
+  handleExampleClick: (question: string) => void;
+  handleThemeChange: (theme: 'casual' | 'creative' | 'inspirational' | 'analytical') => void;
+  disabled?: boolean;
+  handleCancel: () => void;
+  isGenerating: boolean;
+}) => (
+  <div
+    className="flex flex-col items-center justify-center min-h-[80vh] space-y-8 p-4 animate-fade-in-up"
+  >
+    <motion.div
+      className="text-center space-y-2"
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1, duration: 0.2 }}
+    >
+      <h1 className="text-4xl font-bold tracking-tight">
+        Welcome to <span className="text-primary">CringeAI</span>
+        <span className="text-sm text-primary align-top">™</span>
+      </h1>
+      <p className="text-muted-foreground text-sm">
+        {user?.username
+          ? `Hi, ${user.username}. Start a conversation in your preferred style.`
+          : 'Start a conversation in your preferred style.'}
+      </p>
+    </motion.div>
+    <div className="space-y-6 w-full max-w-2xl mx-auto">
+      <div>
+        <ChatInput 
+          onSubmit={handleSubmit}
+          disabled={disabled}
+          onCancel={handleCancel}
+          isGenerating={isGenerating}
+        />
+      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.2 }}
+      >
+        <CannedQuestions
+          theme={currentTheme}
+          onQuestionClick={handleExampleClick}
+          onThemeChange={handleThemeChange}
+        />
+      </motion.div>
+    </div>
+  </div>
+));
+
+// Memoize the chat content to prevent re-renders
+const ChatContent = memo(({ 
+  searchParamString, 
+  handleSubmit,
+  disabled,
+  handleCancel,
+  isGenerating
+}: {
+  searchParamString: string;
+  handleSubmit: (message: string, images: string[]) => void;
+  disabled?: boolean;
+  handleCancel: () => void;
+  isGenerating: boolean;
+}) => (
+  <div className="flex flex-col h-full">
+    <div className="flex-1 overflow-hidden">
+      <ChatContainer conversation_id={searchParamString} />
+    </div>
+    <div className="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto bg-background py-2 gap-2 flex flex-col items-center">
+      <div className="w-full max-w-2xl mx-auto bg-background py-2 gap-2 flex flex-col items-center">
+        <ChatInput 
+          onSubmit={handleSubmit}
+          disabled={disabled}
+          onCancel={handleCancel}
+          isGenerating={isGenerating}
+        />
+        <div className="flex text-xs text-muted-foreground items-center">
+          <span>CringeGPT Never Makes Mistakes</span>
+        </div>
+      </div>
+    </div>
+  </div>
+));
 
 export function ChatRoute() {
   const { conversation } = useConversation();
@@ -25,7 +122,6 @@ export function ChatRoute() {
   const { user } = useAuth();
 
   // Shared state between landing and chat views
-  const [input, setInput] = useState('');
   const [currentTheme, setCurrentTheme] = useState<
     'casual' | 'creative' | 'inspirational' | 'analytical'
   >('casual');
@@ -46,14 +142,20 @@ export function ChatRoute() {
     }
   }, [searchParamString, conversation, navigate]);
 
-  const handleSubmit = useCallback(() => {
-    if (!input.trim()) return;
-    mutation.mutate({ message: input, images: [] });
-    setInput('');
-  }, [input, mutation]);
+  const handleSubmit = useCallback((message: string, images: string[]) => {
+    if (!message.trim() && images.length === 0) return;
+    mutation.mutate({ message, images });
+  }, [mutation]);
 
   const handleExampleClick = useCallback((question: string) => {
-    setInput(question);
+    // We'll use this to set example questions in the UI
+    // The actual setting of the input text is now handled by the ChatInput component
+    const chatInput = document.querySelector('textarea');
+    if (chatInput) {
+      // Simulate setting the value and dispatching an input event
+      (chatInput as HTMLTextAreaElement).value = question;
+      chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
   }, []);
 
   // Type-safe theme change handler
@@ -61,117 +163,50 @@ export function ChatRoute() {
     setCurrentTheme(theme);
   }, []);
 
-  const fadeInUp = {
-    initial: { opacity: 0, y: 8 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -4 },
-    transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] }, // Easing function for smooth animation
-  };
+  // Memoize props for the landing content
+  const landingProps = useMemo(() => ({
+    handleSubmit,
+    user,
+    currentTheme,
+    handleExampleClick,
+    handleThemeChange,
+    disabled: isGenerating,
+    handleCancel,
+    isGenerating
+  }), [
+    handleSubmit,
+    user,
+    currentTheme,
+    handleExampleClick,
+    handleThemeChange,
+    isGenerating,
+    handleCancel
+  ]);
 
-  const fadeIn = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    transition: { duration: 0.2, ease: 'easeOut' },
-  };
+  // Memoize props for the chat content
+  const chatProps = useMemo(() => ({
+    searchParamString: searchParamString || '',
+    handleSubmit,
+    disabled: isGenerating,
+    handleCancel,
+    isGenerating
+  }), [
+    searchParamString,
+    handleSubmit,
+    isGenerating,
+    handleCancel
+  ]);
 
   return (
     <div className="relative flex flex-col w-full max-w-full h-screen transition font-geist">
       <ConversationAreaHeader />
       <div className="relative flex flex-col flex-1 transition overflow-hidden">
         <ConversationArea>
-            {!searchParamString ? (
-              <div
-              key="landing"
-              className="flex flex-col items-center justify-center min-h-[80vh] space-y-8 p-4 animate-fade-in-up"
-            >
-                <motion.div
-                  className="text-center space-y-2"
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1, duration: 0.2 }}
-                >
-                  <h1 className="text-4xl font-bold tracking-tight">
-                    Welcome to <span className="text-primary">CringeAI</span>
-                    <span className="text-sm text-primary align-top">™</span>
-                  </h1>
-                  <p className="text-muted-foreground text-sm">
-                    {user?.username
-                      ? `Hi, ${user.username}. Start a conversation in your preferred style.`
-                      : 'Start a conversation in your preferred style.'}
-                  </p>
-                </motion.div>
-                <div className="space-y-6 w-full max-w-2xl mx-auto">
-                  <motion.div
-                    layoutId="chat-input"
-                    layout="position"
-                    transition={{
-                      layout: { duration: 0.3, ease: [0.23, 1, 0.32, 1] },
-                    }}
-                  >
-                    <AutoResizeTextarea
-                      text={input}
-                      setText={setInput}
-                      onSubmit={handleSubmit}
-                      model="default"
-                      onImageUpload={() => {}}
-                      onRemoveImage={() => {}}
-                      uploadedImages={[]}
-                      placeholder="Send a message..."
-                      onCancel={handleCancel}
-                      isGenerating={isGenerating}
-                    />
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.2 }}
-                  >
-                    <CannedQuestions
-                      theme={currentTheme}
-                      onQuestionClick={handleExampleClick}
-                      onThemeChange={handleThemeChange}
-                    />
-                  </motion.div>
-                </div>
-              </div>
-            ) : (
-              <motion.div key="chat" {...fadeIn} className="flex flex-col h-full">
-                <div className="flex-1 overflow-hidden">
-                  <ChatContainer conversation_id={searchParamString} />
-                </div>
-                <div className="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto bg-background py-2 gap-2 flex flex-col items-center">
-                  <motion.div
-                    layoutId="chat-input"
-                    layout="position"
-                  transition={{
-                    layout: { duration: 0.3, ease: [0.23, 1, 0.32, 1] },
-                  }}
-                  className="w-full max-w-2xl mx-auto bg-background py-2 gap-2 flex flex-col items-center"
-                >
-                  <AutoResizeTextarea
-                    text={input}
-                    setText={setInput}
-                    onSubmit={handleSubmit}
-                    model="default"
-                    onImageUpload={() => {}}
-                    onRemoveImage={() => {}}
-                    uploadedImages={[]}
-                    placeholder="Send a message..."
-                    onCancel={handleCancel}
-                    isGenerating={isGenerating}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2, duration: 0.2 }}
-                    className="flex text-xs text-muted-foreground items-center"
-                  >
-                    <span>CringeGPT Never Makes Mistakes</span>
-                  </motion.div>
-                </motion.div>
-                </div>
-              </motion.div>
-            )}
+          {!searchParamString ? (
+            <LandingContent {...landingProps} />
+          ) : (
+            <ChatContent {...chatProps} />
+          )}
         </ConversationArea>
       </div>
     </div>

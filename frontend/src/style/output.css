@@ -1405,6 +1405,12 @@
   .border-muted-foreground {
     border-color: hsl(var(--muted-foreground));
   }
+  .border-muted-foreground\/30 {
+    border-color: color-mix(in oklab, hsl(var(--muted-foreground)) 30%, transparent);
+  }
+  .border-muted\/30 {
+    border-color: color-mix(in oklab, hsl(var(--muted)) 30%, transparent);
+  }
   .border-primary {
     border-color: hsl(var(--primary));
   }
@@ -1952,6 +1958,9 @@
   .text-muted-foreground {
     color: hsl(var(--muted-foreground));
   }
+  .text-muted-foreground\/75 {
+    color: color-mix(in oklab, hsl(var(--muted-foreground)) 75%, transparent);
+  }
   .text-popover-foreground {
     color: hsl(var(--accent-foreground));
   }
@@ -1994,6 +2003,9 @@
   .tabular-nums {
     --tw-numeric-spacing: tabular-nums;
     font-variant-numeric: var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,);
+  }
+  .line-through {
+    text-decoration-line: line-through;
   }
   .underline {
     text-decoration-line: underline;

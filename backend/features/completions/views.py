@@ -29,19 +29,6 @@ class ChatViewSet(viewsets.ViewSet):
         self.chat_service = ChatService()
         self.logger = logger
         
-    @action(detail=False, methods=['post'])
-    def cancel(self, request):
-        """
-        Cancel the current generation.
-        """
-        try:
-            self.logger.info(f"Received cancel request from user {request.user.id}")
-            self.chat_service.cancel_generation()
-            return Response({"status": "cancelled"})
-        except Exception as e:
-            self.logger.error(f"Error cancelling generation: {str(e)}")
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
     @action(detail=False, methods=['post'], renderer_classes=[EventStreamRenderer])
     def chat(self, request):
         try:
@@ -63,7 +50,7 @@ class ChatViewSet(viewsets.ViewSet):
 
             def stream_response():
                 try:
-                    anim= json.dumps({"content": "", "status": "waiting"})
+                    anim = json.dumps({"content": "", "status": "waiting"})
                     yield f"data: {anim}\n\n"
                     for chunk in self.chat_service.generate_response(
                         data=request.data,
@@ -71,8 +58,42 @@ class ChatViewSet(viewsets.ViewSet):
                     ):
                         yield f"data: {chunk}\n\n"
                 except GeneratorExit:
+                    # This exception is raised when the client disconnects or aborts the request
                     logger.warning(f"Client cancelled request - IP: {client_ip}")
+                    
+                    # First set the cancel event
                     self.chat_service.cancel_generation()
+                    
+                    # Then save the cancelled message to the database
+                    try:
+                        # Get the current state from the chat service
+                        user_message = self.chat_service.current_user_message
+                        full_content = self.chat_service.current_full_content
+                        tokens_generated = self.chat_service.current_tokens_generated
+                        data = self.chat_service.current_request_data
+                        user = self.chat_service.current_user
+                        start_time = self.chat_service.current_generation_start
+                        
+                        if user_message:
+                            # Save the cancelled message
+                            assistant_message = self.chat_service.save_cancelled_message(
+                                user_message, 
+                                full_content, 
+                                tokens_generated, 
+                                data, 
+                                user, 
+                                start_time
+                            )
+                            if assistant_message:
+                                logger.info(f"Successfully saved cancelled message with ID: {assistant_message.id}")
+                            else:
+                                logger.warning("Failed to save cancelled message")
+                        else:
+                            logger.warning("No user message available to save cancelled response")
+                    except Exception as cancel_error:
+                        logger.error(f"Error during cancellation: {str(cancel_error)}")
+                    
+                    # Re-raise to properly close the connection
                     raise
                 except Exception as e:
                     logger.error(f"Error in stream: {str(e)}")

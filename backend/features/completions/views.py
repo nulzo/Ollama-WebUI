@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 class ChatViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
-    renderer_classes = [EventStreamRenderer]
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -31,6 +30,19 @@ class ChatViewSet(viewsets.ViewSet):
         self.logger = logger
         
     @action(detail=False, methods=['post'])
+    def cancel(self, request):
+        """
+        Cancel the current generation.
+        """
+        try:
+            self.logger.info(f"Received cancel request from user {request.user.id}")
+            self.chat_service.cancel_generation()
+            return Response({"status": "cancelled"})
+        except Exception as e:
+            self.logger.error(f"Error cancelling generation: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    @action(detail=False, methods=['post'], renderer_classes=[EventStreamRenderer])
     def chat(self, request):
         try:
             self.logger.info(f"Request user: {request.user}")

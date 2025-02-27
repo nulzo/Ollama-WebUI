@@ -10,12 +10,16 @@ interface MessagesListProps {
   conversation_id: string;
   streamingContent: string;
   isStreaming: boolean;
+  isMessageCancelled?: (content: string) => boolean;
+  formatMessageContent?: (content: string) => string;
 }
 
 export function MessagesList({
   conversation_id,
   streamingContent,
   isStreaming,
+  isMessageCancelled = (content: string) => false,
+  formatMessageContent = (content: string) => content,
 }: MessagesListProps) {
   const {
     messages,
@@ -28,7 +32,7 @@ export function MessagesList({
   
   
   const allMessages = [...(messages || []), ...localMessages];
-  const messagesEndRef = useScrollToEnd(allMessages);
+  const messagesEndRef = useScrollToEnd(allMessages, streamingContent);
   
   const observer = useRef<IntersectionObserver>();
   const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
@@ -55,16 +59,24 @@ export function MessagesList({
        {isFetchingNextPage && <div>Loading...</div>}
        <div ref={loadMoreRef} />
        
-       {allMessages.map(message => (
-         <Message
-           key={message.data.id}
-           {...message.data}
-           conversation_id={conversation_id}
-           modelName={message.data.model}
-           time={new Date(message.data.created_at).getTime()}
-           username={message.data.role === 'user' ? 'User' : 'Assistant'}
-         />
-       ))}
+       {allMessages.map(message => {
+         const messageContent = message.data.content || '';
+         const isCancelled = isMessageCancelled(messageContent);
+         const formattedContent = formatMessageContent(messageContent);
+         
+         return (
+           <Message
+             key={message.data.id}
+             {...message.data}
+             content={formattedContent}
+             conversation_id={conversation_id}
+             modelName={message.data.model}
+             time={new Date(message.data.created_at).getTime()}
+             username={message.data.role === 'user' ? 'User' : 'Assistant'}
+             isCancelled={isCancelled}
+           />
+         );
+       })}
         <div ref={messagesEndRef} />
      </div>
    </div>

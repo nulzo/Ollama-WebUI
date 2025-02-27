@@ -21,21 +21,36 @@ export function useChatMutation(conversation_id?: string) {
   } = useChatStore();
 
   const handleCancel = useCallback(() => {
-    console.log('handleCancel called', {
-      hasAbortController: !!abortControllerRef.current,
-      isGenerating
-    });
+    console.log('Cancel button clicked, abort controller:', abortControllerRef.current);
+    
     if (abortControllerRef.current) {
-      console.log('aborting');
+      console.log('Aborting request with abort controller');
       abortControllerRef.current.abort();
+      
+      // Also try to call the backend cancel endpoint as a fallback
+      api.cancelGeneration().catch(err => {
+        console.error('Error calling cancel endpoint:', err);
+      });
+    } else {
+      console.log('No abort controller available, trying backend cancel endpoint');
+      api.cancelGeneration().catch(err => {
+        console.error('Error calling cancel endpoint:', err);
+      });
     }
-  }, [isGenerating]);
+    
+    // Always set generating to false to update UI immediately
+    setIsGenerating(false);
+  }, [setIsGenerating]);
 
 
   const mutation = useMutation({
     mutationFn: async ({ message, images }: { message: string, images: string[] | undefined }) => {
       if (!user) throw new Error('Authentication required');
       if (!model) throw new Error('No model selected');
+
+      const modelName = model.model;
+      const providerName = model.provider || 'ollama';
+      const assistantName = model.name || 'Assistant';
 
       abortControllerRef.current = new AbortController();
       setIsGenerating(true);
@@ -47,23 +62,23 @@ export function useChatMutation(conversation_id?: string) {
           {
             role: 'user',
             content: message,
-            model: model?.model,
-            name: model?.name,
+            model: modelName,
+            name: assistantName,
             liked_by: [],
             has_images: false,
             conversation_uuid: conversation_id,
             user_id: user?.id,
-            provider: model?.provider,
+            provider: providerName,
             created_at: new Date().toISOString(),
           },
           {
             role: 'assistant',
             content: '',
-            model: model?.model,
-            name: model?.name,
+            model: modelName,
+            name: assistantName,
             liked_by: [],
             has_images: false,
-            provider: model?.provider,
+            provider: providerName,
             conversation_uuid: conversation_id,
             created_at: new Date().toISOString(),
           },
@@ -76,54 +91,33 @@ export function useChatMutation(conversation_id?: string) {
           conversation_uuid: conversation_id,
           role: 'user',
           user: user?.id,
-          model: model?.model,
-          name: model?.name,
-          provider: model?.provider,
+          model: modelName,
+          name: assistantName,
+          provider: providerName,
           images: images || [],
         }
         await api.streamCompletion(
           new_msg,
           chunk => {
-            // Parse the chunk as JSON
-            const parsedChunk = typeof chunk === 'string' ? JSON.parse(chunk) : chunk;
-
-            if (parsedChunk.status === 'waiting') {
-              setIsWaiting(true);
-              return;
-            } else if (parsedChunk.status === 'generating') {
-              setIsWaiting(false);
-            }
-
-            // If this is a new conversation
-            if (parsedChunk.conversation_uuid && parsedChunk.status === 'created') {
-              const newConversationId = parsedChunk.conversation_uuid;
-
-              // Set initial messages for the new conversation
-              setStreamingMessages([
-                {
-                  role: 'assistant',
-                  content: '',
-                  model: model?.model,
-                  name: model?.name,
-                  liked_by: [],
-                  has_images: false,
-                  provider: model?.provider,
-                  conversation_uuid: newConversationId,
-                  created_at: new Date().toISOString(),
-                },
-              ]);
-
-              // Invalidate for sidebar
-              queryClient.invalidateQueries({ queryKey: ['conversations'] });
-
-              // Route to the new conversation
-              navigate(`/?c=${newConversationId}`);
-              queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: newConversationId }] })
-              return;
-            }
-
-            if (parsedChunk.content) {
-              updateLastMessage(parsedChunk.content);
+            console.log('Received chunk in callback:', chunk);
+            
+            // Handle the chunk based on its type
+            if (typeof chunk === 'string') {
+              console.log('Chunk is a string, attempting to parse as JSON');
+              try {
+                // Try to parse it as JSON if it's a string
+                const parsedChunk = JSON.parse(chunk);
+                console.log('Successfully parsed string chunk as JSON:', parsedChunk);
+                handleChunk(parsedChunk);
+              } catch (e) {
+                console.log('Failed to parse as JSON, treating as plain text');
+                // If it's just a plain string, update the last message with it
+                updateLastMessage(chunk);
+              }
+            } else {
+              console.log('Chunk is already an object:', chunk);
+              // It's already a StreamChunk object
+              handleChunk(chunk);
             }
           },
           abortControllerRef.current.signal
@@ -132,31 +126,101 @@ export function useChatMutation(conversation_id?: string) {
         console.log('Caught error in mutation:', error);
         throw error; // Let onError handle all errors
       } finally {
-        // Only cleanup if it's not an abort error
-        if (!abortControllerRef.current?.signal.aborted) {
-          setIsGenerating(false);
+        setIsGenerating(false);
+        abortControllerRef.current = null;
+      }
+      
+      // Helper function to handle chunk objects
+      function handleChunk(parsedChunk: any) {
+        console.log('Handling chunk:', parsedChunk);
+        
+        // Handle different status types
+        if (parsedChunk.status === 'waiting') {
+          console.log('Setting waiting state to true');
+          setIsWaiting(true);
+          return;
+        } else if (parsedChunk.status === 'generating') {
+          console.log('Setting waiting state to false');
           setIsWaiting(false);
-          abortControllerRef.current = null;
-
-          const currentConversationId = conversation_id || queryClient.getQueryData(['currentConversation']);
-          if (currentConversationId) {
-            await Promise.all([
-              queryClient.invalidateQueries({ queryKey: ['conversations'] }),
-              queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: currentConversationId }] })
-            ]);
-            setStreamingMessages([]);
+        } else if (parsedChunk.status === 'cancelled') {
+          // Handle cancelled status from the server
+          console.log('Received cancelled status from server');
+          
+          // If there's content in the chunk (like " [cancelled]"), append it
+          if (parsedChunk.content) {
+            console.log('Appending cancellation content:', parsedChunk.content);
+            updateLastMessage(parsedChunk.content);
+          } else {
+            // Otherwise just append [cancelled] marker
+            console.log('Appending [cancelled] marker');
+            updateLastMessage(' [cancelled]');
           }
+          
+          // Set generating to false to update UI
+          setIsGenerating(false);
+          return;
+        } else if (parsedChunk.status === 'done') {
+          console.log('Generation complete');
+          setIsGenerating(false);
+        }
+
+        // If this is a new conversation
+        if (parsedChunk.conversation_uuid && parsedChunk.status === 'created') {
+          const newConversationId = parsedChunk.conversation_uuid;
+          console.log('New conversation created:', newConversationId);
+
+          // Set initial messages for the new conversation
+          setStreamingMessages([
+            {
+              role: 'assistant',
+              content: '',
+              model: modelName,
+              name: assistantName,
+              liked_by: [],
+              has_images: false,
+              provider: providerName,
+              conversation_uuid: newConversationId,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+
+          // Invalidate for sidebar
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
+
+          // Route to the new conversation
+          navigate(`/?c=${newConversationId}`);
+          queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: newConversationId }] })
+          return;
+        }
+
+        // Handle regular content updates
+        if (parsedChunk.content) {
+          console.log('Updating last message with content:', parsedChunk.content);
+          updateLastMessage(parsedChunk.content);
         }
       }
     },
     onError: error => {
-      console.log('Caught error in mutation:', error);
+      console.log('Error in mutation:', error);
+      
       if (error.name === 'AbortError') {
-        updateLastMessage('Cancelled');
+        console.log('Handling AbortError in onError handler');
+        
+        // Update the last message to show it was cancelled
+        const streamingMessages = useChatStore.getState().streamingMessages;
+        if (streamingMessages.length > 0) {
+          const lastMessage = streamingMessages[streamingMessages.length - 1];
+          if (lastMessage.role === 'assistant') {
+            console.log('Appending [cancelled] to last assistant message');
+            updateLastMessage(' [cancelled]');
+          }
+        }
       } else {
         console.error('Chat error:', error);
-        updateLastMessage('Error');
+        updateLastMessage(' Error');
       }
+      
+      // Always set generating to false to update UI
       setIsGenerating(false);
     },
   });

@@ -206,12 +206,36 @@ class ApiClient {
     return response.json();
   }
 
+  async cancelGeneration(): Promise<boolean> {
+    try {
+      console.log('Sending cancellation request to server');
+      const response = await fetch(this.getFullURL('/completions/cancel/'), {
+        method: 'POST',
+        headers: authRequestHeaders(),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Cancellation request failed: ${response.status} - ${errorText}`);
+        return false;
+      }
+      
+      console.log('Cancellation request successful');
+      return true;
+    } catch (error) {
+      console.error('Error cancelling generation:', error);
+      return false;
+    }
+  }
+
   async streamCompletion(
     data: unknown,
     onChunk: (chunk: string | StreamChunk) => void,
     signal?: AbortSignal
   ): Promise<void> {
     try {
+      console.log('Starting streamCompletion with data:', data);
       const response = await fetch(this.getFullURL('/completions/chat/'), {
         method: 'POST',
         headers: this.getHeaders({
@@ -227,51 +251,79 @@ class ApiClient {
   
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('Stream response error:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
   
+      console.log('Stream response OK, starting to read chunks');
       const reader = response.body?.getReader();
-      if (!reader) return;
+      if (!reader) {
+        console.error('No reader available from response');
+        return;
+      }
   
       const decoder = new TextDecoder();
       let buffer = '';
   
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          console.log('Stream reading complete');
+          break;
+        }
   
         // Decode the chunk and add to buffer
-        buffer += decoder.decode(value, { stream: true });
+        const text = decoder.decode(value, { stream: true });
+        buffer += text;
+        console.log('Received raw chunk:', text);
   
         // Split on newlines, keeping any partial line in the buffer
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
   
         for (const line of lines) {
+          // Skip empty lines
+          if (!line.trim()) continue;
+          
           if (line.startsWith('data: ')) {
             try {
-              const data = JSON.parse(line.slice(6));
+              const jsonStr = line.slice(6);
+              if (!jsonStr.trim()) continue;
+              
+              const data = JSON.parse(jsonStr);
+              console.log('Parsed chunk data:', data);
+              
+              // Pass the entire chunk object to the callback
               onChunk(data);
+              
+              // If this is a cancellation, we need to make sure it's processed
+              if (data.status === 'cancelled') {
+                console.log('Received cancellation status from server');
+              }
             } catch (e) {
-              console.error('Error parsing SSE data:', e);
+              console.error('Error parsing SSE data:', e, 'Line:', line);
             }
           }
         }
       }
-  
-      // Handle any remaining data
-      const remaining = buffer.trim();
-      if (remaining && remaining.startsWith('data: ')) {
+      
+      // Process any remaining data in the buffer
+      if (buffer.trim() && buffer.startsWith('data: ')) {
         try {
-          const data = JSON.parse(remaining.slice(6));
-          onChunk(data);
+          const jsonStr = buffer.slice(6);
+          if (jsonStr.trim()) {
+            const data = JSON.parse(jsonStr);
+            console.log('Parsed final chunk data:', data);
+            onChunk(data);
+          }
         } catch (e) {
           console.error('Error parsing final SSE data:', e);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Stream error:', error);
       if (error.name === 'AbortError') {
-        console.log('Abort detected in streamCompletion');
+        console.log('Stream aborted by client');
         throw error;
       }
       throw error;

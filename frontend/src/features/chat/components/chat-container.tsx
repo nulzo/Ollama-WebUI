@@ -154,6 +154,19 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     };
   }, []);
 
+  // Function to check if a message was cancelled
+  const isMessageCancelled = useCallback((content: string) => {
+    return content && typeof content === 'string' && content.endsWith('[cancelled]');
+  }, []);
+
+  // Function to format message content by removing the [cancelled] marker
+  const formatMessageContent = useCallback((content: string) => {
+    if (content && typeof content === 'string' && isMessageCancelled(content)) {
+      return content.replace('[cancelled]', '');
+    }
+    return content;
+  }, [isMessageCancelled]);
+
   return (
     <div className="relative flex flex-col h-full">
       <div
@@ -180,25 +193,34 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
           </div>
         )}
 
-        {allMessages.map((message, index) => (
-          <Message
-            key={message.id || index}
-            message={message}
-            isTyping={
-              isGenerating &&
-              index === allMessages.length - 1 &&
-              message.role === 'assistant' &&
-              !isWaiting
-            }
-            isWaiting={
-              isGenerating &&
-              index === allMessages.length - 1 &&
-              message.role === 'assistant' &&
-              isWaiting
-            }
-            isLoading={false}
-          />
-        ))}
+        {allMessages.map((message, index) => {
+          const isCancelled = isMessageCancelled(message.content);
+          const formattedContent = formatMessageContent(message.content);
+          
+          return (
+            <Message
+              key={message.id || index}
+              message={{
+                ...message,
+                content: formattedContent
+              }}
+              isTyping={
+                isGenerating &&
+                index === allMessages.length - 1 &&
+                message.role === 'assistant' &&
+                !isWaiting
+              }
+              isWaiting={
+                isGenerating &&
+                index === allMessages.length - 1 &&
+                message.role === 'assistant' &&
+                isWaiting
+              }
+              isLoading={false}
+              isCancelled={Boolean(isCancelled)}
+            />
+          );
+        })}
       </div>
       </div>
 

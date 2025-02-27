@@ -155,7 +155,27 @@ class ChatService:
             full_content = ""
             for chunk in provider.stream(data.get("model", "llama3.2:3b"), formatted_messages, user_id=user.id, conversation_id=str(conversation.uuid)):
                 if self._cancel_event.is_set():
+                    self.logger.info(f"Generation {generation_id} was cancelled after {tokens_generated} tokens")
                     full_content += " [cancelled]"
+
+                    assistant_message = self.message_repository.create(
+                            conversation=user_message.conversation,
+                            content=full_content,
+                            role="assistant",
+                            user=user,
+                            tokens_used=tokens_generated,
+                            provider=data.get("provider", "ollama"),
+                            name=data.get("name", ""),
+                            model=data.get("model"),
+                            generation_time=timer() - start,
+                            finish_reason="cancelled",
+                            is_error=False,
+                        )
+
+                    yield json.dumps({
+                        "content": " [cancelled]",
+                        "status": "cancelled"
+                    }) + "\n"
                     break
                 if isinstance(chunk, str):
                     chunk_data = json.loads(chunk)
@@ -201,20 +221,19 @@ class ChatService:
             end = timer()
             generation_time = end - start
 
-            # Update final message content if not cancelled
-            if not self._cancel_event.is_set():
-                assistant_message = self.message_repository.create(
-                    conversation=user_message.conversation,
-                    content=full_content,
-                    role="assistant",
-                    user=user,
-                    tokens_used=tokens_generated,
-                    provider=data.get("provider", "ollama"),
-                    name = data.get("name", ""),
-                    model=data.get("model"),
-                    generation_time=generation_time,
-                    finish_reason="cancelled" if self._cancel_event.is_set() else "stop",
-                )
+            # Create the assistant message regardless of cancellation status
+            assistant_message = self.message_repository.create(
+                conversation=user_message.conversation,
+                content=full_content,
+                role="assistant",
+                user=user,
+                tokens_used=tokens_generated,
+                provider=data.get("provider", "ollama"),
+                name = data.get("name", ""),
+                model=data.get("model"),
+                generation_time=generation_time,
+                finish_reason="cancelled" if self._cancel_event.is_set() else "stop",
+            )
 
             yield json.dumps(
                 {

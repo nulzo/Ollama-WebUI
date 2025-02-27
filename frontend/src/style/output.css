@@ -321,6 +321,9 @@
   .right-4 {
     right: calc(var(--spacing) * 4);
   }
+  .right-8 {
+    right: calc(var(--spacing) * 8);
+  }
   .right-\[10px\] {
     right: 10px;
   }
@@ -335,6 +338,9 @@
   }
   .bottom-2 {
     bottom: calc(var(--spacing) * 2);
+  }
+  .bottom-24 {
+    bottom: calc(var(--spacing) * 24);
   }
   .bottom-\[-6px\] {
     bottom: -6px;
@@ -1383,6 +1389,9 @@
   }
   .border-destructive {
     border-color: hsl(var(--destructive));
+  }
+  .border-destructive\/30 {
+    border-color: color-mix(in oklab, hsl(var(--destructive)) 30%, transparent);
   }
   .border-destructive\/50 {
     border-color: color-mix(in oklab, hsl(var(--destructive)) 50%, transparent);

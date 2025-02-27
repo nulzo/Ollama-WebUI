@@ -14,7 +14,11 @@ import { useStreamingStore } from '@/features/chat/stores/streaming-store';
 
 export function ChatRoute() {
   const { conversation } = useConversation();
-  const { mutation, isGenerating } = useChatMutation(conversation || undefined);
+  const { 
+    mutation, 
+    isGenerating, 
+    handleCancel 
+  } = useChatMutation(conversation || undefined);
   const [searchParams] = useSearchParams();
   const searchParamString = searchParams.get('c');
   const navigate = useNavigate();
@@ -113,7 +117,7 @@ export function ChatRoute() {
                       onRemoveImage={() => {}}
                       uploadedImages={[]}
                       placeholder="Send a message..."
-                      onCancel={() => {}}
+                      onCancel={handleCancel}
                       isGenerating={isGenerating}
                     />
                   </motion.div>
@@ -153,7 +157,7 @@ export function ChatRoute() {
                     onRemoveImage={() => {}}
                     uploadedImages={[]}
                     placeholder="Send a message..."
-                    onCancel={() => {}}
+                    onCancel={handleCancel}
                     isGenerating={isGenerating}
                   />
                   <motion.div

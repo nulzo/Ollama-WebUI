@@ -1,6 +1,6 @@
 import { useMemo, useEffect, useState, useRef, memo } from 'react';
 import MarkdownRenderer from '@/features/markdown/components/markdown.tsx';
-import { Copy, FrownIcon, Heart, HeartCrack, Loader2, RefreshCw } from 'lucide-react';
+import { Copy, FrownIcon, Heart, HeartCrack, Loader2, RefreshCw, XCircle } from 'lucide-react';
 import { Message as MessageType } from '@/features/chat/types/message';
 import { BotIcon } from '@/features/chat/components/bot-icon.tsx';
 import { formatDate } from '@/utils/format.ts';
@@ -25,6 +25,7 @@ interface MessageProps {
   isTyping?: boolean;
   isLoading?: boolean;
   isWaiting?: boolean;
+  isCancelled?: boolean;
 }
 
 
@@ -104,7 +105,7 @@ const useSmoothStreaming = (targetText: string, isTyping: boolean, speed: number
 
 // eslint-disable-next-line react/display-name
 export const Message = memo<MessageProps>(
-  ({ message, isTyping, isLoading, isWaiting }) => {
+  ({ message, isTyping, isLoading, isWaiting, isCancelled }) => {
     const formattedDate = formatDate(new Date(message.created_at).getTime());
     const { data: modelsData } = useModels();
     const { copy } = useClipboard();
@@ -115,6 +116,14 @@ export const Message = memo<MessageProps>(
     // Use our new smooth streaming hook.
     const smoothText = useSmoothStreaming(message.content || '', !!isTyping);
     const messageContent = isTyping ? smoothText : message.content || '';
+    
+    // Format the message content to remove the [cancelled] marker
+    const displayContent = useMemo(() => {
+      if (isCancelled && typeof messageContent === 'string' && messageContent.endsWith('[cancelled]')) {
+        return messageContent.replace('[cancelled]', '');
+      }
+      return messageContent;
+    }, [messageContent, isCancelled]);
 
     const handleLike = () => {
       const newIsLiked = !isLiked;
@@ -320,9 +329,15 @@ export const Message = memo<MessageProps>(
               <div className="flex items-baseline gap-1.5 mb-0.5 ml-1">
                 <span className="font-medium text-primary text-sm">{message.name}</span>
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
+                {isCancelled && (
+                  <span className="flex items-center text-xs text-muted-foreground ml-2">
+                    <XCircle className="w-3 h-3 mr-1 text-destructive" />
+                    Generation cancelled
+                  </span>
+                )}
               </div>
 
-              <div className="p-2 rounded-xl rounded-tl">
+              <div className={`p-2 rounded-xl rounded-tl ${isCancelled ? 'border border-destructive/30' : ''}`}>
                 {message.image_ids?.length && message.image_ids.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-3">
                     <AsyncMessageImage
@@ -334,8 +349,8 @@ export const Message = memo<MessageProps>(
                 )}
 
                 <div className="max-w-none prose prose-sm scroll-smooth">
-                  {messageContent ? (
-                    <MarkdownRenderer markdown={messageContent} />
+                  {displayContent ? (
+                    <MarkdownRenderer markdown={displayContent} />
                   ) : (
                     <div className="h-6" />
                   )}

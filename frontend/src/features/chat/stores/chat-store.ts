@@ -8,22 +8,36 @@ interface ChatState {
   streamingMessages: Message[];
   isGenerating: boolean;
   isWaiting: boolean;
-  setStreamingMessages: (messages: Message[]) => void;
+  currentConversationId: string | null;
+  setStreamingMessages: (messages: Message[], conversationId?: string) => void;
   updateLastMessage: (content: string) => void;
   setIsGenerating: (generating: boolean) => void;
   setIsWaiting: (waiting: boolean) => void;
   cleanupOldMessages: () => void;
-  resetState: () => void; // New function to completely reset state
+  resetState: () => void;
+  clearConversationMessages: (conversationId: string) => void;
+  setCurrentConversationId: (conversationId: string | null) => void;
 }
 
-export const useChatStore = create<ChatState>((set) => ({
+export const useChatStore = create<ChatState>((set, get) => ({
   streamingMessages: [],
   isGenerating: false,
   isWaiting: false,
+  currentConversationId: null,
   
-  setStreamingMessages: (messages) => set({ 
-    // Limit the number of messages stored in state
-    streamingMessages: messages.slice(-MAX_STREAMING_MESSAGES) 
+  setStreamingMessages: (messages, conversationId) => set(state => {
+    // If a conversation ID is provided, update the current conversation ID
+    if (conversationId) {
+      return {
+        streamingMessages: messages.slice(-MAX_STREAMING_MESSAGES),
+        currentConversationId: conversationId
+      };
+    }
+    
+    // Otherwise just update the messages
+    return { 
+      streamingMessages: messages.slice(-MAX_STREAMING_MESSAGES) 
+    };
   }),
   
   updateLastMessage: (content) => 
@@ -54,6 +68,19 @@ export const useChatStore = create<ChatState>((set) => ({
   resetState: () => set({
     streamingMessages: [],
     isGenerating: false,
-    isWaiting: false
+    isWaiting: false,
+    currentConversationId: null
+  }),
+  
+  // Clear messages for a specific conversation
+  clearConversationMessages: (conversationId) => set(state => ({
+    streamingMessages: state.streamingMessages.filter(
+      msg => msg.conversation_uuid !== conversationId
+    )
+  })),
+  
+  // Set the current conversation ID
+  setCurrentConversationId: (conversationId) => set({
+    currentConversationId: conversationId
   })
 }));

@@ -53,31 +53,80 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [showLoadMore, setShowLoadMore] = useState(false);
+  const previousConversationIdRef = useRef<string | null>(null);
 
   const { handleCancel } = useChatMutation(conversation_id);
   const { messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages({
     conversation_id,
   });
-  const { streamingMessages, isGenerating, isWaiting } = useChatStore();
+  const { 
+    streamingMessages, 
+    isGenerating, 
+    isWaiting,
+    currentConversationId,
+    setCurrentConversationId
+  } = useChatStore();
 
-  // Combine existing messages and any streaming updates.
+  // Update current conversation ID when the component mounts or conversation_id changes
+  useEffect(() => {
+    if (conversation_id && conversation_id !== currentConversationId) {
+      setCurrentConversationId(conversation_id);
+      
+      // Force scroll to bottom when changing conversations
+      setShouldAutoScroll(true);
+      
+      // Remember the previous conversation ID
+      previousConversationIdRef.current = currentConversationId;
+    }
+  }, [conversation_id, currentConversationId, setCurrentConversationId]);
+
+  // Filter streaming messages to only show those for the current conversation
+  const currentStreamingMessages = useMemo(() => {
+    return streamingMessages.filter(msg => msg.conversation_uuid === conversation_id);
+  }, [streamingMessages, conversation_id]);
+
+  // Combine existing messages and any streaming updates for the current conversation
   const allMessages = useMemo(() => {
-    return [...messages, ...streamingMessages];
-  }, [messages, streamingMessages]);
+    return [...messages, ...currentStreamingMessages];
+  }, [messages, currentStreamingMessages]);
 
-  // Whenever messages or streaming updates change, scroll to the bottom if the user hasn't scrolled up.
+  // Whenever messages or streaming updates change, scroll to the bottom if the user hasn't scrolled up
   useEffect(() => {
     if (
       shouldAutoScroll &&
       containerRef.current &&
-      (streamingMessages.length > 0 || isGenerating)
+      (currentStreamingMessages.length > 0 || isGenerating)
     ) {
       containerRef.current.scrollTo({
         top: 0,
         behavior: 'smooth',
       });
     }
-  }, [allMessages, shouldAutoScroll]);
+  }, [allMessages, shouldAutoScroll, isGenerating, currentStreamingMessages.length]);
+
+  // Clean up messages when component mounts or conversation changes
+  useEffect(() => {
+    // Clean up messages when component mounts
+    const cleanupStore = useChatStore.getState().cleanupOldMessages;
+    cleanupStore();
+    
+    // Set up periodic cleanup every 30 seconds
+    const cleanupInterval = setInterval(() => {
+      cleanupStore();
+    }, 30000);
+    
+    // Clean up on unmount or when conversation changes
+    return () => {
+      clearInterval(cleanupInterval);
+      cleanupStore();
+      
+      // Only reset streaming state if we're unmounting completely, not just changing conversations
+      if (!conversation_id) {
+        // Reset streaming state to prevent memory leaks
+        useChatStore.getState().resetState();
+      }
+    };
+  }, [conversation_id]);
 
   // Update scroll position state.
   const handleScroll = useCallback(() => {
@@ -132,28 +181,6 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     };
   }, [hasNextPage]);
 
-  useEffect(() => {
-    // Clean up messages when component mounts
-    const cleanupStore = useChatStore.getState().cleanupOldMessages;
-    cleanupStore();
-    
-    // Set up periodic cleanup every 30 seconds
-    const cleanupInterval = setInterval(() => {
-      cleanupStore();
-    }, 30000);
-    
-    // Clean up on unmount
-    return () => {
-      clearInterval(cleanupInterval);
-      cleanupStore();
-      
-      // Reset streaming state to prevent memory leaks
-      useChatStore.getState().setStreamingMessages([]);
-      useChatStore.getState().setIsGenerating(false);
-      useChatStore.getState().setIsWaiting(false);
-    };
-  }, []);
-
   // Function to check if a message was cancelled
   const isMessageCancelled = useCallback((content: string) => {
     return content && typeof content === 'string' && content.endsWith('[cancelled]');
@@ -199,7 +226,7 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
           
           return (
             <Message
-              key={message.id || index}
+              key={`${message.id || message.conversation_uuid}-${index}`}
               message={{
                 ...message,
                 content: formattedContent

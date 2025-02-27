@@ -75,7 +75,7 @@ export const useMessages = ({ conversation_id }: { conversation_id?: string }) =
         page: pageParam as number 
       });
     },
-    enabled: Boolean(conversation_id),
+    enabled: Boolean(conversation_id) && conversation_id !== 'pending',
     getNextPageParam: (lastPage) => {
       if (!lastPage.pagination.hasMore) return undefined;
       return lastPage.pagination.page + 1;

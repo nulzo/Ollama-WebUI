@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/features/authentication/hooks/use-auth';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useChatStore } from '../stores/chat-store';
 import { useNavigate } from 'react-router-dom';
 import { useModelStore } from '@/features/models/store/model-store';
@@ -17,36 +17,42 @@ export function useChatMutation(conversation_id?: string) {
     updateLastMessage,
     setIsGenerating,
     setIsWaiting,
-    isGenerating
+    isGenerating,
+    currentConversationId,
+    setCurrentConversationId
   } = useChatStore();
 
+  // Update current conversation ID when the component mounts or conversation_id changes
+  useEffect(() => {
+    if (conversation_id && conversation_id !== currentConversationId) {
+      setCurrentConversationId(conversation_id);
+      
+      // Clear any streaming messages from other conversations
+      const streamingMessages = useChatStore.getState().streamingMessages;
+      const filteredMessages = streamingMessages.filter(
+        msg => msg.conversation_uuid === conversation_id
+      );
+      
+      // Only update if there's a change to avoid unnecessary renders
+      if (filteredMessages.length !== streamingMessages.length) {
+        setStreamingMessages(filteredMessages, conversation_id);
+      }
+    }
+  }, [conversation_id, currentConversationId, setCurrentConversationId]);
+
   const handleCancel = useCallback(() => {
-    console.log('Cancel button clicked in useChatMutation for conversation:', conversation_id);
-    console.log('Current isGenerating state:', isGenerating);
-    console.log('Abort controller reference:', abortControllerRef.current);
+    console.log('Cancel button clicked, abort controller:', abortControllerRef.current);
     
     if (abortControllerRef.current) {
       console.log('Aborting request with abort controller');
       abortControllerRef.current.abort();
-      abortControllerRef.current = null;
     } else {
       console.log('No abort controller available');
     }
     
     // Always set generating to false to update UI immediately
-    console.log('Setting isGenerating to false');
     setIsGenerating(false);
-    
-    // Update the last message to show it was cancelled
-    const streamingMessages = useChatStore.getState().streamingMessages;
-    if (streamingMessages.length > 0) {
-      const lastMessage = streamingMessages[streamingMessages.length - 1];
-      if (lastMessage.role === 'assistant') {
-        console.log('Appending [cancelled] to last assistant message');
-        updateLastMessage(' [cancelled]');
-      }
-    }
-  }, [setIsGenerating, updateLastMessage, isGenerating, conversation_id]);
+  }, [setIsGenerating]);
 
   const mutation = useMutation({
     mutationFn: async ({ message, images }: { message: string, images: string[] | undefined }) => {
@@ -63,21 +69,25 @@ export function useChatMutation(conversation_id?: string) {
 
       // Add initial messages only if we're in an existing conversation
       if (conversation_id) {
-        setStreamingMessages([
+        // Set the current conversation ID
+        setCurrentConversationId(conversation_id);
+        
+        // Create new messages for the current conversation
+        const newMessages = [
           {
-            role: 'user',
+            role: 'user' as const,
             content: message,
             model: modelName,
-            name: assistantName,
+            name: user?.username || 'User',
             liked_by: [],
-            has_images: false,
+            has_images: Boolean(images && images.length > 0),
             conversation_uuid: conversation_id,
             user_id: user?.id,
             provider: providerName,
             created_at: new Date().toISOString(),
           },
           {
-            role: 'assistant',
+            role: 'assistant' as const,
             content: '',
             model: modelName,
             name: assistantName,
@@ -87,7 +97,9 @@ export function useChatMutation(conversation_id?: string) {
             conversation_uuid: conversation_id,
             created_at: new Date().toISOString(),
           },
-        ]);
+        ];
+        
+        setStreamingMessages(newMessages, conversation_id);
       }
 
       try {
@@ -174,10 +186,25 @@ export function useChatMutation(conversation_id?: string) {
           const newConversationId = parsedChunk.conversation_uuid;
           console.log('New conversation created:', newConversationId);
 
+          // Update the current conversation ID
+          setCurrentConversationId(newConversationId);
+
           // Set initial messages for the new conversation
-          setStreamingMessages([
+          const newMessages = [
             {
-              role: 'assistant',
+              role: 'user' as const,
+              content: message,
+              model: modelName,
+              name: user?.username || 'User',
+              liked_by: [],
+              has_images: Boolean(images && images.length > 0),
+              provider: providerName,
+              conversation_uuid: newConversationId,
+              user_id: user?.id,
+              created_at: new Date().toISOString(),
+            },
+            {
+              role: 'assistant' as const,
               content: '',
               model: modelName,
               name: assistantName,
@@ -187,14 +214,21 @@ export function useChatMutation(conversation_id?: string) {
               conversation_uuid: newConversationId,
               created_at: new Date().toISOString(),
             },
-          ]);
+          ];
+          
+          setStreamingMessages(newMessages, newConversationId);
 
           // Invalidate for sidebar
           queryClient.invalidateQueries({ queryKey: ['conversations'] });
 
-          // Route to the new conversation
-          navigate(`/?c=${newConversationId}`);
-          queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: newConversationId }] })
+          // Route to the new conversation - use replace to avoid navigation history issues
+          navigate(`/?c=${newConversationId}`, { replace: true });
+          
+          // Invalidate queries after navigation
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: newConversationId }] });
+          }, 0);
+          
           return;
         }
 

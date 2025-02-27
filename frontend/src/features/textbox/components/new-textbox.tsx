@@ -78,7 +78,7 @@ const MemoizedTextarea = memo(({
     onKeyDown={onKeyDown}
     placeholder={placeholder}
     rows={1}
-    className="w-full resize-none bg-transparent py-[6px] pr-[50px] focus:outline-none text-sm placeholder:text-muted-foreground"
+    className="w-full resize-none bg-transparent py-[6px] pr-[50px] focus:outline-none text-sm placeholder:text-muted-foreground transition-all duration-200"
     style={{ maxHeight: '200px' }}
     disabled={disabled}
   />
@@ -228,14 +228,17 @@ function DynamicTextarea({
     if (textareaRef.current) {
       const textarea = textareaRef.current;
       
-      // Only adjust height if text has changed
-      textarea.style.height = 'auto';
-      const newHeight = `${textarea.scrollHeight}px`;
+      // Reset height to auto first to properly calculate the new height
+      textarea.style.height = '0px';
       
-      if (lastHeightRef.current !== newHeight) {
-        textarea.style.height = newHeight;
-        lastHeightRef.current = newHeight;
-      }
+      // Get the scroll height which represents the content height
+      const scrollHeight = Math.min(textarea.scrollHeight, 200); // Respect maxHeight
+      
+      // Set the new height
+      textarea.style.height = `${scrollHeight}px`;
+      
+      // Update the last height reference
+      lastHeightRef.current = `${scrollHeight}px`;
     }
   }, [text]);
 

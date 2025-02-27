@@ -5,6 +5,7 @@ import { useChatMutation } from '../hooks/use-chat-mutation';
 import { useChatStore } from '../stores/chat-store';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Loader2, X } from 'lucide-react';
+import { throttle } from '@/utils/throttle';
 
 interface ScrollToBottomButtonProps {
   onClick: () => void;
@@ -64,7 +65,7 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     return [...messages, ...streamingMessages];
   }, [messages, streamingMessages]);
 
-  // Whenever messages or streaming updates change, scroll to the bottom if the user hasn’t scrolled up.
+  // Whenever messages or streaming updates change, scroll to the bottom if the user hasn't scrolled up.
   useEffect(() => {
     if (
       shouldAutoScroll &&
@@ -100,11 +101,58 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    container.addEventListener('scroll', handleScroll);
+    
+    // Create a throttled scroll handler to reduce the frequency of scroll event processing
+    const throttledScrollHandler = throttle(() => {
+      if (!containerRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+      const distanceFromBottom = Math.abs(scrollTop);
+  
+      // Show load more button when near top and more messages exist
+      if (Math.abs(scrollTop) > scrollHeight - clientHeight - 200 && hasNextPage) {
+        setShowLoadMore(true);
+      } else {
+        setShowLoadMore(false);
+      }
+  
+      // Update auto-scroll and button visibility based on scroll position
+      const isNearBottom = distanceFromBottom < 200;
+      setShouldAutoScroll(isNearBottom);
+      setShowScrollButton(!isNearBottom);
+    }, 100); // Throttle to once every 100ms
+    
+    container.addEventListener('scroll', throttledScrollHandler);
+    
     return () => {
-      container.removeEventListener('scroll', handleScroll);
+      container.removeEventListener('scroll', throttledScrollHandler);
+      // Clear any pending throttled calls
+      if (typeof throttledScrollHandler.cancel === 'function') {
+        throttledScrollHandler.cancel();
+      }
     };
-  }, [handleScroll]);
+  }, [hasNextPage]);
+
+  useEffect(() => {
+    // Clean up messages when component mounts
+    const cleanupStore = useChatStore.getState().cleanupOldMessages;
+    cleanupStore();
+    
+    // Set up periodic cleanup every 30 seconds
+    const cleanupInterval = setInterval(() => {
+      cleanupStore();
+    }, 30000);
+    
+    // Clean up on unmount
+    return () => {
+      clearInterval(cleanupInterval);
+      cleanupStore();
+      
+      // Reset streaming state to prevent memory leaks
+      useChatStore.getState().setStreamingMessages([]);
+      useChatStore.getState().setIsGenerating(false);
+      useChatStore.getState().setIsWaiting(false);
+    };
+  }, []);
 
   return (
     <div className="relative flex flex-col h-full">

@@ -1,5 +1,5 @@
 import MarkdownRenderer from '@/features/markdown/components/markdown';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 interface AnimatedTextProps {
   text: string;
@@ -9,6 +9,7 @@ interface AnimatedTextProps {
 const AnimatedText: React.FC<AnimatedTextProps> = ({ text, delayPerChar = 20 }) => {
   // Track the "stable" portion of text that's already been rendered
   const [stableText, setStableText] = useState('');
+  const timeoutRef = useRef<number | null>(null);
   
   useEffect(() => {
     if (!text) return;
@@ -16,29 +17,44 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({ text, delayPerChar = 20 }) 
     // If this is a completely new message, reset stable text
     if (!text.startsWith(stableText)) {
       setStableText('');
-      return;
     }
 
     // After a delay, mark the current text as stable
-    const timeout = setTimeout(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    timeoutRef.current = window.setTimeout(() => {
       setStableText(text);
+      timeoutRef.current = null;
     }, 100); // Short delay before considering text "stable"
 
-    return () => clearTimeout(timeout);
-  }, [text]);
+    // Cleanup function
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [text, stableText]);
 
   // The new chunk is whatever text comes after our stable text
   const newChunk = text.slice(stableText.length);
 
+  // Use React.memo to prevent unnecessary re-renders of the markdown content
+  const MemoizedMarkdown = React.memo(({ content }: { content: string }) => (
+    <MarkdownRenderer markdown={content} />
+  ));
+
   return (
     <div className="relative">
-      {/* Render the stable text normally */}
-      <MarkdownRenderer markdown={stableText} />
+      {/* Render the stable text with memoization */}
+      <MemoizedMarkdown content={stableText} />
       
       {/* Animate in the new chunk */}
       {newChunk.split("").map((char, index) => (
         <span
-          key={stableText.length + index}
+          key={`${stableText.length}-${index}`}
           className="inline-block opacity-0 animate-violent-slam"
           style={{
             animationDelay: `${index * delayPerChar}ms`,
@@ -52,4 +68,5 @@ const AnimatedText: React.FC<AnimatedTextProps> = ({ text, delayPerChar = 20 }) 
   );
 };
 
-export default AnimatedText;
+// Export as memoized component to prevent unnecessary re-renders
+export default React.memo(AnimatedText);

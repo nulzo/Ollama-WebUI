@@ -3,12 +3,14 @@ import { ConversationAreaHeader } from '@/features/chat/components/chat-area/con
 import { ChatContainer } from '@/features/chat/components/chat-container';
 import { motion, AnimatePresence } from 'framer-motion';
 import AutoResizeTextarea from '@/features/textbox/components/new-textbox';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useConversation } from '@/features/chat/hooks/use-conversation';
 import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
 import { useAuth } from '@/features/authentication/hooks/use-auth';
 import CannedQuestions from '@/features/chat/components/default-chat/canned-questions';
+import { useChatStore } from '@/features/chat/stores/chat-store';
+import { useStreamingStore } from '@/features/chat/stores/streaming-store';
 
 export function ChatRoute() {
   const { conversation } = useConversation();
@@ -24,21 +26,36 @@ export function ChatRoute() {
     'casual' | 'creative' | 'inspirational' | 'analytical'
   >('casual');
 
+  // Clean up stores when component unmounts
+  useEffect(() => {
+    return () => {
+      // Reset chat store state
+      useChatStore.getState().resetState();
+      // Reset streaming store state
+      useStreamingStore.getState().reset();
+    };
+  }, []);
+
   useEffect(() => {
     if (searchParamString && searchParamString !== conversation) {
       navigate(`/?c=${searchParamString}`);
     }
   }, [searchParamString, conversation, navigate]);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (!input.trim()) return;
     mutation.mutate({ message: input, images: [] });
     setInput('');
-  };
+  }, [input, mutation]);
 
-  const handleExampleClick = (question: string) => {
+  const handleExampleClick = useCallback((question: string) => {
     setInput(question);
-  };
+  }, []);
+
+  // Type-safe theme change handler
+  const handleThemeChange = useCallback((theme: 'casual' | 'creative' | 'inspirational' | 'analytical') => {
+    setCurrentTheme(theme);
+  }, []);
 
   const fadeInUp = {
     initial: { opacity: 0, y: 8 },
@@ -58,13 +75,11 @@ export function ChatRoute() {
       <ConversationAreaHeader />
       <div className="relative flex flex-col flex-1 transition overflow-hidden">
         <ConversationArea>
-          <AnimatePresence mode="wait">
             {!searchParamString ? (
-              <motion.div
-                key="landing"
-                {...fadeInUp}
-                className="flex flex-col items-center justify-center min-h-[80vh] space-y-8 p-4"
-              >
+              <div
+              key="landing"
+              className="flex flex-col items-center justify-center min-h-[80vh] space-y-8 p-4 animate-fade-in-up"
+            >
                 <motion.div
                   className="text-center space-y-2"
                   initial={{ opacity: 0, y: 4 }}
@@ -110,11 +125,11 @@ export function ChatRoute() {
                     <CannedQuestions
                       theme={currentTheme}
                       onQuestionClick={handleExampleClick}
-                      onThemeChange={setCurrentTheme}
+                      onThemeChange={handleThemeChange}
                     />
                   </motion.div>
                 </div>
-              </motion.div>
+              </div>
             ) : (
               <motion.div key="chat" {...fadeIn} className="flex flex-col h-full">
                 <div className="flex-1 overflow-hidden">
@@ -151,10 +166,8 @@ export function ChatRoute() {
                   </motion.div>
                 </motion.div>
                 </div>
-                
               </motion.div>
             )}
-          </AnimatePresence>
         </ConversationArea>
       </div>
     </div>

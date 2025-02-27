@@ -34,46 +34,70 @@ interface MessageProps {
   - targetText: the full text streamed in from the backend.
   - isTyping: when true, we animate the displayed text from its current length to targetText.length.
   
-  This hook uses requestAnimationFrame to add characters at a fixed RATE (set here to 100 characters per second).
+  This hook uses requestAnimationFrame to add characters at a fixed rate.
   
   When isTyping is false the full text is rendered immediately.
 */
 const useSmoothStreaming = (targetText: string, isTyping: boolean, speed: number = 10): string => {
-  const [displayedText, setDisplayedText] = useState<string>(targetText);
+  const [displayedText, setDisplayedText] = useState<string>('');
   const requestRef = useRef<number | null>(null);
-
+  const previousTargetRef = useRef<string>('');
+  const chunkSizeRef = useRef<number>(speed);
+  
   useEffect(() => {
+    // If not typing, show full text immediately and clean up
     if (!isTyping) {
-      // When not typing, show the full text immediately.
       setDisplayedText(targetText);
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+        requestRef.current = null;
+      }
       return;
     }
-
-    // If the current displayed text isn’t a prefix of targetText,
-    // reset it. This handles cases where the text suddenly changes.
-    setDisplayedText((prev) => (targetText.startsWith(prev) ? prev : ''));
-
+    
+    // Reset if the target text has completely changed
+    if (targetText && !targetText.startsWith(previousTargetRef.current)) {
+      setDisplayedText('');
+    }
+    
+    previousTargetRef.current = targetText;
+    chunkSizeRef.current = speed;
+    
+    // More efficient animation approach with better cleanup
     const animate = () => {
-      setDisplayedText((current) => {
+      setDisplayedText(current => {
         if (current.length < targetText.length) {
-          // Get the next characters based on the supplied speed
-          const nextChunk = targetText.slice(current.length, current.length + speed);
-          requestRef.current = requestAnimationFrame(animate);
+          const nextChunk = targetText.slice(
+            current.length, 
+            Math.min(current.length + chunkSizeRef.current, targetText.length)
+          );
           return current + nextChunk;
         }
         return current;
       });
-    };
-
-    requestRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (requestRef.current !== null) {
-        cancelAnimationFrame(requestRef.current);
+      
+      // Only schedule next frame if we haven't reached the end
+      if (displayedText.length < targetText.length) {
+        requestRef.current = requestAnimationFrame(animate);
+      } else {
+        requestRef.current = null;
       }
     };
-  }, [targetText, isTyping, speed]);
-
+    
+    // Only start a new animation frame if one isn't already running
+    if (!requestRef.current && displayedText.length < targetText.length) {
+      requestRef.current = requestAnimationFrame(animate);
+    }
+    
+    // Cleanup function
+    return () => {
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+        requestRef.current = null;
+      }
+    };
+  }, [targetText, isTyping, speed, displayedText.length]);
+  
   return displayedText;
 };
 
@@ -385,7 +409,7 @@ export const Message = memo<MessageProps>(
                     </Tooltip>
                   </TooltipProvider>
 
-                  <MessageDetails messageId={message?.id} />
+                  <MessageDetails messageId={message?.id?.toString() || ''} />
                 </div>
               )}
             </div>

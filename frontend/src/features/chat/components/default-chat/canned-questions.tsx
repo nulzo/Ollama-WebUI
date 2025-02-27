@@ -2,10 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Brain, Lightbulb, Sparkles, Coffee } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+type ThemeType = 'casual' | 'creative' | 'inspirational' | 'analytical';
+
 interface CannedQuestionsProps {
-  theme: string;
+  theme: ThemeType;
   onQuestionClick: (question: string) => void;
-  onThemeChange: (theme: string) => void;
+  onThemeChange: (theme: ThemeType) => void;
 }
 
 const themeIcons = {
@@ -27,7 +29,7 @@ const themeIcons = {
   },
 };
 
-const exampleQuestions: Record<string, string[]> = {
+const exampleQuestions: Record<ThemeType, string[]> = {
   creative: ["Write a short story about a dragon", "Design a unique superhero", "Invent a new musical instrument"],
   inspirational: ["Share a motivational quote", "How can I achieve my goals?", "Tell me about overcoming challenges"],
   analytical: ["Explain quantum computing", "Analyze market trends", "Compare different algorithms"],
@@ -64,7 +66,7 @@ export default function CannedQuestions({ theme, onQuestionClick, onThemeChange 
       </div>
 
       <div className="flex justify-center items-center gap-3">
-        {Object.entries(themeIcons).map(([key, { icon: ThemeIcon, label }]) => (
+        {(Object.entries(themeIcons) as [ThemeType, { icon: any, label: string }][]).map(([key, { icon: ThemeIcon, label }]) => (
           <motion.div
             key={key}
             whileHover={{ scale: 1.05 }}

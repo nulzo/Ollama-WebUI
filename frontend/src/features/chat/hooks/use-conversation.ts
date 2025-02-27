@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useMessages } from '@/features/chat/api/get-messages.ts';
 import { useModelStore } from '@/features/models/store/model-store.ts';
 import { useUser } from '@/lib/auth.tsx';
@@ -29,10 +29,28 @@ export function useConversation() {
     }
   };
 
+  useEffect(() => {
+    // Cleanup function to run when component unmounts
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      // Clear local messages to prevent memory leaks
+      setLocalMessages([]);
+      setAssistantMessage('');
+    };
+  }, []);
+
   const submitMessage = async (message: string, images: string[] = []): Promise<void> => {
     if (!message.trim()) return;
 
     try {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      
       const userMessage = {
         data: {
           id: Date.now().toString(),
@@ -82,8 +100,12 @@ export function useConversation() {
     } finally {
       setStreamingContent('');
       setIsStreaming(false);
+      // Clear local messages to prevent accumulation
       setLocalMessages([]);
-      abortControllerRef.current = null;
+      // Clear the abort controller
+      if (abortControllerRef.current) {
+        abortControllerRef.current = null;
+      }
     }
   };
 

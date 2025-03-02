@@ -1,3 +1,5 @@
+import reactCompiler from 'eslint-plugin-react-compiler'
+
 module.exports = {
   parser: '@typescript-eslint/parser',
   extends: [
@@ -25,6 +27,7 @@ module.exports = {
     'react/prop-types': 'off',
     'react/react-in-jsx-scope': 'off',
     'react/jsx-uses-react': 'off',
+    'react-compiler/react-compiler': 'error',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'prettier/prettier': [
       'error',
@@ -38,5 +41,5 @@ module.exports = {
     node: true,
     es2021: true,
   },
-  plugins: ['@typescript-eslint', 'react', 'react-hooks', 'jsx-a11y', 'prettier'],
+  plugins: ['@typescript-eslint', 'react', 'react-hooks', 'jsx-a11y', 'prettier', 'react-compiler'],
 };

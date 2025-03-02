@@ -33,17 +33,17 @@ const LandingContent = memo(
     handleCancel: () => void;
     isGenerating: boolean;
   }) => (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-8 p-4 animate-fade-in-up">
+    <div className="flex flex-col justify-center items-center space-y-8 p-4 min-h-[80vh] animate-fade-in-up">
       <motion.div
-        className="text-center space-y-2"
+        className="space-y-2 text-center"
         initial={{ opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.2 }}
       >
-        <h1 className="text-4xl font-bold tracking-tight">
+        <h1 className="font-bold text-4xl tracking-tight">
           What can{' '}
           <span className="text-primary">
-            CringeAI<span className="text-sm text-primary align-top">™</span>
+            CringeAI<span className="text-primary text-sm align-top">™</span>
           </span>{' '}
           do for you?
         </h1>
@@ -53,7 +53,7 @@ const LandingContent = memo(
             : 'Start a conversation in your preferred style.'}
         </p>
       </motion.div>
-      <div className="space-y-6 w-full max-w-2xl mx-auto">
+      <div className="space-y-6 mx-auto w-full max-w-2xl">
         <div>
           <ChatInput
             onSubmit={handleSubmit}
@@ -97,15 +97,15 @@ const ChatContent = memo(
       <div className="flex-1 overflow-hidden">
         <ChatContainer key={searchParamString} conversation_id={searchParamString} />
       </div>
-      <div className="w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto bg-background py-2 gap-2 flex flex-col items-center">
-        <div className="w-full max-w-2xl mx-auto bg-background py-2 gap-2 flex flex-col items-center">
+      <div className="flex flex-col items-center gap-2 bg-background mx-auto py-2 w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl">
+        <div className="flex flex-col items-center gap-2 bg-background mx-auto py-2 w-full max-w-2xl">
           <ChatInput
             onSubmit={handleSubmit}
             disabled={disabled}
             onCancel={handleCancel}
             isGenerating={isGenerating}
           />
-          <div className="flex text-xs text-muted-foreground items-center">
+          <div className="flex items-center text-muted-foreground text-xs">
             <span>CringeGPT Never Makes Mistakes</span>
           </div>
         </div>
@@ -124,7 +124,8 @@ export function ChatRoute() {
   const { 
     streamingMessages, 
     currentConversationId,
-    setCurrentConversationId 
+    setCurrentConversationId,
+    resetState
   } = useChatStore();
 
   // Shared state between landing and chat views
@@ -141,6 +142,16 @@ export function ChatRoute() {
       useStreamingStore.getState().reset();
     };
   }, []);
+
+  // Handle new chat button click
+  const handleNewChat = useCallback(() => {
+    // Reset state first
+    resetState();
+    // Then navigate to the root URL without conversation parameter
+    navigate('/', { replace: true });
+    // Clear search params
+    setSearchParams({}, { replace: true });
+  }, [navigate, setSearchParams, resetState]);
 
   // Update current conversation ID when searchParamString changes
   useEffect(() => {
@@ -183,6 +194,19 @@ export function ChatRoute() {
       navigate(`/?c=${searchParamString}`, { replace: true });
     }
   }, [searchParamString, conversation, navigate, isGenerating, streamingMessages]);
+
+  // Expose the handleNewChat function to the ConversationAreaHeader component
+  useEffect(() => {
+    // Add the handleNewChat function to the window object so it can be accessed by other components
+    // @ts-ignore
+    window.handleNewChat = handleNewChat;
+    
+    return () => {
+      // Clean up when component unmounts
+      // @ts-ignore
+      delete window.handleNewChat;
+    };
+  }, [handleNewChat]);
 
   const handleSubmit = useCallback(
     (message: string, images: string[]) => {
@@ -247,9 +271,9 @@ export function ChatRoute() {
   );
 
   return (
-    <div className="relative flex flex-col w-full max-w-full h-screen transition font-geist">
+    <div className="relative flex flex-col w-full max-w-full h-screen font-geist transition">
       <ConversationAreaHeader />
-      <div className="relative flex flex-col flex-1 transition overflow-hidden">
+      <div className="relative flex flex-col flex-1 overflow-hidden transition">
         <ConversationArea>
           {!searchParamString ? (
             <LandingContent {...landingProps} />

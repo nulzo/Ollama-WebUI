@@ -72,20 +72,9 @@ export function useChatMutation(conversation_id?: string) {
         // Set the current conversation ID
         setCurrentConversationId(conversation_id);
         
-        // Create new messages for the current conversation
+        // Create new messages for the current conversation - only add the assistant message
+        // The user message will be added by the API response to avoid duplication
         const newMessages = [
-          {
-            role: 'user' as const,
-            content: message,
-            model: modelName,
-            name: user?.username || 'User',
-            liked_by: [],
-            has_images: Boolean(images && images.length > 0),
-            conversation_uuid: conversation_id,
-            user_id: user?.id,
-            provider: providerName,
-            created_at: new Date().toISOString(),
-          },
           {
             role: 'assistant' as const,
             content: '',
@@ -189,20 +178,9 @@ export function useChatMutation(conversation_id?: string) {
           // Update the current conversation ID
           setCurrentConversationId(newConversationId);
 
-          // Set initial messages for the new conversation
+          // Set initial messages for the new conversation - only add the assistant message
+          // The user message will be added by the API response to avoid duplication
           const newMessages = [
-            {
-              role: 'user' as const,
-              content: message,
-              model: modelName,
-              name: user?.username || 'User',
-              liked_by: [],
-              has_images: Boolean(images && images.length > 0),
-              provider: providerName,
-              conversation_uuid: newConversationId,
-              user_id: user?.id,
-              created_at: new Date().toISOString(),
-            },
             {
               role: 'assistant' as const,
               content: '',

@@ -19,6 +19,7 @@ import { useUpdateMessage } from '../api/update-message.ts';
 import { cn } from '@/lib/utils.ts';
 import { useQueryClient } from '@tanstack/react-query';
 import { StandardModel } from '@/features/models/types/models.js';
+import { forwardRef } from 'react';
 
 interface MessageProps {
   message: MessageType;
@@ -78,10 +79,11 @@ const useSmoothStreaming = (targetText: string, isTyping: boolean, speed: number
       });
       
       // Only schedule next frame if we haven't reached the end
+      requestRef.current = null;
+      
+      // Check if we need to continue animation
       if (displayedText.length < targetText.length) {
         requestRef.current = requestAnimationFrame(animate);
-      } else {
-        requestRef.current = null;
       }
     };
     
@@ -104,8 +106,9 @@ const useSmoothStreaming = (targetText: string, isTyping: boolean, speed: number
 
 
 // eslint-disable-next-line react/display-name
-export const Message = memo<MessageProps>(
-  ({ message, isTyping, isLoading, isWaiting, isCancelled }) => {
+export const Message = memo(
+  forwardRef<HTMLDivElement, MessageProps>(
+    ({ message, isTyping, isLoading, isWaiting, isCancelled }, ref) => {
     const formattedDate = formatDate(new Date(message.created_at).getTime());
     const { data: modelsData } = useModels();
     const { copy } = useClipboard();
@@ -332,8 +335,8 @@ export const Message = memo<MessageProps>(
                 <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
               </div>
                 {isCancelled && (
-                  <span className="flex items-center text-xs text-muted-foreground ml-2">
-                    <XCircle className="w-3 h-3 mr-1 text-destructive" />
+                  <span className="flex items-center ml-2 text-muted-foreground text-xs">
+                    <XCircle className="mr-1 w-3 h-3 text-destructive" />
                     cancelled
                   </span>
                 )}
@@ -464,8 +467,9 @@ export const Message = memo<MessageProps>(
           </div>
         )}
       </div>
-    );
-  },
+      );
+    }
+  ),
   (prevProps, nextProps) => {
     // Custom comparison function to optimize re-renders
     return (

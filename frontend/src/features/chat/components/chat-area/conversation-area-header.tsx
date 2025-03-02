@@ -1,11 +1,12 @@
-import { MoonStar, SlidersHorizontal, SunIcon } from 'lucide-react';
+import { MoonStar, PlusCircle, SlidersHorizontal, SunIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 import { ModelSelect } from '@/features/models/components/model-select.tsx';
 import { useTheme } from '@/components/theme/theme-provider.tsx';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useModelStore } from '@/features/models/store/model-store.ts';
 import { useModels } from '@/features/models/api/get-models.ts';
 import { StandardModel } from '@/features/models/types/models';
+import { useSearchParams } from 'react-router-dom';
 
 const ThemeToggleButton = () => {
   const { theme, setTheme } = useTheme();
@@ -39,6 +40,8 @@ const ThemeToggleButton = () => {
 export function ConversationAreaHeader() {
   const { model, setModel } = useModelStore();
   const { data: providerModelsData } = useModels();
+  const [searchParams] = useSearchParams();
+  const hasConversation = Boolean(searchParams.get('c'));
 
   // Flatten the ProviderModels object into a single array of StandardModel.
   const formattedModels: StandardModel[] = useMemo(() => {
@@ -51,6 +54,7 @@ export function ConversationAreaHeader() {
     const selectedModelData = formattedModels.find((m) => m.id === selectedValue);
     if (selectedModelData) {
       setModel({
+        id: selectedModelData.id,
         name: selectedModelData.name,
         model: selectedModelData.model,
         provider: selectedModelData.provider,
@@ -71,10 +75,31 @@ export function ConversationAreaHeader() {
     return currentModel?.id;
   }, [model?.model, formattedModels]);
 
+  // Handle new chat button click
+  const handleNewChat = useCallback(() => {
+    // Use the handleNewChat function exposed on the window object
+    // @ts-ignore
+    if (window.handleNewChat && typeof window.handleNewChat === 'function') {
+      // @ts-ignore
+      window.handleNewChat();
+    }
+  }, []);
+
   return (
     <div className="top-0 z-10 sticky flex flex-row justify-between items-center gap-3 col-span-4 bg-background/25 backdrop-blur-sm px-4 py-2.5 rounded-b-none grow-0 w-full h-14">
       <div className="flex items-center gap-3 ps-8 font-semibold text-lg">
         <ModelSelect value={currentModelValue} onValueChange={handleModelSelect} />
+        {hasConversation && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex items-center gap-1" 
+            onClick={handleNewChat}
+          >
+            <PlusCircle className="size-4" strokeWidth="1.5" />
+            <span>New Chat</span>
+          </Button>
+        )}
       </div>
       <div className="flex items-center gap-1 pe-6">
         <Button size="icon" variant="ghost">

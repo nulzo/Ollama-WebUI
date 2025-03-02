@@ -26,11 +26,38 @@ class KnowledgeRepository(BaseRepository[Knowledge]):
             self.logger.error(f"Error creating knowledge: {str(e)}")
             raise
 
-    def get_by_id(self, id: int) -> Optional[Knowledge]:
+    def get_by_id(self, knowledge_id, user_id=None):
+        """
+        Get knowledge by ID.
+        
+        Args:
+            knowledge_id: The UUID of the knowledge to get
+            user_id: Optional user ID to filter by
+            
+        Returns:
+            Knowledge object if found, None otherwise
+        """
         try:
-            return Knowledge.objects.get(id=id)
+            print(f"DEBUG: Fetching knowledge with ID: {knowledge_id}, type: {type(knowledge_id)}")
+            
+            # Build the query
+            query = {"id": knowledge_id}
+            if user_id:
+                query["user_id"] = user_id
+                
+            print(f"DEBUG: Query: {query}")
+            
+            # Get the knowledge
+            knowledge = Knowledge.objects.get(**query)
+            print(f"DEBUG: Found knowledge: {knowledge.name}")
+            return knowledge
         except Knowledge.DoesNotExist:
-            self.logger.warning(f"Knowledge {id} not found")
+            print(f"DEBUG: Knowledge with ID {knowledge_id} not found")
+            self.logger.warning(f"Knowledge with ID {knowledge_id} not found")
+            return None
+        except Exception as e:
+            print(f"DEBUG: Error fetching knowledge: {str(e)}")
+            self.logger.error(f"Error fetching knowledge: {str(e)}")
             return None
 
     def list(self, filters: dict = None) -> List[Knowledge]:

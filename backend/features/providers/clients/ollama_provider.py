@@ -117,7 +117,7 @@ class OllamaProvider(BaseProvider):
 
             for chunk in response_stream:
                 # Optionally log the raw chunk for debugging
-                self.logger.debug(f"Ollama raw chunk: {chunk}")
+                # self.logger.debug(f"Ollama raw chunk: {chunk}")
 
                 if chunk.get("done"):
                     # Update token usage from the final chunk.

@@ -5,7 +5,7 @@ import json
 import logging
 import traceback
 from threading import Event
-from typing import Generator
+from typing import Generator, List, Optional, Union
 from features.completions.models import MessageError
 from features.analytics.services.analytics_service import AnalyticsEventService
 from features.conversations.services.conversation_service import ConversationService
@@ -47,7 +47,7 @@ class ChatService:
         self.current_request_data = None
         self.current_user = None
 
-    async def _prepare_context(self, message_content: str, user_id: int, knowledge_ids=None) -> str:
+    def _prepare_context(self, message_content: str, user_id: int, knowledge_ids=None) -> str:
         """
         Prepare knowledge context for the message. In this instance, knowledge refers
         to data sources uploaded by the user via the knowledge service.
@@ -61,10 +61,18 @@ class ChatService:
             # If specific knowledge IDs are provided, fetch those documents
             if knowledge_ids and isinstance(knowledge_ids, list) and len(knowledge_ids) > 0:
                 self.logger.info(f"Using specific knowledge documents: {knowledge_ids}")
+                print(f"DEBUG: Processing knowledge_ids: {knowledge_ids}")
+                print(f"DEBUG: knowledge_ids type: {type(knowledge_ids)}")
+                
                 for knowledge_id in knowledge_ids:
                     try:
+                        print(f"DEBUG: knowledge_id type: {type(knowledge_id)}, value: {knowledge_id}")
+                        # Use the knowledge_id as is - don't try to convert to int since it's a UUID string
+                        print(f"DEBUG: Fetching knowledge document with ID: {knowledge_id}, user_id: {user_id}")
                         knowledge = self.knowledge_service.get_knowledge(knowledge_id, user_id)
+                        
                         if knowledge:
+                            print(f"DEBUG: Found knowledge document: {knowledge.name}, content length: {len(knowledge.content)}")
                             relevant_docs.append({
                                 'content': knowledge.content,
                                 'metadata': {
@@ -73,22 +81,34 @@ class ChatService:
                                 },
                                 'similarity': 1.0  # Perfect match since explicitly selected
                             })
+                        else:
+                            print(f"DEBUG: Knowledge document with ID {knowledge_id} not found")
                     except Exception as e:
+                        print(f"DEBUG: Error fetching knowledge {knowledge_id}: {str(e)}")
                         self.logger.warning(f"Error fetching knowledge {knowledge_id}: {str(e)}")
+                        traceback.print_exc()
             else:
                 # Otherwise perform semantic search
+                print(f"DEBUG: No knowledge_ids provided, performing semantic search with query: {message_content[:50]}...")
                 relevant_docs = self.knowledge_service.find_relevant_context(message_content, user_id)
 
             if not relevant_docs:
+                print("DEBUG: No relevant documents found")
                 return ""
 
+            print(f"DEBUG: Found {len(relevant_docs)} relevant documents")
             context = "Relevant context:\n\n"
-            for doc in relevant_docs:
+            for i, doc in enumerate(relevant_docs):
+                print(f"DEBUG: Document {i+1} content length: {len(doc['content'])}")
                 context += f"---\n{doc['content']}\n"
+            
+            print(f"DEBUG: Final context length: {len(context)}")
             return context
 
         except Exception as e:
+            print(f"DEBUG: Error in _prepare_context: {str(e)}")
             self.logger.error(f"Error preparing context: {str(e)}")
+            traceback.print_exc()
             return ""
 
     def _process_message_images(self, message):
@@ -200,24 +220,34 @@ class ChatService:
             knowledge_ids = data.get("knowledge_ids", [])
             if knowledge_ids and isinstance(knowledge_ids, list) and len(knowledge_ids) > 0:
                 self.logger.info(f"Knowledge IDs provided: {knowledge_ids}")
+                print(f"DEBUG: Knowledge IDs in request: {knowledge_ids}")
+                print(f"DEBUG: Knowledge IDs type: {type(knowledge_ids)}")
                 
                 # Get the last user message (the one we just created)
                 last_user_message = formatted_messages[-1]
+                print(f"DEBUG: Last user message content: {last_user_message['content']}")
                 
-                # Prepare context asynchronously
-                context = asyncio.run(self._prepare_context(
+                # Prepare context - use a thread to avoid blocking
+                # This is a synchronous approach that doesn't use async/await
+                context = self._prepare_context(
                     message_content=last_user_message["content"],
                     user_id=user.id,
                     knowledge_ids=knowledge_ids
-                ))
+                )
                 
                 if context:
                     # Add context to the user message
                     self.logger.info("Adding knowledge context to user message")
+                    print(f"DEBUG: Adding context to user message. Context length: {len(context)}")
                     last_user_message["content"] = f"{last_user_message['content']}\n\n{context}"
+                    print(f"DEBUG: Updated user message content: {last_user_message['content'][:100]}...")
                     
                     # Update the formatted messages
                     formatted_messages[-1] = last_user_message
+                else:
+                    print("DEBUG: No context was generated from knowledge documents")
+            else:
+                print(f"DEBUG: No knowledge_ids provided in request or invalid format: {knowledge_ids}")
 
             # Stream the response
             try:
@@ -270,11 +300,11 @@ class ChatService:
                         
                         full_content += chunk_data.get("content", "")
                         tokens_generated += 1
-                        
+
                         # Update state tracking
                         self.current_full_content = full_content
                         self.current_tokens_generated = tokens_generated
-                        
+
                         yield json.dumps(chunk_data) + "\n"
             except Exception as stream_error:
                 self.logger.error(f"Error during streaming: {str(stream_error)}")

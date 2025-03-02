@@ -55,12 +55,30 @@ class KnowledgeService:
             self.logger.error(f"Error creating knowledge: {str(e)}")
             raise
 
-    def get_knowledge(self, knowledge_id: int, user_id: int):
-        """Get knowledge by ID"""
-        knowledge = self.repository.get_by_id(knowledge_id)
-        if not knowledge or knowledge.user_id != user_id:
-            raise NotFoundException("Knowledge document not found")
-        return knowledge
+    def get_knowledge(self, knowledge_id, user_id=None):
+        """
+        Get knowledge by ID.
+        
+        Args:
+            knowledge_id: The UUID of the knowledge to get
+            user_id: Optional user ID to filter by
+            
+        Returns:
+            Knowledge object if found, None otherwise
+        """
+        try:
+            print(f"DEBUG: KnowledgeService.get_knowledge: Getting knowledge with ID {knowledge_id}, user_id: {user_id}")
+            # Pass the knowledge_id directly to the repository
+            knowledge = self.repository.get_by_id(knowledge_id, user_id)
+            if knowledge:
+                print(f"DEBUG: KnowledgeService.get_knowledge: Found knowledge: {knowledge.name}")
+            else:
+                print(f"DEBUG: KnowledgeService.get_knowledge: Knowledge not found for ID: {knowledge_id}")
+            return knowledge
+        except Exception as e:
+            print(f"DEBUG: KnowledgeService.get_knowledge: Error getting knowledge: {str(e)}")
+            self.logger.error(f"Error getting knowledge: {str(e)}")
+            return None
 
     def get_by_identifier(self, identifier: str, user_id: int):
         """Get knowledge by identifier"""

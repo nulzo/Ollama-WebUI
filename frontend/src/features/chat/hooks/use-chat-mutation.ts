@@ -55,7 +55,15 @@ export function useChatMutation(conversation_id?: string) {
   }, [setIsGenerating]);
 
   const mutation = useMutation({
-    mutationFn: async ({ message, images }: { message: string, images: string[] | undefined }) => {
+    mutationFn: async ({ 
+      message, 
+      images,
+      knowledge_ids 
+    }: { 
+      message: string, 
+      images: string[] | undefined,
+      knowledge_ids?: string[] | undefined 
+    }) => {
       if (!user) throw new Error('Authentication required');
       if (!model) throw new Error('No model selected');
 
@@ -101,6 +109,7 @@ export function useChatMutation(conversation_id?: string) {
           name: assistantName,
           provider: providerName,
           images: images || [],
+          knowledge_ids,
         }
         await api.streamCompletion(
           new_msg,

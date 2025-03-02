@@ -144,11 +144,21 @@ class ApiClient {
       console.log('POST Request Data:', data);
       console.log('Making POST request to:', endpoint, 'with data:', data);
 
+      // Get headers but handle FormData specially
+      const headers = this.getHeaders(config);
+      
+      // If data is FormData, don't set Content-Type header (browser will set it with boundary)
+      // and don't stringify the body
+      const isFormData = data instanceof FormData;
+      if (isFormData) {
+        headers.delete('Content-Type');
+      }
+
       const response = await fetch(this.getFullURL(endpoint), {
         method: 'POST',
-        headers: this.getHeaders(config),
+        headers: headers,
         credentials: 'include',
-        body: JSON.stringify(data),
+        body: isFormData ? data : JSON.stringify(data),
       });
 
       console.log('POST Response:', response);

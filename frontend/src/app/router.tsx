@@ -41,8 +41,8 @@ export const createAppRouter = (_queryClient: QueryClient) =>
         {
           path: 'chat',
           lazy: async () => {
-            const { ChatRoute } = await import('@/app/routes/app/chat');
-            return { Component: ChatRoute };
+            const ChatPage = await import('@/app/routes/app/chat/chat');
+            return { Component: ChatPage.default };
           },
         },
         {
@@ -71,6 +71,13 @@ export const createAppRouter = (_queryClient: QueryClient) =>
           lazy: async () => {
             const { WorkspaceRoute } = await import('@/app/routes/app/workspace');
             return { Component: WorkspaceRoute };
+          },
+        },
+        {
+          path: 'knowledge',
+          lazy: async () => {
+            const KnowledgePage = await import('@/app/routes/app/knowledge');
+            return { Component: KnowledgePage.default };
           },
         },
         {
@@ -110,8 +117,8 @@ export const createAppRouter = (_queryClient: QueryClient) =>
         {
           path: '',
           lazy: async () => {
-            const { ChatRoute } = await import('@/app/routes/app/chat');
-            return { Component: ChatRoute };
+            const ChatPage = await import('@/app/routes/app/chat/chat');
+            return { Component: ChatPage.default };
           },
         },
       ],

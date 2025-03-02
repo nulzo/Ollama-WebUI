@@ -31,6 +31,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ToolEditor } from '@/features/tools/components/tools-editor';
 import { useToast } from '@/components/ui/use-toast';
 import { Tool } from '@/features/tools/types/tool';
+import { KnowledgeCard } from '@/features/knowledge/components/knowledge-card';
+import { KnowledgeForm } from '@/features/knowledge/components/knowledge-form';
+import { KnowledgeViewer } from '@/features/knowledge/components/knowledge-viewer';
+import { Knowledge } from '@/features/knowledge/knowledge';
+import { 
+  useKnowledgeList, 
+  useCreateKnowledge, 
+  useUpdateKnowledge, 
+  useDeleteKnowledge, 
+  useUploadKnowledge 
+} from '@/features/knowledge/api';
 
 const AgentCard = ({
   agent,
@@ -42,15 +53,15 @@ const AgentCard = ({
   onDelete: () => void;
 }) => (
   <motion.div
-    className="bg-secondary rounded-lg p-6 transition-shadow duration-300 flex flex-col h-full relative"
+    className="relative flex flex-col bg-secondary p-6 rounded-lg h-full transition-shadow duration-300"
     whileHover={{ scale: 1.0 }}
   >
     {/* Menu button in top-right corner */}
-    <div className="absolute top-4 right-4">
+    <div className="top-4 right-4 absolute">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <MoreHorizontal className="h-4 w-4" />
+          <Button variant="ghost" className="p-0 w-8 h-8">
+            <MoreHorizontal className="w-4 h-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -76,11 +87,11 @@ const AgentCard = ({
           )}
         </Avatar>
         <div className="flex-1">
-          <h2 className="text-xl font-semibold whitespace-nowrap truncate">{agent.display_name}</h2>
-          <div className="w-full text-xs font-bold text-muted-foreground">{agent.model}</div>
+          <h2 className="font-semibold text-xl truncate whitespace-nowrap">{agent.display_name}</h2>
+          <div className="w-full font-bold text-muted-foreground text-xs">{agent.model}</div>
         </div>
       </div>
-      <p className="text-sm text-muted-foreground truncate">{agent.description}</p>
+      <p className="text-muted-foreground text-sm truncate">{agent.description}</p>
 
       {/* Badges section */}
       <div className="flex flex-wrap gap-2 mt-4">
@@ -162,20 +173,20 @@ const ModelTuning = () => {
           onChange={e => setSearchTerm(e.target.value)}
           className="pl-10"
         />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
+        <Search className="top-1/2 left-3 absolute size-4 text-muted-foreground -translate-y-1/2 transform" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-secondary rounded-lg p-6"
+          className="bg-secondary p-6 rounded-lg"
         >
-          <h3 className="text-lg font-semibold mb-4">Create New Agent</h3>
-          <p className="text-sm text-muted-foreground mb-4">
+          <h3 className="mb-4 font-semibold text-lg">Create New Agent</h3>
+          <p className="mb-4 text-muted-foreground text-sm">
             Create a custom AI agent with specific capabilities and parameters.
           </p>
-          <Button className="w-full gap-2" onClick={handleCreateAgent}>
+          <Button className="gap-2 w-full" onClick={handleCreateAgent}>
             <Plus className="size-4" />
             Create Agent
           </Button>
@@ -248,21 +259,21 @@ const CustomFunctions = () => {
           onChange={e => setSearchTerm(e.target.value)}
           className="pl-10"
         />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
+        <Search className="top-1/2 left-3 absolute size-4 text-muted-foreground -translate-y-1/2 transform" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-secondary rounded-lg p-6"
+          className="bg-secondary p-6 rounded-lg"
         >
-          <h3 className="text-lg font-semibold mb-4">Create Function</h3>
-          <p className="text-sm text-muted-foreground mb-4">
+          <h3 className="mb-4 font-semibold text-lg">Create Function</h3>
+          <p className="mb-4 text-muted-foreground text-sm">
             Build custom functions that can be called by your AI models.
           </p>
           <Button
-            className="w-full gap-2"
+            className="gap-2 w-full"
             onClick={() => {
               setSelectedTool(null);
               setIsCreateDialogOpen(true);
@@ -277,15 +288,15 @@ const CustomFunctions = () => {
           filteredTools.map(tool => (
             <motion.div
               key={tool.id}
-              className="bg-secondary rounded-lg p-6 transition-shadow duration-300 flex flex-col h-full relative"
+              className="relative flex flex-col bg-secondary p-6 rounded-lg h-full transition-shadow duration-300"
               whileHover={{ scale: 1.0 }}
             >
               {/* Menu button in top-right corner */}
-              <div className="absolute top-4 right-4">
+              <div className="top-4 right-4 absolute">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
+                    <Button variant="ghost" className="p-0 w-8 h-8">
+                      <MoreHorizontal className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
@@ -314,11 +325,11 @@ const CustomFunctions = () => {
                     <Code2 className="size-4 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold truncate">{tool.name}</h2>
-                    <div className="text-xs font-medium text-muted-foreground">{tool.language}</div>
+                    <h2 className="font-semibold text-xl truncate">{tool.name}</h2>
+                    <div className="font-medium text-muted-foreground text-xs">{tool.language}</div>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                <p className="mb-4 text-muted-foreground text-sm line-clamp-2">
                   {tool.description}
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -338,11 +349,11 @@ const CustomFunctions = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-transparent rounded-lg p-6 border border-dashed border-muted-foreground flex flex-col items-center justify-center"
+            className="flex flex-col justify-center items-center bg-transparent p-6 border border-muted-foreground border-dashed rounded-lg"
           >
-            <div className="flex flex-col items-center justify-center">
-              <h3 className="text-lg font-semibold mb-4 mx-auto text-center text-muted-foreground">No functions found</h3>
-              <div className="text-sm text-muted-foreground mb-4 mx-auto text-center">
+            <div className="flex flex-col justify-center items-center">
+              <h3 className="mx-auto mb-4 font-semibold text-muted-foreground text-lg text-center">No functions found</h3>
+              <div className="mx-auto mb-4 text-muted-foreground text-sm text-center">
                 Build custom functions that can be called by your AI models.
               </div>
             </div>
@@ -428,22 +439,22 @@ const SavedPrompts = () => {
           className="pl-10"
         />
         <Search
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+          className="top-1/2 left-3 absolute text-muted-foreground -translate-y-1/2 transform"
           size={20}
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-secondary rounded-lg p-6"
+          className="bg-secondary p-6 rounded-lg"
         >
-          <h3 className="text-lg font-semibold mb-4">Create Prompt Template</h3>
-          <p className="text-sm text-muted-foreground mb-4">
+          <h3 className="mb-4 font-semibold text-lg">Create Prompt Template</h3>
+          <p className="mb-4 text-muted-foreground text-sm">
             Save and organize your most effective prompts for quick access.
           </p>
-          <Button className="w-full gap-2" onClick={handleCreatePrompt}>
+          <Button className="gap-2 w-full" onClick={handleCreatePrompt}>
             <MessageSquare className="size-4" />
             New Template
           </Button>
@@ -459,8 +470,8 @@ const SavedPrompts = () => {
             />
           ))
         ) : (
-          <div className="bg-secondary rounded-lg p-6">
-            <p className="text-sm text-muted-foreground">No prompts found</p>
+          <div className="bg-secondary p-6 rounded-lg">
+            <p className="text-muted-foreground text-sm">No prompts found</p>
           </div>
         )}
       </div>
@@ -471,6 +482,183 @@ const SavedPrompts = () => {
             <DialogTitle>{selectedPrompt ? 'Edit Prompt' : 'Create New Prompt'}</DialogTitle>
           </DialogHeader>
           <PromptForm prompt={selectedPrompt as Prompt} onSubmit={handleSubmit} />
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+const KnowledgeBase = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedKnowledge, setSelectedKnowledge] = useState<Knowledge | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  const { data: knowledgeList } = useKnowledgeList();
+  const createKnowledge = useCreateKnowledge();
+  const updateKnowledge = useUpdateKnowledge();
+  const deleteKnowledge = useDeleteKnowledge();
+  const uploadKnowledge = useUploadKnowledge();
+
+  const filteredKnowledge =
+    knowledgeList?.data && knowledgeList?.data?.length > 0
+      ? knowledgeList?.data?.filter(knowledge =>
+          knowledge.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : [];
+
+  const handleCreateKnowledge = () => {
+    setSelectedKnowledge(null);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleEditKnowledge = (knowledge: Knowledge) => {
+    setSelectedKnowledge(knowledge);
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleViewKnowledge = (knowledge: Knowledge) => {
+    setSelectedKnowledge(knowledge);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleSubmit = async (values: any) => {
+    try {
+      if (values.file) {
+        // File upload
+        await uploadKnowledge.mutateAsync({
+          file: values.file,
+          name: values.name,
+        });
+        toast({
+          title: 'Knowledge uploaded',
+          description: 'The file was successfully uploaded and processed.',
+        });
+      } else if (selectedKnowledge) {
+        // Update existing knowledge
+        await updateKnowledge.mutateAsync({
+          knowledgeId: selectedKnowledge.id,
+          data: values,
+        });
+        toast({
+          title: 'Knowledge updated',
+          description: 'The knowledge was successfully updated.',
+        });
+      } else {
+        // Create new knowledge
+        await createKnowledge.mutateAsync({
+          data: values,
+        });
+        toast({
+          title: 'Knowledge created',
+          description: 'The knowledge was successfully created.',
+        });
+      }
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving knowledge:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save knowledge.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDelete = async (knowledge: Knowledge) => {
+    try {
+      await deleteKnowledge.mutateAsync({ knowledgeId: knowledge.id });
+      toast({
+        title: 'Knowledge deleted',
+        description: 'The knowledge was successfully deleted.',
+      });
+    } catch (error) {
+      console.error('Error deleting knowledge:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete knowledge.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  return (
+    <>
+      <div className="relative mb-8">
+        <Input
+          type="text"
+          placeholder="Search knowledge..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+        <Search className="top-1/2 left-3 absolute size-4 text-muted-foreground -translate-y-1/2 transform" />
+      </div>
+
+      <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-secondary p-6 rounded-lg"
+        >
+          <h3 className="mb-4 font-semibold text-lg">Add Knowledge</h3>
+          <p className="mb-4 text-muted-foreground text-sm">
+            Upload documents or add text to create a knowledge base for your AI to reference.
+          </p>
+          <Button className="gap-2 w-full" onClick={handleCreateKnowledge}>
+            <Database className="size-4" />
+            Add Knowledge
+          </Button>
+        </motion.div>
+
+        {filteredKnowledge && filteredKnowledge?.length > 0 ? (
+          filteredKnowledge?.map(knowledge => (
+            <KnowledgeCard
+              key={knowledge.id}
+              knowledge={knowledge}
+              onEdit={handleEditKnowledge}
+              onDelete={() => handleDelete(knowledge)}
+              onView={() => handleViewKnowledge(knowledge)}
+            />
+          ))
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col justify-center items-center bg-transparent p-6 border border-muted-foreground border-dashed rounded-lg"
+          >
+            <div className="flex flex-col justify-center items-center">
+              <h3 className="mx-auto mb-4 font-semibold text-muted-foreground text-lg text-center">No knowledge found</h3>
+              <div className="mx-auto mb-4 text-muted-foreground text-sm text-center">
+                Upload documents or add text to create a knowledge base for your AI to reference.
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedKnowledge ? 'Edit Knowledge' : 'Add Knowledge'}</DialogTitle>
+          </DialogHeader>
+          <KnowledgeForm
+            knowledge={selectedKnowledge as Knowledge}
+            onSubmit={handleSubmit}
+            isUploading={!selectedKnowledge}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* View Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>View Knowledge</DialogTitle>
+          </DialogHeader>
+          {selectedKnowledge && <KnowledgeViewer knowledge={selectedKnowledge} />}
         </DialogContent>
       </Dialog>
     </>
@@ -548,13 +736,15 @@ export function WorkspaceRoute() {
         return <CustomFunctions />;
       case 2:
         return <SavedPrompts />;
+      case 3:
+        return <KnowledgeBase />;
       default:
         return null;
     }
   };
 
   return (
-    <div className="relative z-10 pt-12 flex flex-col flex-auto justify-between scrollbar-hidden w-[100%] max-w-full h-0 overflow-auto">
+    <div className="scrollbar-hidden z-10 relative flex flex-col flex-auto justify-between pt-12 w-[100%] max-w-full h-0 overflow-auto">
       <div className="relative mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl h-full">
         <div className="flex flex-col h-full">
           <Head title="Workspace" description="Manage your AI workspace" />
@@ -563,8 +753,8 @@ export function WorkspaceRoute() {
             <div className="px-4 py-8">
               <div className="flex justify-between items-center mb-8">
                 <div>
-                  <h1 className="text-4xl font-bold">Workspace</h1>
-                  <p className="text-lg text-muted-foreground">
+                  <h1 className="font-bold text-4xl">Workspace</h1>
+                  <p className="text-muted-foreground text-lg">
                     Fine-tune models, create functions, and manage prompts
                   </p>
                 </div>
@@ -573,7 +763,7 @@ export function WorkspaceRoute() {
               <div className="relative mb-8">
                 {/* Hover Highlight */}
                 <div
-                  className="absolute h-[30px] transition-all duration-300 ease-out bg-secondary rounded-[6px] flex items-center"
+                  className="absolute flex items-center bg-secondary rounded-[6px] h-[30px] transition-all duration-300 ease-out"
                   style={{
                     ...hoverStyle,
                     opacity: hoveredIndex !== null ? 1 : 0,
@@ -582,16 +772,19 @@ export function WorkspaceRoute() {
 
                 {/* Active Indicator */}
                 <div
-                  className="absolute bottom-[-6px] h-[2px] bg-primary transition-all duration-300 ease-out rounded-full"
+                  className="bottom-[-6px] absolute bg-primary rounded-full h-[2px] transition-all duration-300 ease-out"
                   style={activeStyle}
                 />
 
                 {/* Tabs */}
-                <div className="relative flex space-x-[6px] items-center">
+                <div className="relative flex items-center space-x-[6px]">
                   {tabs.map((tab, index) => (
                     <div
                       key={index}
-                      ref={el => (tabRefs.current[index] = el)}
+                      ref={(el) => {
+                        tabRefs.current[index] = el;
+                        return undefined;
+                      }}
                       className={`px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] ${
                         index === activeIndex ? 'text-foreground' : 'text-muted-foreground'
                       }`}
@@ -599,7 +792,7 @@ export function WorkspaceRoute() {
                       onMouseLeave={() => setHoveredIndex(null)}
                       onClick={() => setActiveIndex(index)}
                     >
-                      <div className="text-sm font-medium leading-5 whitespace-nowrap flex items-center justify-center h-full gap-2">
+                      <div className="flex justify-center items-center gap-2 h-full font-medium text-sm leading-5 whitespace-nowrap">
                         {tab.icon}
                         {tab.name}
                       </div>

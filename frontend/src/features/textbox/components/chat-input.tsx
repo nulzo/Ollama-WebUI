@@ -7,11 +7,12 @@ import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
 import { usePrompts } from '@/features/prompts/api/get-prompts';
 import { useConversation } from '@/features/chat/hooks/use-conversation';
 import { useChatStore } from '@/features/chat/stores/chat-store';
+import { KnowledgeSelector } from '@/features/chat/components/knowledge-selector';
 
-interface ChatInputProps {
-  onSubmit: (message: string, images: string[]) => void;
+export interface ChatInputProps {
+  onSubmit: (message: string, images: string[], knowledgeIds?: string[]) => void;
   disabled?: boolean;
-  messages?: { content: string; role: 'user' | 'assistant' }[];
+  messages?: any[];
   placeholder?: string;
   onCancel?: () => void;
   isGenerating?: boolean;
@@ -130,19 +131,20 @@ const useStableMessageSetter = (setMessage: React.Dispatch<React.SetStateAction<
 const modelSelector = (state: { model: any }) => state.model;
 
 // Rename to ChatInputBase to avoid naming conflicts
-const ChatInputBase = ({ 
+export const ChatInputBase = ({ 
   onSubmit, 
-  disabled, 
+  disabled = false, 
   messages = [], 
-  placeholder = "Message CringeGPT...",
+  placeholder = 'Send a message',
   onCancel,
-  isGenerating: externalIsGenerating
+  isGenerating: externalIsGenerating = false,
 }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [suggestions, setSuggestions] = useState<Prompt[]>([]);
   const [promptIndex, setPromptIndex] = useState(-1);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedKnowledgeIds, setSelectedKnowledgeIds] = useState<string[]>([]);
   
   // Use the stable selector to prevent infinite loops
   const model = useModelStore(modelSelector);
@@ -267,10 +269,10 @@ const ChatInputBase = ({
 
   const handleSubmit = useCallback(() => {
     if (!message.trim() && images.length === 0) return;
-    onSubmit(message, images);
+    onSubmit(message, images, selectedKnowledgeIds);
     setMessage('');
     setImages([]);
-  }, [message, images, onSubmit]);
+  }, [message, images, onSubmit, selectedKnowledgeIds]);
 
   const handleImageUpload = useCallback((base64Images: string[]) => {
     setImages(prev => [...prev, ...base64Images]);
@@ -345,6 +347,12 @@ const ChatInputBase = ({
 
   return (
     <div className="relative w-full transition">
+      <div className="flex justify-between items-center mb-2">
+        <KnowledgeSelector 
+          selectedKnowledgeIds={selectedKnowledgeIds} 
+          onSelectionChange={setSelectedKnowledgeIds} 
+        />
+      </div>
       <SuggestionsContainer {...suggestionsProps} />
       <MemoizedTextarea {...textareaProps} />
     </div>

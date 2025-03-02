@@ -11,6 +11,8 @@ import { useAuth } from '@/features/authentication/hooks/use-auth';
 import CannedQuestions from '@/features/chat/components/default-chat/canned-questions';
 import { useChatStore } from '@/features/chat/stores/chat-store';
 import { useStreamingStore } from '@/features/chat/stores/streaming-store';
+import { toast } from '@/components/ui/use-toast';
+import { useModelStore } from '@/features/models/store/model-store';
 
 // Memoize the landing page content to prevent re-renders
 const LandingContent = memo(
@@ -114,7 +116,7 @@ const ChatContent = memo(
   )
 );
 
-export function ChatRoute() {
+export default function Chat() {
   const { conversation } = useConversation();
   const { mutation, isGenerating, handleCancel } = useChatMutation(conversation || undefined);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -127,6 +129,7 @@ export function ChatRoute() {
     setCurrentConversationId,
     resetState
   } = useChatStore();
+  const model = useModelStore(state => state.model);
 
   // Shared state between landing and chat views
   const [currentTheme, setCurrentTheme] = useState<
@@ -209,11 +212,26 @@ export function ChatRoute() {
   }, [handleNewChat]);
 
   const handleSubmit = useCallback(
-    (message: string, images: string[]) => {
+    async (message: string, images: string[] = [], knowledgeIds: string[] = []) => {
       if (!message.trim() && images.length === 0) return;
-      mutation.mutate({ message, images });
+
+      try {
+        // Send the message - the backend will create a conversation if needed
+        await mutation.mutateAsync({
+          message,
+          images,
+          knowledge_ids: knowledgeIds.length > 0 ? knowledgeIds : undefined,
+        });
+      } catch (error) {
+        console.error('Error sending message:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to send message. Please try again.',
+          variant: 'destructive',
+        });
+      }
     },
-    [mutation]
+    [mutation, toast]
   );
 
   const handleExampleClick = useCallback((question: string) => {

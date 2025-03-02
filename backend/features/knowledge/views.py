@@ -1,11 +1,13 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from features.knowledge.serializers.knowledge_serializer import KnowledgeSerializer
 from features.knowledge.services.knowledge_service import KnowledgeService
 from api.utils.exceptions import NotFoundException
 from api.utils.responses.response import api_response
+from datetime import datetime
 
 
 class KnowledgeViewSet(viewsets.ModelViewSet):
@@ -13,6 +15,7 @@ class KnowledgeViewSet(viewsets.ModelViewSet):
 
     serializer_class = KnowledgeSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -204,6 +207,63 @@ class KnowledgeViewSet(viewsets.ModelViewSet):
                 error={
                     "code": "EMBEDDING_FETCH_ERROR",
                     "message": "Failed to fetch embeddings",
+                    "details": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                request=request,
+            )
+
+    @action(detail=False, methods=["post"], parser_classes=[MultiPartParser, FormParser])
+    def upload(self, request):
+        """Upload a file as a knowledge document"""
+        try:
+            # Debug information
+            print(f"Request content type: {request.content_type}")
+            print(f"Request FILES: {request.FILES}")
+            print(f"Request DATA: {request.data}")
+            
+            if "file" not in request.FILES:
+                return api_response(
+                    error={"code": "VALIDATION_ERROR", "message": "File is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                    request=request,
+                )
+
+            file = request.FILES["file"]
+            name = request.data.get("name", file.name)
+            identifier = request.data.get("identifier", f"{name.replace(' ', '_').lower()}_{int(datetime.now().timestamp())}")
+
+            # Read file content
+            content = ""
+            for chunk in file.chunks():
+                content += chunk.decode("utf-8", errors="ignore")
+
+            # Create knowledge document
+            data = {
+                "name": name,
+                "identifier": identifier,
+                "content": content,
+                "file_path": file.name,
+                "file_size": file.size,
+                "file_type": file.content_type,
+            }
+
+            knowledge = self.service.create_knowledge(data, request.user)
+            serializer = self.get_serializer(knowledge)
+            
+            return api_response(
+                data=serializer.data, 
+                status=status.HTTP_201_CREATED,
+                request=request,
+            )
+        except Exception as e:
+            import traceback
+            print(f"Upload error: {str(e)}")
+            print(traceback.format_exc())
+            return api_response(
+                error={
+                    "code": "UPLOAD_ERROR",
+                    "message": "Failed to upload file",
                     "details": str(e),
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

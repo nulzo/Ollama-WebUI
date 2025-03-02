@@ -5,7 +5,7 @@ from django.conf import settings
 from rest_framework.response import Response
 
 
-def api_response(data=None, error=None, status=200, meta=None, pagination=None, links=None):
+def api_response(data=None, error=None, status=200, meta=None, pagination=None, links=None, request=None):
     response_data = {
         "success": error is None,
         "meta": meta or {

@@ -267,12 +267,31 @@ export const ChatInputBase = ({
     }
   }, [suggestions, selectedIndex, handlePromptSelect]);
 
-  const handleSubmit = useCallback(() => {
+  const closeSuggestions = useCallback(() => {
+    setSuggestions([]);
+  }, []);
+
+  const handleSubmitMessage = useCallback(() => {
     if (!message.trim() && images.length === 0) return;
+    
+    // Log the selected knowledge IDs for debugging
+    if (selectedKnowledgeIds.length > 0) {
+      console.log('Submitting message with knowledge IDs:', selectedKnowledgeIds);
+    }
+    
     onSubmit(message, images, selectedKnowledgeIds);
+    
+    // Reset state
     setMessage('');
     setImages([]);
-  }, [message, images, onSubmit, selectedKnowledgeIds]);
+    // Don't reset knowledge IDs to maintain context across messages
+    // setSelectedKnowledgeIds([]);
+    
+    // Close suggestions if open
+    if (suggestions.length > 0) {
+      closeSuggestions();
+    }
+  }, [message, images, onSubmit, selectedKnowledgeIds, suggestions, closeSuggestions]);
 
   const handleImageUpload = useCallback((base64Images: string[]) => {
     setImages(prev => [...prev, ...base64Images]);
@@ -280,10 +299,6 @@ export const ChatInputBase = ({
 
   const handleRemoveImage = useCallback((index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
-  }, []);
-
-  const closeSuggestions = useCallback(() => {
-    setSuggestions([]);
   }, []);
 
   // Memoize the search term to avoid recalculating it on every render
@@ -305,7 +320,7 @@ export const ChatInputBase = ({
   const textareaProps = useMemo(() => ({
     text: message,
     setText: stableSetMessage,
-    onSubmit: handleSubmit,
+    onSubmit: handleSubmitMessage,
     model: modelName,
     onImageUpload: handleImageUpload,
     onRemoveImage: handleRemoveImage,
@@ -318,7 +333,7 @@ export const ChatInputBase = ({
   }), [
     message, 
     stableSetMessage, 
-    handleSubmit, 
+    handleSubmitMessage, 
     modelName, 
     handleImageUpload, 
     handleRemoveImage, 

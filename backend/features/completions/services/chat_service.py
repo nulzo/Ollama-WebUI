@@ -62,25 +62,47 @@ class ChatService:
             if knowledge_ids and isinstance(knowledge_ids, list) and len(knowledge_ids) > 0:
                 self.logger.info(f"Using specific knowledge documents: {knowledge_ids}")
                 print(f"DEBUG: Processing knowledge_ids: {knowledge_ids}")
-                print(f"DEBUG: knowledge_ids type: {type(knowledge_ids)}")
                 
                 for knowledge_id in knowledge_ids:
                     try:
-                        print(f"DEBUG: knowledge_id type: {type(knowledge_id)}, value: {knowledge_id}")
-                        # Use the knowledge_id as is - don't try to convert to int since it's a UUID string
-                        print(f"DEBUG: Fetching knowledge document with ID: {knowledge_id}, user_id: {user_id}")
-                        knowledge = self.knowledge_service.get_knowledge(knowledge_id, user_id)
+                        # Ensure knowledge_id is a string
+                        knowledge_id_str = str(knowledge_id)
+                        print(f"DEBUG: Fetching knowledge document with ID: {knowledge_id_str}, user_id: {user_id}")
+                        
+                        # Get the knowledge document
+                        knowledge = self.knowledge_service.get_knowledge(knowledge_id_str, user_id)
                         
                         if knowledge:
                             print(f"DEBUG: Found knowledge document: {knowledge.name}, content length: {len(knowledge.content)}")
-                            relevant_docs.append({
-                                'content': knowledge.content,
-                                'metadata': {
-                                    'name': knowledge.name,
-                                    'identifier': knowledge.identifier
-                                },
-                                'similarity': 1.0  # Perfect match since explicitly selected
-                            })
+                            
+                            # Get chunks with citation information from ChromaDB
+                            chunks = self.knowledge_service.get_chunks_for_knowledge(knowledge.id)
+                            
+                            if chunks and len(chunks) > 0:
+                                print(f"DEBUG: Found {len(chunks)} chunks for knowledge document")
+                                # Add each chunk as a separate document with citation
+                                for chunk in chunks:
+                                    relevant_docs.append({
+                                        'content': chunk['content'],
+                                        'metadata': {
+                                            'name': knowledge.name,
+                                            'identifier': knowledge.identifier,
+                                            'citation': chunk.get('metadata', {}).get('citation', knowledge.name)
+                                        },
+                                        'similarity': 1.0  # Perfect match since explicitly selected
+                                    })
+                            else:
+                                print(f"DEBUG: No chunks found, using entire document content")
+                                # Fallback to using the entire document if no chunks are found
+                                relevant_docs.append({
+                                    'content': knowledge.content,
+                                    'metadata': {
+                                        'name': knowledge.name,
+                                        'identifier': knowledge.identifier,
+                                        'citation': knowledge.name
+                                    },
+                                    'similarity': 1.0  # Perfect match since explicitly selected
+                                })
                         else:
                             print(f"DEBUG: Knowledge document with ID {knowledge_id} not found")
                     except Exception as e:
@@ -100,7 +122,8 @@ class ChatService:
             context = "Relevant context:\n\n"
             for i, doc in enumerate(relevant_docs):
                 print(f"DEBUG: Document {i+1} content length: {len(doc['content'])}")
-                context += f"---\n{doc['content']}\n"
+                citation = doc.get('metadata', {}).get('citation', f"Document {i+1}")
+                context += f"---\n[{citation}]\n{doc['content']}\n"
             
             print(f"DEBUG: Final context length: {len(context)}")
             return context

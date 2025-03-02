@@ -232,23 +232,20 @@ class KnowledgeViewSet(viewsets.ModelViewSet):
             file = request.FILES["file"]
             name = request.data.get("name", file.name)
             identifier = request.data.get("identifier", f"{name.replace(' ', '_').lower()}_{int(datetime.now().timestamp())}")
-
-            # Read file content
-            content = ""
-            for chunk in file.chunks():
-                content += chunk.decode("utf-8", errors="ignore")
-
-            # Create knowledge document
+            
+            # Set initial status to processing
             data = {
                 "name": name,
                 "identifier": identifier,
-                "content": content,
+                "content": "",  # Will be populated by the document processor
                 "file_path": file.name,
                 "file_size": file.size,
                 "file_type": file.content_type,
+                "status": "processing",
             }
-
-            knowledge = self.service.create_knowledge(data, request.user)
+            
+            # Create knowledge document with processing status
+            knowledge = self.service.create_knowledge_with_file(data, request.user, file)
             serializer = self.get_serializer(knowledge)
             
             return api_response(

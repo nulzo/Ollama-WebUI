@@ -42,6 +42,9 @@ class Message(BaseModel):
     completion_tokens = models.IntegerField(null=True, blank=True)
     finish_reason = models.CharField(max_length=50, null=True, blank=True)
     is_error = models.BooleanField(default=False)
+    # Citation fields
+    has_citations = models.BooleanField(default=False)
+    citations = models.JSONField(null=True, blank=True, help_text="List of citations for the message")
 
     def clean(self):
         if self.role == "user" and not self.user:

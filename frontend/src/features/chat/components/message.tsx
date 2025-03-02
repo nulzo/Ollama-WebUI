@@ -20,6 +20,9 @@ import { cn } from '@/lib/utils.ts';
 import { useQueryClient } from '@tanstack/react-query';
 import { StandardModel } from '@/features/models/types/models.js';
 import { forwardRef } from 'react';
+import { CitationList } from './citation-list.tsx';
+import { addInlineCitations, forceInlineCitations } from '../utils/process-citations.ts';
+import { useSettings } from '@/features/settings/api/get-settings';
 
 interface MessageProps {
   message: MessageType;
@@ -113,6 +116,15 @@ export const Message = memo(
     const { data: modelsData } = useModels();
     const { copy } = useClipboard();
     const [isLiked, setIsLiked] = useState(message.is_liked);
+    const { data: settingsData } = useSettings();
+    const inlineCitationsEnabled = settingsData?.settings?.general?.inline_citations_enabled ?? true;
+
+    console.log('Message component rendering:', {
+      messageId: message.id,
+      hasCitations: message.has_citations,
+      citationsCount: message.citations?.length,
+      inlineCitationsEnabled
+    });
 
     const queryClient = useQueryClient();
     const updateMessage = useUpdateMessage();
@@ -122,11 +134,30 @@ export const Message = memo(
     
     // Format the message content to remove the [cancelled] marker
     const displayContent = useMemo(() => {
-      if (isCancelled && typeof messageContent === 'string' && messageContent.endsWith('[cancelled]')) {
-        return messageContent.replace('[cancelled]', '');
+      let content = messageContent;
+      if (isCancelled && typeof content === 'string' && content.endsWith('[cancelled]')) {
+        content = content.replace('[cancelled]', '');
       }
-      return messageContent;
-    }, [messageContent, isCancelled]);
+      
+      // Add inline citations if available and enabled in settings
+      if (inlineCitationsEnabled && message.has_citations && message.citations && message.citations.length > 0) {
+        console.log('Adding inline citations to message:', message.id);
+        
+        // TESTING: Use force function instead of regular function
+        // Comment out the line below and uncomment the next line to force citations
+        content = addInlineCitations(content, message.citations);
+        // content = forceInlineCitations(content, message.citations);
+      } else if (message.has_citations && message.citations && message.citations.length > 0) {
+        console.log('Inline citations disabled but message has citations:', {
+          messageId: message.id,
+          inlineCitationsEnabled,
+          hasCitations: message.has_citations,
+          citationsCount: message.citations.length
+        });
+      }
+      
+      return content;
+    }, [messageContent, isCancelled, message.has_citations, message.citations, inlineCitationsEnabled]);
 
     const handleLike = () => {
       const newIsLiked = !isLiked;
@@ -355,11 +386,13 @@ export const Message = memo(
 
                 <div className={`max-w-none prose prose-sm scroll-smooth ${isCancelled ? 'text-muted-foreground/75' : ''}`}>
                   {displayContent ? (
-                    <MarkdownRenderer markdown={displayContent} />
+                    <MarkdownRenderer markdown={displayContent} citations={message.citations} />
                   ) : (
                     <div className="h-6" />
                   )}
                 </div>
+
+                {message.has_citations && <CitationList message={message} />}
               </div>
 
               <div className='flex items-center gap-2'>
@@ -457,11 +490,13 @@ export const Message = memo(
               <div className="bg-primary selection:bg-background/40 px-4 py-3 rounded-xl rounded-tr-sm w-fit text-primary-foreground">
                 <motion.div className="prose-invert max-w-none prose markdown-prose prose-sm">
                   {messageContent.length > 0 ? (
-                    <MarkdownRenderer markdown={messageContent} />
+                    <MarkdownRenderer markdown={messageContent} citations={message.citations} />
                   ) : (
                     <Skeleton className="w-[300px] h-16" />
                   )}
                 </motion.div>
+                
+                {message.has_citations && <CitationList message={message} />}
               </div>
             </div>
           </div>

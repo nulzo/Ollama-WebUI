@@ -16,6 +16,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from features.authentication.serializers.settings import SettingsSerializer
+from features.authentication.models import Settings
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -134,6 +136,32 @@ class UserViewSet(viewsets.ViewSet):
             user_service = UserService()
             updated_user = user_service.update_user(request.user.id, serializer.validated_data)
             response_serializer = UserResponseSerializer(updated_user)
+            return api_response(data=response_serializer.data)
+        except Exception as e:
+            return api_response(
+                error={"code": "UPDATE_ERROR", "message": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(detail=False, methods=['patch'])
+    def update_settings(self, request):
+        """Update user settings"""
+        try:
+            # Get or create settings for the user
+            user_settings, created = Settings.objects.get_or_create(user=request.user)
+            
+            # Update settings with request data
+            serializer = SettingsSerializer(user_settings, data=request.data, partial=True)
+            if not serializer.is_valid():
+                return api_response(
+                    error={"code": "VALIDATION_ERROR", "message": "Invalid data", "details": serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+            serializer.save()
+            
+            # Return updated user profile with settings
+            response_serializer = UserResponseSerializer(request.user)
             return api_response(data=response_serializer.data)
         except Exception as e:
             return api_response(

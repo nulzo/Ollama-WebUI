@@ -168,6 +168,7 @@ class ChatService:
         assistant_message = None
         tokens_generated = 0
         full_content = ""
+        relevant_chunks = []  # Track relevant chunks for citation
         
         # Reset state tracking variables
         self.current_user_message = None
@@ -267,6 +268,13 @@ class ChatService:
                     
                     # Update the formatted messages
                     formatted_messages[-1] = last_user_message
+                    
+                    # Store relevant chunks for citation
+                    relevant_chunks = self.knowledge_service.find_relevant_context(
+                        last_user_message["content"], 
+                        user.id, 
+                        max_results=5
+                    )
                 else:
                     print("DEBUG: No context was generated from knowledge documents")
             else:
@@ -302,6 +310,8 @@ class ChatService:
                                 generation_time=timer() - start,
                                 finish_reason="error",
                                 is_error=True,
+                                has_citations=False,
+                                citations=None,
                             )
                             
                             print(f"chunk_data: {chunk_data}")
@@ -337,10 +347,26 @@ class ChatService:
             end = timer()
             generation_time = end - start
 
+            # Process citations if we have relevant chunks
+            citation_data = {}
+            if relevant_chunks:
+                self.logger.info(f"Processing citations for {len(relevant_chunks)} relevant chunks")
+                print(f"DEBUG: Processing citations for {len(relevant_chunks)} relevant chunks")
+                
+                # Log the first chunk to understand its structure
+                if len(relevant_chunks) > 0:
+                    print(f"DEBUG: First relevant chunk: {str(relevant_chunks[0])[:200]}...")
+                
+                citation_data = self.knowledge_service.get_citations_for_response(full_content, relevant_chunks)
+                self.logger.info(f"Generated {len(citation_data.get('citations', []))} citations for response")
+                print(f"DEBUG: Generated {len(citation_data.get('citations', []))} citations for response")
+
             # Create the assistant message regardless of how we got here
             # This ensures cancelled messages are saved
             if not assistant_message:  # Only create if not already created due to error
                 finish_reason = "cancelled" if self._cancel_event.is_set() else "stop"
+                
+                # Create message with citation data
                 assistant_message = self.message_repository.create(
                     conversation=user_message.conversation,
                     content=full_content,
@@ -353,6 +379,9 @@ class ChatService:
                     generation_time=generation_time,
                     finish_reason=finish_reason,
                     is_error=False,
+                    # Add citation data as JSON fields
+                    has_citations=citation_data.get("has_citations", False),
+                    citations=citation_data.get("citations", []),
                 )
 
             # If we were cancelled, send a final cancellation message
@@ -362,9 +391,12 @@ class ChatService:
                     "message_id": str(assistant_message.id),
                 }) + "\n"
             else:
+                # Include citation data in the final response
                 yield json.dumps({
                     "status": "done",
                     "message_id": str(assistant_message.id),
+                    "has_citations": citation_data.get("has_citations", False),
+                    "citations": citation_data.get("citations", []),
                 }) + "\n"
 
         except Exception as e:
@@ -384,6 +416,8 @@ class ChatService:
                         generation_time=timer() - start,
                         finish_reason="error",
                         is_error=True,
+                        has_citations=False,
+                        citations=None,
                     )
                     
                     MessageError.objects.create(
@@ -476,6 +510,8 @@ class ChatService:
                 generation_time=generation_time,
                 finish_reason="cancelled",
                 is_error=False,
+                has_citations=False,
+                citations=None,
             )
             
             self.logger.info(f"Saved cancelled message with ID: {assistant_message.id}")

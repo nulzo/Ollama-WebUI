@@ -20,6 +20,10 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
+
+// Define the theme type to ensure type safety
+type ThemeType = 'light' | 'dark' | 'system';
 
 const generalSettingsSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']),
@@ -27,24 +31,51 @@ const generalSettingsSchema = z.object({
   timezone: z.string(),
   default_model: z.string(),
   notifications_enabled: z.boolean(),
+  inline_citations_enabled: z.boolean(),
 });
 
+// Type for the form values
+type GeneralSettingsFormValues = z.infer<typeof generalSettingsSchema>;
+
 export function GeneralSettingsSection() {
-  const { data: settings } = useSettings();
+  const { data } = useSettings();
   const updateSettings = useUpdateGeneralSettings();
 
-  const form = useForm({
+  const form = useForm<GeneralSettingsFormValues>({
     resolver: zodResolver(generalSettingsSchema),
     defaultValues: {
-      theme: settings?.general?.theme || 'system',
-      language: settings?.general?.language || 'en',
-      timezone: settings?.general?.timezone || 'UTC',
-      default_model: settings?.general?.default_model || 'gpt-4',
-      notifications_enabled: settings?.general?.notifications_enabled ?? true,
+      theme: 'system' as ThemeType,
+      language: 'en',
+      timezone: 'UTC',
+      default_model: 'gpt-4',
+      notifications_enabled: true,
+      inline_citations_enabled: true,
     },
   });
 
-  const onSubmit = (values: z.infer<typeof generalSettingsSchema>) => {
+  // Update form values when settings data is loaded
+  useEffect(() => {
+    if (data?.settings?.general) {
+      const general = data.settings.general;
+      
+      // Ensure theme is one of the allowed values
+      let theme: ThemeType = 'system';
+      if (general.theme === 'light' || general.theme === 'dark' || general.theme === 'system') {
+        theme = general.theme;
+      }
+      
+      form.reset({
+        theme,
+        language: general.language || 'en',
+        timezone: general.timezone || 'UTC',
+        default_model: general.default_model || 'gpt-4',
+        notifications_enabled: general.notifications_enabled ?? true,
+        inline_citations_enabled: general.inline_citations_enabled ?? true,
+      });
+    }
+  }, [data, form]);
+
+  const onSubmit = (values: GeneralSettingsFormValues) => {
     updateSettings.mutate(values);
   };
 
@@ -107,6 +138,27 @@ export function GeneralSettingsSection() {
                   <FormLabel>Notifications</FormLabel>
                   <p className="text-muted-foreground text-sm">
                     Receive notifications about updates and messages
+                  </p>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="inline_citations_enabled"
+            render={({ field }) => (
+              <FormItem className="flex justify-between items-center">
+                <div className="space-y-0.5">
+                  <FormLabel>Inline Citations</FormLabel>
+                  <p className="text-muted-foreground text-sm">
+                    Show citations inline within the text instead of only at the bottom
                   </p>
                 </div>
                 <FormControl>

@@ -46,4 +46,18 @@ export interface Message {
     error_title?: string;
     error_description?: string;
   };
+  // Citation information
+  citations?: {
+    text: string;
+    chunk_id: string;
+    knowledge_id: string;
+    metadata?: {
+      source?: string;
+      page?: number;
+      row?: number;
+      citation?: string;
+      [key: string]: any;
+    };
+  }[];
+  has_citations?: boolean;
 }

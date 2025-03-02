@@ -120,6 +120,7 @@ export interface GeneralSettings {
   timezone: string;
   default_model: string;
   notifications_enabled: boolean;
+  inline_citations_enabled: boolean;
 }
 
 export interface PrivacySettings {

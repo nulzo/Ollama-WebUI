@@ -21,6 +21,7 @@ class Settings(models.Model):
     user = models.ForeignKey("authentication.CustomUser", on_delete=models.CASCADE)
     theme = models.CharField(max_length=30, default="dark")
     default_model = models.CharField(max_length=50, default="llama3.2:3b")
+    inline_citations_enabled = models.BooleanField(default=True)
 
     class Meta:
         verbose_name_plural = "Settings"

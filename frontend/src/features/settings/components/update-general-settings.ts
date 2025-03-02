@@ -5,7 +5,11 @@ import { getSettingsQueryOptions } from '@/features/settings/api/get-settings';
 import { useNotifications } from '@/components/notification/notification-store';
 
 export const updateGeneralSettings = async (data: Partial<GeneralSettings>): Promise<GeneralSettings> => {
-  const response = await api.patch('/settings/general/', data);
+  const response = await api.patch('/users/update_settings/', data) as {
+    success: boolean;
+    data: GeneralSettings;
+    error?: { message: string };
+  };
   if (!response.success) {
     throw new Error(response.error?.message || 'Failed to update general settings');
   }

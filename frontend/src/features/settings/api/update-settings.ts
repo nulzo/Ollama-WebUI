@@ -15,6 +15,7 @@ export const updateProviderSettingsSchema = z.object({
 export const updateSettingsSchema = z.object({
   theme: z.string().max(30).optional(),
   default_model: z.string().max(50).optional(),
+  inline_citations_enabled: z.boolean().optional(),
 });
 export type UpdateProviderSettingsInput = z.infer<typeof updateProviderSettingsSchema>;
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;
@@ -31,12 +32,10 @@ export const updateProviderSettings = ({
 
 export const updateSettings = ({
   data,
-  settings_id,
 }: {
   data: UpdateSettingsInput;
-  settings_id: string;
 }): Promise<any> => {
-  return api.patch(`users/settings/${settings_id}/`, data);
+  return api.patch(`users/update_settings/`, data);
 };
 type UseUpdateProviderSettingsOptions = {
   mutationConfig?: MutationConfig<typeof updateProviderSettings>;

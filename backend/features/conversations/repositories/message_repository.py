@@ -19,6 +19,8 @@ class MessageType(TypedDict):
     user: CustomUser
     model: str
     images: List[MessageImage]
+    has_citations: Optional[bool]
+    citations: Optional[List[dict]]
 
 class MessageRepository(BaseRepository[Message]):
     def __init__(self):
@@ -39,6 +41,8 @@ class MessageRepository(BaseRepository[Message]):
             provider: Optional[str] = None,
             name: Optional[str] = None,
             is_error: Optional[bool] = False,
+            has_citations: Optional[bool] = False,
+            citations: Optional[List[dict]] = None,
     ) -> Message:
         """
         Store a new message to the database
@@ -59,6 +63,8 @@ class MessageRepository(BaseRepository[Message]):
                 provider=provider,
                 name=name,
                 is_error=is_error,
+                has_citations=has_citations,
+                citations=citations,
             )
 
             # Process and create MessageImage instances
@@ -169,7 +175,11 @@ class MessageRepository(BaseRepository[Message]):
                     role=data["role"],
                     model=data["model"],
                     user=data["user"],
-                    images=data.get("images", []),
+                    has_images=bool(data.get("images", [])),
+                    provider=data.get("provider"),
+                    name=data.get("name"),
+                    has_citations=data.get("has_citations", False),
+                    citations=data.get("citations"),
                 )
                 for data in data_list
             ]

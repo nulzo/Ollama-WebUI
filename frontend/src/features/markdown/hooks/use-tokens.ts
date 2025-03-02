@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import katex from '../utils/katex';
 import katexExtension from '@/lib/katex';
 import {thinkExtension} from '@/lib/think';
+import { citationExtension } from '@/lib/citation';
 
 export const markedInstance = new Marked(
   markedHighlight({
@@ -24,8 +25,8 @@ markedInstance.setOptions({
 });
 
 markedInstance.use(katexExtension());
-
 markedInstance.use(thinkExtension());
+markedInstance.use(citationExtension());
 
 export function useTokens(markdown: string) {
   return useMemo(() => {

@@ -662,15 +662,19 @@ class KnowledgeService:
 
             # Process and format results
             formatted_results = []
-            for doc, meta, dist in zip(
+            for i, (doc, meta, dist) in enumerate(zip(
                 results["documents"][0], results["metadatas"][0], results["distances"][0]
-            ):
+            )):
+                # Generate a unique ID for the chunk
+                chunk_id = f"chunk_{meta.get('knowledge_id', '')}_{i}"
+                
                 # Calculate similarity score (1 - distance)
                 similarity = 1 - dist
                 
                 # Only include results with reasonable similarity
                 if similarity > 0.5:  # Adjust threshold as needed
                     formatted_results.append({
+                        "id": chunk_id,  # Include the chunk ID
                         "content": doc,
                         "metadata": {
                             **meta,
@@ -864,6 +868,254 @@ class KnowledgeService:
             self.logger.error(f"Error getting chunks for knowledge {knowledge_id}: {str(e)}")
             traceback.print_exc()
             return []
+
+    def get_citations_for_chunks(self, chunk_ids):
+        """
+        Get citation information for specific chunks.
+        
+        Args:
+            chunk_ids: List of chunk IDs to retrieve citations for
+            
+        Returns:
+            Dictionary mapping chunk IDs to citation information
+        """
+        try:
+            if not chunk_ids:
+                self.logger.warning("No chunk IDs provided for citation retrieval")
+                return {}
+                
+            self.logger.info(f"Retrieving citations for {len(chunk_ids)} chunks")
+            print(f"DEBUG: Retrieving citations for chunks: {chunk_ids}")
+            
+            # Extract knowledge IDs from chunk IDs (format: chunk_knowledge_id_index)
+            knowledge_ids = set()
+            chunk_to_knowledge_map = {}
+            
+            for chunk_id in chunk_ids:
+                # Try to extract knowledge_id from chunk_id
+                try:
+                    if chunk_id.startswith("chunk_"):
+                        parts = chunk_id.split("_")
+                        if len(parts) >= 2:
+                            knowledge_id = parts[1]
+                            knowledge_ids.add(knowledge_id)
+                            chunk_to_knowledge_map[chunk_id] = knowledge_id
+                    else:
+                        # For other formats, just use the chunk_id as is
+                        chunk_to_knowledge_map[chunk_id] = chunk_id
+                except Exception as e:
+                    self.logger.warning(f"Could not parse knowledge_id from chunk_id {chunk_id}: {str(e)}")
+                    continue
+            
+            print(f"DEBUG: Extracted knowledge IDs: {knowledge_ids}")
+            
+            # If we couldn't extract any knowledge IDs, return empty
+            if not knowledge_ids:
+                return {}
+            
+            # Query ChromaDB for chunks with these knowledge IDs
+            citations = {}
+            
+            for knowledge_id in knowledge_ids:
+                try:
+                    # Query by knowledge_id
+                    results = self.collection.get(
+                        where={"knowledge_id": knowledge_id},
+                        include=["metadatas"]
+                    )
+                    
+                    if results and "metadatas" in results and results["metadatas"]:
+                        # Use the first metadata entry for this knowledge_id
+                        meta = results["metadatas"][0]
+                        
+                        # Extract citation information from metadata
+                        citation_info = {
+                            "source": meta.get("source", "Unknown Source"),
+                            "citation": meta.get("citation", "Unknown Source"),
+                            "knowledge_id": knowledge_id,
+                        }
+                        
+                        # Add page/row information if available
+                        if "page" in meta:
+                            citation_info["page"] = meta["page"]
+                        if "row" in meta:
+                            citation_info["row"] = meta["row"]
+                        
+                        print(f"DEBUG: Found citation info for knowledge_id {knowledge_id}: {citation_info}")
+                        
+                        # Add this citation info to all chunks with this knowledge_id
+                        for chunk_id, mapped_knowledge_id in chunk_to_knowledge_map.items():
+                            if mapped_knowledge_id == knowledge_id:
+                                citations[chunk_id] = citation_info
+                                print(f"DEBUG: Added citation info for chunk {chunk_id}")
+                except Exception as e:
+                    self.logger.error(f"Error retrieving citation for knowledge_id {knowledge_id}: {str(e)}")
+                    continue
+            
+            self.logger.info(f"Retrieved citation information for {len(citations)} chunks")
+            print(f"DEBUG: Retrieved citation information for {len(citations)} chunks")
+            return citations
+        except Exception as e:
+            self.logger.error(f"Error retrieving citations: {str(e)}")
+            print(f"DEBUG: Error retrieving citations: {str(e)}")
+            traceback.print_exc()
+            return {}
+            
+    def format_citation(self, citation_info):
+        """
+        Format citation information into a human-readable string.
+        
+        Args:
+            citation_info: Dictionary containing citation metadata
+            
+        Returns:
+            Formatted citation string
+        """
+        try:
+            if not citation_info:
+                return "Unknown Source"
+                
+            # Start with the basic citation (usually the document name)
+            citation = citation_info.get("citation", citation_info.get("source", "Unknown Source"))
+            
+            # Add page information if available
+            if "page" in citation_info:
+                citation = f"{citation}, Page {citation_info['page']}"
+                
+            # Add row information if available (for CSV files)
+            if "row" in citation_info:
+                citation = f"{citation}, Row {citation_info['row']}"
+                
+            return citation
+        except Exception as e:
+            self.logger.error(f"Error formatting citation: {str(e)}")
+            return "Unknown Source"
+            
+    def get_citations_for_response(self, response_text, relevant_chunks):
+        """
+        Extract and format citations for a generated response based on relevant chunks.
+        
+        Args:
+            response_text: The generated response text
+            relevant_chunks: List of chunks used to generate the response
+            
+        Returns:
+            Dictionary with citation information
+        """
+        try:
+            self.logger.info(f"get_citations_for_response called with {len(relevant_chunks) if relevant_chunks else 0} chunks")
+            print(f"DEBUG: get_citations_for_response called with {len(relevant_chunks) if relevant_chunks else 0} chunks")
+            
+            if not relevant_chunks:
+                self.logger.warning("No relevant chunks provided for citation generation")
+                return {"citations": [], "has_citations": False}
+            
+            # Log the structure of the first chunk to understand its format
+            if relevant_chunks and len(relevant_chunks) > 0:
+                first_chunk = relevant_chunks[0]
+                self.logger.info(f"First chunk type: {type(first_chunk)}, content: {str(first_chunk)[:100]}...")
+                print(f"DEBUG: First chunk type: {type(first_chunk)}, content: {str(first_chunk)[:100]}...")
+                
+                # If it's a dict, log its keys
+                if isinstance(first_chunk, dict):
+                    self.logger.info(f"First chunk keys: {list(first_chunk.keys())}")
+                    print(f"DEBUG: First chunk keys: {list(first_chunk.keys())}")
+                
+            # Extract chunk IDs from relevant chunks
+            chunk_ids = []
+            chunk_metadata = {}  # Store metadata directly from chunks
+            
+            for chunk in relevant_chunks:
+                if isinstance(chunk, dict):
+                    # Try to get the ID from the chunk
+                    chunk_id = None
+                    
+                    if "id" in chunk:
+                        chunk_id = chunk["id"]
+                    elif "chunk_id" in chunk:
+                        chunk_id = chunk["chunk_id"]
+                    elif "metadata" in chunk and "chunk_id" in chunk["metadata"]:
+                        chunk_id = chunk["metadata"]["chunk_id"]
+                    else:
+                        # Generate a temporary ID
+                        chunk_id = f"temp_chunk_{len(chunk_ids)}"
+                        
+                    chunk_ids.append(chunk_id)
+                    print(f"DEBUG: Added chunk ID: {chunk_id}")
+                    
+                    # Store metadata directly if available
+                    if "metadata" in chunk and isinstance(chunk["metadata"], dict):
+                        chunk_metadata[chunk_id] = chunk["metadata"]
+                        print(f"DEBUG: Stored metadata directly for chunk {chunk_id}")
+                        
+                elif isinstance(chunk, str):
+                    # If chunk is a string ID
+                    chunk_ids.append(chunk)
+                    print(f"DEBUG: Added string chunk ID: {chunk}")
+                else:
+                    # Log unexpected chunk format
+                    self.logger.warning(f"Unexpected chunk format: {type(chunk)}, {str(chunk)[:50]}...")
+                    print(f"DEBUG: Unexpected chunk format: {type(chunk)}, {str(chunk)[:50]}...")
+                    
+            self.logger.info(f"Extracted {len(chunk_ids)} chunk IDs for citation retrieval")
+            print(f"DEBUG: Extracted {len(chunk_ids)} chunk IDs for citation retrieval: {chunk_ids}")
+            
+            # If we have no chunk IDs, return empty citations
+            if not chunk_ids:
+                return {"citations": [], "has_citations": False}
+                    
+            # Get citation information for these chunks from ChromaDB
+            citation_info = self.get_citations_for_chunks(chunk_ids)
+            self.logger.info(f"Retrieved citation info for {len(citation_info)} chunks from ChromaDB")
+            print(f"DEBUG: Retrieved citation info for {len(citation_info)} chunks from ChromaDB")
+            
+            # Merge with directly available metadata
+            for chunk_id, metadata in chunk_metadata.items():
+                if chunk_id not in citation_info:
+                    # Use the metadata we already have
+                    citation_info[chunk_id] = {
+                        "source": metadata.get("source", "Unknown Source"),
+                        "citation": metadata.get("citation", metadata.get("source", "Unknown Source")),
+                        "knowledge_id": metadata.get("knowledge_id", ""),
+                    }
+                    
+                    # Add page/row information if available
+                    if "page" in metadata:
+                        citation_info[chunk_id]["page"] = metadata["page"]
+                    if "row" in metadata:
+                        citation_info[chunk_id]["row"] = metadata["row"]
+                        
+                    print(f"DEBUG: Added citation info from chunk metadata for {chunk_id}")
+            
+            # Format citations and remove duplicates
+            formatted_citations = []
+            seen_citations = set()
+            
+            for chunk_id, info in citation_info.items():
+                citation = self.format_citation(info)
+                print(f"DEBUG: Formatted citation for chunk {chunk_id}: {citation}")
+                if citation not in seen_citations:
+                    seen_citations.add(citation)
+                    formatted_citations.append({
+                        "text": citation,
+                        "chunk_id": chunk_id,
+                        "knowledge_id": info.get("knowledge_id", ""),
+                        "metadata": info
+                    })
+                    
+            self.logger.info(f"Generated {len(formatted_citations)} unique citations")
+            print(f"DEBUG: Generated {len(formatted_citations)} unique citations")
+            
+            return {
+                "citations": formatted_citations,
+                "has_citations": len(formatted_citations) > 0,
+                "response_text": response_text
+            }
+        except Exception as e:
+            self.logger.error(f"Error generating citations for response: {str(e)}")
+            print(f"DEBUG: Error generating citations for response: {str(e)}")
+            traceback.print_exc()
+            return {"citations": [], "has_citations": False, "response_text": response_text}
 
     def _process_file(self, knowledge, file):
         """

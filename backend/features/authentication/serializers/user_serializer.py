@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from features.authentication.models import CustomUser
+from features.authentication.models import CustomUser, Settings
+from features.authentication.serializers.settings import SettingsSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,10 +22,21 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class UserResponseSerializer(serializers.ModelSerializer):
+    settings = serializers.SerializerMethodField()
+
+    def get_settings(self, obj):
+        try:
+            settings = Settings.objects.get(user=obj)
+            return SettingsSerializer(settings).data
+        except Settings.DoesNotExist:
+            # Create default settings if they don't exist
+            settings = Settings.objects.create(user=obj)
+            return SettingsSerializer(settings).data
+
     class Meta:
         model = User
         fields = (
-        'id', 'username', 'email', 'first_name', 'last_name', 'name', 'description', 'icon', 'created_at', 'last_login')
+        'id', 'username', 'email', 'first_name', 'last_name', 'name', 'description', 'icon', 'created_at', 'last_login', 'settings')
         read_only_fields = fields
 
 

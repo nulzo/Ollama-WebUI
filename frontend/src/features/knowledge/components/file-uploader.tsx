@@ -58,7 +58,7 @@ export const FileUploader = ({ onFileSelect }: FileUploaderProps) => {
         ref={fileInputRef}
         onChange={handleFileChange}
         className="hidden"
-        accept=".txt,.pdf,.doc,.docx,.csv,.md"
+        accept=".txt,.pdf,.doc,.docx,.csv,.md,.pptx"
       />
       
       {!selectedFile ? (

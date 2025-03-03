@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback, memo, useLayoutEffect, useMemo } from 'react';
-import { Command, Copy, CornerDownLeft, Paperclip, Send, X } from 'lucide-react';
+import { Command, Copy, CornerDownLeft, Database, Paperclip, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PromptCommand } from '@/features/chat/components/prompts/prompt-command';
 import { usePrompts } from '@/features/prompts/api/get-prompts';
 import { useClipboard } from '@/hooks/use-clipboard';
+import { KnowledgeSelector } from '@/features/chat/components/knowledge-selector';
+import { KnowledgeChips } from '@/features/chat/components/knowledge';
 
 interface DynamicTextareaProps {
   text: string;
@@ -20,6 +22,8 @@ interface DynamicTextareaProps {
   disabled?: boolean;
   isGenerating?: boolean;
   onKeyDown?: (e: React.KeyboardEvent) => void;
+  selectedKnowledgeIds?: string[];
+  setSelectedKnowledgeIds?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 // Interface for the MemoizedTooltipButton component
@@ -78,7 +82,7 @@ const MemoizedTextarea = memo(({
     onKeyDown={onKeyDown}
     placeholder={placeholder}
     rows={1}
-    className="w-full resize-none bg-transparent py-[6px] pr-[50px] focus:outline-none text-sm placeholder:text-muted-foreground transition-all duration-200"
+    className="bg-transparent py-[6px] pr-[50px] focus:outline-none w-full placeholder:text-muted-foreground text-sm transition-all duration-200 resize-none"
     style={{ maxHeight: '200px' }}
     disabled={disabled}
   />
@@ -90,7 +94,7 @@ const TokenCount = memo(({ count }: { count: number }) => (
     {count > 0 ? (
       `${count} tokens`
     ) : (
-      <span className="text-xs opacity-0">0 tokens</span>
+      <span className="opacity-0 text-xs">0 tokens</span>
     )}
   </span>
 ));
@@ -106,7 +110,9 @@ const ButtonContainer = memo(({
   onSubmit, 
   hasText, 
   hasModel,
-  disabled
+  disabled,
+  selectedKnowledgeIds,
+  setSelectedKnowledgeIds
 }: { 
   onCopy: (text: string) => void;
   text: string;
@@ -118,8 +124,10 @@ const ButtonContainer = memo(({
   hasText: boolean;
   hasModel: boolean;
   disabled?: boolean;
+  selectedKnowledgeIds?: string[];
+  setSelectedKnowledgeIds?: React.Dispatch<React.SetStateAction<string[]>>;
 }) => (
-  <div className="absolute right-2 bottom-2 flex items-center bg-secondary">
+  <div className="right-2 bottom-2 absolute flex items-center bg-secondary">
     {!isGenerating && (
       <MemoizedTooltipButton
         onClick={() => onCopy(text)}
@@ -129,12 +137,14 @@ const ButtonContainer = memo(({
       />
     )}
     {uploadedImages.length === 0 && !isGenerating && (
-      <MemoizedTooltipButton
-        onClick={onUploadClick}
-        tooltipText="Upload Image (requires vision capable model)"
-        icon={<Paperclip className="size-3.5" />}
-        disabled={disabled}
-      />
+      <>
+        <MemoizedTooltipButton
+          onClick={onUploadClick}
+          tooltipText="Upload Image (requires vision capable model)"
+          icon={<Paperclip className="size-3.5" />}
+          disabled={disabled}
+        />
+      </>
     )}
 
     {isGenerating ? (
@@ -144,7 +154,7 @@ const ButtonContainer = memo(({
       </Button>
     ) : (
       <Button
-        className="px-2 ml-2 h-8 text-xs whitespace-nowrap"
+        className="ml-2 px-2 h-8 text-xs whitespace-nowrap"
         onClick={onSubmit}
         disabled={(!hasText && uploadedImages.length === 0) || !hasModel || disabled}
       >
@@ -174,7 +184,7 @@ const UploadedImages = memo(({
   return (
     <div className="flex flex-wrap gap-2 mt-2">
       {images.map((image, index) => (
-        <div key={index} className="relative group">
+        <div key={index} className="group relative">
           <img
             src={image}
             alt={`Uploaded ${index + 1}`}
@@ -182,7 +192,7 @@ const UploadedImages = memo(({
           />
           <button
             onClick={() => onRemove(index)}
-            className="absolute -top-1.5 -right-1.5 bg-background hover:bg-muted opacity-0 group-hover:opacity-100 p-0.5 border rounded-full transition-all duration-200"
+            className="-top-1.5 -right-1.5 absolute bg-background hover:bg-muted opacity-0 group-hover:opacity-100 p-0.5 border rounded-full transition-all duration-200"
             disabled={disabled}
           >
             <X className="w-3 h-3" />
@@ -194,7 +204,7 @@ const UploadedImages = memo(({
 });
 
 function DynamicTextarea({
-  placeholder = 'Message CringeGPT ...',
+  placeholder = 'Message CringeGPT... (use / for prompts, @ for knowledge)',
   maxLength = 1000000,
   onSubmit,
   onImageUpload,
@@ -207,6 +217,8 @@ function DynamicTextarea({
   onKeyDown,
   onCancel,
   isGenerating,
+  selectedKnowledgeIds,
+  setSelectedKnowledgeIds,
 }: DynamicTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -289,10 +301,15 @@ function DynamicTextarea({
     }
   }, [onImageUpload]);
 
-  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleCombinedKeyDown = useCallback((event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === '/') {
       setIsPromptOpen(true);
       setPromptSearchTerm('');
+      return;
+    }
+    if (event.key === '@') {
+      // Let the chat-input component handle the @ character
+      // We just need to make sure we don't prevent default behavior
       return;
     }
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
@@ -391,7 +408,17 @@ function DynamicTextarea({
     };
   }, []);
 
-  // Memoize button container props
+  // Memoize the textarea props to prevent unnecessary re-renders
+  const textareaProps = useMemo(() => ({
+    value: text,
+    onChange: handleChange,
+    onKeyDown: handleCombinedKeyDown,
+    placeholder,
+    disabled,
+    textareaRef: textareaRef as React.RefObject<HTMLTextAreaElement>
+  }), [text, handleChange, handleCombinedKeyDown, placeholder, disabled]);
+
+  // Memoize the button props to prevent unnecessary re-renders
   const buttonProps = useMemo(() => ({
     onCopy: handleCopy,
     text,
@@ -402,7 +429,9 @@ function DynamicTextarea({
     onSubmit: handleSubmit,
     hasText: !!text.trim(),
     hasModel: !!model,
-    disabled
+    disabled,
+    selectedKnowledgeIds,
+    setSelectedKnowledgeIds
   }), [
     handleCopy, 
     text, 
@@ -412,50 +441,60 @@ function DynamicTextarea({
     onCancel, 
     handleSubmit, 
     model,
-    disabled
+    disabled,
+    selectedKnowledgeIds,
+    setSelectedKnowledgeIds
   ]);
 
-  // Memoize textarea props
-  const textareaProps = useMemo(() => ({
-    value: text,
-    onChange: handleChange,
-    onKeyDown: handleKeyDown,
-    placeholder,
-    disabled,
-    textareaRef: textareaRef as React.RefObject<HTMLTextAreaElement>
-  }), [text, handleChange, handleKeyDown, placeholder, disabled]);
+  // Add a handler for removing knowledge items
+  const handleRemoveKnowledge = useCallback((id: string) => {
+    if (setSelectedKnowledgeIds) {
+      setSelectedKnowledgeIds(prev => prev.filter(knowledgeId => knowledgeId !== id));
+    }
+  }, [setSelectedKnowledgeIds]);
 
   return (
     <div className="inset-x-0 bg-transparent mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl">
       {isPromptOpen && (
         <PromptCommand
           isOpen={isPromptOpen}
-          onClose={handleClosePrompt}
-          onSelect={handlePromptSelect}
           searchTerm={promptSearchTerm}
+          onSelect={handlePromptSelect}
+          onClose={() => setIsPromptOpen(false)}
         />
       )}
 
-      <div className="relative border ring-offset-0 border-input w-full py-2 px-3 bg-secondary backdrop-blur-sm ring-0 rounded-xl focus-within:border-primary focus-within:ring-primary focus-within:ring-1">
+      <div className="relative bg-secondary backdrop-blur-sm px-3 py-2 border border-input focus-within:border-primary rounded-xl ring-0 focus-within:ring-primary focus-within:ring-1 ring-offset-0 w-full">
+        {/* Display knowledge chips above the textarea */}
+        {selectedKnowledgeIds && selectedKnowledgeIds.length > 0 && (
+          <KnowledgeChips
+            selectedKnowledgeIds={selectedKnowledgeIds}
+            onRemove={handleRemoveKnowledge}
+            disabled={disabled || isGenerating}
+          />
+        )}
+        
         <MemoizedTextarea {...textareaProps} />
 
         <TokenCount count={tokenCount} />
         
         <ButtonContainer {...buttonProps} />
-
+        
         <UploadedImages 
-          images={uploadedImages} 
+          images={uploadedImages}
           onRemove={onRemoveImage}
-          disabled={disabled} 
+          disabled={disabled}
         />
-
+        
+        {/* Hidden file input for image uploads */}
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
           accept="image/*"
           multiple
-          style={{ display: 'none' }}
+          className="hidden"
+          disabled={disabled || isGenerating}
         />
       </div>
     </div>

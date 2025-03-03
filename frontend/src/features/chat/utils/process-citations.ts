@@ -19,8 +19,7 @@ export function addInlineCitations(content: string, citations?: Array<{
 }>): string {
   console.log('addInlineCitations called with:', { 
     contentLength: content?.length, 
-    citationsCount: citations?.length,
-    citations: citations
+    citationsCount: citations?.length
   });
 
   if (!citations || citations.length === 0 || !content) {
@@ -28,109 +27,20 @@ export function addInlineCitations(content: string, citations?: Array<{
     return content;
   }
 
-  // Create a map of chunk IDs to citation indices
-  const citationMap = new Map<string, number>();
-  citations.forEach((citation, index) => {
-    citationMap.set(citation.chunk_id, index + 1);
-  });
-
-  // For each citation, find relevant sentences in the content and add citation markers
-  let processedContent = content;
+  // IMPORTANT: The content from the server already has citations properly formatted
+  // We should NOT try to add citation markers, as this is causing the [0][0][0] sequences
+  // Instead, just clean up any problematic patterns and return the content as is
   
-  // Sort citations by text length (descending) to avoid partial matches
-  const sortedCitations = [...citations].sort((a, b) => (b.text?.length || 0) - (a.text?.length || 0));
+  // Clean up problematic patterns
+  let cleanedContent = content;
   
-  // Keep track of positions where we've already inserted citations to avoid duplicates
-  const insertedPositions = new Set<number>();
+  // Remove Unicode null characters
+  cleanedContent = cleanedContent.replace(/\u0000/g, '');
   
-  console.log('Processing citations:', sortedCitations);
+  // Remove any trailing 'e:' that might be a partial citation marker
+  cleanedContent = cleanedContent.replace(/e:$/g, '');
   
-  // Process each citation
-  sortedCitations.forEach(citation => {
-    // Extract the first few words from the citation text to use as a search pattern
-    const citationText = citation.text || '';
-    if (!citationText || citationText.length < 15) {
-      console.log(`Citation text too short (${citationText.length} chars), skipping:`, citationText);
-      return; // Skip if too short
-    }
-    
-    // Create multiple search patterns of different lengths to increase match probability
-    const words = citationText.split(' ');
-    const searchPatterns = [
-      words.slice(0, Math.min(8, words.length)).join(' '),
-      words.slice(0, Math.min(5, words.length)).join(' '),
-      words.slice(0, Math.min(3, words.length)).join(' ')
-    ].filter(pattern => pattern.length > 10);
-    
-    console.log('Search patterns for citation:', searchPatterns);
-    
-    // Try each search pattern
-    let foundAnyMatch = false;
-    for (const searchPattern of searchPatterns) {
-      // Find potential matches in the content
-      let startIndex = 0;
-      let foundMatch = false;
-      
-      while (startIndex < processedContent.length) {
-        const matchIndex = processedContent.toLowerCase().indexOf(searchPattern.toLowerCase(), startIndex);
-        if (matchIndex === -1) {
-          console.log(`No match found for pattern: "${searchPattern}"`);
-          break;
-        }
-        
-        console.log(`Found match for pattern "${searchPattern}" at index ${matchIndex}`);
-        
-        // Find the end of the sentence or paragraph
-        let endIndex = processedContent.indexOf('.', matchIndex);
-        const paragraphEnd = processedContent.indexOf('\n', matchIndex);
-        
-        if (endIndex === -1 || (paragraphEnd !== -1 && paragraphEnd < endIndex)) {
-          endIndex = paragraphEnd;
-        }
-        
-        if (endIndex === -1) endIndex = processedContent.length;
-        
-        // Check if we've already inserted a citation near this position
-        let alreadyInserted = false;
-        for (const pos of insertedPositions) {
-          if (Math.abs(pos - endIndex) < 50) {
-            alreadyInserted = true;
-            console.log(`Citation already inserted near position ${endIndex}, skipping`);
-            break;
-          }
-        }
-        
-        if (!alreadyInserted) {
-          // Insert the citation marker at the end of the sentence
-          const citationMarker = ` [^cite:${citation.chunk_id}]`;
-          processedContent = 
-            processedContent.substring(0, endIndex) + 
-            citationMarker + 
-            processedContent.substring(endIndex);
-          
-          console.log(`Inserted citation marker "${citationMarker}" at position ${endIndex}`);
-          
-          // Update indices to account for the inserted text
-          insertedPositions.add(endIndex);
-          foundMatch = true;
-          foundAnyMatch = true;
-          break; // Found a match for this pattern, move to next citation
-        } else {
-          startIndex = endIndex + 1;
-        }
-      }
-      
-      if (foundMatch) break; // Found a match with this pattern, no need to try others
-    }
-    
-    if (!foundAnyMatch) {
-      console.log(`No matches found for citation: ${citation.chunk_id}`);
-    }
-  });
-  
-  console.log('Final processed content:', processedContent);
-  
-  return processedContent;
+  return cleanedContent;
 }
 
 /**
@@ -160,35 +70,18 @@ export function forceInlineCitations(content: string, citations?: Array<{
     return content;
   }
 
-  // Use a much simpler approach - add citations at the end of the content
-  // This avoids issues with regex and complex text processing
+  // IMPORTANT: The content from the server already has citations properly formatted
+  // We should NOT try to add citation markers, as this is causing the [0][0][0] sequences
+  // Instead, just clean up any problematic patterns and return the content as is
   
-  let processedContent = content;
+  // Clean up problematic patterns
+  let cleanedContent = content;
   
-  // Add a summary section at the end with citations
-  processedContent += "\n\n**Sources:**\n";
+  // Remove Unicode null characters
+  cleanedContent = cleanedContent.replace(/\u0000/g, '');
   
-  // Create a map to track unique sources to avoid duplicates
-  const uniqueSources = new Map();
+  // Remove any trailing 'e:' that might be a partial citation marker
+  cleanedContent = cleanedContent.replace(/e:$/g, '');
   
-  // Add each citation as a separate bullet point
-  citations.forEach((citation, index) => {
-    // Extract source information from metadata if available
-    const source = citation.metadata?.source || citation.metadata?.citation || `Source ${index + 1}`;
-    
-    // Skip if we've already added this source
-    if (uniqueSources.has(source)) {
-      return;
-    }
-    
-    // Add the source to our tracking map
-    uniqueSources.set(source, true);
-    
-    // Add the citation as a bullet point
-    processedContent += `\n* ${source}`;
-  });
-  
-  console.log('Simplified forced citations content created');
-  
-  return processedContent;
+  return cleanedContent;
 } 

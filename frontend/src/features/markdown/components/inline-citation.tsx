@@ -1,22 +1,12 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Citation } from '@/types/chat';
 
 interface InlineCitationProps {
   citationId: string;
   citationIndex: number;
-  citations: Array<{
-    text: string;
-    chunk_id: string;
-    knowledge_id: string;
-    metadata?: {
-      source?: string;
-      page?: number;
-      row?: number;
-      citation?: string;
-      [key: string]: any;
-    };
-  }>;
+  citations: Citation[];
 }
 
 const InlineCitation: React.FC<InlineCitationProps> = ({ citationId, citationIndex, citations }) => {
@@ -26,12 +16,28 @@ const InlineCitation: React.FC<InlineCitationProps> = ({ citationId, citationInd
   if (!citation) {
     return <sup>[{citationIndex}]</sup>;
   }
+  
+  // Clean up citation text before displaying
+  let displayText = citation.text || '';
+  
+  // Remove Unicode null characters
+  displayText = displayText.replace(/\u0000/g, '');
+  
+  // If the text is empty or just whitespace, use a fallback
+  if (!displayText.trim()) {
+    displayText = citation.metadata?.source || 
+                 citation.metadata?.citation || 
+                 `Source ${citationIndex}`;
+  }
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <sup className="font-medium text-primary hover:text-primary/80 cursor-pointer">
+          <sup 
+            className="font-medium text-primary hover:text-primary/80 cursor-pointer"
+            data-citation-id={citationId}
+          >
             [{citationIndex}]
           </sup>
         </TooltipTrigger>
@@ -39,7 +45,7 @@ const InlineCitation: React.FC<InlineCitationProps> = ({ citationId, citationInd
           <div className="text-xs">
             <div className="flex items-center gap-1 font-semibold">
               <FileText size={12} />
-              <span>{citation.text}</span>
+              <span>{displayText}</span>
             </div>
             {citation.metadata?.source && (
               <div className="mt-1">Source: {citation.metadata.source}</div>

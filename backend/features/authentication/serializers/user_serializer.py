@@ -27,10 +27,36 @@ class UserResponseSerializer(serializers.ModelSerializer):
     def get_settings(self, obj):
         try:
             settings = Settings.objects.get(user=obj)
-            return SettingsSerializer(settings).data
+            settings_data = SettingsSerializer(settings).data
+            
+            # Ensure prompt_settings is included
+            if settings.prompt_settings is None:
+                settings_data['prompt_settings'] = {
+                    'use_llm_generated': False,
+                    'model': 'llama3.2:3b'
+                }
+            elif not isinstance(settings.prompt_settings, dict):
+                # Handle case where prompt_settings is not a dict
+                print(f"Warning: prompt_settings is not a dict: {settings.prompt_settings}")
+                settings_data['prompt_settings'] = {
+                    'use_llm_generated': False,
+                    'model': 'llama3.2:3b'
+                }
+            elif 'use_llm_generated' not in settings.prompt_settings:
+                # Ensure use_llm_generated is present
+                settings_data['prompt_settings']['use_llm_generated'] = False
+            
+            print(f"Returning settings data: {settings_data}")
+            return settings_data
         except Settings.DoesNotExist:
             # Create default settings if they don't exist
-            settings = Settings.objects.create(user=obj)
+            settings = Settings.objects.create(
+                user=obj,
+                prompt_settings={
+                    'use_llm_generated': False,
+                    'model': 'llama3.2:3b'
+                }
+            )
             return SettingsSerializer(settings).data
 
     class Meta:

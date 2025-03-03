@@ -16,6 +16,10 @@ export const updateSettingsSchema = z.object({
   theme: z.string().max(30).optional(),
   default_model: z.string().max(50).optional(),
   inline_citations_enabled: z.boolean().optional(),
+  prompt_settings: z.object({
+    use_llm_generated: z.boolean().optional(),
+    model: z.string().max(50).optional(),
+  }).optional(),
 });
 export type UpdateProviderSettingsInput = z.infer<typeof updateProviderSettingsSchema>;
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>;

@@ -123,6 +123,11 @@ export interface GeneralSettings {
   inline_citations_enabled: boolean;
 }
 
+export interface PromptSettings {
+  use_llm_generated: boolean;
+  model?: string;
+}
+
 export interface PrivacySettings {
   data_collection: boolean;
   error_reporting: boolean;
@@ -146,4 +151,5 @@ export interface UserSettings {
   general: GeneralSettings;
   privacy: PrivacySettings;
   export: ExportSettings;
+  prompt_settings?: PromptSettings;
 }

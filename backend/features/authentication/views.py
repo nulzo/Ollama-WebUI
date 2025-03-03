@@ -150,20 +150,38 @@ class UserViewSet(viewsets.ViewSet):
             # Get or create settings for the user
             user_settings, created = Settings.objects.get_or_create(user=request.user)
             
+            # Log the incoming request data
+            print(f"Update settings request data: {request.data}")
+            
+            # Handle prompt_settings separately if provided
+            prompt_settings = request.data.get('prompt_settings')
+            if prompt_settings:
+                print(f"Received prompt_settings: {prompt_settings}")
+                # If user_settings.prompt_settings is None, initialize it as an empty dict
+                if user_settings.prompt_settings is None:
+                    user_settings.prompt_settings = {}
+                
+                # Update prompt_settings with the new values
+                user_settings.prompt_settings.update(prompt_settings)
+                print(f"Updated prompt_settings: {user_settings.prompt_settings}")
+            
             # Update settings with request data
             serializer = SettingsSerializer(user_settings, data=request.data, partial=True)
             if not serializer.is_valid():
+                print(f"Serializer validation errors: {serializer.errors}")
                 return api_response(
                     error={"code": "VALIDATION_ERROR", "message": "Invalid data", "details": serializer.errors},
                     status=status.HTTP_400_BAD_REQUEST
                 )
                 
             serializer.save()
+            print(f"Settings saved successfully: {serializer.data}")
             
             # Return updated user profile with settings
             response_serializer = UserResponseSerializer(request.user)
             return api_response(data=response_serializer.data)
         except Exception as e:
+            print(f"Error updating settings: {str(e)}")
             return api_response(
                 error={"code": "UPDATE_ERROR", "message": str(e)},
                 status=status.HTTP_400_BAD_REQUEST

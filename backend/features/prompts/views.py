@@ -75,21 +75,41 @@ class PromptViewSet(viewsets.ViewSet):
         super().__init__(**kwargs)
         self.chat_service = ChatService()
         self.logger = logging.getLogger(__name__)
+        
+        # Initialize prompt service directly
+        from features.prompts.services.prompt_service import (
+            PromptBuilderService,
+            PromptService,
+            PromptTemplateService,
+            PromptVariantService,
+        )
+        self.prompt_service = PromptService(
+            template_service=PromptTemplateService(),
+            variant_service=PromptVariantService(),
+            builder_service=PromptBuilderService(),
+            provider=None,  # Will be set when needed
+        )
 
     @action(detail=False, methods=['get'])
     def show(self, request):
         """Get prompts based on style and model"""
         try:
+            self.logger.info(f"Prompt show action called with params: {request.query_params}")
+            
             # Validate request data
             serializer = PromptRequestSerializer(
                 data={
                     "style": request.query_params.get("style", ""),
                     "count": request.query_params.get("count", 5),
+                    "model": request.query_params.get("model", "llama3.2:3b"),
                     **request.query_params.dict(),
                 }
             )
+            
+            self.logger.info(f"Serializer data: {serializer.initial_data}")
 
             if not serializer.is_valid():
+                self.logger.error(f"Serializer validation error: {serializer.errors}")
                 return api_response(
                     error={
                         "code": "VALIDATION_ERROR",
@@ -100,26 +120,48 @@ class PromptViewSet(viewsets.ViewSet):
                 )
 
             validated_data = serializer.validated_data
-            model_name = request.query_params.get("model", "llama3.2:3b")
+            model_name = validated_data.get("model", "llama3.2:3b")
+            
+            self.logger.info(f"Validated data: {validated_data}")
+            self.logger.info(f"Using model: {model_name}")
 
-            response = self.chat_service.get_prompts(
-                model_name,
-                validated_data["style"],
-                count=validated_data["count"],
-                user_id=request.user.id,
-            )
-
-            return api_response(
-                data={
-                    **response,
-                    "metadata": {
-                        "style": validated_data["style"] or "default",
-                        "provider": "openai" if model_name.startswith("gpt") else "ollama",
-                        "model": model_name,
-                        "count": validated_data["count"],
-                    },
-                }
-            )
+            try:
+                response = self.chat_service.get_prompts(
+                    model_name,
+                    validated_data["style"],
+                    count=validated_data["count"],
+                    user_id=request.user.id,
+                )
+                
+                self.logger.info(f"Chat service response: {response}")
+                
+                return api_response(
+                    data={
+                        **response,
+                        "metadata": {
+                            "style": validated_data["style"] or "default",
+                            "provider": "openai" if model_name.startswith("gpt") else "ollama",
+                            "model": model_name,
+                            "count": validated_data["count"],
+                        },
+                    }
+                )
+            except Exception as e:
+                self.logger.error(f"Error from chat service: {str(e)}")
+                # Return default prompts if chat service fails
+                default_prompts = self.chat_service.prompt_service.get_default_prompts(validated_data["style"])
+                return api_response(
+                    data={
+                        "prompts": default_prompts,
+                        "metadata": {
+                            "style": validated_data["style"] or "default",
+                            "provider": "default",
+                            "model": "default",
+                            "count": validated_data["count"],
+                            "is_fallback": True,
+                        },
+                    }
+                )
 
         except ValidationError as e:
             self.logger.warning(f"Validation error: {str(e)}")

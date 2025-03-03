@@ -99,11 +99,13 @@ class PromptService:
         self.provider = provider
         self.logger = logging.getLogger(__name__)
 
-    def get_actionable_prompts(self, style: str = "") -> List[Dict[str, Any]]:
+    def get_actionable_prompts(self, style: str = "", model: str = "llama3.2:3b") -> List[Dict[str, Any]]:
         """
         Get prompts using the template system based on style and provider
         """
         try:
+            self.logger.info(f"Getting actionable prompts with style: {style}, model: {model}")
+            
             # Get template based on style
             template = self.template_service.get_template(style)
 
@@ -129,12 +131,22 @@ class PromptService:
                 {"role": "user", "content": "Generate the prompts as specified."},
             ]
 
-            # Get response from provider
-            response = self.provider.chat(model="llama3.2:3b", messages=messages)
+            # Check if provider is available
+            if not self.provider:
+                self.logger.error("Provider is not available")
+                return self.get_default_prompts(style)
+
+            # Get response from provider using the specified model
+            self.logger.info(f"Calling provider with model: {model}")
+            try:
+                response = self.provider.chat(model=model, messages=messages)
+                self.logger.info(f"Provider response: {response}")
+            except Exception as e:
+                self.logger.error(f"Provider chat error: {e}")
+                return self.get_default_prompts(style)
 
             try:
                 # Parse the JSON response
-                self.logger.info(f"Provider response: {response}")
                 prompts = json.loads(response)
                 self.logger.info(f"Parsed prompts: {prompts}")
                 return prompts.get("prompts", self.get_default_prompts(style))

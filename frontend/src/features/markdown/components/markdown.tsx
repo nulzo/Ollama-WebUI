@@ -222,6 +222,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ markdown, cita
       
       console.log(`Processing ${spans.length} citation spans`);
       
+      // Only process the actual citation spans, don't modify other text nodes
       spans.forEach((span) => {
         const citationId = span.getAttribute('data-citation-id');
         if (!citationId) return;
@@ -235,41 +236,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ markdown, cita
         
         // Replace the span text with the citation number
         span.textContent = `[${citationIndex}]`;
-        span.classList.add('cursor-pointer', 'text-primary', 'hover:text-primary/80', 'font-medium', 'align-super', 'text-xs');
-        
-        // Add tooltip functionality
-        span.addEventListener('mouseenter', (e) => {
-          // Remove any existing tooltips first
-          document.querySelectorAll('.citation-tooltip').forEach(el => el.remove());
-          
-          const citation = citations.find(c => c.chunk_id === citationId);
-          if (!citation) return;
-          
-          // Create tooltip
-          const tooltip = document.createElement('div');
-          tooltip.className = 'citation-tooltip absolute bg-popover text-popover-foreground p-2 rounded-md shadow-md text-xs max-w-xs z-50';
-          
-          // Position the tooltip above the citation
-          const rect = (e.target as HTMLElement).getBoundingClientRect();
-          tooltip.style.top = `${window.scrollY + rect.top - 10}px`;
-          tooltip.style.left = `${window.scrollX + rect.left}px`;
-          tooltip.style.transform = 'translateY(-100%)';
-          
-          // Add citation content
-          tooltip.innerHTML = `
-            <div class="font-semibold">${citation.text}</div>
-            ${citation.metadata?.source ? `<div>Source: ${citation.metadata.source}</div>` : ''}
-            ${citation.metadata?.page ? `<div>Page: ${citation.metadata.page}</div>` : ''}
-            ${citation.metadata?.row ? `<div>Row: ${citation.metadata.row}</div>` : ''}
-          `;
-          
-          document.body.appendChild(tooltip);
-          
-          // Remove tooltip on mouseleave
-          span.addEventListener('mouseleave', () => {
-            tooltip.remove();
-          }, { once: true });
-        });
+        span.classList.add('cursor-pointer', 'text-primary', 'hover:text-primary/80', 'font-medium');
       });
     }
   }, [renderedContent, citations, citationsProcessed]);

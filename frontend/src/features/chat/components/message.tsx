@@ -139,14 +139,21 @@ export const Message = memo(
         content = content.replace('[cancelled]', '');
       }
       
+      // Clean up problematic citation patterns before processing
+      if (typeof content === 'string') {
+        // Remove Unicode null characters
+        content = content.replace(/\u0000/g, '');
+        
+        // Remove any trailing 'e:' that might be a partial citation marker
+        content = content.replace(/e:$/g, '');
+      }
+      
       // Add inline citations if available and enabled in settings
       if (inlineCitationsEnabled && message.has_citations && message.citations && message.citations.length > 0) {
         console.log('Adding inline citations to message:', message.id);
         
-        // TESTING: Use force function instead of regular function
-        // Comment out the line below and uncomment the next line to force citations
+        // Just clean the content without adding citation markers
         content = addInlineCitations(content, message.citations);
-        // content = forceInlineCitations(content, message.citations);
       } else if (message.has_citations && message.citations && message.citations.length > 0) {
         console.log('Inline citations disabled but message has citations:', {
           messageId: message.id,

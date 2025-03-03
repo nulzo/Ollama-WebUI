@@ -7,6 +7,7 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import traceback
 import time
+import re
 
 import chromadb
 from chromadb.config import Settings
@@ -38,6 +39,28 @@ class KnowledgeService:
         
         # Create executor for background processing
         self.executor = ThreadPoolExecutor(max_workers=2)
+        
+        # Initialize caches
+        self._init_caches()
+
+    def _init_caches(self):
+        """Initialize caches for better performance"""
+        # Cache for embeddings
+        self._embedding_cache = {}
+        self._embedding_cache_max_size = getattr(settings, 'EMBEDDING_CACHE_MAX_SIZE', 1000)
+        
+        # Cache for search results
+        self._search_results_cache = {}
+        self._search_results_cache_max_size = getattr(settings, 'SEARCH_RESULTS_CACHE_MAX_SIZE', 100)
+        self._search_results_cache_ttl = getattr(settings, 'SEARCH_RESULTS_CACHE_TTL', 300)  # 5 minutes
+        
+        # Cache for chunks
+        self._chunks_cache = {}
+        self._chunks_cache_max_size = getattr(settings, 'CHUNKS_CACHE_MAX_SIZE', 50)
+        
+        # Track cache stats
+        self._cache_hits = {'embedding': 0, 'search': 0, 'chunks': 0}
+        self._cache_misses = {'embedding': 0, 'search': 0, 'chunks': 0}
 
     def create_knowledge_with_file(self, data: dict, user, file) -> Any:
         """
@@ -135,15 +158,45 @@ class KnowledgeService:
                 # Process the file based on its type
                 content = ""
                 chunks = []
-                metadata = {}
+                metadata = {"source": file_info['name']}
                 
                 file_type = file_info['content_type'].lower()
+                file_name = file_info['name'].lower()
                 
-                if "pdf" in file_type:
-                    # Process PDF file
+                # PDF processing
+                if "pdf" in file_type or file_name.endswith('.pdf'):
                     content, chunks, metadata = self._process_pdf(temp_file_path, knowledge.name)
-                elif "text" in file_type or file_info['name'].endswith('.txt'):
-                    # Process text file
+                
+                # Word document processing
+                elif "word" in file_type or file_name.endswith(('.docx', '.doc')):
+                    content, chunks, metadata = self._process_docx(temp_file_path, knowledge.name)
+                
+                # PowerPoint processing
+                elif "presentation" in file_type or file_name.endswith(('.pptx', '.ppt')):
+                    content, chunks, metadata = self._process_pptx(temp_file_path, knowledge.name)
+                
+                # Excel processing
+                elif "excel" in file_type or "spreadsheet" in file_type or file_name.endswith(('.xlsx', '.xls')):
+                    content, chunks, metadata = self._process_excel(temp_file_path, knowledge.name)
+                
+                # Markdown processing
+                elif "markdown" in file_type or file_name.endswith('.md'):
+                    content, chunks, metadata = self._process_markdown(temp_file_path, knowledge.name)
+                
+                # HTML processing
+                elif "html" in file_type or file_name.endswith(('.html', '.htm')):
+                    content, chunks, metadata = self._process_html(temp_file_path, knowledge.name)
+                
+                # JSON processing
+                elif "json" in file_type or file_name.endswith('.json'):
+                    content, chunks, metadata = self._process_json(temp_file_path, knowledge.name)
+                
+                # CSV processing
+                elif "csv" in file_type or file_name.endswith('.csv'):
+                    content, chunks, metadata = self._process_csv(temp_file_path)
+                
+                # Plain text processing
+                elif "text" in file_type or file_name.endswith('.txt'):
                     with open(temp_file_path, 'r', encoding='utf-8', errors='ignore') as f:
                         content = f.read()
                     text_chunks = self._chunk_text(content)
@@ -160,12 +213,9 @@ class KnowledgeService:
                                 "citation": file_info['name']
                             }
                         })
-                    metadata = {"source": file_info['name']}
-                elif "csv" in file_type or file_info['name'].endswith('.csv'):
-                    # Process CSV file
-                    content, chunks, metadata = self._process_csv(temp_file_path)
+                
+                # Default processing for other file types
                 else:
-                    # Default processing for other file types
                     with open(temp_file_path, 'rb') as f:
                         binary_content = f.read()
                     try:
@@ -186,7 +236,6 @@ class KnowledgeService:
                                 "citation": file_info['name']
                             }
                         })
-                    metadata = {"source": file_info['name']}
                 
                 # Update the knowledge document with the processed content
                 self.repository.update(knowledge.id, {
@@ -313,9 +362,318 @@ class KnowledgeService:
             self.logger.error(f"Error processing CSV: {str(e)}")
             raise
     
+    def _process_docx(self, file_path, document_name):
+        """
+        Process a Word document (DOCX/DOC) and extract its content.
+        
+        Args:
+            file_path: Path to the Word document
+            document_name: Name of the document
+            
+        Returns:
+            Tuple of (full_content, chunks, metadata)
+        """
+        try:
+            # Import docx library here to avoid dependency issues
+            import docx
+            
+            full_content = ""
+            chunks = []
+            metadata = {"source": document_name, "type": "docx"}
+            
+            # Open the document
+            doc = docx.Document(file_path)
+            
+            # Extract text from paragraphs
+            paragraphs = []
+            for para in doc.paragraphs:
+                if para.text.strip():  # Skip empty paragraphs
+                    paragraphs.append(para.text)
+            
+            # Extract text from tables
+            for table in doc.tables:
+                for row in table.rows:
+                    row_text = " | ".join([cell.text for cell in row.cells if cell.text.strip()])
+                    if row_text.strip():
+                        paragraphs.append(row_text)
+            
+            # Combine all paragraphs
+            full_content = "\n\n".join(paragraphs)
+            
+            # Create chunks with citation metadata
+            text_chunks = self._chunk_text(full_content)
+            for i, chunk in enumerate(text_chunks):
+                chunk_id = f"{document_name}_c{i}"
+                chunks.append({
+                    "id": chunk_id,
+                    "content": chunk,
+                    "metadata": {
+                        "source": document_name,
+                        "chunk": i,
+                        "citation": document_name
+                    }
+                })
+            
+            return full_content, chunks, metadata
+        except ImportError:
+            self.logger.error("python-docx is not installed. Please install it to process DOCX files.")
+            raise Exception("DOCX processing library not available")
+        except Exception as e:
+            self.logger.error(f"Error processing DOCX: {str(e)}")
+            raise
+    
+    def _process_excel(self, file_path, document_name):
+        """
+        Process an Excel file (XLSX/XLS) and extract its content.
+        
+        Args:
+            file_path: Path to the Excel file
+            document_name: Name of the document
+            
+        Returns:
+            Tuple of (full_content, chunks, metadata)
+        """
+        try:
+            # Import pandas and openpyxl here to avoid dependency issues
+            import pandas as pd
+            
+            full_content = ""
+            chunks = []
+            metadata = {"source": document_name, "type": "excel"}
+            
+            # Read all sheets from the Excel file
+            excel_file = pd.ExcelFile(file_path)
+            sheet_names = excel_file.sheet_names
+            metadata["sheets"] = sheet_names
+            
+            # Process each sheet
+            for sheet_name in sheet_names:
+                df = pd.read_excel(excel_file, sheet_name=sheet_name)
+                
+                # Convert sheet to text
+                sheet_content = f"Sheet: {sheet_name}\n"
+                sheet_content += df.to_string(index=False) + "\n\n"
+                full_content += sheet_content
+                
+                # Create chunks for each sheet with citation metadata
+                sheet_chunks = self._chunk_text(sheet_content)
+                for i, chunk in enumerate(sheet_chunks):
+                    chunk_id = f"{document_name}_{sheet_name}_c{i}"
+                    chunks.append({
+                        "id": chunk_id,
+                        "content": chunk,
+                        "metadata": {
+                            "source": document_name,
+                            "sheet": sheet_name,
+                            "chunk": i,
+                            "citation": f"{document_name}, Sheet: {sheet_name}"
+                        }
+                    })
+            
+            return full_content, chunks, metadata
+        except ImportError:
+            self.logger.error("pandas or openpyxl is not installed. Please install them to process Excel files.")
+            raise Exception("Excel processing libraries not available")
+        except Exception as e:
+            self.logger.error(f"Error processing Excel: {str(e)}")
+            raise
+    
+    def _process_markdown(self, file_path, document_name):
+        """
+        Process a Markdown file and extract its content.
+        
+        Args:
+            file_path: Path to the Markdown file
+            document_name: Name of the document
+            
+        Returns:
+            Tuple of (full_content, chunks, metadata)
+        """
+        try:
+            full_content = ""
+            chunks = []
+            metadata = {"source": document_name, "type": "markdown"}
+            
+            # Read the markdown file
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                full_content = f.read()
+            
+            # Create chunks with citation metadata
+            text_chunks = self._chunk_text(full_content)
+            for i, chunk in enumerate(text_chunks):
+                chunk_id = f"{document_name}_c{i}"
+                chunks.append({
+                    "id": chunk_id,
+                    "content": chunk,
+                    "metadata": {
+                        "source": document_name,
+                        "chunk": i,
+                        "citation": document_name
+                    }
+                })
+            
+            return full_content, chunks, metadata
+        except Exception as e:
+            self.logger.error(f"Error processing Markdown: {str(e)}")
+            raise
+    
+    def _process_html(self, file_path, document_name):
+        """
+        Process an HTML file and extract its content.
+        
+        Args:
+            file_path: Path to the HTML file
+            document_name: Name of the document
+            
+        Returns:
+            Tuple of (full_content, chunks, metadata)
+        """
+        try:
+            # Import BeautifulSoup here to avoid dependency issues
+            from bs4 import BeautifulSoup
+            
+            full_content = ""
+            chunks = []
+            metadata = {"source": document_name, "type": "html"}
+            
+            # Read the HTML file
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                html_content = f.read()
+            
+            # Parse HTML
+            soup = BeautifulSoup(html_content, 'html.parser')
+            
+            # Remove script and style elements
+            for script in soup(["script", "style"]):
+                script.extract()
+            
+            # Extract text
+            text = soup.get_text()
+            
+            # Clean up text (remove extra whitespace)
+            lines = (line.strip() for line in text.splitlines())
+            chunks_of_lines = (phrase.strip() for line in lines for phrase in line.split("  "))
+            full_content = '\n'.join(chunk for chunk in chunks_of_lines if chunk)
+            
+            # Extract title if available
+            title_tag = soup.find('title')
+            if title_tag:
+                metadata["title"] = title_tag.string
+            
+            # Create chunks with citation metadata
+            text_chunks = self._chunk_text(full_content)
+            for i, chunk in enumerate(text_chunks):
+                chunk_id = f"{document_name}_c{i}"
+                chunks.append({
+                    "id": chunk_id,
+                    "content": chunk,
+                    "metadata": {
+                        "source": document_name,
+                        "chunk": i,
+                        "citation": metadata.get("title", document_name)
+                    }
+                })
+            
+            return full_content, chunks, metadata
+        except ImportError:
+            self.logger.error("BeautifulSoup is not installed. Please install it to process HTML files.")
+            raise Exception("HTML processing library not available")
+        except Exception as e:
+            self.logger.error(f"Error processing HTML: {str(e)}")
+            raise
+            
+    def _process_json(self, file_path, document_name):
+        """
+        Process a JSON file and extract its content.
+        
+        Args:
+            file_path: Path to the JSON file
+            document_name: Name of the document
+            
+        Returns:
+            Tuple of (full_content, chunks, metadata)
+        """
+        try:
+            import json
+            
+            full_content = ""
+            chunks = []
+            metadata = {"source": document_name, "type": "json"}
+            
+            # Read the JSON file
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                json_data = json.load(f)
+            
+            # Convert JSON to formatted string
+            full_content = json.dumps(json_data, indent=2)
+            
+            # For large JSON files, process by sections
+            if len(full_content) > 10000:  # If JSON is large
+                # Process by top-level keys
+                for key, value in json_data.items():
+                    section = f"{key}:\n{json.dumps(value, indent=2)}"
+                    section_chunks = self._chunk_text(section)
+                    
+                    for i, chunk in enumerate(section_chunks):
+                        chunk_id = f"{document_name}_{key}_c{i}"
+                        chunks.append({
+                            "id": chunk_id,
+                            "content": chunk,
+                            "metadata": {
+                                "source": document_name,
+                                "section": key,
+                                "chunk": i,
+                                "citation": f"{document_name}, Section: {key}"
+                            }
+                        })
+            else:
+                # For smaller JSON, just chunk the whole thing
+                text_chunks = self._chunk_text(full_content)
+                for i, chunk in enumerate(text_chunks):
+                    chunk_id = f"{document_name}_c{i}"
+                    chunks.append({
+                        "id": chunk_id,
+                        "content": chunk,
+                        "metadata": {
+                            "source": document_name,
+                            "chunk": i,
+                            "citation": document_name
+                        }
+                    })
+            
+            return full_content, chunks, metadata
+        except Exception as e:
+            self.logger.error(f"Error processing JSON: {str(e)}")
+            raise
+    
     def _chunk_text(self, text, chunk_size=1000, overlap=100):
         """
-        Split text into overlapping chunks for better retrieval.
+        Split text into overlapping chunks based on semantic boundaries.
+        This improved chunking strategy respects paragraph and sentence boundaries
+        for more coherent chunks.
+        
+        Args:
+            text: The text to chunk
+            chunk_size: Maximum size of each chunk
+            overlap: Number of characters to overlap between chunks
+            
+        Returns:
+            List of text chunks
+        """
+        if not text:
+            return []
+            
+        # Use semantic chunking strategy based on settings
+        chunking_strategy = getattr(settings, 'CHUNKING_STRATEGY', 'semantic')
+        
+        if chunking_strategy == 'simple':
+            return self._chunk_text_simple(text, chunk_size, overlap)
+        else:
+            return self._chunk_text_semantic(text, chunk_size, overlap)
+            
+    def _chunk_text_simple(self, text, chunk_size=1000, overlap=100):
+        """
+        Simple chunking strategy that splits text by character count.
         
         Args:
             text: The text to chunk
@@ -326,31 +684,118 @@ class KnowledgeService:
             List of text chunks
         """
         chunks = []
-        if not text:
-            return chunks
+        
+        # Simple chunking with overlap
+        start = 0
+        while start < len(text):
+            end = min(start + chunk_size, len(text))
             
-        # Split text into sentences to avoid cutting in the middle of sentences
-        import re
-        sentences = re.split(r'(?<=[.!?])\s+', text)
+            # If this is not the first chunk and we're not at the end, 
+            # try to find a good breaking point (space or newline)
+            if start > 0 and end < len(text):
+                # Look for a space or newline to break at
+                break_point = text.rfind(' ', end - 50, end)
+                if break_point == -1:
+                    break_point = text.rfind('\n', end - 50, end)
+                
+                if break_point != -1:
+                    end = break_point + 1  # Include the space or newline
+            
+            # Add the chunk
+            chunks.append(text[start:end])
+            
+            # Move start position for next chunk, considering overlap
+            start = end - overlap if end < len(text) else len(text)
+        
+        return chunks
+            
+    def _chunk_text_semantic(self, text, chunk_size=1000, overlap=100):
+        """
+        Advanced chunking strategy that respects semantic boundaries like
+        paragraphs, sentences, and sections.
+        
+        Args:
+            text: The text to chunk
+            chunk_size: Maximum size of each chunk
+            overlap: Number of characters to overlap between chunks
+            
+        Returns:
+            List of text chunks
+        """
+        chunks = []
+        
+        # First split by paragraphs (double newlines)
+        paragraphs = re.split(r'\n\s*\n', text)
+        
+        # Then split paragraphs into sentences
+        sentence_pattern = r'(?<=[.!?])\s+'
         
         current_chunk = ""
-        for sentence in sentences:
-            # If adding this sentence would exceed chunk size, save current chunk and start a new one
-            if len(current_chunk) + len(sentence) > chunk_size and current_chunk:
-                chunks.append(current_chunk)
-                # Start new chunk with overlap from the end of the previous chunk
-                if len(current_chunk) > overlap:
-                    current_chunk = current_chunk[-overlap:] + sentence
+        last_sentences = []  # Keep track of recent sentences for overlap
+        
+        for paragraph in paragraphs:
+            # Skip empty paragraphs
+            if not paragraph.strip():
+                continue
+                
+            # Split paragraph into sentences
+            sentences = re.split(sentence_pattern, paragraph)
+            
+            for sentence in sentences:
+                # Skip empty sentences
+                if not sentence.strip():
+                    continue
+                    
+                # If adding this sentence would exceed chunk size, save current chunk and start a new one
+                if len(current_chunk) + len(sentence) + 1 > chunk_size and current_chunk:
+                    chunks.append(current_chunk)
+                    
+                    # Start new chunk with overlap from the end of the previous chunk
+                    # Use the last few sentences for overlap
+                    overlap_text = ""
+                    overlap_size = 0
+                    
+                    # Add sentences from the end until we reach desired overlap
+                    for prev_sentence in reversed(last_sentences):
+                        if overlap_size + len(prev_sentence) > overlap:
+                            break
+                        overlap_text = prev_sentence + " " + overlap_text
+                        overlap_size += len(prev_sentence) + 1
+                    
+                    current_chunk = overlap_text + sentence
+                    # Reset last_sentences but keep the current sentence
+                    last_sentences = [sentence]
                 else:
-                    current_chunk = sentence
-            else:
-                current_chunk += " " + sentence if current_chunk else sentence
+                    # Add sentence to current chunk with a space if needed
+                    if current_chunk and not current_chunk.endswith(" "):
+                        current_chunk += " "
+                    current_chunk += sentence
+                    
+                    # Keep track of recent sentences for overlap
+                    last_sentences.append(sentence)
+                    # Only keep enough sentences for overlap
+                    while sum(len(s) + 1 for s in last_sentences) > overlap * 2:
+                        last_sentences.pop(0)
+            
+            # Add paragraph break if not at the end of a chunk
+            if current_chunk and not current_chunk.endswith("\n"):
+                current_chunk += "\n\n"
         
         # Add the last chunk if it's not empty
         if current_chunk:
             chunks.append(current_chunk)
             
-        return chunks
+        # Handle case where chunks are still too large (fallback)
+        final_chunks = []
+        for chunk in chunks:
+            if len(chunk) > chunk_size * 1.5:  # If chunk is significantly larger than target
+                # Fall back to simple chunking for this large chunk
+                sub_chunks = self._chunk_text_simple(chunk, chunk_size, overlap)
+                final_chunks.extend(sub_chunks)
+            else:
+                final_chunks.append(chunk)
+                
+        return final_chunks
     
     def _store_chunks_in_chroma(self, knowledge_id, chunks, metadata, user_id):
         """
@@ -581,53 +1026,108 @@ class KnowledgeService:
             raise
 
     def _generate_embedding(self, text: str) -> List[float]:
-        """Generate embedding using Ollama"""
-        max_retries = 3
-        retry_delay = 1  # seconds
+        """
+        Generate an embedding for the given text using either Ollama or sentence-transformers.
+        Uses caching to avoid regenerating embeddings for the same text.
         
-        for attempt in range(max_retries):
-            try:
-                if not text or len(text.strip()) == 0:
-                    self.logger.warning("Attempted to generate embedding for empty text")
-                    # Return a zero vector of appropriate dimension as fallback
-                    return [0.0] * 768  # Common embedding dimension
-                
-                # Truncate very long texts to avoid issues with the embedding model
-                # Most embedding models have a token limit (e.g., 8192 tokens)
-                max_chars = 32000  # Approximate character limit (~8000 tokens)
-                if len(text) > max_chars:
-                    self.logger.warning(f"Text too long for embedding ({len(text)} chars), truncating to {max_chars} chars")
-                    text = text[:max_chars]
-                
-                response = self.ollama_client.embeddings(model=settings.EMBEDDING_MODEL, prompt=text)
-                
-                if not response or "embedding" not in response:
-                    self.logger.error(f"Invalid embedding response: {response}")
-                    if attempt < max_retries - 1:
-                        self.logger.info(f"Retrying embedding generation (attempt {attempt+1}/{max_retries})")
-                        time.sleep(retry_delay)
-                        continue
-                    return [0.0] * 768  # Return zero vector as fallback
+        Args:
+            text: The text to generate an embedding for
+            
+        Returns:
+            List of floats representing the embedding
+        """
+        if not text or len(text.strip()) == 0:
+            self.logger.warning("Empty text provided for embedding generation")
+            return []
+            
+        try:
+            # Check cache first
+            # Use a hash of the text as the cache key to avoid storing large strings
+            cache_key = hash(text)
+            if cache_key in self._embedding_cache:
+                self._cache_hits['embedding'] += 1
+                return self._embedding_cache[cache_key]
+            
+            self._cache_misses['embedding'] += 1
+            
+            # Truncate text if it's too long to avoid token limits
+            # Most embedding models have limits around 8192 tokens
+            max_chars = 8000  # Approximate character limit
+            if len(text) > max_chars:
+                self.logger.info(f"Truncating text from {len(text)} to {max_chars} characters for embedding")
+                text = text[:max_chars]
+            
+            # Check if we should use sentence-transformers (if available)
+            use_sentence_transformers = getattr(settings, 'USE_SENTENCE_TRANSFORMERS', False)
+            
+            if use_sentence_transformers:
+                try:
+                    # Import here to avoid dependency issues if not installed
+                    from sentence_transformers import SentenceTransformer
                     
-                return response["embedding"]
-            except Exception as e:
-                self.logger.error(f"Error generating embedding (attempt {attempt+1}/{max_retries}): {str(e)}")
-                traceback.print_exc()
+                    # Use a singleton pattern for the model to avoid reloading
+                    if not hasattr(self, '_sentence_transformer_model'):
+                        model_name = getattr(settings, 'SENTENCE_TRANSFORMER_MODEL', 'all-MiniLM-L6-v2')
+                        self.logger.info(f"Loading sentence-transformer model: {model_name}")
+                        self._sentence_transformer_model = SentenceTransformer(model_name)
+                    
+                    # Generate embedding
+                    embedding = self._sentence_transformer_model.encode(text, convert_to_numpy=True).tolist()
+                    self.logger.debug(f"Generated embedding with sentence-transformers, dimension: {len(embedding)}")
+                    
+                    # Cache the result
+                    self._embedding_cache[cache_key] = embedding
+                    
+                    # Manage cache size
+                    if len(self._embedding_cache) > self._embedding_cache_max_size:
+                        # Remove a random key to avoid complex LRU logic
+                        self._embedding_cache.pop(next(iter(self._embedding_cache)))
+                        
+                    return embedding
+                except ImportError:
+                    self.logger.warning("sentence-transformers not available, falling back to Ollama")
+                except Exception as e:
+                    self.logger.error(f"Error using sentence-transformers: {str(e)}")
+                    self.logger.warning("Falling back to Ollama for embeddings")
+            
+            # Use Ollama's embedding endpoint as fallback
+            embedding_model = getattr(settings, 'EMBEDDING_MODEL', 'nomic-embed-text')
+            response = self.ollama_client.embeddings(
+                model=embedding_model,
+                prompt=text,
+            )
+            
+            if not response or "embedding" not in response:
+                self.logger.error(f"Failed to generate embedding: {response}")
+                return []
                 
-                if attempt < max_retries - 1:
-                    self.logger.info(f"Retrying embedding generation in {retry_delay} seconds")
-                    time.sleep(retry_delay)
-                    retry_delay *= 2  # Exponential backoff
-                else:
-                    self.logger.error(f"Failed to generate embedding after {max_retries} attempts")
-                    # Return a zero vector as fallback
-                    return [0.0] * 768
-        
-        # This should not be reached, but just in case
-        return [0.0] * 768
+            embedding = response["embedding"]
+            
+            # Validate embedding
+            if not embedding or len(embedding) == 0:
+                self.logger.error("Empty embedding returned from Ollama")
+                return []
+                
+            # Check if embedding is all zeros or very small values
+            if all(abs(v) < 1e-6 for v in embedding):
+                self.logger.warning("Embedding contains all zeros or very small values")
+            
+            # Cache the result
+            self._embedding_cache[cache_key] = embedding
+            
+            # Manage cache size
+            if len(self._embedding_cache) > self._embedding_cache_max_size:
+                # Remove a random key to avoid complex LRU logic
+                self._embedding_cache.pop(next(iter(self._embedding_cache)))
+            
+            return embedding
+        except Exception as e:
+            self.logger.error(f"Error generating embedding: {str(e)}")
+            traceback.print_exc()
+            return []
 
     def find_relevant_context(self, query: str, user_id: int, max_results: int = 3) -> List[dict]:
-        """Find relevant knowledge documents using ChromaDB"""
+        """Find relevant knowledge documents using hybrid search (semantic + keyword)"""
         try:
             if not query or len(query.strip()) == 0:
                 self.logger.warning("Empty query provided to find_relevant_context")
@@ -639,6 +1139,23 @@ class KnowledgeService:
                 self.logger.info(f"User {user_id} has no knowledge documents")
                 return []
             
+            # Determine if we should use hybrid search
+            use_hybrid_search = getattr(settings, 'USE_HYBRID_SEARCH', True)
+            
+            if use_hybrid_search:
+                self.logger.info(f"Using hybrid search for query: {query[:50]}...")
+                return self._hybrid_search(query, user_id, max_results)
+            else:
+                self.logger.info(f"Using semantic search for query: {query[:50]}...")
+                return self._semantic_search(query, user_id, max_results)
+        except Exception as e:
+            self.logger.error(f"Error finding relevant context: {str(e)}")
+            traceback.print_exc()
+            return []
+            
+    def _semantic_search(self, query: str, user_id: int, max_results: int = 3) -> List[dict]:
+        """Find relevant knowledge documents using semantic search"""
+        try:
             self.logger.info(f"Generating embedding for query: {query[:50]}...")
             query_embedding = self._generate_embedding(query)
             
@@ -681,18 +1198,158 @@ class KnowledgeService:
                             "citation": meta.get("citation", meta.get("source", "Unknown Source"))
                         },
                         "similarity": similarity,
+                        "search_type": "semantic"
                     })
             
             # Sort by similarity and limit to max_results
             formatted_results.sort(key=lambda x: x["similarity"], reverse=True)
             result_count = len(formatted_results[:max_results])
-            self.logger.info(f"Found {result_count} relevant documents with similarity > 0.5")
+            self.logger.info(f"Found {result_count} relevant documents with semantic search")
             
             return formatted_results[:max_results]
         except Exception as e:
-            self.logger.error(f"Error finding relevant context: {str(e)}")
+            self.logger.error(f"Error in semantic search: {str(e)}")
             traceback.print_exc()
             return []
+            
+    def _keyword_search(self, query: str, user_id: int, max_results: int = 3) -> List[dict]:
+        """Find relevant knowledge documents using keyword search"""
+        try:
+            # Get all knowledge documents for the user
+            user_knowledge = self.repository.get_user_knowledge(user_id)
+            if not user_knowledge:
+                return []
+                
+            # Extract keywords from query (simple approach)
+            # Remove common stop words and split by spaces
+            stop_words = {'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 
+                         'in', 'on', 'at', 'to', 'for', 'with', 'by', 'about', 'like', 
+                         'through', 'over', 'before', 'after', 'between', 'under'}
+            
+            # Convert query to lowercase and tokenize
+            query_lower = query.lower()
+            query_tokens = [token.strip() for token in query_lower.split() if token.strip() and token.strip().lower() not in stop_words]
+            
+            # Get chunks for all knowledge documents
+            all_chunks = []
+            for knowledge in user_knowledge:
+                chunks = self.get_chunks_for_knowledge(knowledge.id)
+                all_chunks.extend(chunks)
+                
+            # Score chunks based on keyword matches
+            scored_chunks = []
+            for chunk in all_chunks:
+                content = chunk.get('content', '').lower()
+                metadata = chunk.get('metadata', {})
+                
+                # Count keyword occurrences
+                keyword_count = sum(content.count(keyword) for keyword in query_tokens)
+                
+                # Calculate a simple TF score
+                score = keyword_count / (len(content.split()) + 1) if content else 0
+                
+                # Only include chunks with at least one keyword match
+                if score > 0:
+                    scored_chunks.append({
+                        "id": chunk.get('id', f"chunk_{len(scored_chunks)}"),
+                        "content": chunk.get('content', ''),
+                        "metadata": metadata,
+                        "similarity": score,
+                        "search_type": "keyword"
+                    })
+            
+            # Sort by score and limit results
+            scored_chunks.sort(key=lambda x: x["similarity"], reverse=True)
+            result_count = len(scored_chunks[:max_results])
+            self.logger.info(f"Found {result_count} relevant documents with keyword search")
+            
+            return scored_chunks[:max_results]
+        except Exception as e:
+            self.logger.error(f"Error in keyword search: {str(e)}")
+            traceback.print_exc()
+            return []
+            
+    def _hybrid_search(self, query: str, user_id: int, max_results: int = 3) -> List[dict]:
+        """
+        Combine semantic and keyword search results for better retrieval.
+        Uses caching to improve performance for repeated queries.
+        """
+        try:
+            # Generate cache key
+            cache_key = f"search_{hash(query)}_{user_id}_{max_results}"
+            
+            # Check if we have a cached result that's still valid
+            if cache_key in self._search_results_cache:
+                cache_entry = self._search_results_cache[cache_key]
+                cache_time = cache_entry.get('time', 0)
+                current_time = time.time()
+                
+                # Check if the cache entry is still valid
+                if current_time - cache_time < self._search_results_cache_ttl:
+                    self._cache_hits['search'] += 1
+                    return cache_entry.get('results', [])
+            
+            self._cache_misses['search'] += 1
+            
+            # Get results from both search methods
+            semantic_results = self._semantic_search(query, user_id, max_results)
+            keyword_results = self._keyword_search(query, user_id, max_results)
+            
+            # Combine results, avoiding duplicates
+            combined_results = []
+            seen_content = set()
+            
+            # First add semantic results (they usually have higher quality)
+            for result in semantic_results:
+                content_hash = hash(result["content"])
+                if content_hash not in seen_content:
+                    seen_content.add(content_hash)
+                    combined_results.append(result)
+            
+            # Then add keyword results that aren't duplicates
+            for result in keyword_results:
+                content_hash = hash(result["content"])
+                if content_hash not in seen_content:
+                    seen_content.add(content_hash)
+                    combined_results.append(result)
+            
+            # Re-rank combined results
+            # For simplicity, we'll normalize scores and use a weighted combination
+            # Semantic search gets higher weight (0.7) than keyword search (0.3)
+            for result in combined_results:
+                if result["search_type"] == "semantic":
+                    result["combined_score"] = result["similarity"] * 0.7
+                else:
+                    result["combined_score"] = result["similarity"] * 0.3
+            
+            # Sort by combined score
+            combined_results.sort(key=lambda x: x["combined_score"], reverse=True)
+            
+            # Limit to max_results
+            final_results = combined_results[:max_results]
+            self.logger.info(f"Hybrid search returned {len(final_results)} results")
+            
+            # Cache the results
+            self._search_results_cache[cache_key] = {
+                'results': final_results,
+                'time': time.time()
+            }
+            
+            # Manage cache size
+            if len(self._search_results_cache) > self._search_results_cache_max_size:
+                # Find and remove the oldest entry
+                oldest_key = min(
+                    self._search_results_cache.keys(),
+                    key=lambda k: self._search_results_cache[k].get('time', 0)
+                )
+                self._search_results_cache.pop(oldest_key)
+            
+            return final_results
+        except Exception as e:
+            self.logger.error(f"Error in hybrid search: {str(e)}")
+            traceback.print_exc()
+            # Fall back to semantic search if hybrid fails
+            return self._semantic_search(query, user_id, max_results)
 
     def bulk_create_knowledge(self, data_list: List[dict], user):
         """Bulk create knowledge documents"""
@@ -821,7 +1478,8 @@ class KnowledgeService:
 
     def get_chunks_for_knowledge(self, knowledge_id):
         """
-        Get all chunks for a specific knowledge document from ChromaDB.
+        Get all chunks for a specific knowledge document.
+        Uses caching to avoid repeated database queries.
         
         Args:
             knowledge_id: ID of the knowledge document
@@ -830,43 +1488,44 @@ class KnowledgeService:
             List of chunks with content and metadata
         """
         try:
-            # Query ChromaDB for all chunks with this knowledge_id
+            # Check cache first
+            cache_key = f"chunks_{knowledge_id}"
+            if cache_key in self._chunks_cache:
+                self._cache_hits['chunks'] += 1
+                return self._chunks_cache[cache_key]
+                
+            self._cache_misses['chunks'] += 1
+            
+            # Query ChromaDB for chunks with this knowledge_id
             results = self.collection.get(
                 where={"knowledge_id": str(knowledge_id)},
-                include=["documents", "metadatas"]
+                include=["documents", "metadatas", "embeddings"]
             )
             
-            if not results or not results["documents"] or len(results["documents"]) == 0:
-                self.logger.info(f"No chunks found for knowledge {knowledge_id}")
-                
-                # Try to get the knowledge document and create a chunk if it exists
-                knowledge = self.repository.get_by_id(knowledge_id)
-                if knowledge and knowledge.content:
-                    self.logger.info(f"Creating fallback chunk for knowledge {knowledge_id}")
-                    return [{
-                        "content": knowledge.content,
-                        "metadata": {
-                            "knowledge_id": str(knowledge_id),
-                            "user_id": str(knowledge.user_id),
-                            "name": knowledge.name,
-                            "citation": knowledge.name
-                        }
-                    }]
+            if not results or not results["documents"]:
                 return []
                 
-            # Format results
+            # Format chunks
             chunks = []
             for i, (doc, meta) in enumerate(zip(results["documents"], results["metadatas"])):
+                chunk_id = f"{knowledge_id}_c{i}"
                 chunks.append({
+                    "id": chunk_id,
                     "content": doc,
                     "metadata": meta
                 })
                 
-            self.logger.info(f"Retrieved {len(chunks)} chunks for knowledge {knowledge_id}")
+            # Cache the results
+            self._chunks_cache[cache_key] = chunks
+            
+            # Manage cache size
+            if len(self._chunks_cache) > self._chunks_cache_max_size:
+                # Remove a random key
+                self._chunks_cache.pop(next(iter(self._chunks_cache)))
+                
             return chunks
         except Exception as e:
             self.logger.error(f"Error getting chunks for knowledge {knowledge_id}: {str(e)}")
-            traceback.print_exc()
             return []
 
     def get_citations_for_chunks(self, chunk_ids):
@@ -1004,26 +1663,14 @@ class KnowledgeService:
         """
         try:
             self.logger.info(f"get_citations_for_response called with {len(relevant_chunks) if relevant_chunks else 0} chunks")
-            print(f"DEBUG: get_citations_for_response called with {len(relevant_chunks) if relevant_chunks else 0} chunks")
             
             if not relevant_chunks:
                 self.logger.warning("No relevant chunks provided for citation generation")
                 return {"citations": [], "has_citations": False}
             
-            # Log the structure of the first chunk to understand its format
-            if relevant_chunks and len(relevant_chunks) > 0:
-                first_chunk = relevant_chunks[0]
-                self.logger.info(f"First chunk type: {type(first_chunk)}, content: {str(first_chunk)[:100]}...")
-                print(f"DEBUG: First chunk type: {type(first_chunk)}, content: {str(first_chunk)[:100]}...")
-                
-                # If it's a dict, log its keys
-                if isinstance(first_chunk, dict):
-                    self.logger.info(f"First chunk keys: {list(first_chunk.keys())}")
-                    print(f"DEBUG: First chunk keys: {list(first_chunk.keys())}")
-                
-            # Extract chunk IDs from relevant chunks
+            # Extract chunk IDs and metadata from relevant chunks
             chunk_ids = []
-            chunk_metadata = {}  # Store metadata directly from chunks
+            chunk_metadata = {}
             
             for chunk in relevant_chunks:
                 if isinstance(chunk, dict):
@@ -1041,81 +1688,104 @@ class KnowledgeService:
                         chunk_id = f"temp_chunk_{len(chunk_ids)}"
                         
                     chunk_ids.append(chunk_id)
-                    print(f"DEBUG: Added chunk ID: {chunk_id}")
                     
                     # Store metadata directly if available
                     if "metadata" in chunk and isinstance(chunk["metadata"], dict):
                         chunk_metadata[chunk_id] = chunk["metadata"]
-                        print(f"DEBUG: Stored metadata directly for chunk {chunk_id}")
-                        
-                elif isinstance(chunk, str):
-                    # If chunk is a string ID
-                    chunk_ids.append(chunk)
-                    print(f"DEBUG: Added string chunk ID: {chunk}")
-                else:
-                    # Log unexpected chunk format
-                    self.logger.warning(f"Unexpected chunk format: {type(chunk)}, {str(chunk)[:50]}...")
-                    print(f"DEBUG: Unexpected chunk format: {type(chunk)}, {str(chunk)[:50]}...")
-                    
-            self.logger.info(f"Extracted {len(chunk_ids)} chunk IDs for citation retrieval")
-            print(f"DEBUG: Extracted {len(chunk_ids)} chunk IDs for citation retrieval: {chunk_ids}")
             
-            # If we have no chunk IDs, return empty citations
-            if not chunk_ids:
-                return {"citations": [], "has_citations": False}
-                    
-            # Get citation information for these chunks from ChromaDB
-            citation_info = self.get_citations_for_chunks(chunk_ids)
-            self.logger.info(f"Retrieved citation info for {len(citation_info)} chunks from ChromaDB")
-            print(f"DEBUG: Retrieved citation info for {len(citation_info)} chunks from ChromaDB")
+            # Get citation information for chunks
+            citations_from_db = self.get_citations_for_chunks(chunk_ids)
             
-            # Merge with directly available metadata
-            for chunk_id, metadata in chunk_metadata.items():
-                if chunk_id not in citation_info:
-                    # Use the metadata we already have
-                    citation_info[chunk_id] = {
-                        "source": metadata.get("source", "Unknown Source"),
-                        "citation": metadata.get("citation", metadata.get("source", "Unknown Source")),
-                        "knowledge_id": metadata.get("knowledge_id", ""),
-                    }
-                    
-                    # Add page/row information if available
-                    if "page" in metadata:
-                        citation_info[chunk_id]["page"] = metadata["page"]
-                    if "row" in metadata:
-                        citation_info[chunk_id]["row"] = metadata["row"]
-                        
-                    print(f"DEBUG: Added citation info from chunk metadata for {chunk_id}")
+            # Combine with direct metadata
+            all_citations = {}
+            for chunk_id in chunk_ids:
+                if chunk_id in citations_from_db:
+                    all_citations[chunk_id] = citations_from_db[chunk_id]
+                elif chunk_id in chunk_metadata:
+                    all_citations[chunk_id] = chunk_metadata[chunk_id]
             
-            # Format citations and remove duplicates
+            # Look for citation patterns in the response text
+            # Use more specific patterns to avoid matching non-citation text
+            citation_patterns = [
+                r'\[(\d+)\]',  # [1], [2], etc.
+                r'\[(Source|Reference|Citation|Document)\s+(\d+|[A-Za-z]+)\]',  # [Source 1], [Reference A]
+                r'Source\s+(\d+|[A-Za-z]+)',  # Source 1 or Source A
+                r'Reference\s+(\d+|[A-Za-z]+)',  # Reference 1
+                r'Citation\s+(\d+|[A-Za-z]+)',  # Citation 1
+                r'Document\s+(\d+|[A-Za-z]+)'   # Document 1
+            ]
+            
+            # Clean the response text first - remove any sequences of [?] or [0]
+            cleaned_response = re.sub(r'(\[\?+\]|\[0+\])+', '', response_text)
+            
+            found_citations = set()
+            for pattern in citation_patterns:
+                matches = re.finditer(pattern, cleaned_response)
+                for match in matches:
+                    # For patterns with multiple capture groups, use the last non-empty group
+                    citation_text = None
+                    if match.groups():
+                        for group in match.groups():
+                            if group:
+                                citation_text = group
+                    else:
+                        citation_text = match.group(0)
+                    
+                    # Skip citations that are just question marks or zeros
+                    if citation_text and not re.match(r'^[\?\[\]0]+$', citation_text):
+                        found_citations.add(citation_text.strip())
+            
+            # Format the citations
             formatted_citations = []
-            seen_citations = set()
             
-            for chunk_id, info in citation_info.items():
-                citation = self.format_citation(info)
-                print(f"DEBUG: Formatted citation for chunk {chunk_id}: {citation}")
-                if citation not in seen_citations:
-                    seen_citations.add(citation)
+            # First add citations found in the text
+            for citation_text in found_citations:
+                # Try to match citation text with our chunks
+                matched = False
+                for chunk_id, citation_info in all_citations.items():
+                    citation_source = citation_info.get("citation", "")
+                    if citation_text in citation_source or citation_source in citation_text:
+                        formatted_citation = self.format_citation(citation_info)
+                        formatted_citations.append({
+                            "text": citation_text,
+                            "source": formatted_citation,
+                            "chunk_id": chunk_id,
+                            "knowledge_id": citation_info.get("knowledge_id", ""),
+                            "metadata": citation_info
+                        })
+                        matched = True
+                        break
+                
+                # If no match, add as is
+                if not matched:
                     formatted_citations.append({
-                        "text": citation,
-                        "chunk_id": chunk_id,
-                        "knowledge_id": info.get("knowledge_id", ""),
-                        "metadata": info
+                        "text": citation_text,
+                        "source": citation_text,
+                        "chunk_id": f"auto_citation_{len(formatted_citations)}",
+                        "knowledge_id": "",
+                        "metadata": {"citation": citation_text}
                     })
-                    
-            self.logger.info(f"Generated {len(formatted_citations)} unique citations")
-            print(f"DEBUG: Generated {len(formatted_citations)} unique citations")
+            
+            # If no citations were found in text but we have chunks, add them as implicit citations
+            if not formatted_citations and all_citations:
+                for chunk_id, citation_info in all_citations.items():
+                    formatted_citation = self.format_citation(citation_info)
+                    formatted_citations.append({
+                        "text": formatted_citation,
+                        "source": formatted_citation,
+                        "chunk_id": chunk_id,
+                        "knowledge_id": citation_info.get("knowledge_id", ""),
+                        "metadata": citation_info
+                    })
             
             return {
                 "citations": formatted_citations,
-                "has_citations": len(formatted_citations) > 0,
-                "response_text": response_text
+                "has_citations": len(formatted_citations) > 0
             }
         except Exception as e:
-            self.logger.error(f"Error generating citations for response: {str(e)}")
-            print(f"DEBUG: Error generating citations for response: {str(e)}")
+            self.logger.error(f"Error generating citations: {str(e)}")
             traceback.print_exc()
-            return {"citations": [], "has_citations": False, "response_text": response_text}
+            return {"citations": [], "has_citations": False}
 
     def _process_file(self, knowledge, file):
         """
@@ -1165,3 +1835,103 @@ class KnowledgeService:
                 "status": "error",
                 "error_message": str(e),
             })
+
+    def get_cache_stats(self):
+        """Get statistics about cache performance"""
+        stats = {
+            'hits': self._cache_hits,
+            'misses': self._cache_misses,
+            'sizes': {
+                'embedding': len(self._embedding_cache),
+                'search': len(self._search_results_cache),
+                'chunks': len(self._chunks_cache)
+            }
+        }
+        
+        # Calculate hit rates
+        hit_rates = {}
+        for cache_type in self._cache_hits.keys():
+            total = self._cache_hits[cache_type] + self._cache_misses[cache_type]
+            hit_rates[cache_type] = self._cache_hits[cache_type] / total if total > 0 else 0
+            
+        stats['hit_rates'] = hit_rates
+        return stats
+
+    def _process_pptx(self, file_path, document_name):
+        """
+        Process a PowerPoint presentation (PPTX/PPT) and extract its content.
+        
+        Args:
+            file_path: Path to the PowerPoint presentation
+            document_name: Name of the document
+            
+        Returns:
+            Tuple of (full_content, chunks, metadata)
+        """
+        try:
+            # Import pptx library here to avoid dependency issues
+            from pptx import Presentation
+            
+            full_content = ""
+            chunks = []
+            metadata = {"source": document_name, "type": "pptx"}
+            
+            # Open the presentation
+            presentation = Presentation(file_path)
+            
+            # Extract text from slides
+            slides_content = []
+            
+            for slide_index, slide in enumerate(presentation.slides):
+                slide_text = []
+                slide_number = slide_index + 1
+                
+                # Get slide title if available
+                if slide.shapes.title and slide.shapes.title.text:
+                    slide_text.append(f"Slide {slide_number} - Title: {slide.shapes.title.text}")
+                else:
+                    slide_text.append(f"Slide {slide_number}")
+                
+                # Extract text from all shapes in the slide
+                for shape in slide.shapes:
+                    if hasattr(shape, "text") and shape.text:
+                        # Skip if it's the title we already added
+                        if shape == slide.shapes.title:
+                            continue
+                        slide_text.append(shape.text)
+                
+                # Extract text from tables in the slide
+                for shape in slide.shapes:
+                    if shape.has_table:
+                        table = shape.table
+                        for row in table.rows:
+                            row_text = " | ".join([cell.text for cell in row.cells if cell.text.strip()])
+                            if row_text.strip():
+                                slide_text.append(row_text)
+                
+                # Combine all text from this slide
+                slide_content = "\n".join(slide_text)
+                slides_content.append(slide_content)
+                
+                # Create a chunk for each slide with citation metadata
+                chunk_id = f"{document_name}_slide{slide_number}"
+                chunks.append({
+                    "id": chunk_id,
+                    "content": slide_content,
+                    "metadata": {
+                        "source": document_name,
+                        "slide": slide_number,
+                        "citation": f"{document_name}, Slide {slide_number}"
+                    }
+                })
+            
+            # Combine all slides
+            full_content = "\n\n".join(slides_content)
+            
+            return full_content, chunks, metadata
+        except ImportError:
+            self.logger.error("python-pptx is not installed. Please install it to process PPTX files.")
+            raise Exception("PPTX processing library not available")
+        except Exception as e:
+            self.logger.error(f"Error processing PPTX: {str(e)}")
+            raise

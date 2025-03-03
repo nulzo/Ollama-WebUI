@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import JSONField
 
 
 class CustomUser(AbstractUser):
@@ -22,6 +23,7 @@ class Settings(models.Model):
     theme = models.CharField(max_length=30, default="dark")
     default_model = models.CharField(max_length=50, default="llama3.2:3b")
     inline_citations_enabled = models.BooleanField(default=True)
+    prompt_settings = JSONField(default=dict, blank=True, null=True)
 
     class Meta:
         verbose_name_plural = "Settings"

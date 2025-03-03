@@ -119,11 +119,26 @@ class ChatService:
                 return ""
 
             print(f"DEBUG: Found {len(relevant_docs)} relevant documents")
-            context = "Relevant context:\n\n"
+            
+            # Format the context in a way that's optimized for LLMs
+            context = "I'll provide you with some relevant information to help answer the user's question. " \
+                      "Please use this information to inform your response and cite the sources when appropriate.\n\n"
+            
+            # Add each document with clear separation and citation information
             for i, doc in enumerate(relevant_docs):
                 print(f"DEBUG: Document {i+1} content length: {len(doc['content'])}")
                 citation = doc.get('metadata', {}).get('citation', f"Document {i+1}")
-                context += f"---\n[{citation}]\n{doc['content']}\n"
+                source_name = doc.get('metadata', {}).get('name', f"Source {i+1}")
+                
+                # Add document with clear formatting
+                context += f"SOURCE {i+1}: {source_name}\n"
+                context += f"CITATION: {citation}\n"
+                context += f"CONTENT:\n{doc['content']}\n\n"
+            
+            # Add instructions for the LLM
+            context += "\nPlease use the above information to answer the user's question. " \
+                       "If the information doesn't contain the answer, just say so - don't make up information. " \
+                       "When using information from the sources, cite them using the citation format provided.\n\n"
             
             print(f"DEBUG: Final context length: {len(context)}")
             return context
@@ -444,8 +459,24 @@ class ChatService:
 
     def _get_provider(self, model_name: str, user_id: int = None):
         """Get appropriate provider based on model name"""
-        provider_name = "openai" if model_name.startswith("gpt") else "ollama"
-        return self.provider_factory.get_provider(provider_name, user_id)
+        try:
+            # Determine provider name based on model prefix
+            provider_name = "openai" if model_name.startswith("gpt") else "ollama"
+            self.logger.info(f"Using provider: {provider_name} for model: {model_name}")
+            
+            # Get provider from factory
+            provider = self.provider_factory.get_provider(provider_name, user_id or 1)
+            self.logger.info(f"Provider initialized: {provider}")
+            
+            return provider
+        except Exception as e:
+            self.logger.error(f"Error initializing provider: {str(e)}")
+            # Return a default provider as fallback
+            try:
+                return self.provider_factory.get_provider("ollama", {"endpoint": "http://localhost:11434", "is_enabled": True})
+            except Exception as fallback_error:
+                self.logger.error(f"Failed to initialize fallback provider: {str(fallback_error)}")
+                raise
 
     def get_prompts(
         self, model_name: str, style: str = "", count: int = 5, user_id: int = None
@@ -454,8 +485,11 @@ class ChatService:
         Get prompts based on model, style, and count
         """
         try:
+            self.logger.info(f"Getting prompts with model: {model_name}, style: {style}, count: {count}, user_id: {user_id}")
+            
             # Initialize provider
             provider = self._get_provider(model_name, user_id)
+            self.logger.info(f"Provider initialized: {provider}")
 
             # Initialize prompt service with provider
             prompt_service = PromptService(
@@ -464,12 +498,16 @@ class ChatService:
                 builder_service=PromptBuilderService(),
                 provider=provider,
             )
+            self.logger.info(f"Prompt service initialized")
 
-            # Get prompts
-            prompts = prompt_service.get_actionable_prompts(style)
+            # Get prompts with the specified model
+            self.logger.info(f"Calling get_actionable_prompts with style: {style}, model: {model_name}")
+            prompts = prompt_service.get_actionable_prompts(style, model_name)
+            self.logger.info(f"Received prompts: {prompts}")
 
             # Limit prompts to requested count
             limited_prompts = prompts[:count] if count else prompts
+            self.logger.info(f"Limited prompts to {count}: {limited_prompts}")
 
             return {"prompts": limited_prompts}
 

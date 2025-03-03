@@ -53,10 +53,12 @@ export function KnowledgeSelector({ selectedKnowledgeIds, onSelectionChange }: K
         <Button 
           variant="outline" 
           size="sm" 
-          className={`gap-2 ${selectedCount > 0 ? 'border-primary text-primary' : ''}`}
+          className={`gap-2 px-2 h-7 w-7 text-xs bg-transparent hover:bg-transparent shadow-none hover:text-foreground text-muted-foreground ${selectedCount > 0 ? 'text-primary' : ''}`}
         >
           <Database className="size-4" />
-          {selectedCount > 0 ? `${selectedCount} Knowledge Source${selectedCount > 1 ? 's' : ''}` : 'Knowledge'}
+          <span className="sr-only">
+            {selectedCount > 0 ? `${selectedCount} Knowledge Source${selectedCount > 1 ? 's' : ''}` : 'Knowledge'}
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0 w-80" align="end">

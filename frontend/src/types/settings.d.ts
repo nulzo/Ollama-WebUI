@@ -20,8 +20,14 @@ export interface OpenAISettings {
   opts?: Parameters;
 }
 
+export interface PromptSettings {
+  use_llm_generated?: boolean;
+  model?: string;
+}
+
 export interface Settings {
   ollama_settings?: OllamaSettings;
   openai_settings?: OpenAISettings;
   theme?: Theme;
+  prompt_settings?: PromptSettings;
 }

@@ -222,18 +222,18 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
         >
           <img
             src={imageUrl}
-            className="mb-1 rounded-lg w-full h-[250px] transition-all object-cover"
+            className="mb-1 rounded-lg w-full h-[250px] object-cover transition-all"
             alt="Preview"
           />
           {hasMultipleImages && (
-            <div className="right-2 bottom-2 absolute bg-black/50 backdrop-blur-xs px-3 py-1 rounded-full text-foreground text-xs">
+            <div className="right-2 bottom-2 absolute bg-black/50 backdrop-blur-xs px-3 py-1 rounded-full sm:max-w-none text-foreground text-xs">
               {images.length} images
             </div>
           )}
         </motion.div>
       </DialogTrigger>
 
-      <DialogContent className="bg-black/50 backdrop-blur-md p-0 border-none w-screen h-screen max-w-none">
+      <DialogContent className="bg-black/50 backdrop-blur-md p-0 border-none w-[100%] h-screen">
         <div
           ref={containerRef}
           className="relative flex justify-center items-center w-full h-full"

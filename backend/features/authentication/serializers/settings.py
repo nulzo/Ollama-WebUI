@@ -9,5 +9,5 @@ class SettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Settings
-        fields = ["id", "theme", "default_model", "providers", "inline_citations_enabled"]
+        fields = ["id", "theme", "default_model", "providers", "inline_citations_enabled", "prompt_settings"]
         read_only_fields = ["id"]

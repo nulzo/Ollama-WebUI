@@ -195,14 +195,41 @@ export const SidebarActions = ({ isCollapsed, animationDuration }: SidebarAction
   return (
     <div className="p-2">
       <div className="mb-2">
-        <SidebarButton
-          icon={Plus}
-          label="New Chat"
-          onClick={() => navigate('/')}
-          isCollapsed={isCollapsed}
-          animationDuration={animationDuration}
-          variant="secondary"
-        />
+      <Button
+      variant="badge"
+      size="icon"
+      className="group relative flex justify-start gap-2.5 w-full h-9 font-bold text-sm"
+      onClick={() => navigate("/")}
+    >
+      <div className="left-3 absolute flex items-center">
+        {!isCollapsed && (
+          <motion.span
+            className="ml-2 overflow-hidden text-sm whitespace-nowrap"
+            animate={{
+              width: isCollapsed ? 0 : 'auto',
+              opacity: isCollapsed ? 0 : 1,
+            }}
+            transition={{
+              duration: animationDuration,
+              ease: 'easeInOut',
+            }}
+          >
+            Chat
+          </motion.span>
+        )}
+        {isCollapsed && (
+          <motion.span
+            className="overflow-hidden whitespace-nowrap"
+            transition={{
+              duration: animationDuration,
+              ease: 'easeInOut',
+            }}
+          >
+            <Plus className="size-4 shrink-0" />
+          </motion.span>
+        )}
+      </div>
+    </Button>
       </div>
 
       <SidebarButton

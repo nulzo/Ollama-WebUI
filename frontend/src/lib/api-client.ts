@@ -117,6 +117,14 @@ class ApiClient {
       ? this.baseURL
       : `${window.location.origin}/${this.baseURL}`;
 
+    // Debug URL construction
+    console.log('API URL construction:', { 
+      baseURL: this.baseURL, 
+      endpoint, 
+      base,
+      fullURL: urlJoin(base, endpoint).replace(/([^:]\/)\/+/g, '$1')
+    });
+
     // Remove any double slashes (except after http:// or https://)
     return urlJoin(base, endpoint).replace(/([^:]\/)\/+/g, '$1');
   }
@@ -129,12 +137,15 @@ class ApiClient {
       });
     }
 
+    console.log('Making GET request to:', url.toString());
+
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: authRequestHeaders(),
       credentials: 'include',
     });
 
+    console.log('GET response status:', response.status);
     await this.handleResponse(response);
     return response.json();
   }

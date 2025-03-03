@@ -52,12 +52,13 @@ export default function CannedQuestions({ theme, onQuestionClick, onThemeChange 
   
   const [questions, setQuestions] = useState<string[]>(defaultQuestions[theme]);
   
+  console.log("About to call usePrompts with:", { theme, promptModel, enabled: !isLoadingSettings });
   const { data: promptsData, isLoading, error } = usePrompts({
     style: theme,
     model: promptModel,
     queryConfig: {
-      enabled: useLlmGenerated && !isLoadingSettings,
-      retry: 1,
+      enabled: !isLoadingSettings, // Always fetch prompts regardless of useLlmGenerated setting
+      retry: 2,
       staleTime: 5 * 60 * 1000, // 5 minutes
     },
   });
@@ -68,8 +69,9 @@ export default function CannedQuestions({ theme, onQuestionClick, onThemeChange 
   console.log("Error:", error);
   
   useEffect(() => {
-    if (useLlmGenerated && promptsData?.prompts && promptsData.prompts.length > 0) {
-      console.log("Using LLM-generated prompts:", promptsData.prompts);
+    console.log("useEffect triggered with:", { theme, promptsData });
+    if (promptsData?.prompts && promptsData.prompts.length > 0) {
+      console.log("Using API-provided prompts:", promptsData.prompts);
       // Extract questions from LLM-generated prompts
       const generatedQuestions = promptsData.prompts.map(prompt => prompt.prompt);
       setQuestions(generatedQuestions);
@@ -78,7 +80,11 @@ export default function CannedQuestions({ theme, onQuestionClick, onThemeChange 
       // Fallback to default questions
       setQuestions(defaultQuestions[theme]);
     }
-  }, [theme, promptsData, useLlmGenerated]);
+  }, [theme, promptsData]);
+
+  // Ensure we always have questions to display
+  const displayQuestions = questions.length > 0 ? questions : defaultQuestions[theme];
+  console.log("Final display questions:", displayQuestions);
 
   return (
     <div className="space-y-3">
@@ -95,9 +101,19 @@ export default function CannedQuestions({ theme, onQuestionClick, onThemeChange 
             {isLoading ? (
               <div className="text-muted-foreground text-sm">Loading prompts...</div>
             ) : error ? (
-              <div className="text-red-500 text-sm">Error loading prompts</div>
+              displayQuestions.map((question) => (
+                <Button
+                  key={question}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onQuestionClick(question)}
+                  className="hover:bg-secondary rounded-full hover:text-secondary-foreground transition-colors"
+                >
+                  {question}
+                </Button>
+              ))
             ) : (
-              questions.map((question) => (
+              displayQuestions.map((question) => (
                 <Button
                   key={question}
                   variant="outline"

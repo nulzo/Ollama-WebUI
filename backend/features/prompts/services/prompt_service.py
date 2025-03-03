@@ -149,6 +149,12 @@ class PromptService:
                 # Parse the JSON response
                 prompts = json.loads(response)
                 self.logger.info(f"Parsed prompts: {prompts}")
+                
+                # Check if prompts exist and are not empty
+                if not prompts.get("prompts") or len(prompts.get("prompts", [])) == 0:
+                    self.logger.warning("Empty prompts in response, using defaults")
+                    return self.get_default_prompts(style)
+                    
                 return prompts.get("prompts", self.get_default_prompts(style))
             except (json.JSONDecodeError, KeyError) as e:
                 self.logger.error(f"Failed to parse provider response: {e}")

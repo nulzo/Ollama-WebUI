@@ -11,64 +11,41 @@ import { Message } from '../message';
 import CannedQuestions from './canned-questions';
 import AutoResizeTextarea from '@/features/textbox/components/new-textbox';
 import { useAuth } from '@/features/authentication/hooks/use-auth';
+import { Message as MessageType } from '@/features/chat/types/message';
 
-const exampleQuestions: Record<string, string[]> = {
-  casual: ["How's your day going?", "What's your favorite hobby?", 'Tell me a fun fact'],
-  creative: [
-    'Write a short story about a dragon',
-    'Design a unique superhero',
-    'Invent a new musical instrument',
-  ],
-  inspirational: [
-    'Share a motivational quote',
-    'How can I achieve my goals?',
-    'Tell me about overcoming challenges',
-  ],
-  analytical: [
-    'Explain quantum computing',
-    'Analyze market trends',
-    'Compare different algorithms',
-  ],
-};
-
-export function ExampleChips({
-  theme,
-  onChipClick,
-}: {
-  theme: string;
-  onChipClick: (question: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2 justify-center">
-      {exampleQuestions[theme].map(question => (
-        <Button
-          key={question}
-          variant="outline"
-          size="sm"
-          onClick={() => onChipClick(question)}
-          className="rounded-full hover:bg-secondary hover:text-secondary-foreground transition-colors"
-        >
-          {question}
-        </Button>
-      ))}
-    </div>
-  );
-}
-
-export interface Message {
+// Define a simpler local message type for this component
+interface LocalMessage {
   id: number;
   content: string;
   role: 'user' | 'assistant';
   created_at?: string;
 }
 
+// Wrapper component to adapt LocalMessage to MessageType
+const MessageWrapper = ({ message }: { message: LocalMessage }) => {
+  // Create a compatible message object with required fields
+  const compatibleMessage: MessageType = {
+    id: message.id,
+    content: message.content,
+    role: message.role,
+    created_at: message.created_at || new Date().toISOString(),
+    conversation_uuid: 'temp',
+    model: 'temp',
+    name: message.role === 'user' ? 'You' : 'Assistant',
+    has_images: false,
+    provider: 'temp'
+  };
+  
+  return <Message message={compatibleMessage} />;
+};
+
 export const ConversationDefault = () => {
   // State for landing view and when a chat has started
   const [chatStarted, setChatStarted] = useState(false);
   // Local input state
   const [input, setInput] = useState('');
-  // Local messages (for the user’s own messages) until the new conversation is created
-  const [localMessages, setLocalMessages] = useState<Message[]>([]);
+  // Local messages (for the user's own messages) until the new conversation is created
+  const [localMessages, setLocalMessages] = useState<LocalMessage[]>([]);
   // Allow the user to select a conversation style (theme)
   const [currentTheme, setCurrentTheme] = useState<
     'casual' | 'creative' | 'inspirational' | 'analytical'
@@ -112,11 +89,10 @@ export const ConversationDefault = () => {
   const handleMessageSubmit = () => {
     if (!input.trim()) return;
 
-    const userMessage: Message = {
+    const userMessage: LocalMessage = {
       id: Date.now(),
       content: input,
       role: 'user',
-      created_at: new Date().toISOString(),
     };
 
     setLocalMessages(prev => [...prev, userMessage]);
@@ -141,8 +117,8 @@ export const ConversationDefault = () => {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-background text-foreground p-4">
-      <main className="flex-1 w-full max-w-4xl flex flex-col">
+    <div className="flex flex-col items-center bg-background p-4 min-h-screen text-foreground">
+      <main className="flex flex-col flex-1 w-full max-w-4xl">
         <AnimatePresence mode="wait">
           {!chatStarted ? (
             <motion.div
@@ -150,13 +126,13 @@ export const ConversationDefault = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center justify-center min-h-[80vh] space-y-8"
+              className="flex flex-col justify-center items-center space-y-8 min-h-[80vh]"
             >
-              <div className="text-center space-y-2">
-                <h1 className="text-4xl font-bold tracking-tight">
-                  Welcome to <span className="font-bold text-primary">CringeAI</span><span className='text-sm text-primary font-base align-top'>™</span>
+              <div className="space-y-2 text-center">
+                <h1 className="font-bold text-4xl tracking-tight">
+                  Welcome to <span className="font-bold text-primary">CringeAI</span><span className='font-base text-primary text-sm align-top'>™</span>
                 </h1>
-                <p className="text-muted-foreground text-sm font-base">
+                <p className="font-base text-muted-foreground text-sm">
                   {user?.username
                     ? `Hi, ${user.username}. Start a conversation in your preferred style.`
                     : 'Start a conversation in your preferred style.'}
@@ -193,7 +169,7 @@ export const ConversationDefault = () => {
               className="flex-1 space-y-6 overflow-y-auto"
             >
               {localMessages.map(message => (
-                <Message key={message.id} message={message} />
+                <MessageWrapper key={message.id} message={message} />
               ))}
               <div ref={messagesEndRef} />
             </motion.div>
@@ -205,7 +181,7 @@ export const ConversationDefault = () => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="sticky bottom-0 py-4 bg-background border-t"
+            className="bottom-0 sticky bg-background py-4 border-t"
           >
             <AutoResizeTextarea
               text={input}

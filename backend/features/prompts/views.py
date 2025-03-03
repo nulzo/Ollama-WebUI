@@ -95,6 +95,9 @@ class PromptViewSet(viewsets.ViewSet):
         """Get prompts based on style and model"""
         try:
             self.logger.info(f"Prompt show action called with params: {request.query_params}")
+            self.logger.info(f"Request path: {request.path}")
+            self.logger.info(f"Request method: {request.method}")
+            self.logger.info(f"Request user: {request.user}")
             
             # Validate request data
             serializer = PromptRequestSerializer(
@@ -125,6 +128,33 @@ class PromptViewSet(viewsets.ViewSet):
             self.logger.info(f"Validated data: {validated_data}")
             self.logger.info(f"Using model: {model_name}")
 
+            # Get user settings to check if LLM-generated prompts are enabled
+            from features.authentication.models import Settings
+            user_settings = Settings.objects.filter(user=request.user).first()
+            use_llm_generated = False
+            
+            if user_settings and user_settings.prompt_settings:
+                use_llm_generated = user_settings.prompt_settings.get('use_llm_generated', False)
+            
+            self.logger.info(f"Use LLM generated: {use_llm_generated}")
+            
+            # If LLM-generated prompts are not enabled, return default prompts
+            if not use_llm_generated:
+                self.logger.info("LLM-generated prompts disabled, using defaults")
+                default_prompts = self.chat_service.prompt_service.get_default_prompts(validated_data["style"])
+                return api_response(
+                    data={
+                        "prompts": default_prompts,
+                        "metadata": {
+                            "style": validated_data["style"] or "default",
+                            "provider": "default",
+                            "model": "default",
+                            "count": validated_data["count"],
+                            "is_fallback": True,
+                        },
+                    }
+                )
+
             try:
                 response = self.chat_service.get_prompts(
                     model_name,
@@ -134,6 +164,12 @@ class PromptViewSet(viewsets.ViewSet):
                 )
                 
                 self.logger.info(f"Chat service response: {response}")
+                
+                # Check if the response contains prompts, if not use default prompts
+                if not response.get("prompts") or len(response.get("prompts", [])) == 0:
+                    self.logger.warning("Empty prompts received from chat service, using defaults")
+                    default_prompts = self.chat_service.prompt_service.get_default_prompts(validated_data["style"])
+                    response = {"prompts": default_prompts}
                 
                 return api_response(
                     data={

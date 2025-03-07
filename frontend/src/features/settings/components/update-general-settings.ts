@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { GeneralSettings, PromptSettings } from '../types/settings';
-import { getSettingsQueryOptions } from '@/features/settings/api/get-settings';
 import { useNotifications } from '@/components/notification/notification-store';
 
 interface UpdateSettingsPayload {
@@ -11,11 +10,18 @@ interface UpdateSettingsPayload {
 }
 
 export const updateGeneralSettings = async (data: UpdateSettingsPayload): Promise<any> => {
-  console.log('Sending update settings request with data:', data);
+  console.log('Sending update settings request with data:', JSON.stringify(data, null, 2));
   
   // Ensure prompt_settings is properly formatted
   if (data.prompt_settings) {
-    console.log('Prompt settings before request:', data.prompt_settings);
+    // Make sure use_llm_generated is explicitly a boolean
+    if (data.prompt_settings.use_llm_generated !== undefined) {
+      // Force it to be a boolean
+      data.prompt_settings.use_llm_generated = Boolean(data.prompt_settings.use_llm_generated);
+      console.log(`Ensuring use_llm_generated is boolean: ${data.prompt_settings.use_llm_generated} (${typeof data.prompt_settings.use_llm_generated})`);
+    }
+    
+    console.log('Prompt settings before request:', JSON.stringify(data.prompt_settings, null, 2));
   }
   
   const response = await api.patch('/users/update_settings/', data) as {
@@ -29,7 +35,7 @@ export const updateGeneralSettings = async (data: UpdateSettingsPayload): Promis
     throw new Error(response.error?.message || 'Failed to update general settings');
   }
   
-  console.log('Settings update response:', response.data);
+  console.log('Settings update response:', JSON.stringify(response.data, null, 2));
   return response.data;
 };
 

@@ -8,34 +8,27 @@ export const getPrompts = async (style?: string, model?: string): Promise<Prompt
   const params = new URLSearchParams();
   if (model) {
     params.append('model', model);
-    console.log(`Using model from settings: ${model}`);
   } else {
-    console.warn('No model provided, using default');
-    // Don't set a default model here, let the backend handle it
+    console.warn('No model provided for prompts, using default');
   }
   if (style) params.append('style', style);
   
-  // Debug the request
-  console.log(`Fetching prompts with style: ${style}, model: ${model}`);
-  
-  // Use the correct DRF action URL format
   const endpoint = `prompts/show/`;
-  console.log(`Request URL: ${endpoint}?${params.toString()}`);
 
   try {
-    console.log('Making API request for prompts...');
     const response = await api.get<ApiResponse<PromptsResponse>>(
       endpoint + (params.toString() ? `?${params.toString()}` : '')
     );
-    console.log('Raw API response:', response);
 
     if (!response.success) {
       console.error('Failed to fetch prompts:', response.error);
       throw new Error(response.error?.message || 'Failed to fetch prompts');
     }
-
-    console.log('Prompts response data:', response.data);
-    console.log('Model used in response:', response.data?.metadata?.model);
+    
+    // Log the response to verify the model being used
+    if (response.data?.metadata?.model) {
+      console.log(`Received prompts generated with model: ${response.data.metadata.model}`);
+    }
     
     // Ensure we have prompts data
     if (!response.data || !response.data.prompts || response.data.prompts.length === 0) {
@@ -95,11 +88,13 @@ const getFallbackPrompts = (style?: string): PromptsResponse => {
 };
 
 export const getPromptsQueryOptions = (style?: string, model?: string) => {
-  console.log(`Creating query options with style: ${style}, model: ${model}`);
   return queryOptions({
     queryKey: ['prompts', style, model],
     queryFn: () => getPrompts(style, model),
-    staleTime: 0, // Always consider data stale to ensure fresh prompts
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -110,7 +105,6 @@ type UsePromptsOptions = {
 };
 
 export const usePrompts = ({ style, model, queryConfig }: UsePromptsOptions = {}) => {
-  console.log(`usePrompts called with style: ${style}, model: ${model}`);
   return useQuery({
     ...getPromptsQueryOptions(style, model),
     ...queryConfig,

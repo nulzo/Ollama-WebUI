@@ -270,7 +270,16 @@ class OllamaProvider(BaseProvider):
         """
         processed_messages = self._flatten_messages(messages)
 
+        # Add debug logging to verify the model being used
+        self.logger.info(f"Calling Ollama generate with model: {model}")
+        print(f"DEBUG: Calling Ollama generate with model: {model}")
+        
+        # Ensure model parameter is passed correctly
         response = self._client.chat(model=model, messages=processed_messages, stream=False)
+        
+        # Log the response for debugging
+        self.logger.debug(f"Ollama response: {response}")
+        
         # Assume the response is a dict with a "message" key.
         if isinstance(response, dict) and "message" in response:
             return response["message"]["content"]

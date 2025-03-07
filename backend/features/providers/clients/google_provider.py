@@ -77,24 +77,146 @@ class GoogleProvider(BaseProvider):
             logger.error(f"Error retrieving models: {e}")
             raise ServiceError(f"Failed to retrieve models: {e}")
     
-    def chat(self, model: str, messages: Union[List[str], str]) -> str:
+    def _format_model_name(self, model: str) -> str:
+        """
+        Format the model name for Google API.
+        Removes provider suffix and 'models/' prefix if present.
+        """
+        # Remove provider suffix if present
+        if model.endswith("-google"):
+            model = model[:-7]  # Remove "-google"
+        
+        # Remove "models/" prefix if present
+        if model.startswith("models/"):
+            model = model[7:]  # Remove "models/"
+            
+        self.logger.info(f"Formatted model name for Google API: {model}")
+        return model
+        
+    def chat(self, model: str, messages: Union[List[Dict], List[str], str]) -> str:
         """
         Generate a response using the Google Gen AI (Gemini) API.
-        If messages is a list, they are joined into a single prompt.
+        Handles both string prompts and structured message lists.
         """
         if not self.is_enabled:
             raise ValueError("Google AI Provider is not enabled.")
         
-        prompt = "\n".join(messages) if isinstance(messages, list) else messages
-        
         try:
+            # Format the model name
+            formatted_model = self._format_model_name(model)
+            
+            # Handle different message formats
+            if isinstance(messages, list):
+                if messages and isinstance(messages[0], dict):
+                    # Check if this is a prompt generation request
+                    is_prompt_generation = any(
+                        msg.get("content", "").lower().find("generate prompts") >= 0 
+                        for msg in messages
+                    )
+                    
+                    # Convert structured messages to a format Gemini understands
+                    prompt = ""
+                    for msg in messages:
+                        role = msg.get("role", "user")
+                        content = msg.get("content", "")
+                        if role == "system":
+                            prompt += f"System: {content}\n\n"
+                        elif role == "user":
+                            prompt += f"User: {content}\n\n"
+                        elif role == "assistant":
+                            prompt += f"Assistant: {content}\n\n"
+                        else:
+                            prompt += f"{content}\n\n"
+                else:
+                    # Simple list of strings
+                    prompt = "\n".join(messages)
+                    is_prompt_generation = prompt.lower().find("generate prompts") >= 0
+            else:
+                # Single string prompt
+                prompt = messages
+                is_prompt_generation = prompt.lower().find("generate prompts") >= 0
+            
+            self.logger.info(f"Sending prompt to Google AI with model {formatted_model}: {prompt[:100]}...")
+            
+            # If this is a prompt generation request, add specific instructions
+            if is_prompt_generation:
+                prompt += "\n\nIMPORTANT: Format your response as a valid JSON object with a 'prompts' array. Each prompt in the array should have 'title', 'prompt', and 'simple_prompt' fields."
+            
             response = self._client.models.generate_content(
-                model=model,
+                model=formatted_model,
                 contents=prompt
             )
-            return response.text
+            
+            text_response = response.text
+            
+            # If this is a prompt generation request, ensure the response is valid JSON
+            if is_prompt_generation:
+                try:
+                    # Try to parse as JSON first
+                    json.loads(text_response)
+                    return text_response
+                except json.JSONDecodeError:
+                    # If not valid JSON, convert the text response to the expected JSON format
+                    self.logger.info("Converting text response to JSON format")
+                    
+                    # Extract potential prompts from the text
+                    lines = text_response.split('\n')
+                    prompts = []
+                    current_prompt = {}
+                    
+                    for line in lines:
+                        line = line.strip()
+                        if not line:
+                            continue
+                            
+                        # Look for patterns like "Title: Something" or "Prompt: Something"
+                        if line.lower().startswith("title:"):
+                            # If we have a previous prompt, add it to the list
+                            if current_prompt and 'title' in current_prompt and 'prompt' in current_prompt:
+                                prompts.append(current_prompt)
+                                current_prompt = {}
+                            current_prompt['title'] = line[6:].strip()
+                        elif line.lower().startswith("prompt:"):
+                            current_prompt['prompt'] = line[7:].strip()
+                            # Create a simple prompt from the first few words
+                            words = current_prompt['prompt'].split()[:3]
+                            current_prompt['simple_prompt'] = " ".join(words) + "..."
+                    
+                    # Add the last prompt if it exists
+                    if current_prompt and 'title' in current_prompt and 'prompt' in current_prompt:
+                        prompts.append(current_prompt)
+                    
+                    # If we couldn't extract structured prompts, create some from the text
+                    if not prompts:
+                        # Split the text into chunks and create prompts
+                        chunks = text_response.split('\n\n')
+                        for i, chunk in enumerate(chunks):
+                            if chunk.strip():
+                                title = f"Prompt {i+1}"
+                                prompt_text = chunk.strip()
+                                words = prompt_text.split()[:3]
+                                simple_prompt = " ".join(words) + "..."
+                                prompts.append({
+                                    'title': title,
+                                    'prompt': prompt_text,
+                                    'simple_prompt': simple_prompt
+                                })
+                    
+                    # Ensure we have at least one prompt
+                    if not prompts:
+                        prompts = [{
+                            'title': 'Default Prompt',
+                            'prompt': text_response,
+                            'simple_prompt': 'Default prompt...'
+                        }]
+                    
+                    # Create the JSON response
+                    json_response = json.dumps({'prompts': prompts})
+                    return json_response
+            
+            return text_response
         except Exception as e:
-            logger.error(f"Error generating content with Google AI: {e}")
+            self.logger.error(f"Error generating content with Google AI: {e}")
             raise ServiceError(f"Failed to generate content: {e}")
     
     def update_config(self, config: Dict) -> None:
@@ -119,6 +241,10 @@ class GoogleProvider(BaseProvider):
         return 0.0
     
     def generate(self, model: str, prompt: str) -> str:
+        """
+        Generate a response from the Google AI API without streaming.
+        This is a convenience wrapper around chat().
+        """
         return self.chat(model, prompt)
     
     def supports_tools(self, model: str) -> bool:
@@ -160,19 +286,38 @@ class GoogleProvider(BaseProvider):
         if not self.is_enabled:
             raise ValueError("Google AI Provider is not enabled.")
 
-        # Build the prompt based on the messages input
-        if isinstance(messages, list):
-            if messages and isinstance(messages[0], dict):
-                prompt = "\n".join(msg.get("content", "") for msg in messages)
-            else:
-                prompt = "\n".join(messages)
-        else:
-            prompt = messages
-
         try:
+            # Format the model name
+            formatted_model = self._format_model_name(model)
+            
+            # Handle different message formats
+            if isinstance(messages, list):
+                if messages and isinstance(messages[0], dict):
+                    # Convert structured messages to a format Gemini understands
+                    prompt = ""
+                    for msg in messages:
+                        role = msg.get("role", "user")
+                        content = msg.get("content", "")
+                        if role == "system":
+                            prompt += f"System: {content}\n\n"
+                        elif role == "user":
+                            prompt += f"User: {content}\n\n"
+                        elif role == "assistant":
+                            prompt += f"Assistant: {content}\n\n"
+                        else:
+                            prompt += f"{content}\n\n"
+                else:
+                    # Simple list of strings
+                    prompt = "\n".join(messages)
+            else:
+                # Single string prompt
+                prompt = messages
+            
+            self.logger.info(f"Streaming prompt to Google AI with model {formatted_model}: {prompt[:100]}...")
+
             # Use the synchronous streaming method per the SDK docs.
             stream_iter = self._client.models.generate_content_stream(
-                model=model,
+                model=formatted_model,
                 contents=prompt
             )
             for resp in stream_iter:

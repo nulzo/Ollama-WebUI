@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Brain, Lightbulb, Sparkles, Coffee } from "lucide-react";
+import { Brain, Lightbulb, Sparkles, Coffee, RotateCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSettings } from "@/features/settings/api/get-settings";
 import { usePrompts } from "@/features/chat/api/get-default-prompts";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Prompt } from "@/features/chat/types/conversation";
 import {
   Tooltip,
@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useQueryClient } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ThemeType = 'casual' | 'creative' | 'inspirational' | 'analytical';
 
@@ -41,6 +42,15 @@ const PromptButton = ({ prompt, onSelect }: { prompt: Prompt, onSelect: (prompt:
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+};
+
+// Skeleton loader for prompt buttons
+const PromptButtonSkeleton = () => {
+  return (
+    <div className="animate-pulse">
+      <Skeleton className="opacity-70 rounded-full w-24 h-8" />
+    </div>
   );
 };
 
@@ -89,97 +99,135 @@ const defaultQuestions: Record<ThemeType, Prompt[]> = {
 
 export default function CannedQuestions({ theme, onQuestionClick, onThemeChange }: CannedQuestionsProps) {
   const queryClient = useQueryClient();
-  const { data: settingsData, isLoading: isLoadingSettings, refetch: refetchSettings } = useSettings();
-  const useLlmGenerated = settingsData?.settings?.prompt_settings?.use_llm_generated || false;
-  const promptModel = settingsData?.settings?.prompt_settings?.model || "llama3.2:3b";
+  const { data: settingsData, isLoading: isLoadingSettings } = useSettings();
   
-  // Force refetch settings when component mounts
-  useEffect(() => {
-    console.log("CannedQuestions mounted, refetching settings");
-    // Force refetch settings from server
-    refetchSettings();
-    // Also invalidate the settings cache to ensure fresh data
-    queryClient.invalidateQueries({ queryKey: ['settings'] });
-  }, [refetchSettings, queryClient]);
+  // The correct path might be different - check all possible paths
+  const promptSettings = 
+    // Try different possible paths to find prompt_settings
+    settingsData?.settings?.prompt_settings || 
+    (settingsData as any)?.data?.settings?.prompt_settings || 
+    (settingsData as any)?.data?.prompt_settings ||
+    (settingsData as any)?.prompt_settings || 
+    {};
   
-  // Debug settings
-  console.log("Settings data:", settingsData);
-  console.log("Use LLM generated:", useLlmGenerated);
-  console.log("Prompt model from settings:", promptModel);
+  // Ensure use_llm_generated is treated as a boolean
+  let useLlmGenerated = false;
+  if ((promptSettings as any).use_llm_generated !== undefined) {
+    if (typeof (promptSettings as any).use_llm_generated === 'string') {
+      useLlmGenerated = (promptSettings as any).use_llm_generated.toLowerCase() === 'true';
+    } else {
+      useLlmGenerated = Boolean((promptSettings as any).use_llm_generated);
+    }
+  }
+  
+  const promptModel = (promptSettings as any).model || "llama3.2:3b";
+  
+  // Track previous model to prevent unnecessary refetches
+  const prevModelRef = useRef(promptModel);
+  const prevThemeRef = useRef(theme);
   
   const [prompts, setPrompts] = useState<Prompt[]>(defaultQuestions[theme]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Ensure we're using the correct model from settings
-  const modelToUse = promptModel;
-  console.log("Model to use for prompts:", modelToUse);
+  // Only fetch prompts if LLM generation is enabled
+  const shouldFetchPrompts = useLlmGenerated && !isLoadingSettings && !!promptModel;
   
-  // Force refetch when promptModel changes
-  const queryKey = ['prompts', theme, modelToUse];
-  
-  console.log("About to call usePrompts with:", { theme, model: modelToUse, queryKey });
-  const { data: promptsData, isLoading, error, refetch } = usePrompts({
+  // Use the API to get prompts when LLM generation is enabled
+  const { data: promptsData, isLoading, refetch } = usePrompts({
     style: theme,
-    model: modelToUse,
+    model: promptModel,
     queryConfig: {
-      enabled: !isLoadingSettings && !!modelToUse, // Only enable when settings are loaded and model is available
-      retry: 2,
-      staleTime: 0, // Always refetch to ensure we have the latest data
+      enabled: shouldFetchPrompts,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+      gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     },
   });
   
-  // Force refetch prompts when model changes
+  // Force a refetch when shouldFetchPrompts changes from false to true
+  const prevShouldFetchRef = useRef(shouldFetchPrompts);
   useEffect(() => {
-    if (modelToUse) {
-      console.log("Model changed to:", modelToUse);
-      console.log("Forcing refetch of prompts with new model");
-      // Invalidate prompts cache
-      queryClient.invalidateQueries({ queryKey: queryKey });
-      // Refetch prompts with new model
+    // Only refetch if shouldFetchPrompts changed from false to true
+    // and we haven't already fetched data
+    if (shouldFetchPrompts && !prevShouldFetchRef.current && !promptsData) {
       refetch();
     }
-  }, [modelToUse, refetch, queryClient, queryKey]);
-  
-  // Debug prompts data
-  console.log("Prompts data:", promptsData);
-  console.log("Is loading:", isLoading);
-  console.log("Error:", error);
-  console.log("Provider:", promptsData?.metadata?.provider);
-  console.log("Model used:", promptsData?.metadata?.model);
-  
+    prevShouldFetchRef.current = shouldFetchPrompts;
+  }, [shouldFetchPrompts, refetch, promptsData]);
+
+  // Update prompts when theme or data changes
   useEffect(() => {
-    console.log("useEffect triggered with:", { theme, promptsData });
-    if (promptsData?.prompts && promptsData.prompts.length > 0) {
-      console.log("Using API-provided prompts:", promptsData.prompts);
-      setPrompts(promptsData.prompts);
-    } else {
-      console.log("Using default questions for theme:", theme);
-      // Fallback to default questions
+    // Only update if theme changed or we have new data
+    const themeChanged = theme !== prevThemeRef.current;
+    const modelChanged = promptModel !== prevModelRef.current;
+    
+    // Update refs
+    prevThemeRef.current = theme;
+    prevModelRef.current = promptModel;
+    
+    // If theme changed, immediately update with default questions
+    if (themeChanged) {
       setPrompts(defaultQuestions[theme]);
     }
-  }, [theme, promptsData]);
+    
+    // If LLM generation is enabled and we have API data, use it
+    if (shouldFetchPrompts && promptsData?.prompts && promptsData.prompts.length > 0) {
+      // Limit to 3 prompts
+      const limitedPrompts = promptsData.prompts.slice(0, 3);
+      setPrompts(limitedPrompts);
+    } else if (themeChanged || modelChanged) {
+      // If no API data but theme or model changed, use defaults (limited to 3)
+      setPrompts(defaultQuestions[theme].slice(0, 3));
+    }
+  }, [theme, promptsData, promptModel, shouldFetchPrompts]);
 
-  // Ensure we always have prompts to display
-  const displayPrompts = prompts.length > 0 ? prompts : defaultQuestions[theme];
-  console.log("Final display prompts:", displayPrompts);
+  // Handle manual refresh of prompts
+  const handleRefresh = async () => {
+    if (!shouldFetchPrompts) return;
+    
+    setIsRefreshing(true);
+    try {
+      // Invalidate the cache and refetch
+      await queryClient.invalidateQueries({
+        queryKey: ['prompts', theme, promptModel]
+      });
+      await refetch();
+    } catch (error) {
+      console.error('Failed to refresh prompts:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Ensure we always have prompts to display, limited to 3
+  const displayPrompts = prompts.length > 0 ? prompts.slice(0, 3) : defaultQuestions[theme].slice(0, 3);
+  const isShowingLoading = (isLoading || isRefreshing) && shouldFetchPrompts;
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap justify-center gap-2 min-h-[40px]">
+      <div className="relative flex flex-wrap justify-center gap-2 min-h-[40px]">
         <AnimatePresence mode="wait">
           <motion.div
-            key={theme}
+            key={`${theme}-${isShowingLoading ? 'loading' : 'loaded'}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="flex flex-wrap justify-center gap-2"
           >
-            {isLoading ? (
-              <div className="text-muted-foreground text-sm">Loading prompts...</div>
-            ) : error ? (
-              displayPrompts.map((prompt, index) => (
-                <PromptButton key={index} prompt={prompt} onSelect={onQuestionClick} />
-              ))
+            {isShowingLoading ? (
+              // Skeleton loaders that look like the canned questions
+              <>
+                <motion.div initial={{ x: -5 }} animate={{ x: 0 }} transition={{ duration: 0.3 }}>
+                  <PromptButtonSkeleton />
+                </motion.div>
+                <motion.div initial={{ x: -5 }} animate={{ x: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+                  <PromptButtonSkeleton />
+                </motion.div>
+                <motion.div initial={{ x: -5 }} animate={{ x: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
+                  <PromptButtonSkeleton />
+                </motion.div>
+              </>
             ) : (
               displayPrompts.map((prompt, index) => (
                 <PromptButton key={index} prompt={prompt} onSelect={onQuestionClick} />
@@ -211,6 +259,37 @@ export default function CannedQuestions({ theme, onQuestionClick, onThemeChange 
             </Button>
           </motion.div>
         ))}
+        
+        {/* Improved refresh button */}
+        {shouldFetchPrompts && (
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <TooltipProvider>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant={isRefreshing ? "secondary" : "ghost"}
+                    onClick={handleRefresh}
+                    disabled={isShowingLoading}
+                    className={`
+                      relative group flex flex-col items-center gap-2 p-3 h-auto shadow-none
+                      transition-all duration-200 hover:text-primary
+                      ${isRefreshing ? "text-primary bg-secondary" : "text-muted-foreground"}
+                    `}
+                  >
+                    <RotateCw className={`size-3 ${isRefreshing ? 'animate-spin text-primary' : ''}`} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-sm">Generate new prompts</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </motion.div>
+        )}
       </div>
     </div>
   );

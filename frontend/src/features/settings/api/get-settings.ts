@@ -16,10 +16,10 @@ export const getSettingsQueryOptions = () => {
   return queryOptions({
     queryKey: ['settings'],
     queryFn: () => getSettings(),
-    staleTime: 0,
-    refetchInterval: 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: false, // Disable automatic refetching
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false, // Disable refetch on window focus
   });
 };
 

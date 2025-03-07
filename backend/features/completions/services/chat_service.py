@@ -523,9 +523,12 @@ class ChatService:
                 provider_name = "google"
             
             self.logger.info(f"Selected provider {provider_name} for model {model_name}")
+            print(f"DEBUG: Selected provider {provider_name} for model {model_name}")
             
             # Get provider from factory
             provider = self.provider_factory.get_provider(provider_name, user_id or 1)
+            self.logger.info(f"Provider initialized: {type(provider).__name__}")
+            print(f"DEBUG: Provider initialized: {type(provider).__name__}")
             
             return provider
         except Exception as e:
@@ -545,6 +548,7 @@ class ChatService:
         """
         try:
             self.logger.info(f"Getting prompts with model: {model_name}, style: {style}, count: {count}, user_id: {user_id}")
+            print(f"DEBUG: ChatService.get_prompts called with model: {model_name}")
             
             # Initialize provider
             provider = self._get_provider(model_name, user_id)
@@ -561,6 +565,7 @@ class ChatService:
 
             # Get prompts with the specified model - ensure we're using the correct model
             self.logger.info(f"Calling prompt_service.get_actionable_prompts with style: {style}, model: {model_name}")
+            print(f"DEBUG: Calling prompt_service.get_actionable_prompts with model: {model_name}")
             prompts = prompt_service.get_actionable_prompts(style, model_name)
 
             # Limit prompts to requested count

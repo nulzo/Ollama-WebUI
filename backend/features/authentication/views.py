@@ -120,8 +120,37 @@ class UserViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def profile(self, request):
         """Get current user profile"""
-        serializer = UserResponseSerializer(request.user)
-        return api_response(data=serializer.data)
+        try:
+            # Get the user's settings
+            user_settings, created = Settings.objects.get_or_create(user=request.user)
+            
+            # Ensure prompt_settings exists and is properly formatted
+            if user_settings.prompt_settings is None:
+                user_settings.prompt_settings = {
+                    'use_llm_generated': False,
+                    'model': 'llama3.2:3b'
+                }
+                user_settings.save()
+                print(f"Created default prompt_settings for user {request.user.username}")
+            elif not isinstance(user_settings.prompt_settings, dict):
+                user_settings.prompt_settings = {
+                    'use_llm_generated': False,
+                    'model': 'llama3.2:3b'
+                }
+                user_settings.save()
+                print(f"Fixed invalid prompt_settings format for user {request.user.username}")
+            
+            # Log the settings that will be returned
+            print(f"User {request.user.username} settings: {user_settings.prompt_settings}")
+            
+            serializer = UserResponseSerializer(request.user)
+            return api_response(data=serializer.data)
+        except Exception as e:
+            print(f"Error in profile endpoint: {str(e)}")
+            return api_response(
+                error={"code": "PROFILE_ERROR", "message": str(e)},
+                status=500
+            )
 
     @action(detail=False, methods=['patch'])
     def update_profile(self, request):
@@ -160,6 +189,20 @@ class UserViewSet(viewsets.ViewSet):
                 # If user_settings.prompt_settings is None, initialize it as an empty dict
                 if user_settings.prompt_settings is None:
                     user_settings.prompt_settings = {}
+                
+                # Ensure use_llm_generated is a boolean
+                if 'use_llm_generated' in prompt_settings:
+                    # Convert to boolean explicitly
+                    use_llm_generated_value = prompt_settings['use_llm_generated']
+                    if isinstance(use_llm_generated_value, str):
+                        # Handle string values like 'true', 'false'
+                        use_llm_generated_bool = use_llm_generated_value.lower() == 'true'
+                    else:
+                        # Handle other values (bool, int, etc.)
+                        use_llm_generated_bool = bool(use_llm_generated_value)
+                    
+                    prompt_settings['use_llm_generated'] = use_llm_generated_bool
+                    print(f"Converted use_llm_generated to boolean: {use_llm_generated_bool}")
                 
                 # Update prompt_settings with the new values
                 user_settings.prompt_settings.update(prompt_settings)

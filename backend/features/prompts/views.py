@@ -116,6 +116,7 @@ class PromptViewSet(viewsets.ViewSet):
             # Prioritize the model from query params over the settings model
             model_to_use = raw_model if raw_model else settings_model or "llama3.2:3b"
             self.logger.info(f"Model to use: {model_to_use}")
+            print(f"DEBUG: Using model for prompts: {model_to_use}")
             
             # Validate request data
             serializer = PromptRequestSerializer(

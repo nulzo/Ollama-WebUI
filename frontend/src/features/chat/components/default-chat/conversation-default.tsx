@@ -1,9 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 // import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from 'framer-motion';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Paperclip, Send, MessageCircle, RefreshCcw } from 'lucide-react';
 // import { usePrompts } from "../../api/get-default-prompts";
 import { useChatMutation } from '@/features/chat/hooks/use-chat-mutation';
 // These components are assumed to exist (or create them based on your design)

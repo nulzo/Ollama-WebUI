@@ -13,8 +13,6 @@ import { useChatStore } from '@/features/chat/stores/chat-store';
 import { useStreamingStore } from '@/features/chat/stores/streaming-store';
 import { toast } from '@/components/ui/use-toast';
 import { useModelStore } from '@/features/models/store/model-store';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Code } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -70,15 +68,15 @@ const LandingContent = ({
         <div>
           {/* Function Call Toggle - Redesigned for better UX */}
           {model?.tools_enabled && (
-            <div className="flex items-center justify-end mb-2">
+            <div className="flex justify-end items-center mb-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/30 hover:bg-secondary/40 transition-colors cursor-pointer" onClick={() => setFunctionCall(!functionCall)}>
+                    <div className="flex items-center gap-2 bg-secondary/30 hover:bg-secondary/40 px-3 py-1.5 rounded-full transition-colors cursor-pointer" onClick={() => setFunctionCall(!functionCall)}>
                       <div className={`flex items-center justify-center w-5 h-5 rounded-full ${functionCall ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                         <Code className="w-3 h-3" />
                       </div>
-                      <span className="text-xs font-medium">
+                      <span className="font-medium text-xs">
                         {functionCall ? 'Tools Enabled' : 'Tools Disabled'}
                       </span>
                     </div>
@@ -143,15 +141,15 @@ const ChatContent = ({
       <div className="p-4 border-t">
         {/* Function Call Toggle - Redesigned for better UX */}
         {model?.tools_enabled && (
-          <div className="flex items-center justify-end mb-2">
+          <div className="flex justify-end items-center mb-2">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/30 hover:bg-secondary/40 transition-colors cursor-pointer" onClick={() => setFunctionCall(!functionCall)}>
+                  <div className="flex items-center gap-2 bg-secondary/30 hover:bg-secondary/40 px-3 py-1.5 rounded-full transition-colors cursor-pointer" onClick={() => setFunctionCall(!functionCall)}>
                     <div className={`flex items-center justify-center w-5 h-5 rounded-full ${functionCall ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                       <Code className="w-3 h-3" />
                     </div>
-                    <span className="text-xs font-medium">
+                    <span className="font-medium text-xs">
                       {functionCall ? 'Tools Enabled' : 'Tools Disabled'}
                     </span>
                   </div>

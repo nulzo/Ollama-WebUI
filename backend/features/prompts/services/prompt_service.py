@@ -1,6 +1,7 @@
 import json
 import logging
 import random
+import re
 from typing import Any, Dict, List, Optional
 
 from api.utils.exceptions.exceptions import ProviderException, ValidationError
@@ -107,6 +108,7 @@ class PromptService:
         """
         try:
             self.logger.info(f"Getting actionable prompts with style: {style}, model: {model}")
+            print(f"DEBUG: PromptService.get_actionable_prompts called with model: {model}")
             
             # Get template based on style
             template = self.template_service.get_template(style)
@@ -130,8 +132,12 @@ class PromptService:
             # Format messages for the provider
             messages = [
                 {"role": "system", "content": prompt_dialog},
-                {"role": "user", "content": "Generate the prompts as specified."},
+                {"role": "user", "content": "Generate the prompts as specified. Return the result as a JSON object with a 'prompts' array. Each prompt should have 'title', 'prompt', and 'simple_prompt' fields."},
             ]
+            
+            # Log the message format for debugging
+            self.logger.info(f"Message format: {type(messages)}, first item type: {type(messages[0])}")
+            self.logger.info(f"Messages being sent to provider: {json.dumps(messages)}")
 
             # Check if provider is available
             if not self.provider:
@@ -148,25 +154,158 @@ class PromptService:
                 else:
                     self.logger.info(f"Using specified model: {model}")
                 
-                response = self.provider.chat(model=model, messages=messages)
-                self.logger.info(f"Provider response received for model: {model}")
-            except Exception as e:
-                self.logger.error(f"Provider chat error with model {model}: {e}")
-                return self.get_default_prompts(style)
-
-            try:
-                # Parse the JSON response
-                prompts = json.loads(response)
-                self.logger.info(f"Parsed prompts: {prompts}")
+                # Add more detailed logging
+                self.logger.info(f"Provider type: {type(self.provider).__name__}")
                 
-                # Check if prompts exist and are not empty
-                if not prompts.get("prompts") or len(prompts.get("prompts", [])) == 0:
-                    self.logger.warning("Empty prompts in response, using defaults")
-                    return self.get_default_prompts(style)
+                # Use the provider directly but with better error handling
+                try:
+                    # First try to use the generate method which might be more reliable
+                    response = self.provider.generate(model=model, prompt=json.dumps(messages))
+                    self.logger.info(f"Provider generate response received for model: {model}")
+                except Exception as generate_error:
+                    self.logger.warning(f"Provider generate failed, falling back to chat: {generate_error}")
+                    # Fall back to chat method
+                    response = self.provider.chat(model=model, messages=messages)
+                    self.logger.info(f"Provider chat response received for model: {model}")
+                
+                # Check if the response is wrapped in Markdown code blocks
+                if response.strip().startswith("```") and "```" in response:
+                    self.logger.info("Detected Markdown code block, stripping backticks")
+                    # Extract content between code block markers
+                    code_block_pattern = r"```(?:json)?\n([\s\S]*?)\n```"
+                    matches = re.findall(code_block_pattern, response)
+                    if matches:
+                        # Use the first code block found
+                        response = matches[0].strip()
+                        self.logger.info(f"Extracted JSON from code block: {response[:100]}...")
+                
+                # General cleanup of the response
+                # Remove any leading/trailing whitespace
+                response = response.strip()
+                
+                # Remove any non-JSON text before the first opening brace
+                first_brace = response.find('{')
+                if first_brace > 0:
+                    self.logger.info(f"Removing {first_brace} characters before first opening brace")
+                    response = response[first_brace:]
+                
+                # Remove any non-JSON text after the last closing brace
+                last_brace = response.rfind('}')
+                if last_brace < len(response) - 1:
+                    self.logger.info(f"Removing {len(response) - last_brace - 1} characters after last closing brace")
+                    response = response[:last_brace + 1]
+                
+                self.logger.info(f"Cleaned response: {response[:100]}...")
+                
+                # Try to parse as JSON
+                try:
+                    # If the response is already a dict, convert it to JSON string
+                    if isinstance(response, dict):
+                        response = json.dumps(response)
+                        
+                    # Check if the response is empty
+                    if not response or response.strip() == "":
+                        self.logger.warning("Empty response from provider, using defaults")
+                        return self.get_default_prompts(style)
+                        
+                    self.logger.info(f"Response type: {type(response)}, length: {len(response)}")
+                    self.logger.info(f"Response preview: {response[:100]}...")
                     
-                return prompts.get("prompts", self.get_default_prompts(style))
-            except (json.JSONDecodeError, KeyError) as e:
-                self.logger.error(f"Failed to parse provider response: {e}")
+                    # Parse the cleaned response
+                    prompts_data = json.loads(response)
+                    
+                    # Check if we have a prompts array
+                    if "prompts" in prompts_data and prompts_data["prompts"]:
+                        self.logger.info(f"Found {len(prompts_data['prompts'])} prompts in response")
+                        return prompts_data["prompts"]
+                    else:
+                        # Try to create a prompts structure from the response
+                        self.logger.warning("No 'prompts' key in response, attempting to create structure")
+                        
+                        # If it's a dictionary, try to extract prompts
+                        if isinstance(prompts_data, dict):
+                            # Create a simple prompts array from the dictionary
+                            prompts = []
+                            for key, value in prompts_data.items():
+                                if isinstance(value, str):
+                                    prompt = {
+                                        "title": key,
+                                        "prompt": value,
+                                        "simple_prompt": " ".join(value.split()[:3]) + "..."
+                                    }
+                                    prompts.append(prompt)
+                            
+                            # If we found prompts, return them
+                            if prompts:
+                                self.logger.info(f"Created {len(prompts)} prompts from dictionary response")
+                                return prompts
+                except json.JSONDecodeError as json_error:
+                    self.logger.error(f"JSON parsing error: {json_error}")
+                    # Continue to text-based extraction
+                
+                # If JSON parsing failed or no prompts were found, try to extract prompts from text
+                self.logger.warning("Attempting to extract prompts from text response")
+                
+                # Create a simple prompts array
+                prompts = []
+                lines = response.split("\n")
+                current_prompt = {}
+                
+                for line in lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    
+                    if line.lower().startswith("title:"):
+                        if current_prompt and "title" in current_prompt and "prompt" in current_prompt:
+                            prompts.append(current_prompt)
+                            current_prompt = {}
+                        current_prompt["title"] = line[6:].strip()
+                    elif line.lower().startswith("prompt:"):
+                        current_prompt["prompt"] = line[7:].strip()
+                        # Create a simple prompt
+                        words = current_prompt["prompt"].split()[:3]
+                        current_prompt["simple_prompt"] = " ".join(words) + "..."
+                
+                # Add the last prompt
+                if current_prompt and "title" in current_prompt and "prompt" in current_prompt:
+                    prompts.append(current_prompt)
+                
+                # If we found prompts, return them
+                if prompts:
+                    self.logger.info(f"Created {len(prompts)} prompts from text response")
+                    return prompts
+                
+                # Try to create prompts from paragraphs as a last resort
+                self.logger.warning("Attempting to extract prompts from paragraphs")
+                prompts = []
+                paragraphs = response.split("\n\n")
+                
+                for i, paragraph in enumerate(paragraphs):
+                    if paragraph.strip():
+                        title = f"Prompt {i+1}"
+                        prompt_text = paragraph.strip()
+                        words = prompt_text.split()[:3]
+                        simple_prompt = " ".join(words) + "..." if words else "..."
+                        
+                        prompts.append({
+                            "title": title,
+                            "prompt": prompt_text,
+                            "simple_prompt": simple_prompt,
+                            "style": style
+                        })
+                
+                # If we found prompts, return them
+                if prompts:
+                    self.logger.info(f"Created {len(prompts)} prompts from paragraphs")
+                    return prompts
+                
+                # If all else fails, use default prompts
+                self.logger.warning("Could not create prompts from response, using defaults")
+                return self.get_default_prompts(style)
+                
+            except Exception as e:
+                self.logger.error(f"Provider error: {e}")
                 return self.get_default_prompts(style)
 
         except ProviderException as e:

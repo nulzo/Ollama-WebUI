@@ -124,8 +124,8 @@ function ModelSelectLite({ value, onValueChange, className }: {
 
   if (isLoading) {
     return (
-      <Button variant="ghost" className="w-full justify-start text-left font-normal" disabled>
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      <Button variant="ghost" className="justify-start w-full font-normal text-left" disabled>
+        <Loader2 className="mr-2 w-4 h-4 animate-spin" />
         <span>Loading models...</span>
       </Button>
     );
@@ -133,7 +133,7 @@ function ModelSelectLite({ value, onValueChange, className }: {
 
   if (!formattedModels.length) {
     return (
-      <Button variant="ghost" className="w-full justify-start text-left font-normal" disabled>
+      <Button variant="ghost" className="justify-start w-full font-normal text-left" disabled>
         <span>No models available</span>
       </Button>
     );
@@ -268,6 +268,7 @@ export function GeneralSettingsSection() {
     
     // Log the selected model for debugging
     console.log('Selected model for prompts:', prompt_generation_model);
+    console.log('LLM-generated prompts enabled:', use_llm_generated_prompts, typeof use_llm_generated_prompts);
     
     // Ensure we have a valid model value
     if (!prompt_generation_model && use_llm_generated_prompts) {
@@ -278,15 +279,18 @@ export function GeneralSettingsSection() {
     const modelToUse = prompt_generation_model || 'llama3.2:3b';
     console.log('Model to use:', modelToUse);
     
+    // Ensure use_llm_generated is explicitly a boolean
+    const useLlmGenerated = Boolean(use_llm_generated_prompts);
+    
     const updatedValues = {
       general: generalSettings,
       prompt_settings: {
-        use_llm_generated: use_llm_generated_prompts,
+        use_llm_generated: useLlmGenerated,
         model: modelToUse,
       }
     };
     
-    console.log('Submitting settings:', updatedValues);
+    console.log('Submitting settings:', JSON.stringify(updatedValues, null, 2));
     await updateSettings.mutateAsync(updatedValues);
     
     // Force refetch of settings and invalidate prompts cache

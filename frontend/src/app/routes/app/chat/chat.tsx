@@ -308,13 +308,25 @@ export default function Chat() {
   );
 
   const handleExampleClick = useCallback((question: string) => {
-    // We'll use this to set example questions in the UI
-    // The actual setting of the input text is now handled by the ChatInput component
+    // Find the textarea element
     const chatInput = document.querySelector('textarea');
     if (chatInput) {
-      // Simulate setting the value and dispatching an input event
+      // Set the value
       (chatInput as HTMLTextAreaElement).value = question;
-      chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      // Create and dispatch an input event to trigger React's onChange handlers
+      const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+      chatInput.dispatchEvent(inputEvent);
+      
+      // Also create and dispatch a change event for good measure
+      const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+      chatInput.dispatchEvent(changeEvent);
+      
+      // Force a resize calculation by triggering a resize event on the window
+      window.dispatchEvent(new Event('resize'));
+      
+      // Focus the textarea
+      chatInput.focus();
     }
   }, []);
 

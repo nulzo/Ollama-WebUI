@@ -240,17 +240,56 @@ function DynamicTextarea({
     if (textareaRef.current) {
       const textarea = textareaRef.current;
       
-      // Reset height to auto first to properly calculate the new height
+      // Store the current scroll position
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // First set height to 'auto' to shrink properly when text is deleted
+      textarea.style.height = 'auto';
+      
+      // Then reset to 0px to properly calculate the new height
       textarea.style.height = '0px';
       
       // Get the scroll height which represents the content height
       const scrollHeight = Math.min(textarea.scrollHeight, 200); // Respect maxHeight
       
-      // Set the new height
-      textarea.style.height = `${scrollHeight}px`;
+      // Set the new height with a minimum of the original row height
+      textarea.style.height = scrollHeight > 0 ? `${scrollHeight}px` : 'auto';
+      
+      // If content is empty or just whitespace, reset to auto height
+      if (!text.trim()) {
+        textarea.style.height = 'auto';
+      }
       
       // Update the last height reference
-      lastHeightRef.current = `${scrollHeight}px`;
+      lastHeightRef.current = textarea.style.height;
+      
+      // Restore the scroll position to prevent page jumping
+      window.scrollTo(0, scrollTop);
+      
+      // Add a small delay and recalculate height again to handle edge cases
+      // This helps with programmatic text changes (like from canned questions)
+      setTimeout(() => {
+        if (textareaRef.current) {
+          const textarea = textareaRef.current;
+          
+          // First set height to 'auto' to shrink properly
+          textarea.style.height = 'auto';
+          
+          // Then reset to 0px
+          textarea.style.height = '0px';
+          
+          // Calculate new height
+          const scrollHeight = Math.min(textarea.scrollHeight, 200);
+          
+          // Set new height
+          textarea.style.height = scrollHeight > 0 ? `${scrollHeight}px` : 'auto';
+          
+          // If empty, reset to auto
+          if (!text.trim()) {
+            textarea.style.height = 'auto';
+          }
+        }
+      }, 10);
     }
   }, [text]);
 
@@ -258,6 +297,12 @@ function DynamicTextarea({
     const value = e.target.value;
     if (value.length <= maxLength) {
       setParentText(value);
+      
+      // Special handling for empty textarea
+      if (!value.trim() && textareaRef.current) {
+        // Reset to auto height when empty
+        textareaRef.current.style.height = 'auto';
+      }
       
       // Debounce history updates to prevent excessive state changes
       if (historyTimeoutRef.current) {
@@ -390,13 +435,68 @@ function DynamicTextarea({
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
+      // Handle paste events
       textarea.addEventListener('paste', handlePaste);
-    }
-    return () => {
-      if (textarea) {
+      
+      // Handle input events (including programmatic changes)
+      const handleInput = () => {
+        if (textarea) {
+          // First set height to 'auto' to shrink properly when text is deleted
+          textarea.style.height = 'auto';
+          
+          // Then reset to 0px to properly calculate the new height
+          textarea.style.height = '0px';
+          
+          // Get the scroll height which represents the content height
+          const scrollHeight = Math.min(textarea.scrollHeight, 200); // Respect maxHeight
+          
+          // Set the new height with a minimum of the original row height
+          textarea.style.height = scrollHeight > 0 ? `${scrollHeight}px` : 'auto';
+          
+          // If content is empty or just whitespace, reset to auto height
+          if (!textarea.value.trim()) {
+            textarea.style.height = 'auto';
+          }
+        }
+      };
+      
+      // Handle keydown events specifically for delete and backspace
+      const handleKeyDown = (e: KeyboardEvent) => {
+        // If delete or backspace key is pressed
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          // Use requestAnimationFrame to ensure the DOM has updated
+          requestAnimationFrame(() => {
+            handleInput();
+          });
+        }
+      };
+      
+      textarea.addEventListener('input', handleInput);
+      textarea.addEventListener('keydown', handleKeyDown);
+      
+      // Create a MutationObserver to watch for attribute changes
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+            // If the value attribute changed, update the height
+            handleInput();
+          }
+        });
+      });
+      
+      // Start observing the textarea for attribute changes
+      observer.observe(textarea, { attributes: true });
+      
+      return () => {
         textarea.removeEventListener('paste', handlePaste);
-      }
-    };
+        textarea.removeEventListener('input', handleInput);
+        textarea.removeEventListener('keydown', handleKeyDown);
+        observer.disconnect();
+      };
+    }
+    
+    // Return empty cleanup function if textarea doesn't exist
+    return () => {};
   }, [handlePaste]);
 
   // Clean up timeout on unmount
@@ -405,6 +505,38 @@ function DynamicTextarea({
       if (historyTimeoutRef.current) {
         clearTimeout(historyTimeoutRef.current);
       }
+    };
+  }, []);
+
+  // Add a window resize event listener to ensure the textarea resizes properly
+  useEffect(() => {
+    const handleResize = () => {
+      if (textareaRef.current) {
+        const textarea = textareaRef.current;
+        
+        // First set height to 'auto' to shrink properly
+        textarea.style.height = 'auto';
+        
+        // Then reset to 0px to properly calculate the new height
+        textarea.style.height = '0px';
+        
+        // Get the scroll height which represents the content height
+        const scrollHeight = Math.min(textarea.scrollHeight, 200); // Respect maxHeight
+        
+        // Set the new height with a minimum of the original row height
+        textarea.style.height = scrollHeight > 0 ? `${scrollHeight}px` : 'auto';
+        
+        // If content is empty or just whitespace, reset to auto height
+        if (!textarea.value.trim()) {
+          textarea.style.height = 'auto';
+        }
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 

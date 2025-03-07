@@ -66,7 +66,7 @@ class PromptBuilderService:
 
         formatting_instructions = """
         The title should always start with a verb (e.g., "Create", "Design", "Imagine", "Explore", etc.) and be a summary of the prompt.
-        Ensure that each prompt is phrased in less than 100 words.
+        Ensure that each prompt is phrased in less than 50 words.
         Maintain strict JSON formatting standards for output validity.
         The title should be at least 5 words.
         For each prompt, also create a "simple_prompt" field with a very concise 2-4 word version of the prompt.

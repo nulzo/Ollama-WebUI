@@ -14,45 +14,44 @@ class PromptTemplateService:
         """Get the template based on the specified style"""
         style_prompts = {
             "default": """
-                {instruction_variant} actionable prompts spanning various intellectual dimensions. {structure_variant}
+                {instruction_variant} user-to-AI prompts spanning various intellectual dimensions. {structure_variant}
             """,
             "creative": """
-                {instruction_variant} creative conversation starters that spark innovative artistic thinking. {structure_variant}
+                {instruction_variant} creative prompts for users to ask AI systems about artistic and imaginative topics. {structure_variant}
             """,
             "analytical": """
-                {instruction_variant} analytical conversation initiators emphasizing STEM topics. {structure_variant}
+                {instruction_variant} analytical prompts for users to ask AI systems about STEM and logical reasoning topics. {structure_variant}
             """,
             "inspirational": """
-                {instruction_variant} inspirational prompts that drive personal growth and positivity. {structure_variant}
+                {instruction_variant} inspirational prompts for users to ask AI systems about personal growth and motivation. {structure_variant}
             """,
             "casual": """
-                {instruction_variant} casual conversation starters ideal for everyday discussions. {structure_variant}
+                {instruction_variant} casual prompts for users to have everyday conversations with AI systems. {structure_variant}
             """,
         }
         return style_prompts.get(style.lower(), style_prompts["default"])
-
 
 class PromptVariantService:
     def get_variants(self) -> Dict[str, List[str]]:
         """Get all available variants for prompt construction"""
         return {
             "instruction_variants": [
-                "Generate 5 unique and imaginative",
-                "Create 5 diverse and engaging",
+                "Generate 5 unique and engaging",
+                "Create 5 diverse and interesting",
                 "Design 5 thought-provoking and varied",
-                "Formulate 5 inventive and distinct",
+                "Formulate 5 compelling and distinct",
             ],
             "structure_variants": [
-                "Each should provide an intriguing question or engaging task.",
-                "Ensure each includes a stimulating question or activity.",
-                "Include a captivating question or clear task for each.",
-                "Each should pose a curiosity-sparking question or directive.",
+                "Each should be phrased as a question or request that a user would ask an AI assistant.",
+                "Format each as a natural query or instruction that a human would pose to an AI system.",
+                "Ensure each is written from a user's perspective, asking the AI for information or assistance.",
+                "Craft each as a user-initiated prompt that would elicit a helpful AI response.",
             ],
             "optional_instructions": [
-                "Ensure originality and coherence in each title and prompt.",
-                "Balance between creativity and clarity in each prompt.",
-                "Incorporate elements of surprise and intellectual challenge.",
-                "Develop prompts that are both thought-provoking and accessible.",
+                "Make the prompts conversational and natural-sounding, as if coming from a curious human user.",
+                "Balance specificity with open-endedness to encourage detailed AI responses.",
+                "Include a mix of question types: some seeking information, others requesting creative output or analysis.",
+                "Ensure prompts are clear and unambiguous to help the AI provide relevant responses.",
             ],
         }
 
@@ -65,8 +64,38 @@ class PromptBuilderService:
         base_prompt = template.format(**variants)
 
         formatting_instructions = """
+        The title should summarize the topic or intent of the prompt.
+        Ensure that each prompt is phrased as a question or request that a human user would ask an AI assistant.
+        Maintain strict JSON formatting standards for output validity.
+        The title should be descriptive and 3-7 words long.
+        For each prompt, also create a "simple_prompt" field with a very concise 2-4 word version of the prompt.
+        The simple_prompt should capture the essence of the full prompt in the most concise way possible.
+        Respond solely with the JSON output.
+        The output should be in the following format:
+        {
+            "prompts": [
+                {"title": "...", "prompt": "...", "simple_prompt": "..."},
+                {"title": "...", "prompt": "...", "simple_prompt": "..."},
+                {"title": "...", "prompt": "...", "simple_prompt": "..."},
+            ]
+        }
+        """
+
+        if "optional_instructions" in variants:
+            formatting_instructions += f"\n{variants['optional_instructions']}"
+
+        return base_prompt + formatting_instructions
+
+class PromptBuilderService:
+    def build_prompt(self, template: str, variants: Dict[str, str]) -> str:
+        """
+        Build the complete prompt dialog with formatting instructions
+        """
+        base_prompt = template.format(**variants)
+
+        formatting_instructions = """
         The title should always start with a verb (e.g., "Create", "Design", "Imagine", "Explore", etc.) and be a summary of the prompt.
-        Ensure that each prompt is phrased in less than 50 words.
+        Ensure that each prompt is phrased in less than 30 words.
         Maintain strict JSON formatting standards for output validity.
         The title should be at least 5 words.
         For each prompt, also create a "simple_prompt" field with a very concise 2-4 word version of the prompt.
@@ -327,18 +356,6 @@ class PromptService:
                 "title": "Explore Space Colonization",
                 "prompt": "What are the main challenges and potential solutions for establishing a self-sustaining human colony on Mars?",
                 "simple_prompt": "Mars colony",
-                "style": style or "default",
-            },
-            {
-                "title": "Reinvent Education",
-                "prompt": "Propose an innovative education system that addresses the shortcomings of traditional schooling and prepares students for the challenges of the 22nd century.",
-                "simple_prompt": "Future education",
-                "style": style or "default",
-            },
-            {
-                "title": "Solve Global Hunger",
-                "prompt": "Develop a comprehensive plan to eliminate world hunger using sustainable agriculture, technology, and policy changes.",
-                "simple_prompt": "End hunger",
                 "style": style or "default",
             },
             {

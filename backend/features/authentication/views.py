@@ -164,6 +164,11 @@ class UserViewSet(viewsets.ViewSet):
                 # Update prompt_settings with the new values
                 user_settings.prompt_settings.update(prompt_settings)
                 print(f"Updated prompt_settings: {user_settings.prompt_settings}")
+                
+                # Ensure the model is properly set
+                if 'model' in prompt_settings:
+                    print(f"Setting model to: {prompt_settings['model']}")
+                    user_settings.prompt_settings['model'] = prompt_settings['model']
             
             # Update settings with request data
             serializer = SettingsSerializer(user_settings, data=request.data, partial=True)

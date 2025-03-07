@@ -41,7 +41,11 @@ export const useUpdateGeneralSettings = () => {
     mutationFn: updateGeneralSettings,
     onSuccess: (data) => {
       console.log('Settings updated successfully:', data);
-      queryClient.invalidateQueries({ queryKey: getSettingsQueryOptions().queryKey });
+      // Invalidate and refetch settings
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      queryClient.refetchQueries({ queryKey: ['settings'] });
+      // Also invalidate prompts to ensure they use the new model
+      queryClient.invalidateQueries({ queryKey: ['prompts'] });
       notifications.addNotification({
         type: 'success',
         title: 'Settings Updated',

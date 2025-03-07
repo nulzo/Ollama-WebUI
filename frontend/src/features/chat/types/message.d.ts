@@ -60,4 +60,19 @@ export interface Message {
     };
   }[];
   has_citations?: boolean;
+  // Tool call information
+  tool_calls?: {
+    id: string;
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }[];
+  tool_results?: {
+    tool_call_id: string;
+    name: string;
+    result?: any;
+    error?: string;
+  }[];
+  has_tool_calls?: boolean;
 }

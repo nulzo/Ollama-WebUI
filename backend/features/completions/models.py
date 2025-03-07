@@ -45,6 +45,10 @@ class Message(BaseModel):
     # Citation fields
     has_citations = models.BooleanField(default=False)
     citations = models.JSONField(null=True, blank=True, help_text="List of citations for the message")
+    # Tool call fields
+    has_tool_calls = models.BooleanField(default=False)
+    tool_calls = models.JSONField(null=True, blank=True, help_text="List of tool calls made by the model")
+    tool_results = models.JSONField(null=True, blank=True, help_text="Results of tool calls")
 
     def clean(self):
         if self.role == "user" and not self.user:
@@ -60,6 +64,9 @@ class Message(BaseModel):
             self.prompt_tokens = None
             self.completion_tokens = None
             self.finish_reason = None
+            self.has_tool_calls = False
+            self.tool_calls = None
+            self.tool_results = None
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:

@@ -99,12 +99,30 @@ class PromptViewSet(viewsets.ViewSet):
             self.logger.info(f"Request method: {request.method}")
             self.logger.info(f"Request user: {request.user}")
             
+            # Get model directly from query params for debugging
+            raw_model = request.query_params.get("model")
+            self.logger.info(f"Raw model from query params: {raw_model}")
+            
+            # Get user settings to check if LLM-generated prompts are enabled and get the model
+            from features.authentication.models import Settings
+            user_settings = Settings.objects.filter(user=request.user).first()
+            settings_model = None
+            
+            if user_settings and user_settings.prompt_settings:
+                settings_model = user_settings.prompt_settings.get('model')
+                self.logger.info(f"Model from user settings: {settings_model}")
+            
+            # Use model from query params if provided, otherwise use model from settings
+            # Prioritize the model from query params over the settings model
+            model_to_use = raw_model if raw_model else settings_model or "llama3.2:3b"
+            self.logger.info(f"Model to use: {model_to_use}")
+            
             # Validate request data
             serializer = PromptRequestSerializer(
                 data={
                     "style": request.query_params.get("style", ""),
                     "count": request.query_params.get("count", 5),
-                    "model": request.query_params.get("model", "llama3.2:3b"),
+                    "model": model_to_use,
                     **request.query_params.dict(),
                 }
             )
@@ -129,8 +147,6 @@ class PromptViewSet(viewsets.ViewSet):
             self.logger.info(f"Using model: {model_name}")
 
             # Get user settings to check if LLM-generated prompts are enabled
-            from features.authentication.models import Settings
-            user_settings = Settings.objects.filter(user=request.user).first()
             use_llm_generated = False
             
             if user_settings and user_settings.prompt_settings:
@@ -176,7 +192,7 @@ class PromptViewSet(viewsets.ViewSet):
                         **response,
                         "metadata": {
                             "style": validated_data["style"] or "default",
-                            "provider": "openai" if model_name.startswith("gpt") else "ollama",
+                            "provider": self._get_provider_from_model(model_name),
                             "model": model_name,
                             "count": validated_data["count"],
                         },
@@ -191,8 +207,8 @@ class PromptViewSet(viewsets.ViewSet):
                         "prompts": default_prompts,
                         "metadata": {
                             "style": validated_data["style"] or "default",
-                            "provider": "default",
-                            "model": "default",
+                            "provider": self._get_provider_from_model(model_name),
+                            "model": model_name,
                             "count": validated_data["count"],
                             "is_fallback": True,
                         },
@@ -219,3 +235,16 @@ class PromptViewSet(viewsets.ViewSet):
                 },
                 status=500,
             )
+
+    def _get_provider_from_model(self, model_name: str) -> str:
+        """Determine the provider based on the model name"""
+        model_lower = model_name.lower()
+        
+        if model_name.startswith(("gpt", "text-embedding-ada")):
+            return "openai"
+        elif model_name.startswith("claude"):
+            return "anthropic"
+        elif "gemini" in model_lower:
+            return "google"
+        else:
+            return "ollama"

@@ -5,7 +5,7 @@ import logging
 class PromptRequestSerializer(serializers.Serializer):
     style = serializers.CharField(required=False, max_length=50, allow_blank=True)
     count = serializers.IntegerField(required=False, default=5, min_value=1, max_value=10)
-    model = serializers.CharField(required=False, max_length=50, default="llama3.2:3b")
+    model = serializers.CharField(required=False, max_length=100, default="llama3.2:3b")
 
     def validate_style(self, value):
         """Validate the style parameter"""
@@ -23,5 +23,8 @@ class PromptRequestSerializer(serializers.Serializer):
         if not value:
             logger.warning("Model value is empty, using default")
             return "llama3.2:3b"
+        
+        # Log the model value for debugging
+        logger.info(f"Using model: {value}")
         
         return value

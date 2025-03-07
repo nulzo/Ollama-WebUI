@@ -2,6 +2,7 @@ import base64
 import logging
 from typing import AnyStr, Dict, List, Optional, Union
 from timeit import default_timer as timer
+import time
 
 from django.conf import settings
 from openai import Client
@@ -27,6 +28,10 @@ class OpenAiProvider(BaseProvider):
         self._client = Client(api_key=_api_key)
         # Optionally store the complete configuration for future reference.
         self.config = config.copy()
+        # Add caching for models
+        self._models_cache = None
+        self._models_cache_time = 0
+        self._models_cache_ttl = 300  # 5 minutes
         super().__init__(analytics_service=AnalyticsEventService())
 
     def chat(self, model: str, messages: Union[List, AnyStr]):
@@ -175,13 +180,8 @@ class OpenAiProvider(BaseProvider):
         return processed_messages if processed_messages else None  # Change this line
 
     def models(self):
-        return self._client.models.list()
-
-    def model(self): ...
-
-    def models(self):
         """
-        Return a list of available models from Ollama if the configuration is enabled.
+        Return a list of available models from OpenAI if the configuration is enabled.
         Each model returned is a dict containing:
         - id: model identifier
         - name: model name
@@ -196,25 +196,53 @@ class OpenAiProvider(BaseProvider):
         if not self.is_enabled:
             self.logger.info("OpenAI provider is not enabled; skipping model loading.")
             return []
+            
+        # Check cache first
+        current_time = time.time()
+        if self._models_cache is not None and current_time - self._models_cache_time < self._models_cache_ttl:
+            self.logger.info("Using cached OpenAI models")
+            return self._models_cache
+            
         try:
             model_list = self._client.models.list()
-            return [
-                {
+            models = []
+            
+            # Predefined lists for model capabilities
+            vision_models = ["gpt-4-vision", "gpt-4-turbo-vision", "gpt-4o", "gpt-4o-mini"]
+            embedding_models = ["text-embedding", "text-embedding-ada", "text-embedding-3"]
+            
+            for model in model_list:
+                # Check if the model supports tools using our optimized method
+                tools_enabled = self.supports_tools(model.id)
+                
+                # Check if the model supports vision using our predefined list
+                vision_enabled = any(vm in model.id for vm in vision_models)
+                
+                # Check if the model is for embeddings
+                embedding_enabled = any(em in model.id for em in embedding_models)
+                
+                models.append({
                     "id": f"{model.id}-openai",
                     "name": model.id,
                     "model": model.id,
-                    "max_input_tokens": 2048,
-                    "max_output_tokens": 2048,
-                    "vision_enabled": False,
-                    "embedding_enabled": False,
-                    "tools_enabled": False,
+                    "max_input_tokens": getattr(model, "max_input_tokens", 2048),
+                    "max_output_tokens": getattr(model, "max_output_tokens", 2048),
+                    "vision_enabled": vision_enabled,
+                    "embedding_enabled": embedding_enabled,
+                    "tools_enabled": tools_enabled,
                     "provider": "openai",
-                }
-                for model in model_list
-            ]
+                })
+            
+            # Update cache
+            self._models_cache = models
+            self._models_cache_time = current_time
+            
+            return models
         except Exception as e:
             self.logger.error(f"Error fetching models: {str(e)}")
             return []
+
+    def model(self): ...
 
     def generate(self): ...
 
@@ -282,3 +310,24 @@ class OpenAiProvider(BaseProvider):
         if "api_key" in config:
             self._client = Client(api_key=config["api_key"])
         logger.info("OpenAiProvider configuration updated.")
+
+    def supports_tools(self, model: str) -> bool:
+        """
+        Check if the specified model supports function calling/tools.
+        
+        Args:
+            model: The model name to check
+            
+        Returns:
+            bool: True if the model supports function calling, False otherwise
+        """
+        # Use a predefined list of models that support function calling
+        # instead of making individual API calls
+        function_calling_models = [
+            "gpt-4", "gpt-4-turbo", "gpt-4-0125-preview", "gpt-4-1106-preview",
+            "gpt-4o", "gpt-4o-mini", "gpt-4o-2024-05-13", 
+            "gpt-3.5-turbo", "gpt-3.5-turbo-0125", "gpt-3.5-turbo-1106"
+        ]
+        
+        # Check if the model name starts with any of the function calling models
+        return any(model.startswith(m) for m in function_calling_models)

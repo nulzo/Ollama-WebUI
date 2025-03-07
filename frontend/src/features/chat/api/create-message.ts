@@ -13,6 +13,7 @@ export const createMessageInputSchema = z.object({
   provider: z.string().optional(),
   name: z.string().optional(),
   knowledge_ids: z.array(z.string()).optional(),
+  function_call: z.boolean().optional(),
 });
 
 export type CreateMessageInput = z.infer<typeof createMessageInputSchema>;

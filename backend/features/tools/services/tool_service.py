@@ -138,26 +138,74 @@ class ToolService:
         except Exception as e:
             raise ValidationError(f"Invalid function content: {str(e)}")
 
-    def execute_tool(self, tool_id: int, args: Dict) -> any:
-        """Execute a tool with given arguments"""
-        tool = self.get_tool(tool_id)
+    def execute_tool(self, tool_name: str, arguments: Dict[str, Any], user: "CustomUser") -> Any:
+        """
+        Execute a tool with the given arguments
 
+        Args:
+            tool_name: Name of the tool to execute
+            arguments: Arguments to pass to the tool
+            user: User executing the tool
+
+        Returns:
+            Result of tool execution
+        """
         try:
-            # Create a new namespace for the function
-            namespace = {}
+            # Get the tool
+            self.logger.info(f"Executing tool: {tool_name} with arguments: {arguments}")
+            print(f"DEBUG: Executing tool: {tool_name} with arguments: {arguments}")
+            
+            tool = self.repository.get_by_name_and_user(tool_name, user.id)
+            if not tool:
+                error_msg = f"Tool {tool_name} not found"
+                self.logger.error(error_msg)
+                print(f"DEBUG: {error_msg}")
+                raise ValidationError(error_msg)
 
-            # Execute the function code in the namespace
-            exec(tool.function_content, namespace)
+            if not tool.is_enabled:
+                error_msg = f"Tool {tool_name} is disabled"
+                self.logger.error(error_msg)
+                print(f"DEBUG: {error_msg}")
+                raise ValidationError(error_msg)
 
-            # Get the function from the namespace
-            func_name = ast.parse(tool.function_content).body[0].name
-            func = namespace[func_name]
+            # Create execution environment
+            local_vars = {}
 
-            # Execute the function with the provided arguments
-            return func(**args)
+            # Execute the function content
+            self.logger.info(f"Executing function content for tool: {tool_name}")
+            print(f"DEBUG: Executing function content for tool: {tool_name}")
+            exec(tool.function_content, {}, local_vars)
+
+            # Get the function
+            func = local_vars.get(tool_name)
+            if not func:
+                error_msg = f"Function {tool_name} not found in tool content"
+                self.logger.error(error_msg)
+                print(f"DEBUG: {error_msg}")
+                raise ValidationError(error_msg)
+
+            # Validate arguments against schema
+            self.logger.info(f"Validating arguments for tool: {tool_name}")
+            print(f"DEBUG: Validating arguments for tool: {tool_name}")
+            self._validate_arguments(arguments, tool.parameters)
+
+            # Execute function
+            self.logger.info(f"Calling function: {tool_name}")
+            print(f"DEBUG: Calling function: {tool_name}")
+            result = func(**arguments)
+
+            # Validate return value
+            self.logger.info(f"Validating return value for tool: {tool_name}")
+            print(f"DEBUG: Validating return value for tool: {tool_name}")
+            self._validate_return_value(result, tool.returns)
+
+            self.logger.info(f"Tool {tool_name} executed successfully with result: {result}")
+            print(f"DEBUG: Tool {tool_name} executed successfully with result: {result}")
+            return result
 
         except Exception as e:
-            self.logger.error(f"Error executing tool {tool.name}: {str(e)}")
+            self.logger.error(f"Error executing tool {tool_name}: {str(e)}")
+            print(f"DEBUG: Error executing tool {tool_name}: {str(e)}")
             raise ServiceError(f"Failed to execute tool: {str(e)}")
 
     def prepare_tools_for_ollama(self, tools: List[Tool]) -> List[Dict[str, Any]]:
@@ -191,53 +239,6 @@ class ToolService:
         except Exception as e:
             self.logger.error(f"Error preparing tools for Ollama: {str(e)}")
             raise ServiceError(f"Failed to prepare tools: {str(e)}")
-
-    def execute_tool(self, tool_name: str, arguments: Dict[str, Any], user: "CustomUser") -> Any:
-        """
-        Execute a tool with the given arguments
-
-        Args:
-            tool_name: Name of the tool to execute
-            arguments: Arguments to pass to the tool
-            user: User executing the tool
-
-        Returns:
-            Result of tool execution
-        """
-        try:
-            # Get the tool
-            tool = self.repository.get_by_name_and_user(tool_name, user.id)
-            if not tool:
-                raise ValidationError(f"Tool {tool_name} not found")
-
-            if not tool.is_enabled:
-                raise ValidationError(f"Tool {tool_name} is disabled")
-
-            # Create execution environment
-            local_vars = {}
-
-            # Execute the function content
-            exec(tool.function_content, {}, local_vars)
-
-            # Get the function
-            func = local_vars.get(tool_name)
-            if not func:
-                raise ValidationError(f"Function {tool_name} not found in tool content")
-
-            # Validate arguments against schema
-            self._validate_arguments(arguments, tool.parameters)
-
-            # Execute function
-            result = func(**arguments)
-
-            # Validate return value
-            self._validate_return_value(result, tool.returns)
-
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Error executing tool {tool_name}: {str(e)}")
-            raise ServiceError(f"Failed to execute tool: {str(e)}")
 
     def handle_tool_call(
         self, tool_calls: List[Dict[str, Any]], user: "CustomUser"

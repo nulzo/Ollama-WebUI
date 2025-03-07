@@ -35,6 +35,7 @@ export interface Message {
 export interface Prompt {
   title: string;
   prompt: string;
+  simple_prompt: string;
   style: string;
 }
 

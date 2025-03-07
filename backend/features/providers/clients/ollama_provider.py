@@ -2,6 +2,7 @@ import json
 import logging
 from timeit import default_timer as timer
 from typing import AnyStr, Dict, List, Union, Generator
+import time
 
 from ollama import Client as OllamaClient
 
@@ -9,6 +10,7 @@ from features.analytics.services.analytics_service import AnalyticsEventService
 from features.providers.clients.base_provider import BaseProvider
 from api.utils.exceptions.exceptions import ServiceError
 from features.tools.models import Tool
+from features.tools.services.tool_service import ToolService
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,11 @@ class OllamaProvider(BaseProvider):
         self._client = OllamaClient(host=endpoint)
         self._cancel_event = None
         self.logger = logger
+        self.tool_service = ToolService()
+        # Add caching for models
+        self._models_cache = None
+        self._models_cache_time = 0
+        self._models_cache_ttl = 300  # 5 minutes
         super().__init__(analytics_service=AnalyticsEventService())
 
     def update_config(self, config: Dict) -> None:
@@ -110,16 +117,117 @@ class OllamaProvider(BaseProvider):
         token_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
         processed_messages = self._flatten_messages(messages)
+        
+        # Check if function calling is enabled for this request
+        enable_function_calling = kwargs.get("function_call", False)
+        user_id = kwargs.get("user_id")
+        tools = []
+        
+        # If function calling is enabled, get the available tools
+        if enable_function_calling and user_id:
+            try:
+                # Get enabled tools for the user
+                user_tools = self.tool_service.get_user_tools(user_id)
+                enabled_tools = [tool for tool in user_tools if tool.is_enabled]
+                
+                # Convert tools to Ollama format
+                if enabled_tools:
+                    tools = self.tool_service.prepare_tools_for_ollama(enabled_tools)
+                    self.logger.info(f"Using {len(tools)} tools for function calling")
+            except Exception as e:
+                self.logger.error(f"Error preparing tools: {str(e)}")
 
         try:
-            # Call the Ollama client in streaming mode.
-            response_stream = self._client.chat(model=model, messages=processed_messages, stream=True)
+            # Call the Ollama client in streaming mode with tools if available
+            options = {}
+            if tools:
+                options["tools"] = tools
+                self.logger.info(f"Sending tools to Ollama: {json.dumps(tools)}")
+                print(f"DEBUG: Sending tools to Ollama: {json.dumps(tools)}")
+                
+            self.logger.info(f"Calling Ollama with model: {model}, stream: True, options: {options}")
+            print(f"DEBUG: Calling Ollama with model: {model}, stream: True, options: {options}")
+                
+            response_stream = self._client.chat(
+                model=model, 
+                messages=processed_messages, 
+                stream=True,
+                options=options
+            )
 
             for chunk in response_stream:
-                # Optionally log the raw chunk for debugging
-                # self.logger.debug(f"Ollama raw chunk: {chunk}")
-
-                if chunk.get("done"):
+                # Log the raw chunk for debugging
+                print(f"DEBUG: Raw chunk from Ollama: {json.dumps(chunk, default=str)}")
+                self.logger.debug(f"Raw chunk from Ollama: {json.dumps(chunk, default=str)}")
+                
+                # More detailed logging about the chunk content
+                if "message" in chunk:
+                    if "tool_calls" in chunk.get("message", {}):
+                        print(f"DEBUG: Tool calls in message: {json.dumps(chunk['message']['tool_calls'])}")
+                        self.logger.info(f"Tool calls in message: {json.dumps(chunk['message']['tool_calls'])}")
+                
+                # Check for tool calls in the response
+                if "tool_calls" in chunk:
+                    tool_calls = chunk.get("tool_calls", [])
+                    self.logger.info(f"Received tool calls: {tool_calls}")
+                    print(f"DEBUG: Processing tool calls: {json.dumps(tool_calls)}")
+                    
+                    # Process tool calls
+                    if user_id and tool_calls:
+                        try:
+                            # Get the user
+                            from features.authentication.models import CustomUser
+                            user = CustomUser.objects.get(id=user_id)
+                            
+                            # Execute the tool calls
+                            tool_results = self.tool_service.handle_tool_call(tool_calls, user)
+                            
+                            # Yield the tool call results
+                            yield json.dumps({
+                                "tool_calls": tool_calls,
+                                "tool_results": tool_results,
+                                "status": "tool_call"
+                            })
+                            
+                            # Add the tool results to the messages for context
+                            for result in tool_results:
+                                processed_messages.append({
+                                    "role": "tool",
+                                    "tool_call_id": result.get("tool_call_id"),
+                                    "name": result.get("name"),
+                                    "content": str(result.get("result", result.get("error", "")))
+                                })
+                            
+                            # Continue the conversation with the tool results
+                            continue_response = self._client.chat(
+                                model=model,
+                                messages=processed_messages,
+                                stream=True,
+                                options=options
+                            )
+                            
+                            # Stream the continued response
+                            for continue_chunk in continue_response:
+                                if continue_chunk.get("done"):
+                                    # Update token usage from the final chunk
+                                    token_usage["prompt_tokens"] += continue_chunk.get("prompt_eval_count", 0)
+                                    token_usage["completion_tokens"] += continue_chunk.get("eval_count", 0)
+                                else:
+                                    # Extract the text
+                                    text = ""
+                                    if "message" in continue_chunk:
+                                        text = continue_chunk.get("message", {}).get("content", "")
+                                    else:
+                                        text = continue_chunk.get("content", "")
+                                        
+                                    if text.strip():
+                                        yield json.dumps({"content": text, "status": "generating"})
+                            
+                        except Exception as tool_error:
+                            self.logger.error(f"Error processing tool calls: {str(tool_error)}")
+                            yield json.dumps({"error": str(tool_error), "status": "error"})
+                
+                elif chunk.get("done"):
                     # Update token usage from the final chunk.
                     token_usage["prompt_tokens"] = chunk.get("prompt_eval_count", 0)
                     token_usage["completion_tokens"] = chunk.get("eval_count", 0)
@@ -170,7 +278,7 @@ class OllamaProvider(BaseProvider):
 
     def models(self) -> List[str]:
         """
-        Return a list of available models from Ollama in a standardized format.
+        Return a list of available models from Ollama if the configuration is enabled.
         Each model returned is a dict containing:
         - id: model identifier
         - name: model name
@@ -185,23 +293,39 @@ class OllamaProvider(BaseProvider):
         if not self.is_enabled:
             self.logger.info("Ollama provider is not enabled; skipping model loading.")
             return []
+            
+        # Check cache first
+        current_time = time.time()
+        if self._models_cache is not None and current_time - self._models_cache_time < self._models_cache_ttl:
+            self.logger.info("Using cached Ollama models")
+            return self._models_cache
+            
         try:
             model_list = self._client.list()
-            # For simplicity, we can assume all models have a max_tokens of 2048.
-            return [
-                {
-                    "id": f"{model.get('name')}-{model.get('digest')}",
-                    "name": model.get("name"),
+            models = []
+            
+            for model in model_list.get("models", []):
+                model_name = model.get("name")
+                # Dynamically check if the model supports tools
+                tools_enabled = self.supports_tools(model_name)
+                
+                models.append({
+                    "id": f"{model_name}-{model.get('digest')}",
+                    "name": model_name,
                     "model": model.get("model"),
                     "max_input_tokens": 2048,
                     "max_output_tokens": 2048,
                     "vision_enabled": False,
                     "embedding_enabled": False,
-                    "tools_enabled": False,
+                    "tools_enabled": tools_enabled,
                     "provider": "ollama",
-                }
-                for model in model_list.get("models", [])
-            ]
+                })
+            
+            # Update cache
+            self._models_cache = models
+            self._models_cache_time = current_time
+            
+            return models
         except Exception as e:
             self.logger.error(f"Error fetching models: {str(e)}")
             return []
@@ -245,3 +369,71 @@ class OllamaProvider(BaseProvider):
         if error:
             event_data["metadata"]["error"] = error
         return event_data
+
+    def supports_tools(self, model: str) -> bool:
+        """
+        Check if the specified model supports function calling/tools.
+        
+        Args:
+            model: The model name to check
+            
+        Returns:
+            bool: True if the model supports function calling, False otherwise
+        """
+        try:
+            # Query Ollama for model information
+            model_info = self._client.show(model=model)
+            
+            # Check if the model metadata indicates function calling support
+            # Look for specific tags or model families known to support tools
+            if "metadata" in model_info:
+                metadata = model_info.get("metadata", {})
+                
+                # Check for explicit function calling capability flag
+                if metadata.get("function_calling") is True:
+                    return True
+                
+                # Check model family from template
+                template = metadata.get("template", "").lower()
+                if any(family in template for family in ["llama3", "mistral", "mixtral", "gemma", "claude"]):
+                    return True
+                
+                # Check model family from system info
+                system_prompt = metadata.get("system", "").lower()
+                if any(family in system_prompt for family in ["llama3", "mistral", "mixtral", "gemma", "claude"]):
+                    return True
+                
+                # Check model architecture
+                architecture = metadata.get("architecture", "").lower()
+                if any(arch in architecture for arch in ["llama3", "mistral", "mixtral", "gemma", "claude"]):
+                    return True
+            
+            # If we can't determine from metadata, try to check the model name
+            return self._check_model_supports_tools(model)
+            
+        except Exception as e:
+            self.logger.warning(f"Error checking model capabilities for {model}: {str(e)}")
+            # Fall back to checking the model name
+            return self._check_model_supports_tools(model)
+    
+    def _check_model_supports_tools(self, model: str) -> bool:
+        """
+        Check if a model supports function calling based on its name.
+        This is a fallback method when we can't determine from metadata.
+        
+        Args:
+            model: The model name to check
+            
+        Returns:
+            bool: True if the model name indicates function calling support
+        """
+        # List of models known to support function calling
+        function_calling_models = [
+            "llama3", "llama3:8b", "llama3:70b",  # Llama 3 models
+            "mistral", "mixtral",  # Mistral models
+            "gemma", "gemma:7b", "gemma:2b",  # Gemma models
+            "claude", "claude-3",  # Claude models
+        ]
+        
+        # Check if the model name contains any of the function calling models
+        return any(model_name in model.lower() for model_name in function_calling_models)

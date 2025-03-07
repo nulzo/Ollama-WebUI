@@ -25,7 +25,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { SettingsModal } from '@/features/settings/components/settings-modal.tsx';
 import logo from '@/assets/cringelogomedium.svg';
 import { useConversations } from '@/features/chat/api/get-conversations.ts';
@@ -39,6 +39,7 @@ import { Chat } from '@/types/chat';
 export default function ConversationHistory(props: any) {
   const user = useUser();
   const route = useLocation();
+  const navigate = useNavigate();
   const [isExpanded, setExpanded] = useState<boolean>(true);
   const chats = useConversations();
 
@@ -191,7 +192,7 @@ export default function ConversationHistory(props: any) {
               variant="ghost"
               type="submit"
               className="w-full justify-start flex gap-2.5 text-sm group h-9 font-normal"
-              onClick={() => {}}
+              onClick={() => navigate('/models/download')}
             >
               <ArrowUpDown className="size-4 group-hover:stroke-foreground transition-colors duration-200" />
               Download Models

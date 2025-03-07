@@ -121,6 +121,34 @@ class GoogleProvider(BaseProvider):
     def generate(self, model: str, prompt: str) -> str:
         return self.chat(model, prompt)
     
+    def supports_tools(self, model: str) -> bool:
+        """
+        Check if the specified model supports function calling/tools.
+        
+        Args:
+            model: The model name to check
+            
+        Returns:
+            bool: True if the model supports function calling, False otherwise
+        """
+        try:
+            # Get model information from Google AI API
+            models = list(self._client.models.list())
+            for m in models:
+                if m.name == model:
+                    # Check if the model has function calling capability
+                    return "generateContent" in m.supported_actions and "tools" in getattr(m, "supported_features", [])
+            
+            # If model not found or no capability info, check known models
+            function_calling_models = ["gemini-1.5-pro", "gemini-1.5-flash"]
+            return any(model.startswith(m) for m in function_calling_models)
+            
+        except Exception as e:
+            self.logger.warning(f"Error checking model capabilities for {model}: {str(e)}")
+            # Fall back to checking known models
+            function_calling_models = ["gemini-1.5-pro", "gemini-1.5-flash"]
+            return any(model.startswith(m) for m in function_calling_models)
+    
     def chat_stream(
         self, model: str, messages: Union[List[Union[str, Dict]], str]
     ) -> Generator[str, None, None]:

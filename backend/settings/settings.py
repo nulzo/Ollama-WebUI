@@ -220,7 +220,7 @@ LOGGING = {
     },
     "handlers": {
         "console": {
-            "level": "DEBUG",
+            "level": "INFO",
             "class": "rich.logging.RichHandler",
             "formatter": "rich",
         },
@@ -233,12 +233,12 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console", "file"],
-        "level": "DEBUG",
+        "level": "INFO",
     },
     "loggers": {
             "features": {  # This logger will handle all loggers starting with 'features.'
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": True,
         },
         "django.request": {
@@ -248,7 +248,7 @@ LOGGING = {
         },
         "api": {  # Replace 'myapp' with the actual app name
             "handlers": ["console", "file"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": False,
         },
     },

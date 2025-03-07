@@ -68,13 +68,15 @@ class PromptBuilderService:
         Ensure that each prompt is phrased in less than 100 words.
         Maintain strict JSON formatting standards for output validity.
         The title should be at least 5 words.
+        For each prompt, also create a "simple_prompt" field with a very concise 2-4 word version of the prompt.
+        The simple_prompt should capture the essence of the full prompt in the most concise way possible.
         Respond solely with the JSON output.
         The output should be in the following format:
         {
             "prompts": [
-                {"title": "...", "prompt": "..."},
-                {"title": "...", "prompt": "..."},
-                {"title": "...", "prompt": "..."},
+                {"title": "...", "prompt": "...", "simple_prompt": "..."},
+                {"title": "...", "prompt": "...", "simple_prompt": "..."},
+                {"title": "...", "prompt": "...", "simple_prompt": "..."},
             ]
         }
         """
@@ -139,10 +141,17 @@ class PromptService:
             # Get response from provider using the specified model
             self.logger.info(f"Calling provider with model: {model}")
             try:
+                # Ensure we're using the correct model, not the default
+                if not model:
+                    self.logger.warning("No model specified, using default: llama3.2:3b")
+                    model = "llama3.2:3b"
+                else:
+                    self.logger.info(f"Using specified model: {model}")
+                
                 response = self.provider.chat(model=model, messages=messages)
-                self.logger.info(f"Provider response: {response}")
+                self.logger.info(f"Provider response received for model: {model}")
             except Exception as e:
-                self.logger.error(f"Provider chat error: {e}")
+                self.logger.error(f"Provider chat error with model {model}: {e}")
                 return self.get_default_prompts(style)
 
             try:
@@ -178,26 +187,31 @@ class PromptService:
             {
                 "title": "Explore Space Colonization",
                 "prompt": "What are the main challenges and potential solutions for establishing a self-sustaining human colony on Mars?",
+                "simple_prompt": "Mars colony",
                 "style": style or "default",
             },
             {
                 "title": "Reinvent Education",
                 "prompt": "Propose an innovative education system that addresses the shortcomings of traditional schooling and prepares students for the challenges of the 22nd century.",
+                "simple_prompt": "Future education",
                 "style": style or "default",
             },
             {
                 "title": "Solve Global Hunger",
                 "prompt": "Develop a comprehensive plan to eliminate world hunger using sustainable agriculture, technology, and policy changes.",
+                "simple_prompt": "End hunger",
                 "style": style or "default",
             },
             {
                 "title": "Design Future Transportation",
                 "prompt": "Conceptualize a revolutionary transportation system that is fast, eco-friendly, and accessible to everyone globally.",
+                "simple_prompt": "Green transport",
                 "style": style or "default",
             },
             {
                 "title": "Advance Artificial Intelligence",
                 "prompt": "What ethical considerations should guide the development of artificial general intelligence (AGI) to ensure it benefits humanity?",
+                "simple_prompt": "AI ethics",
                 "style": style or "default",
             },
         ]

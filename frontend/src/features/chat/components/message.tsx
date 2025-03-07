@@ -21,6 +21,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { StandardModel } from '@/features/models/types/models.js';
 import { forwardRef } from 'react';
 import { CitationList } from './citation-list.tsx';
+import { ToolCallList } from './tool-call-list.tsx';
 import { addInlineCitations, forceInlineCitations } from '../utils/process-citations.ts';
 import { useSettings } from '@/features/settings/api/get-settings';
 
@@ -123,7 +124,9 @@ export const Message = memo(
       messageId: message.id,
       hasCitations: message.has_citations,
       citationsCount: message.citations?.length,
-      inlineCitationsEnabled
+      inlineCitationsEnabled,
+      hasToolCalls: message.tool_calls && message.tool_calls.length > 0,
+      toolCallsCount: message.tool_calls?.length || 0
     });
 
     const queryClient = useQueryClient();
@@ -398,6 +401,10 @@ export const Message = memo(
                     <div className="h-6" />
                   )}
                 </div>
+
+                {message.tool_calls && message.tool_calls.length > 0 && (
+                  <ToolCallList message={message} />
+                )}
 
                 {message.has_citations && <CitationList message={message} />}
               </div>

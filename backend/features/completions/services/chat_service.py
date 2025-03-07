@@ -9,7 +9,7 @@ from typing import Generator, List, Optional, Union
 from features.completions.models import MessageError
 from features.analytics.services.analytics_service import AnalyticsEventService
 from features.conversations.services.conversation_service import ConversationService
-from features.providers.clients.provider_factory import provider_factory
+from features.providers.clients.provider_factory import provider_factory, ProviderFactory
 from features.conversations.repositories.message_repository import MessageRepository
 from features.authentication.models import CustomUser
 
@@ -196,7 +196,6 @@ class ChatService:
         try:
             # Try to get conversation or create new one if not provided
             # TODO: there is probably a better way to do this
-            print("DATA", data)
             conversation = self.conversation_service.get_or_create_conversation(
                 data.get("conversation_uuid"), {
                     "user": user,
@@ -259,13 +258,10 @@ class ChatService:
             knowledge_ids = data.get("knowledge_ids", [])
             if knowledge_ids and isinstance(knowledge_ids, list) and len(knowledge_ids) > 0:
                 self.logger.info(f"Knowledge IDs provided: {knowledge_ids}")
-                print(f"DEBUG: Knowledge IDs in request: {knowledge_ids}")
-                print(f"DEBUG: Knowledge IDs type: {type(knowledge_ids)}")
-                
+
                 # Get the last user message (the one we just created)
                 last_user_message = formatted_messages[-1]
-                print(f"DEBUG: Last user message content: {last_user_message['content']}")
-                
+
                 # Prepare context - use a thread to avoid blocking
                 # This is a synchronous approach that doesn't use async/await
                 context = self._prepare_context(
@@ -277,10 +273,7 @@ class ChatService:
                 if context:
                     # Add context to the user message
                     self.logger.info("Adding knowledge context to user message")
-                    print(f"DEBUG: Adding context to user message. Context length: {len(context)}")
                     last_user_message["content"] = f"{last_user_message['content']}\n\n{context}"
-                    print(f"DEBUG: Updated user message content: {last_user_message['content'][:100]}...")
-                    
                     # Update the formatted messages
                     formatted_messages[-1] = last_user_message
                     
@@ -295,9 +288,20 @@ class ChatService:
             else:
                 print(f"DEBUG: No knowledge_ids provided in request or invalid format: {knowledge_ids}")
 
+            # Check if function calling is enabled for this request
+            function_call = False
+            if data.get("function_call") is True:
+                function_call = True
+
             # Stream the response
             try:
-                for chunk in provider.stream(data.get("model", "llama3.2:3b"), formatted_messages, user_id=user.id, conversation_id=str(conversation.uuid)):
+                for chunk in provider.stream(
+                    data.get("model", "llama3.2:3b"), 
+                    formatted_messages, 
+                    user_id=user.id, 
+                    conversation_id=str(conversation.uuid),
+                    function_call=function_call
+                ):
                     # Check if cancellation was requested
                     if self._cancel_event.is_set():
                         self.logger.info(f"Generation {generation_id} was cancelled after {tokens_generated} tokens")
@@ -346,6 +350,41 @@ class ChatService:
                             }) + "\n"
                             return
                         
+                        # Handle tool calls
+                        if chunk_data.get("status") == "tool_call":
+                            # Pass through the tool call data
+                            yield json.dumps(chunk_data) + "\n"
+                            
+                            # Add tool call information to the full content
+                            tool_calls = chunk_data.get("tool_calls", [])
+                            tool_results = chunk_data.get("tool_results", [])
+                            
+                            for i, tool_call in enumerate(tool_calls):
+                                function_name = tool_call.get("function", {}).get("name", "unknown")
+                                arguments = tool_call.get("function", {}).get("arguments", "{}")
+                                
+                                # Find corresponding result
+                                result = "No result"
+                                for result_item in tool_results:
+                                    if result_item.get("tool_call_id") == tool_call.get("id"):
+                                        if "result" in result_item:
+                                            result = result_item.get("result")
+                                        elif "error" in result_item:
+                                            result = f"Error: {result_item.get('error')}"
+                                
+                                # Add to full content
+                                full_content += f"\n\nFunction Call: {function_name}({arguments})\nResult: {result}\n\n"
+                            
+                            # Store tool calls and results for later use when creating the message
+                            if not hasattr(self, '_tool_calls'):
+                                self._tool_calls = []
+                                self._tool_results = []
+                            
+                            self._tool_calls.extend(tool_calls)
+                            self._tool_results.extend(tool_results)
+                            
+                            continue
+                        
                         full_content += chunk_data.get("content", "")
                         tokens_generated += 1
 
@@ -366,22 +405,21 @@ class ChatService:
             citation_data = {}
             if relevant_chunks:
                 self.logger.info(f"Processing citations for {len(relevant_chunks)} relevant chunks")
-                print(f"DEBUG: Processing citations for {len(relevant_chunks)} relevant chunks")
-                
-                # Log the first chunk to understand its structure
-                if len(relevant_chunks) > 0:
-                    print(f"DEBUG: First relevant chunk: {str(relevant_chunks[0])[:200]}...")
                 
                 citation_data = self.knowledge_service.get_citations_for_response(full_content, relevant_chunks)
                 self.logger.info(f"Generated {len(citation_data.get('citations', []))} citations for response")
-                print(f"DEBUG: Generated {len(citation_data.get('citations', []))} citations for response")
 
             # Create the assistant message regardless of how we got here
             # This ensures cancelled messages are saved
             if not assistant_message:  # Only create if not already created due to error
                 finish_reason = "cancelled" if self._cancel_event.is_set() else "stop"
                 
-                # Create message with citation data
+                # Get tool calls and results if they exist
+                tool_calls = getattr(self, '_tool_calls', [])
+                tool_results = getattr(self, '_tool_results', [])
+                has_tool_calls = len(tool_calls) > 0
+                
+                # Create message with citation data and tool calls
                 assistant_message = self.message_repository.create(
                     conversation=user_message.conversation,
                     content=full_content,
@@ -397,7 +435,17 @@ class ChatService:
                     # Add citation data as JSON fields
                     has_citations=citation_data.get("has_citations", False),
                     citations=citation_data.get("citations", []),
+                    # Add tool call data
+                    tool_calls=tool_calls,
+                    tool_results=tool_results,
+                    has_tool_calls=has_tool_calls,
                 )
+                
+                # Reset tool calls and results
+                if hasattr(self, '_tool_calls'):
+                    delattr(self, '_tool_calls')
+                if hasattr(self, '_tool_results'):
+                    delattr(self, '_tool_results')
 
             # If we were cancelled, send a final cancellation message
             if self._cancel_event.is_set():
@@ -461,12 +509,23 @@ class ChatService:
         """Get appropriate provider based on model name"""
         try:
             # Determine provider name based on model prefix
-            provider_name = "openai" if model_name.startswith("gpt") else "ollama"
-            self.logger.info(f"Using provider: {provider_name} for model: {model_name}")
+            provider_name = "ollama"  # Default provider
+            
+            # Convert model name to lowercase for case-insensitive matching
+            model_lower = model_name.lower()
+            
+            # Check for known model prefixes
+            if model_name.startswith(("gpt", "text-embedding-ada")):
+                provider_name = "openai"
+            elif model_name.startswith(("claude")):
+                provider_name = "anthropic"
+            elif "gemini" in model_lower:
+                provider_name = "google"
+            
+            self.logger.info(f"Selected provider {provider_name} for model {model_name}")
             
             # Get provider from factory
             provider = self.provider_factory.get_provider(provider_name, user_id or 1)
-            self.logger.info(f"Provider initialized: {provider}")
             
             return provider
         except Exception as e:
@@ -500,14 +559,13 @@ class ChatService:
             )
             self.logger.info(f"Prompt service initialized")
 
-            # Get prompts with the specified model
-            self.logger.info(f"Calling get_actionable_prompts with style: {style}, model: {model_name}")
+            # Get prompts with the specified model - ensure we're using the correct model
+            self.logger.info(f"Calling prompt_service.get_actionable_prompts with style: {style}, model: {model_name}")
             prompts = prompt_service.get_actionable_prompts(style, model_name)
-            self.logger.info(f"Received prompts: {prompts}")
 
             # Limit prompts to requested count
             limited_prompts = prompts[:count] if count else prompts
-            self.logger.info(f"Limited prompts to {count}: {limited_prompts}")
+            self.logger.info(f"Generated {len(limited_prompts)} prompts using model: {model_name}")
 
             return {"prompts": limited_prompts}
 

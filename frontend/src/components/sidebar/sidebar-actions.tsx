@@ -235,7 +235,7 @@ export const SidebarActions = ({ isCollapsed, animationDuration }: SidebarAction
       <SidebarButton
         icon={ArrowUpDown}
         label="Download Models"
-        onClick={() => navigate('/cloud')}
+        onClick={() => navigate('/models/download')}
         isCollapsed={isCollapsed}
         animationDuration={animationDuration}
       />

@@ -12,8 +12,22 @@ type RequestConfig = {
 
 interface StreamChunk {
   content?: string;
-  status?: 'generating' | 'cancelled' | 'error';
+  status?: 'generating' | 'cancelled' | 'error' | 'tool_call' | 'done' | 'waiting' | 'created';
   error?: string;
+  conversation_uuid?: string;
+  tool_calls?: Array<{
+    id: string;
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }>;
+  tool_results?: Array<{
+    tool_call_id: string;
+    name?: string;
+    result?: any;
+    error?: string;
+  }>;
 }
 
 function authRequestHeaders(): Headers {

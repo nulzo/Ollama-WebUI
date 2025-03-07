@@ -29,6 +29,7 @@ class ModelsViewSet(viewsets.ViewSet):
 
     list: Get all available models from all providers
     by_provider: Get models for a specific provider
+    download: Download a model from Ollama
     """
 
     permission_classes = [IsAuthenticated]
@@ -88,6 +89,161 @@ class ModelsViewSet(viewsets.ViewSet):
                 error={
                     "code": "MODELS_FETCH_ERROR",
                     "message": f"Failed to fetch models for {provider_type}",
+                    "details": str(e),
+                },
+                status=500,
+            )
+
+    @action(detail=False, methods=["post"], url_path="download")
+    def download_model(self, request):
+        """Download a model from Ollama"""
+        try:
+            model_name = request.data.get("model")
+            if not model_name:
+                return api_response(
+                    error={
+                        "code": "INVALID_REQUEST",
+                        "message": "Model name is required",
+                    },
+                    status=400,
+                )
+            
+            # Start the download process
+            download_task = self.models_service.download_model(
+                model_name=model_name,
+                user_id=request.user.id
+            )
+            
+            return api_response(
+                data={"task_id": str(download_task.id)},
+                links={"self": request.build_absolute_uri()}
+            )
+        except ServiceError as e:
+            self.logger.error(f"Service error downloading model {model_name}: {str(e)}")
+            return api_response(
+                error={
+                    "code": "SERVICE_ERROR",
+                    "message": f"Failed to download model {model_name}",
+                    "details": str(e),
+                },
+                status=503,
+            )
+        except Exception as e:
+            self.logger.error(f"Error downloading model {model_name}: {str(e)}")
+            return api_response(
+                error={
+                    "code": "MODEL_DOWNLOAD_ERROR",
+                    "message": f"Failed to download model {model_name}",
+                    "details": str(e),
+                },
+                status=500,
+            )
+            
+    @action(detail=False, methods=["get"], url_path="download/(?P<task_id>[^/]+)")
+    def download_status(self, request, task_id=None):
+        """Get the status of a model download task"""
+        try:
+            # Remove any trailing slash from task_id
+            if task_id and task_id.endswith('/'):
+                task_id = task_id[:-1]
+                
+            self.logger.info(f"Getting download status for task ID: {task_id}")
+            status = self.models_service.get_download_status(task_id)
+            return api_response(
+                data=status,
+                links={"self": request.build_absolute_uri()}
+            )
+        except ServiceError as e:
+            self.logger.error(f"Service error getting download status for task {task_id}: {str(e)}")
+            return api_response(
+                error={
+                    "code": "SERVICE_ERROR",
+                    "message": f"Failed to get download status",
+                    "details": str(e),
+                },
+                status=503,
+            )
+        except Exception as e:
+            self.logger.error(f"Error getting download status for task {task_id}: {str(e)}")
+            return api_response(
+                error={
+                    "code": "DOWNLOAD_STATUS_ERROR",
+                    "message": f"Failed to get download status",
+                    "details": str(e),
+                },
+                status=500,
+            )
+            
+    @action(detail=False, methods=["get"], url_path="available")
+    def available_models(self, request):
+        """Get available models from Ollama library"""
+        try:
+            models = self.models_service.get_available_models()
+            return api_response(
+                data=models,
+                links={"self": request.build_absolute_uri()}
+            )
+        except ServiceError as e:
+            self.logger.error(f"Service error fetching available models: {str(e)}")
+            return api_response(
+                error={
+                    "code": "SERVICE_ERROR",
+                    "message": "Failed to fetch available models",
+                    "details": str(e),
+                },
+                status=503,
+            )
+        except Exception as e:
+            self.logger.error(f"Error fetching available models: {str(e)}")
+            return api_response(
+                error={
+                    "code": "AVAILABLE_MODELS_ERROR",
+                    "message": "Failed to fetch available models",
+                    "details": str(e),
+                },
+                status=500,
+            )
+            
+    @action(detail=False, methods=["delete"], url_path="(?P<provider_type>[^/.]+)/(?P<model_name>[^/.]+)")
+    def delete_model(self, request, provider_type=None, model_name=None):
+        """Delete a model from a provider"""
+        try:
+            if not provider_type or not model_name:
+                return api_response(
+                    error={
+                        "code": "INVALID_REQUEST",
+                        "message": "Provider type and model name are required",
+                    },
+                    status=400,
+                )
+            
+            # Delete the model
+            result = self.models_service.delete_model(
+                provider_type=provider_type,
+                model_name=model_name,
+                user_id=request.user.id
+            )
+            
+            return api_response(
+                data=result,
+                links={"self": request.build_absolute_uri()}
+            )
+        except ServiceError as e:
+            self.logger.error(f"Service error deleting model {model_name}: {str(e)}")
+            return api_response(
+                error={
+                    "code": "SERVICE_ERROR",
+                    "message": f"Failed to delete model {model_name}",
+                    "details": str(e),
+                },
+                status=503,
+            )
+        except Exception as e:
+            self.logger.error(f"Error deleting model {model_name}: {str(e)}")
+            return api_response(
+                error={
+                    "code": "MODEL_DELETE_ERROR",
+                    "message": f"Failed to delete model {model_name}",
                     "details": str(e),
                 },
                 status=500,

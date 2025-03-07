@@ -367,6 +367,37 @@ class AnthropicProvider(BaseProvider):
         """
         return model_id.replace("claude-", "").replace("_", "")
 
+    def supports_tools(self, model: str) -> bool:
+        """
+        Check if the specified model supports function calling/tools.
+        
+        Args:
+            model: The model name to check
+            
+        Returns:
+            bool: True if the model supports function calling, False otherwise
+        """
+        try:
+            # Get model information from Anthropic API
+            models = list(self._client.models.list())
+            for m in models:
+                if m.id == model:
+                    # Check if the model has tool use capability
+                    # Anthropic doesn't expose capabilities directly in the API yet
+                    # so we need to check based on model name
+                    pass
+            
+            # Claude 3 Opus and Sonnet support tools as of March 2024
+            # This may change as Anthropic updates their models
+            tool_supporting_models = ["claude-3-opus", "claude-3-sonnet"]
+            return any(model.startswith(m) for m in tool_supporting_models)
+            
+        except Exception as e:
+            self.logger.warning(f"Error checking model capabilities for {model}: {str(e)}")
+            # Fall back to checking known models
+            tool_supporting_models = ["claude-3-opus", "claude-3-sonnet"]
+            return any(model.startswith(m) for m in tool_supporting_models)
+
     def _parse_anthropic_error(self, error_msg: str) -> dict:
         """
         Parse an Anthropic error string into a structured dictionary.

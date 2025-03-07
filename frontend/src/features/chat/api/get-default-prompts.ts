@@ -6,7 +6,13 @@ import { Prompt, PromptsResponse } from '../types/conversation';
 
 export const getPrompts = async (style?: string, model?: string): Promise<PromptsResponse> => {
   const params = new URLSearchParams();
-  if (model) params.append('model', model);
+  if (model) {
+    params.append('model', model);
+    console.log(`Using model from settings: ${model}`);
+  } else {
+    console.warn('No model provided, using default');
+    // Don't set a default model here, let the backend handle it
+  }
   if (style) params.append('style', style);
   
   // Debug the request
@@ -29,6 +35,7 @@ export const getPrompts = async (style?: string, model?: string): Promise<Prompt
     }
 
     console.log('Prompts response data:', response.data);
+    console.log('Model used in response:', response.data?.metadata?.model);
     
     // Ensure we have prompts data
     if (!response.data || !response.data.prompts || response.data.prompts.length === 0) {
@@ -49,29 +56,29 @@ export const getPrompts = async (style?: string, model?: string): Promise<Prompt
 const getFallbackPrompts = (style?: string): PromptsResponse => {
   const fallbackPrompts = {
     creative: [
-      { title: "Creative Story", prompt: "Write a short story about a dragon", style: "creative" },
-      { title: "Superhero Design", prompt: "Design a unique superhero", style: "creative" },
-      { title: "Musical Invention", prompt: "Invent a new musical instrument", style: "creative" }
+      { title: "Creative Story", prompt: "Write a short story about a dragon", simple_prompt: "Dragon story", style: "creative" },
+      { title: "Superhero Design", prompt: "Design a unique superhero", simple_prompt: "New superhero", style: "creative" },
+      { title: "Musical Invention", prompt: "Invent a new musical instrument", simple_prompt: "New instrument", style: "creative" }
     ],
     inspirational: [
-      { title: "Motivation", prompt: "Share a motivational quote", style: "inspirational" },
-      { title: "Goal Achievement", prompt: "How can I achieve my goals?", style: "inspirational" },
-      { title: "Overcoming Challenges", prompt: "Tell me about overcoming challenges", style: "inspirational" }
+      { title: "Motivation", prompt: "Share a motivational quote", simple_prompt: "Motivational quote", style: "inspirational" },
+      { title: "Goal Achievement", prompt: "How can I achieve my goals?", simple_prompt: "Achieve goals", style: "inspirational" },
+      { title: "Overcoming Challenges", prompt: "Tell me about overcoming challenges", simple_prompt: "Overcome challenges", style: "inspirational" }
     ],
     analytical: [
-      { title: "Quantum Computing", prompt: "Explain quantum computing", style: "analytical" },
-      { title: "Market Analysis", prompt: "Analyze market trends", style: "analytical" },
-      { title: "Algorithm Comparison", prompt: "Compare different algorithms", style: "analytical" }
+      { title: "Quantum Computing", prompt: "Explain quantum computing", simple_prompt: "Quantum computing", style: "analytical" },
+      { title: "Market Analysis", prompt: "Analyze market trends", simple_prompt: "Market trends", style: "analytical" },
+      { title: "Algorithm Comparison", prompt: "Compare different algorithms", simple_prompt: "Compare algorithms", style: "analytical" }
     ],
     casual: [
-      { title: "Casual Chat", prompt: "How's your day going?", style: "casual" },
-      { title: "Hobbies", prompt: "What's your favorite hobby?", style: "casual" },
-      { title: "Fun Facts", prompt: "Tell me a fun fact", style: "casual" }
+      { title: "Casual Chat", prompt: "How's your day going?", simple_prompt: "Your day", style: "casual" },
+      { title: "Hobbies", prompt: "What's your favorite hobby?", simple_prompt: "Favorite hobby", style: "casual" },
+      { title: "Fun Facts", prompt: "Tell me a fun fact", simple_prompt: "Fun fact", style: "casual" }
     ],
     default: [
-      { title: "Space Exploration", prompt: "What are the main challenges of space exploration?", style: "default" },
-      { title: "Future Technology", prompt: "What technology will change the world in the next decade?", style: "default" },
-      { title: "AI Ethics", prompt: "What ethical considerations should guide AI development?", style: "default" }
+      { title: "Space Exploration", prompt: "What are the main challenges of space exploration?", simple_prompt: "Space challenges", style: "default" },
+      { title: "Future Technology", prompt: "What technology will change the world in the next decade?", simple_prompt: "Future tech", style: "default" },
+      { title: "AI Ethics", prompt: "What ethical considerations should guide AI development?", simple_prompt: "AI ethics", style: "default" }
     ]
   };
   
@@ -88,9 +95,11 @@ const getFallbackPrompts = (style?: string): PromptsResponse => {
 };
 
 export const getPromptsQueryOptions = (style?: string, model?: string) => {
+  console.log(`Creating query options with style: ${style}, model: ${model}`);
   return queryOptions({
     queryKey: ['prompts', style, model],
     queryFn: () => getPrompts(style, model),
+    staleTime: 0, // Always consider data stale to ensure fresh prompts
   });
 };
 
@@ -101,6 +110,7 @@ type UsePromptsOptions = {
 };
 
 export const usePrompts = ({ style, model, queryConfig }: UsePromptsOptions = {}) => {
+  console.log(`usePrompts called with style: ${style}, model: ${model}`);
   return useQuery({
     ...getPromptsQueryOptions(style, model),
     ...queryConfig,

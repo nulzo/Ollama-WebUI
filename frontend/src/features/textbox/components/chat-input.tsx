@@ -12,12 +12,13 @@ import { useChatStore } from '@/features/chat/stores/chat-store';
 import { KnowledgeSelector } from '@/features/chat/components/knowledge-selector';
 
 export interface ChatInputProps {
-  onSubmit: (message: string, images?: string[], knowledgeIds?: string[]) => void;
+  onSubmit: (message: string, images?: string[], knowledgeIds?: string[], functionCall?: boolean) => void;
   disabled?: boolean;
   messages?: any[];
   placeholder?: string;
   onCancel?: () => void;
   isGenerating?: boolean;
+  functionCall?: boolean;
 }
 
 // Define interface for the MemoizedTextarea component props
@@ -195,6 +196,7 @@ export const ChatInputBase = ({
   placeholder = 'Send a message (use / for prompts, @ for knowledge)',
   onCancel,
   isGenerating: externalIsGenerating = false,
+  functionCall = false,
 }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const [images, setImages] = useState<string[]>([]);
@@ -413,7 +415,11 @@ export const ChatInputBase = ({
       console.log('Submitting message with knowledge IDs:', selectedKnowledgeIds);
     }
     
-    onSubmit(message, images, selectedKnowledgeIds);
+    // Log function call status for debugging
+    console.log('Submitting message with function call enabled:', functionCall);
+    
+    // Pass functionCall parameter to onSubmit
+    onSubmit(message, images, selectedKnowledgeIds, functionCall);
     
     // Reset state
     setMessage('');
@@ -425,7 +431,7 @@ export const ChatInputBase = ({
     if (suggestions.length > 0) {
       closeSuggestions();
     }
-  }, [message, images, onSubmit, selectedKnowledgeIds, suggestions, closeSuggestions]);
+  }, [message, images, onSubmit, selectedKnowledgeIds, suggestions, closeSuggestions, functionCall]);
 
   const handleImageUpload = useCallback((base64Images: string[]) => {
     setImages(prev => [...prev, ...base64Images]);

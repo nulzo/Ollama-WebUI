@@ -99,6 +99,19 @@ class BaseProvider(ABC, Generic[T]):
         """
         pass
 
+    @abstractmethod
+    def supports_tools(self, model: str) -> bool:
+        """
+        Check if the specified model supports function calling/tools.
+        
+        Args:
+            model: The model name to check
+            
+        Returns:
+            bool: True if the model supports function calling, False otherwise
+        """
+        pass
+
     @property
     def analytics_service(self) -> Optional[AnalyticsEventService]:
         return self._analytics_service

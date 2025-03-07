@@ -21,6 +21,9 @@ class MessageType(TypedDict):
     images: List[MessageImage]
     has_citations: Optional[bool]
     citations: Optional[List[dict]]
+    has_tool_calls: Optional[bool]
+    tool_calls: Optional[List[dict]]
+    tool_results: Optional[List[dict]]
 
 class MessageRepository(BaseRepository[Message]):
     def __init__(self):
@@ -43,6 +46,9 @@ class MessageRepository(BaseRepository[Message]):
             is_error: Optional[bool] = False,
             has_citations: Optional[bool] = False,
             citations: Optional[List[dict]] = None,
+            has_tool_calls: Optional[bool] = False,
+            tool_calls: Optional[List[dict]] = None,
+            tool_results: Optional[List[dict]] = None,
     ) -> Message:
         """
         Store a new message to the database
@@ -65,6 +71,9 @@ class MessageRepository(BaseRepository[Message]):
                 is_error=is_error,
                 has_citations=has_citations,
                 citations=citations,
+                has_tool_calls=has_tool_calls,
+                tool_calls=tool_calls,
+                tool_results=tool_results,
             )
 
             # Process and create MessageImage instances
@@ -180,6 +189,9 @@ class MessageRepository(BaseRepository[Message]):
                     name=data.get("name"),
                     has_citations=data.get("has_citations", False),
                     citations=data.get("citations"),
+                    has_tool_calls=data.get("has_tool_calls", False),
+                    tool_calls=data.get("tool_calls"),
+                    tool_results=data.get("tool_results"),
                 )
                 for data in data_list
             ]

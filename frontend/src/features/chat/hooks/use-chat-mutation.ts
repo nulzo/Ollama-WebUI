@@ -58,11 +58,13 @@ export function useChatMutation(conversation_id?: string) {
     mutationFn: async ({ 
       message, 
       images,
-      knowledge_ids 
+      knowledge_ids,
+      function_call 
     }: { 
       message: string, 
       images: string[] | undefined,
-      knowledge_ids?: string[] | undefined 
+      knowledge_ids?: string[] | undefined,
+      function_call?: boolean | undefined
     }) => {
       if (!user) throw new Error('Authentication required');
       if (!model) throw new Error('No model selected');
@@ -100,6 +102,9 @@ export function useChatMutation(conversation_id?: string) {
       }
 
       try {
+        // Log function call status for debugging
+        console.log('Function call enabled:', function_call);
+        
         const new_msg = {
           content: message,
           conversation_uuid: conversation_id,
@@ -110,7 +115,11 @@ export function useChatMutation(conversation_id?: string) {
           provider: providerName,
           images: images || [],
           knowledge_ids,
+          function_call: function_call || false // Ensure we always pass a boolean value
         }
+        
+        console.log('Sending message with options:', new_msg);
+        
         await api.streamCompletion(
           new_msg,
           chunk => {
@@ -177,6 +186,20 @@ export function useChatMutation(conversation_id?: string) {
         } else if (parsedChunk.status === 'done') {
           console.log('Generation complete');
           setIsGenerating(false);
+        } else if (parsedChunk.status === 'tool_call') {
+          // Handle tool calls
+          console.log('Received tool call:', parsedChunk);
+          
+          // Update the message with tool call information
+          if (parsedChunk.tool_calls && parsedChunk.tool_calls.length > 0) {
+            // We don't need to update the content here as the tool calls will be displayed
+            // in the ToolCallList component
+            
+            // Invalidate the messages query to refresh the UI with the tool calls
+            queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: conversation_id || parsedChunk.conversation_uuid }] });
+          }
+          
+          return;
         }
 
         // If this is a new conversation

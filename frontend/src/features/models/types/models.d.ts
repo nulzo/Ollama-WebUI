@@ -23,6 +23,8 @@ export interface StandardModel {
   embedding_enabled: boolean;     // whether the model supports embeddings (default: false)
   tools_enabled: boolean;         // whether the model supports tools (default: false)
   provider: Provider;
+  size?: number;                  // size of the model in bytes
+  modified_at?: string;           // last modified date
 }
 
 export interface OllamaChatResponse {
@@ -92,4 +94,26 @@ export interface ProviderModels {
   openai: StandardModel[];
   anthropic: StandardModel[];
   google: StandardModel[];
+}
+
+export interface AvailableModel {
+  name: string;
+  description: string;
+  capabilities: string[];
+  sizes: string[];
+  published: string;
+  link: string;
+  pulls: string;
+  size_estimates?: Record<string, number>; // Map of size name to estimated size in bytes
+}
+
+export interface ModelDownloadStatus {
+  id: string;
+  model: string;
+  status: string;
+  progress: number;
+  total_size: number;
+  downloaded: number;
+  error: string | null;
+  elapsed_seconds: number | null;
 }

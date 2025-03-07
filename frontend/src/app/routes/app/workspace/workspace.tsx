@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Code2, MessageSquare, Database, Bot } from 'lucide-react';
+import { Search, Plus, Code2, MessageSquare, Database, Bot, MoreVertical, Pencil, Trash, Code } from 'lucide-react';
 import { Head } from '@/components/helmet';
 import { AgentForm } from '@/features/agents/components/agent-form';
 import { Agent } from '@/features/agents/types/agent';
@@ -42,6 +42,8 @@ import {
   useDeleteKnowledge, 
   useUploadKnowledge 
 } from '@/features/knowledge/api';
+import { useNavigate } from 'react-router-dom';
+import { ApiResponse } from '@/types/api';
 
 const AgentCard = ({
   agent,
@@ -215,22 +217,30 @@ const ModelTuning = () => {
 };
 
 const CustomFunctions = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
-  const { toast } = useToast();
-  const { data: tools } = useTools();
+  const { data: toolsData, isLoading, error } = useTools();
   const deleteTool = useDeleteTool();
+  const navigate = useNavigate();
 
+  // Extract tools from the nested structure using type assertion
+  const tools = (toolsData?.data as any)?.results || [];
+  
+  // Log the tools data for debugging
+  useEffect(() => {
+    console.log('Tools data:', toolsData);
+  }, [toolsData]);
+  
   // Filter tools based on search term
-  const filteredTools =
-    tools?.data && tools?.data?.length > 0
-      ? tools?.data?.filter(
-          tool =>
-            tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            tool.description.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      : [];
+  const filteredTools = searchTerm
+    ? tools.filter(
+        (tool: any) =>
+          tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          tool.description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : tools;
 
   const handleDelete = async (toolId: string) => {
     try {
@@ -250,125 +260,136 @@ const CustomFunctions = () => {
 
   return (
     <>
-      {/* Search bar */}
-      <div className="relative mb-8">
-        <Input
-          type="text"
-          placeholder="Search functions..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-        <Search className="top-1/2 left-3 absolute size-4 text-muted-foreground -translate-y-1/2 transform" />
+      {/* Header with search and create button */}
+      <div className="flex justify-between items-center mb-8">
+        <div className="relative flex-1 max-w-md">
+          <Input
+            type="text"
+            placeholder="Search functions..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+          <Search className="top-1/2 left-3 absolute size-4 text-muted-foreground -translate-y-1/2 transform" />
+        </div>
+        <Button onClick={() => {
+          setSelectedTool(null);
+          setIsCreateDialogOpen(true);
+        }}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Function
+        </Button>
       </div>
 
-      <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-secondary p-6 rounded-lg"
-        >
-          <h3 className="mb-4 font-semibold text-lg">Create Function</h3>
-          <p className="mb-4 text-muted-foreground text-sm">
-            Build custom functions that can be called by your AI models.
-          </p>
-          <Button
-            className="gap-2 w-full"
-            onClick={() => {
-              setSelectedTool(null);
-              setIsCreateDialogOpen(true);
-            }}
-          >
-            <Code2 className="size-4" />
-            New Function
-          </Button>
-        </motion.div>
-
-        {filteredTools && filteredTools.length > 0 ? (
-          filteredTools.map(tool => (
-            <motion.div
-              key={tool.id}
-              className="relative flex flex-col bg-secondary p-6 rounded-lg h-full transition-shadow duration-300"
-              whileHover={{ scale: 1.0 }}
-            >
-              {/* Menu button in top-right corner */}
-              <div className="top-4 right-4 absolute">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="p-0 w-8 h-8">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSelectedTool(tool.id);
-                        setIsCreateDialogOpen(true);
-                      }}
-                    >
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => handleDelete(tool.id)}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Card content */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="flex justify-center items-center bg-primary/10 rounded-md w-8 h-8">
-                    <Code2 className="size-4 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="font-semibold text-xl truncate">{tool.name}</h2>
-                    <div className="font-medium text-muted-foreground text-xs">{tool.language}</div>
-                  </div>
-                </div>
-                <p className="mb-4 text-muted-foreground text-sm line-clamp-2">
-                  {tool.description}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="text-xs">
-                    Function
-                  </Badge>
-                  {tool.is_enabled && (
-                    <Badge variant="outline" className="text-xs">
-                      Enabled
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          ))
-        ) : (
+      {isLoading ? (
+        <div className="flex justify-center items-center h-40">
+          <div className="animate-pulse text-muted-foreground">Loading functions...</div>
+        </div>
+      ) : error ? (
+        <div className="text-center p-8 text-destructive">
+          <p>Error loading functions. Please try again.</p>
+        </div>
+      ) : (
+        <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col justify-center items-center bg-transparent p-6 border border-muted-foreground border-dashed rounded-lg"
+            className="bg-secondary p-6 rounded-lg"
           >
-            <div className="flex flex-col justify-center items-center">
-              <h3 className="mx-auto mb-4 font-semibold text-muted-foreground text-lg text-center">No functions found</h3>
-              <div className="mx-auto mb-4 text-muted-foreground text-sm text-center">
-                Build custom functions that can be called by your AI models.
-              </div>
-            </div>
+            <h3 className="mb-4 font-semibold text-lg">Create Function</h3>
+            <p className="mb-4 text-muted-foreground text-sm">
+              Build custom functions that can be called by your AI models.
+            </p>
+            <Button
+              className="gap-2 w-full"
+              onClick={() => {
+                setSelectedTool(null);
+                setIsCreateDialogOpen(true);
+              }}
+            >
+              <Code2 className="size-4" />
+              New Function
+            </Button>
           </motion.div>
-        )}
-      </div>
+
+          {filteredTools && filteredTools.length > 0 ? (
+            filteredTools.map((tool: any) => (
+              <motion.div
+                key={tool.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative flex flex-col bg-secondary p-6 rounded-lg h-full transition-shadow duration-300"
+              >
+                {/* Menu button in top-right corner */}
+                <div className="absolute top-2 right-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => {
+                        setSelectedTool(tool.id);
+                        setIsCreateDialogOpen(true);
+                      }}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDelete(tool.id)}>
+                        <Trash className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                <div className="mb-4">
+                  <h3 className="font-semibold text-lg mb-1">{tool.name}</h3>
+                  <p className="text-muted-foreground text-sm">{tool.description}</p>
+                </div>
+
+                <div className="mt-auto flex flex-wrap gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    {tool.language}
+                  </Badge>
+                  <Badge variant={tool.is_enabled ? "default" : "outline"} className="text-xs">
+                    {tool.is_enabled ? "Enabled" : "Disabled"}
+                  </Badge>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="col-span-full flex flex-col justify-center items-center bg-secondary p-6 rounded-lg"
+            >
+              <div className="flex flex-col justify-center items-center">
+                <Code2 className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                <h3 className="mx-auto mb-4 font-semibold text-lg text-center">No functions found</h3>
+                <div className="mx-auto mb-4 text-muted-foreground text-sm text-center">
+                  {searchTerm ? 'No functions match your search.' : 'Create your first function to get started.'}
+                </div>
+                <Button onClick={() => navigate('/tools/new')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Function
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      )}
 
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedTool ? 'Edit Function' : 'Create Function'}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            <ToolEditor />
-          </div>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <ToolEditor 
+            toolId={selectedTool || undefined} 
+            onClose={() => {
+              setIsCreateDialogOpen(false);
+              setSelectedTool(null);
+            }} 
+          />
         </DialogContent>
       </Dialog>
     </>

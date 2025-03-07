@@ -4,6 +4,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSettings } from "@/features/settings/api/get-settings";
 import { usePrompts } from "@/features/chat/api/get-default-prompts";
 import { useEffect, useState } from "react";
+import { Prompt } from "@/features/chat/types/conversation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ThemeType = 'casual' | 'creative' | 'inspirational' | 'analytical';
 
@@ -12,6 +20,29 @@ interface CannedQuestionsProps {
   onQuestionClick: (question: string) => void;
   onThemeChange: (theme: ThemeType) => void;
 }
+
+// Prompt button component with tooltip
+const PromptButton = ({ prompt, onSelect }: { prompt: Prompt, onSelect: (prompt: string) => void }) => {
+  return (
+    <TooltipProvider>
+      <Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onSelect(prompt.prompt)}
+            className="hover:bg-secondary rounded-full hover:text-secondary-foreground transition-colors"
+          >
+            {prompt.simple_prompt}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs">
+          <p className="text-sm">{prompt.prompt}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
 
 const themeIcons = {
   creative: {
@@ -32,59 +63,104 @@ const themeIcons = {
   },
 };
 
-// Default static questions as fallback
-const defaultQuestions: Record<ThemeType, string[]> = {
-  creative: ["Write a short story about a dragon", "Design a unique superhero", "Invent a new musical instrument"],
-  inspirational: ["Share a motivational quote", "How can I achieve my goals?", "Tell me about overcoming challenges"],
-  analytical: ["Explain quantum computing", "Analyze market trends", "Compare different algorithms"],
-  casual: ["How's your day going?", "What's your favorite hobby?", "Tell me a fun fact"],
+// Default static questions as fallback with simple prompts
+const defaultQuestions: Record<ThemeType, Prompt[]> = {
+  creative: [
+    { title: "Creative Writing", prompt: "Write a short story about a dragon", simple_prompt: "Dragon story", style: "creative" },
+    { title: "Superhero Design", prompt: "Design a unique superhero", simple_prompt: "New superhero", style: "creative" },
+    { title: "Musical Innovation", prompt: "Invent a new musical instrument", simple_prompt: "New instrument", style: "creative" }
+  ],
+  inspirational: [
+    { title: "Motivational Quote", prompt: "Share a motivational quote", simple_prompt: "Motivational quote", style: "inspirational" },
+    { title: "Goal Achievement", prompt: "How can I achieve my goals?", simple_prompt: "Achieve goals", style: "inspirational" },
+    { title: "Overcoming Challenges", prompt: "Tell me about overcoming challenges", simple_prompt: "Overcome challenges", style: "inspirational" }
+  ],
+  analytical: [
+    { title: "Quantum Computing", prompt: "Explain quantum computing", simple_prompt: "Quantum computing", style: "analytical" },
+    { title: "Market Analysis", prompt: "Analyze market trends", simple_prompt: "Market trends", style: "analytical" },
+    { title: "Algorithm Comparison", prompt: "Compare different algorithms", simple_prompt: "Compare algorithms", style: "analytical" }
+  ],
+  casual: [
+    { title: "Daily Check-in", prompt: "How's your day going?", simple_prompt: "Your day", style: "casual" },
+    { title: "Hobby Discussion", prompt: "What's your favorite hobby?", simple_prompt: "Favorite hobby", style: "casual" },
+    { title: "Fun Facts", prompt: "Tell me a fun fact", simple_prompt: "Fun fact", style: "casual" }
+  ],
 };
 
 export default function CannedQuestions({ theme, onQuestionClick, onThemeChange }: CannedQuestionsProps) {
-  const { data: settingsData, isLoading: isLoadingSettings } = useSettings();
+  const queryClient = useQueryClient();
+  const { data: settingsData, isLoading: isLoadingSettings, refetch: refetchSettings } = useSettings();
   const useLlmGenerated = settingsData?.settings?.prompt_settings?.use_llm_generated || false;
   const promptModel = settingsData?.settings?.prompt_settings?.model || "llama3.2:3b";
+  
+  // Force refetch settings when component mounts
+  useEffect(() => {
+    console.log("CannedQuestions mounted, refetching settings");
+    // Force refetch settings from server
+    refetchSettings();
+    // Also invalidate the settings cache to ensure fresh data
+    queryClient.invalidateQueries({ queryKey: ['settings'] });
+  }, [refetchSettings, queryClient]);
   
   // Debug settings
   console.log("Settings data:", settingsData);
   console.log("Use LLM generated:", useLlmGenerated);
-  console.log("Prompt model:", promptModel);
+  console.log("Prompt model from settings:", promptModel);
   
-  const [questions, setQuestions] = useState<string[]>(defaultQuestions[theme]);
+  const [prompts, setPrompts] = useState<Prompt[]>(defaultQuestions[theme]);
   
-  console.log("About to call usePrompts with:", { theme, promptModel, enabled: !isLoadingSettings });
-  const { data: promptsData, isLoading, error } = usePrompts({
+  // Ensure we're using the correct model from settings
+  const modelToUse = promptModel;
+  console.log("Model to use for prompts:", modelToUse);
+  
+  // Force refetch when promptModel changes
+  const queryKey = ['prompts', theme, modelToUse];
+  
+  console.log("About to call usePrompts with:", { theme, model: modelToUse, queryKey });
+  const { data: promptsData, isLoading, error, refetch } = usePrompts({
     style: theme,
-    model: promptModel,
+    model: modelToUse,
     queryConfig: {
-      enabled: !isLoadingSettings, // Always fetch prompts regardless of useLlmGenerated setting
+      enabled: !isLoadingSettings && !!modelToUse, // Only enable when settings are loaded and model is available
       retry: 2,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 0, // Always refetch to ensure we have the latest data
     },
   });
+  
+  // Force refetch prompts when model changes
+  useEffect(() => {
+    if (modelToUse) {
+      console.log("Model changed to:", modelToUse);
+      console.log("Forcing refetch of prompts with new model");
+      // Invalidate prompts cache
+      queryClient.invalidateQueries({ queryKey: queryKey });
+      // Refetch prompts with new model
+      refetch();
+    }
+  }, [modelToUse, refetch, queryClient, queryKey]);
   
   // Debug prompts data
   console.log("Prompts data:", promptsData);
   console.log("Is loading:", isLoading);
   console.log("Error:", error);
+  console.log("Provider:", promptsData?.metadata?.provider);
+  console.log("Model used:", promptsData?.metadata?.model);
   
   useEffect(() => {
     console.log("useEffect triggered with:", { theme, promptsData });
     if (promptsData?.prompts && promptsData.prompts.length > 0) {
       console.log("Using API-provided prompts:", promptsData.prompts);
-      // Extract questions from LLM-generated prompts
-      const generatedQuestions = promptsData.prompts.map(prompt => prompt.prompt);
-      setQuestions(generatedQuestions);
+      setPrompts(promptsData.prompts);
     } else {
       console.log("Using default questions for theme:", theme);
       // Fallback to default questions
-      setQuestions(defaultQuestions[theme]);
+      setPrompts(defaultQuestions[theme]);
     }
   }, [theme, promptsData]);
 
-  // Ensure we always have questions to display
-  const displayQuestions = questions.length > 0 ? questions : defaultQuestions[theme];
-  console.log("Final display questions:", displayQuestions);
+  // Ensure we always have prompts to display
+  const displayPrompts = prompts.length > 0 ? prompts : defaultQuestions[theme];
+  console.log("Final display prompts:", displayPrompts);
 
   return (
     <div className="space-y-3">
@@ -101,28 +177,12 @@ export default function CannedQuestions({ theme, onQuestionClick, onThemeChange 
             {isLoading ? (
               <div className="text-muted-foreground text-sm">Loading prompts...</div>
             ) : error ? (
-              displayQuestions.map((question) => (
-                <Button
-                  key={question}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onQuestionClick(question)}
-                  className="hover:bg-secondary rounded-full hover:text-secondary-foreground transition-colors"
-                >
-                  {question}
-                </Button>
+              displayPrompts.map((prompt, index) => (
+                <PromptButton key={index} prompt={prompt} onSelect={onQuestionClick} />
               ))
             ) : (
-              displayQuestions.map((question) => (
-                <Button
-                  key={question}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onQuestionClick(question)}
-                  className="hover:bg-secondary rounded-full hover:text-secondary-foreground transition-colors"
-                >
-                  {question}
-                </Button>
+              displayPrompts.map((prompt, index) => (
+                <PromptButton key={index} prompt={prompt} onSelect={onQuestionClick} />
               ))
             )}
           </motion.div>

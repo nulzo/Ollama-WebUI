@@ -16,8 +16,10 @@ export const getSettingsQueryOptions = () => {
   return queryOptions({
     queryKey: ['settings'],
     queryFn: () => getSettings(),
-    staleTime: 60 * 1000 * 5,
-    refetchInterval: 60 * 1000 * 5,
+    staleTime: 0,
+    refetchInterval: 60 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 };
 

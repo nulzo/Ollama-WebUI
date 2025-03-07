@@ -67,6 +67,13 @@ export const createAppRouter = (_queryClient: QueryClient) =>
           },
         },
         {
+          path: 'models/download',
+          lazy: async () => {
+            const { DownloadModelsRoute } = await import('@/app/routes/app/models/download');
+            return { Component: DownloadModelsRoute };
+          },
+        },
+        {
           path: 'workspace',
           lazy: async () => {
             const { WorkspaceRoute } = await import('@/app/routes/app/workspace');

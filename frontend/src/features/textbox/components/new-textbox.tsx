@@ -7,7 +7,7 @@ import React, {
   useLayoutEffect,
   useMemo,
 } from 'react';
-import { Command, Copy, CornerDownLeft, Database, Paperclip, Send, X } from 'lucide-react';
+import { Command, Copy, CornerDownLeft, Database, Paperclip, Send, Sparkle, Star, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { PromptCommand } from '@/features/chat/components/prompts/prompt-command';
@@ -139,11 +139,19 @@ const ButtonContainer = memo(
       {!isGenerating && (
         <MemoizedTooltipButton
           onClick={() => onCopy(text)}
+          tooltipText="Enhance Prompt"
+          icon={<Sparkle className="size-4" />}
+          disabled={disabled}
+        />
+      )}
+      {/* {!isGenerating && (
+        <MemoizedTooltipButton
+          onClick={() => onCopy(text)}
           tooltipText="Copy text"
           icon={<Copy className="size-4" />}
           disabled={disabled}
         />
-      )}
+      )} */}
       {uploadedImages.length === 0 && !isGenerating && (
         <>
           <MemoizedTooltipButton

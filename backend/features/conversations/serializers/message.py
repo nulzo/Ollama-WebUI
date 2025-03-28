@@ -78,6 +78,9 @@ class MessageSerializer(serializers.ModelSerializer):
             "error",
             "has_citations",
             "citations",
+            "has_tool_calls",
+            "tool_calls",
+            "tool_results"
         ]
         read_only_fields = ["id", "created_at", "has_images"]
 

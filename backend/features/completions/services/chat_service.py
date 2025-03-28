@@ -291,6 +291,7 @@ class ChatService:
             # Check if function calling is enabled for this request
             function_call = False
             if data.get("function_call") is True:
+                self.logger.info("We finna call that tool")
                 function_call = True
 
             # Stream the response

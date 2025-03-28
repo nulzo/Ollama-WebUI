@@ -128,7 +128,9 @@ class OllamaProvider(BaseProvider):
             try:
                 # Get enabled tools for the user
                 user_tools = self.tool_service.get_user_tools(user_id)
+                self.logger.info("We finna got the tool %s", user_tools)
                 enabled_tools = [tool for tool in user_tools if tool.is_enabled]
+                self.logger.info("We finna got the tools %s", enabled_tools)
                 
                 # Convert tools to Ollama format
                 if enabled_tools:
@@ -143,22 +145,22 @@ class OllamaProvider(BaseProvider):
             if tools:
                 options["tools"] = tools
                 self.logger.info(f"Sending tools to Ollama: {json.dumps(tools)}")
-                print(f"DEBUG: Sending tools to Ollama: {json.dumps(tools)}")
                 
             self.logger.info(f"Calling Ollama with model: {model}, stream: True, options: {options}")
-            print(f"DEBUG: Calling Ollama with model: {model}, stream: True, options: {options}")
                 
             response_stream = self._client.chat(
                 model=model, 
                 messages=processed_messages, 
                 stream=True,
+                tools=tools,
                 options=options
             )
 
+            self.logger.info(f"Response: {response_stream}")           
+
             for chunk in response_stream:
                 # Log the raw chunk for debugging
-                print(f"DEBUG: Raw chunk from Ollama: {json.dumps(chunk, default=str)}")
-                self.logger.debug(f"Raw chunk from Ollama: {json.dumps(chunk, default=str)}")
+                self.logger.info(f"Raw chunk from Ollama: {json.dumps(chunk, default=str)}")
                 
                 # More detailed logging about the chunk content
                 if "message" in chunk:
@@ -181,7 +183,9 @@ class OllamaProvider(BaseProvider):
                             
                             # Execute the tool calls
                             tool_results = self.tool_service.handle_tool_call(tool_calls, user)
-                            
+                            self.logger.info("Tool result is %s", tool_results)
+                            self.logger.info(f"Received tool calls: {tool_results}")
+
                             # Yield the tool call results
                             yield json.dumps({
                                 "tool_calls": tool_calls,

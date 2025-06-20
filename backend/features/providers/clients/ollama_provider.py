@@ -220,7 +220,7 @@ class OllamaProvider(BaseProvider):
                                     else:
                                         text = continue_chunk.get("content", "")
                                         
-                                    if text.strip():
+                                    if text:
                                         yield json.dumps({"content": text, "status": "generating"})
                             
                         except Exception as tool_error:
@@ -246,7 +246,7 @@ class OllamaProvider(BaseProvider):
                         # Fall back to "content" if available
                         text = chunk.get("content", "")
                         
-                    if not text.strip():
+                    if not text:
                         continue  # Skip empty strings
                     
                     yield json.dumps({"content": text, "status": "generating"})

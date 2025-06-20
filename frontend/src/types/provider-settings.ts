@@ -73,4 +73,15 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
       },
     ],
   },
+  openrouter: {
+    name: 'OpenRouter',
+    fields: [
+      {
+        name: 'api_key',
+        type: 'password',
+        label: 'API Key',
+        required: true,
+      },
+    ],
+  },
 };

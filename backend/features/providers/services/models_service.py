@@ -54,7 +54,7 @@ class ModelsService:
             if provider_type:
                 providers = [provider_type]
             else:
-                providers = ["ollama", "openai", "google", "anthropic"]
+                providers = ["ollama", "openai", "google", "anthropic", "openrouter"]
             
             # Check cache first
             current_time = time.time()

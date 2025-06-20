@@ -112,17 +112,9 @@ class ConversationViewSet(
             conversation = self.conversation_service.get_conversation(
                 kwargs["uuid"], request.user.id
             )
-
-            # Return minimal conversation data
-            data = {
-                "uuid": conversation.uuid,
-                "name": conversation.name,
-                "created_at": conversation.created_at,
-                "is_pinned": conversation.is_pinned,
-                "updated_at": conversation.updated_at,
-            }
+            serializer = self.get_serializer(conversation)
             return api_response(
-                data=data,
+                data=serializer.data,
                 links={
                     "self": request.build_absolute_uri(),
                     "messages": f"/api/messages/?conversation={conversation.uuid}",

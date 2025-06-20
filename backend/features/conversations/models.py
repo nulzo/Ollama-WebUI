@@ -30,6 +30,14 @@ class Conversation(models.Model):
     )
     user = models.ForeignKey("authentication.CustomUser", on_delete=models.CASCADE, related_name="conversations")
     name = models.CharField(max_length=150, blank=True, null=True, default="")
+    
+    # Ollama conversation settings
+    model = models.CharField(max_length=100, blank=True, null=True)
+    system_prompt = models.TextField(blank=True, null=True)
+    temperature = models.FloatField(blank=True, null=True)
+    max_tokens = models.IntegerField(blank=True, null=True)
+    top_p = models.FloatField(blank=True, null=True)
+
     is_pinned = models.BooleanField(default=False, db_index=True)
     is_hidden = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)

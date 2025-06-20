@@ -321,8 +321,8 @@ class GoogleProvider(BaseProvider):
                 contents=prompt
             )
             for resp in stream_iter:
-                # Skip empty responses
-                if not resp.text or resp.text.strip() == "":
+                # Skip only completely empty responses
+                if resp.text is None or resp.text == "":
                     continue
                 # Wrap the text in a JSON object so that json.loads(chunk) works downstream.
                 chunk_data = {

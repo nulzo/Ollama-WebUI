@@ -12,6 +12,7 @@ class ProviderSettings(BaseModel):
         ("anthropic", "Anthropic"),
         ("azure", "Azure OpenAI"),
         ("google", "Google"),
+        ("openrouter", "OpenRouter"),
     ]
     
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="provider_settings")

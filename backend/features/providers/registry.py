@@ -5,6 +5,7 @@ from features.providers.clients.openai_provider import OpenAiProvider
 from features.providers.clients.ollama_provider import OllamaProvider
 from features.providers.clients.google_provider import GoogleProvider
 from features.providers.clients.anthropic_provider import AnthropicProvider
+from features.providers.clients.openrouter_provider import OpenRouterProvider
 
 
 
@@ -17,6 +18,7 @@ class ProviderRegistry:
         self.register_provider("ollama", OllamaProvider)
         self.register_provider("google", GoogleProvider)
         self.register_provider("anthropic", AnthropicProvider)
+        self.register_provider("openrouter", OpenRouterProvider)
 
     def register_provider(self, name: str, provider_class: Type[BaseProvider]):
         self._providers[name.lower()] = provider_class
@@ -29,4 +31,8 @@ class ProviderRegistry:
             raise ValueError(f"Provider '{name}' is not registered")
         return provider_class
 
+    def is_provider_registered(self, name: str) -> bool:
+        return name in self._providers
+
+# Singleton instance of the registry
 provider_registry = ProviderRegistry()

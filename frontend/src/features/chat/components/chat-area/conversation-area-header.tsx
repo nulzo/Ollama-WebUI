@@ -7,6 +7,7 @@ import { useModelStore } from '@/features/models/store/model-store.ts';
 import { useModels } from '@/features/models/api/get-models.ts';
 import { StandardModel } from '@/features/models/types/models';
 import { useSearchParams } from 'react-router-dom';
+import { useSettings } from '@/components/settings/settings-context.tsx';
 
 const ThemeToggleButton = () => {
   const { theme, setTheme } = useTheme();
@@ -42,6 +43,7 @@ export function ConversationAreaHeader() {
   const { data: providerModelsData } = useModels();
   const [searchParams] = useSearchParams();
   const hasConversation = Boolean(searchParams.get('c'));
+  const { isSettingsOpen, setIsSettingsOpen } = useSettings();
 
   // Flatten the ProviderModels object into a single array of StandardModel.
   const formattedModels: StandardModel[] = useMemo(() => {
@@ -102,7 +104,7 @@ export function ConversationAreaHeader() {
         )}
       </div>
       <div className="flex items-center gap-1 pe-6">
-        <Button size="icon" variant="ghost">
+        <Button size="icon" variant="ghost" onClick={() => setIsSettingsOpen(!isSettingsOpen)}>
           <SlidersHorizontal className="size-4" strokeWidth="1.5" />
         </Button>
         <ThemeToggleButton />

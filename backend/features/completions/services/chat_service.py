@@ -232,11 +232,15 @@ class ChatService:
             self.current_user_message = user_message
 
             # Get the appropriate provider
-            provider_name = data.get("provider")
+            provider_name, model_name = self._get_provider_name_and_model(data.get("model"))
+            data['model'] = model_name
+
             if provider_name:
                 provider = self.provider_factory.get_provider(provider_name, user.id)
             else:
-                provider = self._get_provider(data.get("model", "llama3.2:3b"))
+                # Fallback or error handling
+                self.logger.warning("Provider could not be determined from model ID. Falling back to default.")
+                provider = self._get_provider(user.id) # Your existing default provider logic
 
             # Process conversation history
             messages = list(user_message.conversation.messages.all().order_by("created_at"))
@@ -505,41 +509,6 @@ class ChatService:
                     "is_error": True,
                 }) + "\n"
 
-    def _get_provider(self, model_name: str, user_id: int = None):
-        """Get appropriate provider based on model name"""
-        try:
-            # Determine provider name based on model prefix
-            provider_name = "ollama"  # Default provider
-            
-            # Convert model name to lowercase for case-insensitive matching
-            model_lower = model_name.lower()
-            
-            # Check for known model prefixes
-            if model_name.startswith(("gpt", "text-embedding-ada")):
-                provider_name = "openai"
-            elif model_name.startswith(("claude")):
-                provider_name = "anthropic"
-            elif "gemini" in model_lower:
-                provider_name = "google"
-            
-            self.logger.info(f"Selected provider {provider_name} for model {model_name}")
-            print(f"DEBUG: Selected provider {provider_name} for model {model_name}")
-            
-            # Get provider from factory
-            provider = self.provider_factory.get_provider(provider_name, user_id or 1)
-            self.logger.info(f"Provider initialized: {type(provider).__name__}")
-            print(f"DEBUG: Provider initialized: {type(provider).__name__}")
-            
-            return provider
-        except Exception as e:
-            self.logger.error(f"Error initializing provider: {str(e)}")
-            # Return a default provider as fallback
-            try:
-                return self.provider_factory.get_provider("ollama", {"endpoint": "http://localhost:11434", "is_enabled": True})
-            except Exception as fallback_error:
-                self.logger.error(f"Failed to initialize fallback provider: {str(fallback_error)}")
-                raise
-
     def get_prompts(
         self, model_name: str, style: str = "", count: int = 5, user_id: int = None
     ) -> dict:
@@ -551,7 +520,22 @@ class ChatService:
             print(f"DEBUG: ChatService.get_prompts called with model: {model_name}")
             
             # Initialize provider
-            provider = self._get_provider(model_name, user_id)
+            provider_name = None
+            model_id = model_name
+            if model_id:
+                # The model id is expected to be in the format 'model-name-provider'
+                parts = model_id.split('-')
+                if len(parts) > 1:
+                    potential_provider = parts[-1]
+                    if potential_provider in ['openai', 'ollama', 'google', 'anthropic', 'openrouter']:
+                        provider_name = potential_provider
+                        model_name = '-'.join(parts[:-1])
+
+            if provider_name:
+                provider = self.provider_factory.get_provider(provider_name, user_id)
+            else:
+                provider = self.provider_factory.get_provider('ollama', user_id)
+
             self.logger.info(f"Provider initialized: {provider}")
 
             # Initialize prompt service with provider
@@ -620,3 +604,25 @@ class ChatService:
         except Exception as e:
             self.logger.error(f"Error saving cancelled message: {str(e)}")
             return None
+
+    def _get_provider_name_and_model(self, model_id: str) -> (str, str):
+        """
+        Helper to extract provider and model name from a composite model ID.
+        E.g., "llama-3.1-70b-ollama" -> ("ollama", "llama-3.1-70b")
+        """
+        if model_id.endswith("-openrouter"):
+            return "openrouter", model_id.replace("-openrouter", "")
+        
+        parts = model_id.split('-')
+        if len(parts) > 1:
+            provider_candidate = parts[-1]
+            # Check if the last part is a known provider. If so, treat it as the provider.
+            # This is a bit of a heuristic and might need refinement.
+            # A more robust solution would be to have the frontend pass the provider explicitly.
+            from features.providers.registry import provider_registry
+            if provider_registry.is_provider_registered(provider_candidate):
+                model_name = '-'.join(parts[:-1])
+                return provider_candidate, model_name
+
+        # Default case if no provider is appended or detected
+        return "ollama", model_id

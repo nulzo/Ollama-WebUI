@@ -11,12 +11,13 @@ export interface GenericModelResponse {
   created_at?: Date;
 }
 
-export type Provider = 'ollama' | 'openai' | 'anthropic' | 'google';
+export type Provider = 'ollama' | 'openai' | 'anthropic' | 'google' | 'meta' | 'mistral' | 'cohere' | 'ai21' | 'huggingface' | 'together' | 'perplexity' | 'databricks' | 'nvidia' | 'microsoft' | 'qwen' | 'deepseek' | '01-ai' | 'liquid' | 'reflection' | 'gryphe' | 'neversleep' | 'cognitive' | 'nous' | 'alpindale' | 'undi95' | 'sophosympatheia' | 'openchat' | 'teknium' | 'austism' | 'jondurbin' | 'lynn' | 'mattshumer' | 'sao10k' | 'eva-unit-01' | 'infermatic' | 'koboldai' | 'thebloke' | 'pygmalionai' | 'ehartford' | 'mancer' | 'openrouter';
 
 export interface StandardModel {
   id: string;                     // model identifier
   name: string;                   // model name
   model: string;                  // display name of the model
+  description?: string;           // model description
   max_input_tokens: number;       // maximum allowed input tokens (default: 2048)
   max_output_tokens: number;      // maximum allowed output tokens (default: 2048)
   vision_enabled: boolean;        // whether the model supports vision (default: false)
@@ -25,6 +26,24 @@ export interface StandardModel {
   provider: Provider;
   size?: number;                  // size of the model in bytes
   modified_at?: string;           // last modified date
+  via_openrouter?: boolean;       // whether the model is accessed via OpenRouter
+  
+  // Rich metadata from OpenRouter
+  context_length?: number;        // context length in tokens
+  pricing?: {
+    prompt: number;               // cost per prompt token
+    completion: number;           // cost per completion token
+    image?: number | null;        // cost per image (if supported)
+  };
+  architecture?: {
+    modality: string;             // e.g., "text->text", "text+image->text"
+    input_modalities: string[];   // e.g., ["text", "image"]
+    output_modalities: string[];  // e.g., ["text"]
+    tokenizer: string;            // e.g., "GPT", "Claude", "Mistral"
+  };
+  supported_parameters?: string[]; // supported API parameters
+  is_moderated?: boolean;         // whether the model is moderated
+  canonical_slug?: string;        // canonical model slug
 }
 
 export interface OllamaChatResponse {
@@ -90,10 +109,7 @@ export interface OllamaModel {
 }
 
 export interface ProviderModels {
-  ollama: StandardModel[];
-  openai: StandardModel[];
-  anthropic: StandardModel[];
-  google: StandardModel[];
+  [provider: string]: StandardModel[];
 }
 
 export interface AvailableModel {

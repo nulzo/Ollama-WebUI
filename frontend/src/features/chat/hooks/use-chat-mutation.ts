@@ -69,6 +69,7 @@ export function useChatMutation(conversation_id?: string) {
       if (!user) throw new Error('Authentication required');
       if (!model) throw new Error('No model selected');
 
+      const modelId = model.id;
       const modelName = model.model;
       const providerName = model.provider || 'ollama';
       const assistantName = model.name || 'Assistant';
@@ -110,7 +111,7 @@ export function useChatMutation(conversation_id?: string) {
           conversation_uuid: conversation_id,
           role: 'user',
           user: user?.id,
-          model: modelName,
+          model: modelId,
           name: assistantName,
           provider: providerName,
           images: images || [],

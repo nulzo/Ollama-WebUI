@@ -14,6 +14,11 @@ export interface Conversation {
   created_at: string;
   updated_at: string;
   is_pinned: boolean;
+  model: string | null;
+  system_prompt: string | null;
+  temperature: number | null;
+  max_tokens: number | null;
+  top_p: number | null;
 }
 
 export interface ConversationList {

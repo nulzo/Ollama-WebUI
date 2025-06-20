@@ -1,4 +1,3 @@
-import { Origami } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog.tsx';
 import {
@@ -7,14 +6,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip.tsx';
+import { ProviderIcon } from '@/features/models/components/model-select';
 
 interface BotIconProps {
-  assistantId: number;
   isOnline?: boolean;
   modelName?: string;
+  provider?: string;
 }
 
-export const BotIcon = ({ assistantId, isOnline, modelName }: BotIconProps) => {
+export const BotIcon = ({ isOnline, modelName, provider }: BotIconProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -23,8 +23,14 @@ export const BotIcon = ({ assistantId, isOnline, modelName }: BotIconProps) => {
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
-              <div className="relative flex justify-center items-center bg-primary rounded-lg w-10 h-10 cursor-pointer">
-                <Origami strokeWidth="1.5" className="m-2 text-primary-foreground size-6" />
+              <div className="relative flex justify-center items-center bg-background rounded-lg w-10 h-10 cursor-pointer p-1">
+                {provider ? (
+                  <ProviderIcon provider={provider} />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center rounded-md bg-muted/50">
+                    <span className="text-sm font-semibold text-muted-foreground">?</span>
+                  </div>
+                )}
                 <div
                   className={`absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full ring-2 ring-background
                   ${isOnline ? 'bg-green-500' : 'bg-background border border-foreground/75'}`}

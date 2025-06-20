@@ -30,7 +30,7 @@ class ProviderSettingsSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({
                         "endpoint": "Endpoint is required for Ollama provider"
                     })
-        elif provider_type in ["openai", "anthropic"]:
+        elif provider_type in ["openai", "anthropic", "google", "openrouter"]:
             # Check the is_enabled flag: only require API key if the provider is enabled.
             is_enabled = data.get("is_enabled", self.instance.is_enabled if self.instance else False)
             if is_enabled:

@@ -254,6 +254,11 @@ class AnthropicProvider(BaseProvider):
             )
             done = False
             for event in stream_response:
+                # Debug log the event type for troubleshooting
+                event_type = type(event).__name__
+                event_attrs = [attr for attr in dir(event) if not attr.startswith('_') and not callable(getattr(event, attr))]
+                self.logger.debug(f"Anthropic event: {event_type}, attributes: {event_attrs}")
+                
                 # Check for a stop condition.
                 if getattr(event, "stop_reason", None):
                     # If the event contains usage info, update token usage.
@@ -289,10 +294,41 @@ class AnthropicProvider(BaseProvider):
                     done = True
                     break
 
-                # Otherwise, yield the generating chunk if there is any text.
-                text = event.content
-                if text and text.strip():
-                    yield json.dumps({"content": text, "status": "generating"})
+                # Check event type before trying to access content
+                # Handle different event types from Anthropic API
+                if event_type == "ContentBlockStartEvent" and hasattr(event, "content_block"):
+                    # Handle content block start event
+                    if hasattr(event.content_block, "text"):
+                        text = event.content_block.text
+                        if text:
+                            yield json.dumps({"content": text, "status": "generating"})
+                
+                elif event_type == "ContentBlockDeltaEvent" and hasattr(event, "delta"):
+                    # Handle content block delta event
+                    if hasattr(event.delta, "text"):
+                        text = event.delta.text
+                        if text:
+                            yield json.dumps({"content": text, "status": "generating"})
+                
+                # Handle generic 'content_block_delta' events which have content
+                elif hasattr(event, "type") and event.type == "content_block_delta" and hasattr(event, "delta") and hasattr(event.delta, "text"):
+                    text = event.delta.text
+                    if text:
+                        yield json.dumps({"content": text, "status": "generating"})
+                
+                # Handle legacy 'content_block_start' events
+                elif hasattr(event, "content_block") and hasattr(event.content_block, "text"):
+                    text = event.content_block.text
+                    if text:
+                        yield json.dumps({"content": text, "status": "generating"})
+                
+                # Handle direct content attribute if it exists
+                elif hasattr(event, "content"):
+                    text = event.content
+                    if text:
+                        yield json.dumps({"content": text, "status": "generating"})
+                
+                # Skip other event types (RawMessageStartEvent, MessageStartEvent, MessageStopEvent, etc.)
 
             # If we never encountered an explicit stop event, yield a final done message.
             if not done:

@@ -25,6 +25,14 @@ import { ToolCallList } from './tool-call-list.tsx';
 import { addInlineCitations, forceInlineCitations } from '../utils/process-citations.ts';
 import { useSettings } from '@/features/settings/api/get-settings';
 
+// Helper to extract provider from model ID
+const getProviderFromModel = (modelId: string): string | undefined => {
+  if (!modelId) return undefined;
+  // Assumes model ID format like "some-model-id-provider" or "provider/model-id"
+  const parts = modelId.split(/[-/]/);
+  return parts.length > 1 ? parts[0] : undefined;
+};
+
 interface MessageProps {
   message: MessageType;
   isTyping?: boolean;
@@ -135,6 +143,15 @@ export const Message = memo(
     const smoothText = useSmoothStreaming(message.content || '', !!isTyping);
     const messageContent = isTyping ? smoothText : message.content || '';
     
+    const modelInfo = useMemo(() => {
+      if (!modelsData || !message.model) return null;
+      const allModels = Object.values(modelsData).flat();
+      return allModels.find(m => m.model.toLowerCase() === message.model?.toLowerCase());
+    }, [modelsData, message.model]);
+
+    const providerName = modelInfo?.provider;
+    const isModelOnline = !!modelInfo;
+    
     // Format the message content to remove the [cancelled] marker
     const displayContent = useMemo(() => {
       let content = messageContent;
@@ -221,29 +238,6 @@ export const Message = memo(
       );
     };
 
-    const isModelOnline = useMemo(() => {
-      if (!modelsData || !message.model) return false;
-
-      const lowerMessageModel = message.model.toLowerCase();
-
-      // Helper to check if any model in the given provider's list has a matching name or display name.
-      const checkModels = (modelsArray?: StandardModel[]) =>
-        modelsArray
-          ? modelsArray.some(
-              m =>
-                (m.name && m.name.toLowerCase() === lowerMessageModel) ||
-                (m.model && m.model.toLowerCase() === lowerMessageModel)
-            )
-          : false;
-
-      return (
-        checkModels(modelsData.ollama) ||
-        checkModels(modelsData.openai) ||
-        checkModels(modelsData.google) ||
-        checkModels(modelsData.anthropic)
-      );
-    }, [modelsData, message.model]);
-
     // Update local state when prop changes
     useEffect(() => {
       setIsLiked(message.is_liked);
@@ -254,7 +248,19 @@ export const Message = memo(
         <div className="flex flex-col gap-1 px-4 py-2">
           <div className="flex gap-3 w-full max-w-[85%]">
             <div className="flex flex-col items-center mb-0">
-              <BotIcon assistantId={0} isOnline={isModelOnline} modelName={message.model} />
+              <motion.div className="flex items-start gap-3">
+                {message.role === 'assistant' ? (
+                  <BotIcon
+                    isOnline={isModelOnline}
+                    modelName={message.model}
+                    provider={providerName}
+                  />
+                ) : (
+                  <div className="relative flex justify-center items-center bg-primary rounded-lg w-10 h-10 cursor-pointer">
+                    <div className="-right-0.5 -bottom-0.5 absolute bg-primary rounded-full ring-2 ring-background size-2.5" />
+                  </div>
+                )}
+              </motion.div>
             </div>
             <div className="flex flex-col">
               <div className="flex items-baseline gap-2 mb-0.5 ml-1">
@@ -366,7 +372,19 @@ export const Message = memo(
           // Bot message
           <div className="flex gap-3 w-full max-w-[95%]">
             <div className="flex flex-col items-center mb-0">
-              <BotIcon assistantId={0} isOnline={isModelOnline} modelName={message.model} />
+              <motion.div className="flex items-start gap-3">
+                {message.role === 'assistant' ? (
+                  <BotIcon
+                    isOnline={isModelOnline}
+                    modelName={message.model}
+                    provider={providerName}
+                  />
+                ) : (
+                  <div className="relative flex justify-center items-center bg-primary rounded-lg w-10 h-10 cursor-pointer">
+                    <div className="-right-0.5 -bottom-0.5 absolute bg-primary rounded-full ring-2 ring-background size-2.5" />
+                  </div>
+                )}
+              </motion.div>
             </div>
 
             <div className="flex flex-col w-full">

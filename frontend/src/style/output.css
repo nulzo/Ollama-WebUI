@@ -1,4 +1,4 @@
-/*! tailwindcss v4.0.8 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.0.17 | MIT License | https://tailwindcss.com */
 @layer theme, base, components, utilities;
 @layer theme {
   :root, :host {
@@ -415,24 +415,6 @@
   .col-start-2 {
     grid-column-start: 2;
   }
-  .\!container {
-    width: 100% !important;
-    @media (width >= 40rem) {
-      max-width: 40rem !important;
-    }
-    @media (width >= 48rem) {
-      max-width: 48rem !important;
-    }
-    @media (width >= 64rem) {
-      max-width: 64rem !important;
-    }
-    @media (width >= 80rem) {
-      max-width: 80rem !important;
-    }
-    @media (width >= 96rem) {
-      max-width: 96rem !important;
-    }
-  }
   .container {
     width: 100%;
     @media (width >= 40rem) {
@@ -462,16 +444,6 @@
   }
   .m-auto {
     margin: auto;
-  }
-  .\!container {
-    margin-inline: auto !important;
-    padding-inline: 2rem !important;
-    @media (width >= 40rem) {
-      max-width: none !important;
-    }
-    @media (width >= 1400px) {
-      max-width: 1400px !important;
-    }
   }
   .container {
     margin-inline: auto;
@@ -2190,6 +2162,7 @@
     --tw-ring-offset-color: hsl(var(--background));
   }
   .outline-hidden {
+    --tw-outline-style: none;
     outline-style: none;
     @media (forced-colors: active) {
       outline: 2px solid transparent;
@@ -2914,6 +2887,7 @@
   }
   .focus\:outline-hidden {
     &:focus {
+      --tw-outline-style: none;
       outline-style: none;
       @media (forced-colors: active) {
         outline: 2px solid transparent;
@@ -3026,6 +3000,7 @@
   }
   .focus-visible\:outline-hidden {
     &:focus-visible {
+      --tw-outline-style: none;
       outline-style: none;
       @media (forced-colors: active) {
         outline: 2px solid transparent;
@@ -4224,24 +4199,6 @@
     transform: translate3d(var(--tw-exit-translate-x, 0), var(--tw-exit-translate-y, 0), 0) scale3d(var(--tw-exit-scale, 1), var(--tw-exit-scale, 1), var(--tw-exit-scale, 1)) rotate(var(--tw-exit-rotate, 0));
   }
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes pulse {
-  50% {
-    opacity: 0.5;
-  }
-}
-@keyframes fade {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
 @property --tw-translate-x {
   syntax: "*";
   inherits: false;
@@ -4514,4 +4471,22 @@
 @property --tw-ease {
   syntax: "*";
   inherits: false;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }

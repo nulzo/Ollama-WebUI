@@ -1,4 +1,20 @@
-import { Check, ChevronsUpDown, Eye, Zap, Wrench, Link, ArrowDownUp, Filter, Search, ArrowDownAZ, ArrowUpAZ, ArrowDownWideNarrow, ArrowUpNarrowWide, ArrowUp01, ArrowDown10 } from 'lucide-react';
+import {
+  Check,
+  ChevronsUpDown,
+  Eye,
+  Zap,
+  Wrench,
+  Link,
+  ArrowDownUp,
+  Filter,
+  Search,
+  ArrowDownAZ,
+  ArrowUpAZ,
+  ArrowDownWideNarrow,
+  ArrowUpNarrowWide,
+  ArrowUp01,
+  ArrowDown10,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,7 +74,7 @@ export const ProviderIcon = ({ provider, className }: { provider: string; classN
   };
 
   const slug = slugMap[provider.toLowerCase()] || provider.toLowerCase().replace(/ /g, '-');
-  
+
   // Icons in `/dark/` are light-colored (for dark backgrounds)
   // Icons in `/light/` are dark-colored (for light backgrounds)
   const iconUrl =
@@ -72,8 +88,15 @@ export const ProviderIcon = ({ provider, className }: { provider: string; classN
 
   if (imageError) {
     return (
-      <div className={cn('flex h-full w-full items-center justify-center rounded-md bg-muted/50', className)}>
-        <span className="text-sm font-semibold text-muted-foreground">{provider.charAt(0).toUpperCase()}</span>
+      <div
+        className={cn(
+          'flex h-full w-full items-center justify-center rounded-md bg-muted/50',
+          className
+        )}
+      >
+        <span className="text-sm font-semibold text-muted-foreground">
+          {provider.charAt(0).toUpperCase()}
+        </span>
       </div>
     );
   }
@@ -126,7 +149,10 @@ type SortKey =
   | 'price_asc'
   | 'price_desc';
 
-const sortOptions: Record<SortKey, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
+const sortOptions: Record<
+  SortKey,
+  { label: string; icon: React.ComponentType<{ className?: string }> }
+> = {
   provider: { label: 'Provider', icon: ArrowDownUp },
   name_asc: { label: 'Name (A-Z)', icon: ArrowDownAZ },
   name_desc: { label: 'Name (Z-A)', icon: ArrowUpAZ },
@@ -220,7 +246,10 @@ export function ModelSelect({ value, onValueChange, className }: ModelSelectProp
       }
       return Object.entries(groups)
         .sort(([a], [b]) => a.localeCompare(b))
-        .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {} as Record<string, StandardModel[]>);
+        .reduce(
+          (acc, [key, value]) => ({ ...acc, [key]: value }),
+          {} as Record<string, StandardModel[]>
+        );
     }
 
     return groups;
@@ -299,7 +328,7 @@ export function ModelSelect({ value, onValueChange, className }: ModelSelectProp
                     onSelect={() => setSortKey(key as SortKey)}
                     className="flex items-center gap-2"
                   >
-                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <Icon className="size-3 text-muted-foreground" />
                     <span>{label}</span>
                   </DropdownMenuCheckboxItem>
                 ))}
@@ -325,26 +354,26 @@ export function ModelSelect({ value, onValueChange, className }: ModelSelectProp
                 <DropdownMenuSeparator />
                 <ScrollArea className="h-[250px]">
                   {allProviders.map(provider => (
-                      <DropdownMenuCheckboxItem
-                          key={provider}
-                          checked={selectedProviders.includes(provider)}
-                          onSelect={(e) => {
-                              e.preventDefault();
-                              setSelectedProviders(prev => 
-                                  prev.includes(provider) 
-                                      ? prev.filter(p => p !== provider)
-                                      : [...prev, provider]
-                              )
-                          }}
-                      >
-                          {provider.charAt(0).toUpperCase() + provider.slice(1)}
-                      </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      key={provider}
+                      checked={selectedProviders.includes(provider)}
+                      onSelect={e => {
+                        e.preventDefault();
+                        setSelectedProviders(prev =>
+                          prev.includes(provider)
+                            ? prev.filter(p => p !== provider)
+                            : [...prev, provider]
+                        );
+                      }}
+                    >
+                      {provider.charAt(0).toUpperCase() + provider.slice(1)}
+                    </DropdownMenuCheckboxItem>
                   ))}
                 </ScrollArea>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          
+
           <CommandList>
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
               No models found.
@@ -356,10 +385,11 @@ export function ModelSelect({ value, onValueChange, className }: ModelSelectProp
                     <div className="flex gap-2 px-2 py-2 align-bottom items-baseline">
                       <span className="font-semibold text-sm">{capitalize(provider)}</span>
                       <span className="text-[10px] items-baseline align-bottom text-muted-foreground">
-                        {groupedModels[provider].length} model{groupedModels[provider].length !== 1 ? 's' : ''}
+                        {groupedModels[provider].length} model
+                        {groupedModels[provider].length !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    
+
                     <div className="space-y-1">
                       {groupedModels[provider].map((model: StandardModel) => (
                         <CommandItem
@@ -380,25 +410,48 @@ export function ModelSelect({ value, onValueChange, className }: ModelSelectProp
                                   value === model.id && 'bg-accent text-accent-foreground'
                                 )}
                               >
-                                <div className="flex items-center w-full gap-3">
-                                  <div className="flex items-center justify-center size-6 shrink-0 ml-2">
-                                    <ProviderIcon provider={model.provider} />
+                                <div className="flex items-center w-full gap-2">
+                                  <div className="flex items-center justify-center size-6 bg-foreground p-1 rounded ml-2">
+                                    <ProviderIcon className="invert" provider={model.provider} />
                                   </div>
 
                                   <div className="flex-1 min-w-0">
-                                    <p
-                                      className="font-medium text-sm truncate"
-                                      title={model.name}
-                                    >
+                                    <p className="font-medium text-sm truncate" title={model.name}>
                                       {model.name}
                                     </p>
                                   </div>
 
-                                  <div className="flex items-center shrink-0 gap-2 ml-auto">
+                                  <div className="flex items-center shrink-0 gap-1 ml-auto">
+                                    {model.vision_enabled && (
+                                      <div
+                                        className={cn(
+                                          'p-1 rounded items-center flex justify-center',
+                                          value === model.id
+                                            ? 'bg-accent-foreground/10'
+                                            : 'bg-accent'
+                                        )}
+                                      >
+                                        <Eye className="h-2 w-2 text-muted-foreground" />
+                                      </div>
+                                    )}
+
+                                    {model.tools_enabled && (
+                                      <div
+                                        className={cn(
+                                          'p-1 rounded items-center flex justify-center',
+                                          value === model.id
+                                            ? 'bg-accent-foreground/10'
+                                            : 'bg-accent'
+                                        )}
+                                      >
+                                        <Wrench className="text-muted-foreground" />
+                                      </div>
+                                    )}
+
                                     <div
                                       className={cn(
-                                        'text-xs font-semibold rounded-md px-1.5 py-0.5 items-center flex justify-center',
-                                        value === model.id ? 'bg-accent-foreground/10' : 'bg-background'
+                                        'text-xs font-semibold rounded px-1.5 py-0.5 items-center flex justify-center',
+                                        value === model.id ? 'bg-accent-foreground/10' : 'bg-accent'
                                       )}
                                     >
                                       {formatContextLength(
@@ -414,8 +467,10 @@ export function ModelSelect({ value, onValueChange, className }: ModelSelectProp
                                         return (
                                           <div
                                             className={cn(
-                                              'text-xs font-semibold rounded-md px-1.5 py-0.5 items-center flex justify-center',
-                                              value === model.id ? 'bg-accent-foreground/10' : 'bg-background'
+                                              'text-xs font-semibold rounded px-1.5 py-0.5 items-center flex justify-center',
+                                              value === model.id
+                                                ? 'bg-accent-foreground/10'
+                                                : 'bg-accent'
                                             )}
                                           >
                                             {priceInfo.amount}
@@ -425,38 +480,12 @@ export function ModelSelect({ value, onValueChange, className }: ModelSelectProp
                                           </div>
                                         );
                                       })()}
-
-                                    {model.vision_enabled && (
-                                      <div
-                                        className={cn(
-                                          'p-1 rounded-md items-center flex justify-center',
-                                          value === model.id ? 'bg-accent-foreground/10' : 'bg-background'
-                                        )}
-                                      >
-                                        <Eye className="size-4 text-muted-foreground" />
-                                      </div>
-                                    )}
-
-                                    {model.tools_enabled && (
-                                      <div
-                                        className={cn(
-                                          'p-1 rounded-md items-center flex justify-center',
-                                          value === model.id ? 'bg-accent-foreground/10' : 'bg-background'
-                                        )}
-                                      >
-                                        <Wrench className="size-4 text-muted-foreground" />
-                                      </div>
-                                    )}
                                   </div>
                                 </div>
                               </div>
                             </TooltipTrigger>
                             {model.description && (
-                              <TooltipContent
-                                side="right"
-                                align="start"
-                                className="max-w-xs z-50"
-                              >
+                              <TooltipContent side="right" align="start" className="max-w-xs z-50">
                                 <div className="p-2">
                                   <p className="font-semibold text-sm mb-1">{model.name}</p>
                                   <p className="text-xs text-muted-foreground">

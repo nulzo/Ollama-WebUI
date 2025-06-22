@@ -1,0 +1,3 @@
+# This directory is for corporate CA certificates
+# Place your .crt files here if you're behind a corporate firewall
+# Set INSTALL_CA_CERTS=true and CA_CERTS_PATH=./docker/ca-certificates in your .env file 

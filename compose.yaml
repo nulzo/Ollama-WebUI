@@ -1,96 +1,210 @@
-# Define services for the application
+# Docker Compose configuration for Ollama WebUI
+# Supports both development and production environments
+
+version: '3.8'
+
+# Define custom networks for better security
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+  db:
+    driver: bridge
+
+# Define named volumes for persistence
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_staticfiles:
+    driver: local
+  backend_media:
+    driver: local
+
 services:
+  # PostgreSQL Database (recommended for production)
+  db:
+    image: postgres:15-alpine
+    container_name: ollama-webui-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ollama_webui}
+      POSTGRES_USER: ${POSTGRES_USER:-ollama_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+      POSTGRES_HOST_AUTH_METHOD: ${POSTGRES_HOST_AUTH_METHOD:-trust}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ollama_user}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: ollama-webui-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-change_me_in_production}
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-change_me_in_production}
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
   # Backend service (Django REST framework)
   backend:
-    tty: true
-    container_name: backend
+    container_name: ollama-webui-backend
     build: 
-      context: ./backend  # Build the backend service using the Dockerfile in the ./backend directory
-      args:  # Add build arguments
-        - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
-        - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
-        - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
-        - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT:-host.docker.internal:11434}
-        - OPENAI_API_KEY=${OPENAI_API_KEY}
-        - OPENAI_ENDPOINT=${OPENAI_ENDPOINT}
-        - OPENAI_ORGANIZATION_ID=${OPENAI_ORGANIZATION_ID}
-        - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-        - ANTHROPIC_ENDPOINT=${ANTHROPIC_ENDPOINT}
-        - AZURE_API_KEY=${AZURE_API_KEY}
-        - AZURE_ENDPOINT=${AZURE_ENDPOINT}
-        - AZURE_ORGANIZATION_ID=${AZURE_ORGANIZATION_ID}
-        - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-        - GOOGLE_ENDPOINT=${GOOGLE_ENDPOINT}
+      context: ./backend
+      target: development  # Use development stage by default
+      args:
+        # Corporate environment support
+        - INSTALL_CA_CERTS=${INSTALL_CA_CERTS:-false}
+        - CA_CERTS_PATH=${CA_CERTS_PATH:-}
+        - PYTHON_VERSION=${PYTHON_VERSION:-3.11}
     environment:
-      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
-      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
-      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
-      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_ENDPOINT=${OPENAI_ENDPOINT}
-      - OPENAI_ORGANIZATION_ID=${OPENAI_ORGANIZATION_ID}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - ANTHROPIC_ENDPOINT=${ANTHROPIC_ENDPOINT}
-      - AZURE_API_KEY=${AZURE_API_KEY}
-      - AZURE_ENDPOINT=${AZURE_ENDPOINT}
-      - AZURE_ORGANIZATION_ID=${AZURE_ORGANIZATION_ID}
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
-      - GOOGLE_ENDPOINT=${GOOGLE_ENDPOINT}
+      # Django settings
+      - DEBUG=${DEBUG:-True}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      
+      # Database configuration
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-ollama_user}:${POSTGRES_PASSWORD:-change_me_in_production}@db:5432/${POSTGRES_DB:-ollama_webui}
+      
+      # Redis configuration
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-change_me_in_production}@redis:6379/0
+      
+      # Superuser configuration
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-admin}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-admin}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
+      
+      # External service configuration
+      - OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT:-http://host.docker.internal:11434}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_ENDPOINT=${OPENAI_ENDPOINT:-}
+      - OPENAI_ORGANIZATION_ID=${OPENAI_ORGANIZATION_ID:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - ANTHROPIC_ENDPOINT=${ANTHROPIC_ENDPOINT:-}
+      - AZURE_API_KEY=${AZURE_API_KEY:-}
+      - AZURE_ENDPOINT=${AZURE_ENDPOINT:-}
+      - AZURE_ORGANIZATION_ID=${AZURE_ORGANIZATION_ID:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - GOOGLE_ENDPOINT=${GOOGLE_ENDPOINT:-}
+      
+      # Security settings
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5073}
     env_file:
       - .env
-    restart: always  # Restart the backend service always (even if it exits normally)
+    restart: unless-stopped
     ports:
-      - 6969:6969  # Map port 6969 on the host to port 6969 on the container
+      - "${BACKEND_PORT:-6969}:6969"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./backend/api:/home/backend/api
-      - ./backend/features:/home/backend/features
-      - ./backend/settings:/home/backend/settings
-      - ./backend/staticfiles:/home/backend/staticfile
+      # Development volumes (comment out for production)
+      - ./backend/api:/app/api:cached
+      - ./backend/features:/app/features:cached
+      - ./backend/settings:/app/settings:cached
+      - backend_staticfiles:/app/staticfiles
+      - backend_media:/app/media
+    networks:
+      - backend
+      - db
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6969/api/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
-    # volumes:
-      # We want a way to persist the database from the container to the local machine
-      # - ./backend/db.sqlite3:/home/backend/db.sqlite3
-      # - ./backend/api/:/home/backend/api
-
-  # Frontend service
+  # Frontend service (React with Bun)
   frontend:
-    container_name: frontend
+    container_name: ollama-webui-frontend
     build:
       context: ./frontend
+      target: development  # Use development stage by default
       args:
-        - VITE_APP_BACKEND_API_URL=${VITE_APP_BACKEND_API_URL:-}
+        # Corporate environment support
+        - INSTALL_CA_CERTS=${INSTALL_CA_CERTS:-false}
+        - CA_CERTS_PATH=${CA_CERTS_PATH:-}
+                 - BUN_VERSION=${BUN_VERSION:-1}
+        # Environment variables
+        - VITE_APP_BACKEND_API_URL=${VITE_APP_BACKEND_API_URL:-http://localhost:6969}
         - VITE_APP_APP_URL=${VITE_APP_APP_URL:-http://localhost:4200}
         - VITE_APP_BACKEND_API_VERSION=${VITE_APP_BACKEND_API_VERSION:-api/v1/}
     environment:
-      - VITE_APP_BACKEND_API_URL=${VITE_APP_BACKEND_API_URL:-}
+      - VITE_APP_BACKEND_API_URL=${VITE_APP_BACKEND_API_URL:-http://localhost:6969}
       - VITE_APP_APP_URL=${VITE_APP_APP_URL:-http://localhost:4200}
       - VITE_APP_BACKEND_API_VERSION=${VITE_APP_BACKEND_API_VERSION:-api/v1/}
-      - CHOKIDAR_USEPOLLING=true  # Enable polling for file changes in Chokidar
-      - WATCHPACK_POLLING=true  # Enable polling for file changes in Watchpack
+      # Development settings
+      - CHOKIDAR_USEPOLLING=${CHOKIDAR_USEPOLLING:-true}
+      - WATCHPACK_POLLING=${WATCHPACK_POLLING:-true}
     ports:
       - "${FRONTEND_PORT:-4200}:4200"
-    tty: true  # Allocate a pseudo-TTY for the frontend service
     volumes:
-      # Mount specific directories and files to the container
-      - ./frontend/index.html:/home/frontend/index.html
-      - ./frontend/src/:/home/frontend/src  # Mount the local ./frontend/src directory to /home/frontend/src in the container
-      - ./frontend/vite.config.ts:/home/frontend/vite.config.js  # Mount the local vite.config.ts file to /home/frontend/vite.config.js in the container
-      - ./frontend/tsconfig.json:/home/frontend/tsconfig.json  # Mount the local tsconfig.json file to /home/frontend/tsconfig.json in the container
+      # Development volumes (comment out for production)
+      - ./frontend/src:/app/src:cached
+      - ./frontend/index.html:/app/index.html:cached
+      - ./frontend/vite.config.ts:/app/vite.config.ts:cached
+      - ./frontend/tsconfig.json:/app/tsconfig.json:cached
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js:cached
+    networks:
+      - frontend
+    restart: unless-stopped
     develop:
       watch:
-        - path: frontend/src/  # Watch for changes in the specified directory, excluding node_modules
-          target: /home/frontend/src
+        - path: frontend/src/
+          target: /app/src
           action: sync
-    command: bun run dev  # Run the "npm run dev" command when starting the frontend service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
-  # Nginx server service
-  server:
-    container_name: nginx
-    build: ./proxy  # Build the Nginx service using the Dockerfile in the ./nginx directory
+  # Nginx reverse proxy
+  proxy:
+    container_name: ollama-webui-proxy
+    build: 
+      context: ./proxy
     depends_on:
-      - frontend  # Ensure that the frontend service is started before the Nginx service
-    restart: always  # Restart the Nginx service always (even if it exits normally)
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
     ports:
-      - 5073:5073
+      - "${PROXY_HTTP_PORT:-5073}:5073"
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5073/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+# Development override (optional)
+# Use: docker-compose -f compose.yaml -f compose.dev.yaml up
+# This allows for easy switching between dev and prod configurations

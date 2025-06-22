@@ -1,29 +1,88 @@
-**/tests
-**/docs 
-**/.venv/
-**/__pycache__/
+# Version control
+.git
+.gitignore
+.gitattributes
 
-venv/
+# Documentation
+README.md
+docs/
+*.md
+
+# Virtual environments
 .venv/
-./.venv/
-./venv/
+env/
 venv/
-.venv/
-./.venv/
-./venv/
+ENV/
+env.bak/
+venv.bak/
 
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
 
+# Django specific
+*.log
+local_settings.py
 db.sqlite3
-*.sqlite3
-**/*.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
 
-**/.env
-**/.pylintrc
-**/.flake8
-**/.eslintrc.cjs
-**/.gitignore
-**/poetry.lock
-poetry.lock
-**/env.dist
-**/.eslintrc.cjs
-**/README.md
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Development files
+.env.example
+.env.local
+.env.development
+.env.test
+
+# Testing
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Docker files
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+compose*.yaml

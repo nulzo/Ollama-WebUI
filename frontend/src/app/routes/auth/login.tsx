@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuthLogin } from '@/lib/auth';
+import { useLogin } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 
 const FormSchema = z.object({
@@ -30,7 +30,7 @@ const FormSchema = z.object({
 });
 
 export const LoginRoute = () => {
-  const login = useAuthLogin();
+  const login = useLogin();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();

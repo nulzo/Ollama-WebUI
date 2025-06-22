@@ -23,7 +23,7 @@ export const BotIcon = ({ isOnline, modelName, provider }: BotIconProps) => {
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
-              <div className="relative flex justify-center items-center bg-background rounded-lg w-10 h-10 cursor-pointer p-1">
+              <div className="relative flex justify-center items-center bg-background border border-border rounded-lg w-10 h-10 cursor-pointer p-2">
                 {provider ? (
                   <ProviderIcon provider={provider} />
                 ) : (

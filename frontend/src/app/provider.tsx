@@ -12,13 +12,13 @@ import { queryConfig } from '@/lib/query';
 import { AuthProvider } from '@/features/authentication/components/auth-provider';
 import { SidebarProvider } from '@/components/sidebar/sidebar-context.tsx';
 
+const queryClient = new QueryClient({ defaultOptions: queryConfig });
+
 type AppProviderProps = {
   children: React.ReactNode;
 };
 
 export const AppProvider = ({ children }: AppProviderProps) => {
-  const queryClient = new QueryClient({ defaultOptions: queryConfig });
-
   return (
     <ThemeProvider
       defaultTheme="dark"
@@ -37,12 +37,12 @@ export const AppProvider = ({ children }: AppProviderProps) => {
           <ErrorBoundary FallbackComponent={MainErrorFallback}>
             <HelmetProvider>
               <QueryClientProvider client={queryClient}>
-                  <AuthProvider>
-                    {import.meta.env.DEV && <ReactQueryDevtools />}
-                    {children}
-                    <Toaster />
-                    <Notifications />
-                  </AuthProvider>
+                <AuthProvider>
+                  {import.meta.env.DEV && <ReactQueryDevtools />}
+                  {children}
+                  <Toaster />
+                  <Notifications />
+                </AuthProvider>
               </QueryClientProvider>
             </HelmetProvider>
           </ErrorBoundary>

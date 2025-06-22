@@ -1,39 +1,120 @@
-FROM oven/bun:latest
+# Multi-stage build for React frontend with Bun
+ARG BUN_VERSION=1
+FROM oven/bun:${BUN_VERSION} as base
 
-ARG VITE_APP_BACKEND_API_URL
-ARG VITE_APP_APP_URL
-ARG VITE_APP_BACKEND_API_VERSION
+# Build arguments for corporate environment support
+ARG INSTALL_CA_CERTS=false
+ARG CA_CERTS_PATH=""
 
-ENV VITE_APP_BACKEND_API_URL=${VITE_APP_BACKEND_API_URL} \
-    VITE_APP_APP_URL=${VITE_APP_APP_URL} \
-    VITE_APP_BACKEND_API_VERSION=${VITE_APP_BACKEND_API_VERSION}
+# Install system dependencies (bun user already exists in the base image)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /home/frontend
+# Install custom CA certificates if provided
+COPY docker/ca-certificates* /tmp/
+RUN if [ "$INSTALL_CA_CERTS" = "true" ] && [ -n "$CA_CERTS_PATH" ]; then \
+        cp /tmp/ca-certificates/* /usr/local/share/ca-certificates/ 2>/dev/null || true; \
+        update-ca-certificates; \
+        # Configure bun to use the CA bundle
+        export NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt; \
+    fi
 
-# Set the working directory to where the frontend will live
-WORKDIR /home/frontend
+# Dependencies stage
+FROM base as deps
 
-# Send over the NPM dependencies from our project
-# We should not send over the lock file since NPM can fail if
-# using the cache from another machine. See the link below to see why
-# https://stackoverflow.com/a/67431349
-COPY package.json ./
+WORKDIR /app
 
-# Run npm install (this is a fresh install and will be specific to container)
-# Again, it has no lock file to build from, so it might take a minute.
-RUN bun install
+# Copy package configuration
+COPY package.json bun.lockb* ./
 
-# Send over the root information into the frontend directory
+# Install dependencies (including dev dependencies)
+RUN bun install --frozen-lockfile
+
+# Build stage
+FROM base as builder
+
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code
 COPY . .
 
-# Run npm run build to:
-# 1. Compile typescript code (Build will fail if errors are present)
-# 2. Compile into ./dist file (will contain the "production" code)
-# RUN npm run build
+# Build arguments for environment variables
+ARG VITE_APP_BACKEND_API_URL=""
+ARG VITE_APP_APP_URL="http://localhost:4200"
+ARG VITE_APP_BACKEND_API_VERSION="api/v1/"
 
-RUN bunx tailwindcss --watch -i ./src/style/globals.css -o ./src/style/output.css &
+# Set build-time environment variables
+ENV VITE_APP_BACKEND_API_URL=${VITE_APP_BACKEND_API_URL}
+ENV VITE_APP_APP_URL=${VITE_APP_APP_URL}
+ENV VITE_APP_BACKEND_API_VERSION=${VITE_APP_BACKEND_API_VERSION}
 
-# Run a command to preview the production build in ./dist.
-# This preview will be the last thing that is run before the container terminates
-# Check the documentation if you want to learn more about CMD vs RUN
-# CMD ["npm", "run", "dev"]
+# Build Tailwind CSS
+RUN bunx tailwindcss -i ./src/style/globals.css -o ./src/style/output.css --minify
+
+# Build the application (commented out for development)
+# RUN bun run build
+
+# Development stage
+FROM base as development
+
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code
+COPY --chown=bun:bun . .
+
+# Create required directories
+RUN mkdir -p /app/dist \
+    && chown -R bun:bun /app
+
+# Switch to non-root user
+USER bun
+
+# Expose port
+EXPOSE 4200
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:4200/ || exit 1
+
+# Development command
+CMD ["bun", "run", "dev", "--host", "0.0.0.0"]
+
+# Production stage
+FROM nginx:alpine as production
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy custom nginx configuration
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Create non-root user for nginx (use different UID to avoid conflicts)
+RUN addgroup -g 1001 -S nginx-app && \
+    adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx-app -g nginx-app nginx-app
+
+# Change ownership of nginx directories
+RUN chown -R nginx-app:nginx-app /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html
+
+# Switch to non-root user
+USER nginx-app
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/ || exit 1
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

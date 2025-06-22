@@ -77,26 +77,15 @@ export function ConversationAreaHeader() {
     return currentModel?.id;
   }, [model?.model, formattedModels]);
 
-  // Handle new chat button click
-  const handleNewChat = useCallback(() => {
-    // Use the handleNewChat function exposed on the window object
-    // @ts-ignore
-    if (window.handleNewChat && typeof window.handleNewChat === 'function') {
-      // @ts-ignore
-      window.handleNewChat();
-    }
-  }, []);
-
   return (
-    <div className="top-0 z-10 sticky flex flex-row justify-between items-center gap-3 col-span-4 bg-background/25 backdrop-blur-sm px-4 py-2.5 rounded-b-none grow-0 w-full h-14">
+    <div className="flex flex-row justify-between items-center gap-3 bg-background/25 px-4 py-2.5 w-full h-14 shrink-0">
       <div className="flex items-center gap-3 ps-8 font-semibold text-lg">
         <ModelSelect value={currentModelValue} onValueChange={handleModelSelect} />
         {hasConversation && (
           <Button 
             variant="ghost" 
             size="sm" 
-            className="flex items-center gap-1" 
-            onClick={handleNewChat}
+            className="flex items-center gap-1"
           >
             <PlusCircle className="size-4" strokeWidth="1.5" />
             <span>New Chat</span>

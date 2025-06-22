@@ -1,0 +1,58 @@
+# Production override for docker-compose
+# Usage: docker-compose -f compose.yaml -f compose.prod.yaml up
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      target: production
+    environment:
+      - DEBUG=False
+      - DJANGO_SETTINGS_MODULE=settings.production
+    # Remove development volumes in production
+    volumes:
+      - backend_staticfiles:/app/staticfiles
+      - backend_media:/app/media
+    command: ["gunicorn", "--bind", "0.0.0.0:6969", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "settings.asgi:application"]
+
+  frontend:
+    build:
+      target: production
+    # Remove development volumes in production
+    volumes: []
+    # Production nginx will handle the frontend
+
+  proxy:
+    # In production, you might want to use an external load balancer
+    # and remove the proxy service, or configure it differently
+    # For SSL in production, use a proper reverse proxy like Traefik or external load balancer
+    ports:
+      - "80:5073"  # Standard HTTP port for production
+    
+  # Ensure database and redis are always running in production
+  db:
+    # Use a more robust restart policy
+    restart: always
+    # Add resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  redis:
+    # Use a more robust restart policy
+    restart: always
+    # Add resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M 

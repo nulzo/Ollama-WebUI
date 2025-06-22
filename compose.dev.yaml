@@ -1,0 +1,39 @@
+# Development override for docker-compose
+# Usage: docker-compose -f compose.yaml -f compose.dev.yaml up
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      target: development
+    volumes:
+      # Development volumes for hot reloading
+      - ./backend/api:/app/api:cached
+      - ./backend/features:/app/features:cached
+      - ./backend/settings:/app/settings:cached
+    environment:
+      - DEBUG=True
+      - DJANGO_SETTINGS_MODULE=settings.development
+    command: ["python", "manage.py", "runserver", "0.0.0.0:6969"]
+
+  frontend:
+    build:
+      target: development
+    volumes:
+      # Development volumes for hot reloading
+      - ./frontend/src:/app/src:cached
+      - ./frontend/index.html:/app/index.html:cached
+      - ./frontend/vite.config.ts:/app/vite.config.ts:cached
+      - ./frontend/tsconfig.json:/app/tsconfig.json:cached
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js:cached
+    command: ["bun", "run", "dev", "--host", "0.0.0.0"]
+
+  # Remove database and redis for local development if desired
+  # db:
+  #   profiles:
+  #     - production
+  # 
+  # redis:
+  #   profiles:
+  #     - production 

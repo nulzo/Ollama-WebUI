@@ -7,7 +7,7 @@ import { ToolEditor } from '@/features/tools/components/tools-editor';
 import { ToolsList } from '@/features/tools/components/tools-list';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createAppRouter = (_queryClient: QueryClient) =>
+export const createAppRouter = () =>
   createBrowserRouter([
     {
       path: 'login',
@@ -141,6 +141,6 @@ export const createAppRouter = (_queryClient: QueryClient) =>
 
 export const AppRouter = () => {
   const queryClient = useQueryClient();
-  const router = useMemo(() => createAppRouter(queryClient), [queryClient]);
+  const router = useMemo(() => createAppRouter(), [queryClient]);
   return <RouterProvider router={router} />;
 };

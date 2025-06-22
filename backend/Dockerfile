@@ -1,107 +1,136 @@
-FROM python:3.11-slim AS python-base
+# Multi-stage build for Django backend with Poetry
+ARG PYTHON_VERSION=3.11
+FROM python:${PYTHON_VERSION}-slim as python-base
 
-ARG DEBUG
-ARG SECRET_KEY
-ARG DJANGO_SUPERUSER_PASSWORD
-ARG DJANGO_SUPERUSER_USERNAME
-ARG DJANGO_SUPERUSER_EMAIL
-ARG OPENAI_API_KEY
-ARG GOOGLE_API_KEY
-ARG ANTHROPIC_API_KEY
-ARG AZURE_API_KEY
-ARG OLLAMA_ENDPOINT
+# Build arguments for corporate environment support
+ARG INSTALL_CA_CERTS=false
+ARG CA_CERTS_PATH=""
 
-# Set environment variables
-ENV DEBUG=$DEBUG \
-    SECRET_KEY=$SECRET_KEY \
-    DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-admin} \
-    DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-password} \
-    DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com} \
-    OLLAMA_ENDPOINT=${OLLAMA_ENDPOINT} \
-    OPENAI_API_KEY=${OPENAI_API_KEY} \
-    GOOGLE_API_KEY=${GOOGLE_API_KEY} \
-    ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY} \
-    AZURE_API_KEY=${AZURE_API_KEY}
-
-
-# Environment variables for Python and Django
+# Python environment variables
 ENV PYTHONUNBUFFERED=1 \
-    # Preventing Python from creating .pyc files
     PYTHONDONTWRITEBYTECODE=1 \
-    # Set up pip configurations
-    PIP_NO_CACHE_DIR=off \
-    # No need to check pip since we are pulling from image
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    # Increasing timeout for pip so we don't timeout
-    PIP_DEFAULT_TIMEOUT=1000 \
-    # Installing Poetry. See here to get a better idea vvv
-    # https://python-poetry.org/docs/configuration/#using-environment-variables
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_DEFAULT_TIMEOUT=100 \
     POETRY_VERSION=1.8.3 \
-    # make poetry install to this location
     POETRY_HOME="/opt/poetry" \
-    # Create poetry virtual environment within the poetry root and
-    # implicitly giving the virtual environment the .venv name 
+    POETRY_CACHE_DIR=/tmp/poetry_cache \
     POETRY_VIRTUALENVS_IN_PROJECT=true \
-    # Runs the poetry installer without interaction from user
-    POETRY_NO_INTERACTION=1 \
-    PYSETUP_PATH="/opt/pysetup" \
-    VENV_PATH="/opt/pysetup/.venv"
+    POETRY_VIRTUALENVS_CREATE=true \
+    POETRY_NO_INTERACTION=1
 
+# Install system dependencies and create non-root user
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 1000 django \
+    && useradd --uid 1000 --gid django --shell /bin/bash --create-home django
 
-# Prepend poetry and the virtual environment to the path
-ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
+# Install custom CA certificates if provided
+COPY docker/ca-certificates* /tmp/
+RUN if [ "$INSTALL_CA_CERTS" = "true" ] && [ -n "$CA_CERTS_PATH" ]; then \
+        cp /tmp/ca-certificates/* /usr/local/share/ca-certificates/ 2>/dev/null || true; \
+        update-ca-certificates; \
+        # Update pip's certificates
+        python -m pip config set global.cert /etc/ssl/certs/ca-certificates.crt; \
+    fi
 
-# "builder-base" is used here to compile dependencies and 
-# will be used to create the virtual environment
-FROM python-base AS builder-base
-# Update apt if needed
-RUN apt-get update \
-# Install apt with no output and pass yes to all prompts
-    && apt-get install --no-install-recommends -y \
-        # Curl is required for installing Poetry to the container
-        curl \
-        # Build-Essential is required for building Python dependencies (such as gcc and cffi)
-        build-essential
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 - \
+    && ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
 
-# Install poetry using Curl to the $POETRY_VERSION and $POETRY_HOME paths
-RUN curl -sSL https://install.python-poetry.org | python3 -
+# Build stage for dependencies
+FROM python-base as deps-builder
 
-WORKDIR /home/backend/
+WORKDIR /app
 
-# Copy the pyproject.toml file (our dependencies) to the container
-# (Don't copy over the lock file - we wanto to generate that within the container)
-COPY pyproject.toml poetry.lock* ./
+# Copy Poetry configuration
+COPY pyproject.toml poetry.lock ./
 
-# Install poetry dependencies to the virtual environment created earlier
-# Should probably pass in the --no-dev flag at some point during prod build
-# i.e. `poetry install --no-interaction --no-cache`
+# Configure Poetry and install dependencies
 RUN poetry config virtualenvs.create true \
     && poetry config virtualenvs.in-project true \
-    && poetry install
+    && poetry install --no-root --no-dev \
+    && rm -rf $POETRY_CACHE_DIR
 
-# Send the contents of the main backend directory to the container so that
-# it follows the same directory structure as the project
-COPY settings ./settings
+# Development stage
+FROM python-base as development
 
-# Copy the core of the root backend into the container 
-# (Look at the .dockerignore file to see what does not get sent over)
-COPY . .
+WORKDIR /app
 
-# Expose the port to the container
-EXPOSE "$PORT"
+# Copy virtual environment from builder stage
+COPY --from=deps-builder /app/.venv /app/.venv
 
-# Copy fixtures
-COPY api/fixtures/default_conversations.json ./api/fixtures/
+# Add virtual environment to PATH
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Run migrations and load fixtures
-RUN poetry run python manage.py makemigrations
-RUN poetry run python manage.py migrate
-RUN poetry run python manage.py createsuperuser --noinput
-RUN poetry run python manage.py loaddata default_conversations
+# Copy and set permissions for entrypoint script (before switching to non-root user)
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Start the Django backend server on port 6969.
-# Running this command with "0.0.0.0:PORT" allows us to tell Docker that
-# we want this application to be exposed through the Docker DNS bridge.
-# It allows our application to be seen *outside* of Docker, and gives us 
-# the ability to run it via localhost on our main machine.
-CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:6969"]
+# Copy application code
+COPY --chown=django:django . .
+
+# Create required directories
+RUN mkdir -p /app/staticfiles /app/media \
+    && chown -R django:django /app
+
+# Switch to non-root user
+USER django
+
+# Expose port
+EXPOSE 6969
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:6969/api/health/ || exit 1
+
+# Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Development command (can be overridden)
+CMD ["python", "manage.py", "runserver", "0.0.0.0:6969"]
+
+# Production stage
+FROM python-base as production
+
+WORKDIR /app
+
+# Copy virtual environment from builder stage
+COPY --from=deps-builder /app/.venv /app/.venv
+
+# Add virtual environment to PATH
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Install additional production dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gettext \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy and set permissions for entrypoint script (before switching to non-root user)
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Copy application code
+COPY --chown=django:django . .
+
+# Create required directories and collect static files
+RUN mkdir -p /app/staticfiles /app/media \
+    && chown -R django:django /app
+
+# Switch to non-root user
+USER django
+
+# Expose port
+EXPOSE 6969
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:6969/api/health/ || exit 1
+
+# Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Production command
+CMD ["gunicorn", "--bind", "0.0.0.0:6969", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "settings.asgi:application"]

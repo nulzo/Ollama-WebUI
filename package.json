@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@types/react-textarea-autosize": "^8.0.0",
+    "react-textarea-autosize": "^8.5.9"
+  }
+}

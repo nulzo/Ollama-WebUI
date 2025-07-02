@@ -93,7 +93,7 @@ export function MessageStatsChart({ data }: MessageStatsChartProps) {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="bg-[var(--chart-1)] rounded-full w-2 h-2" />
+                        <div className="bg-(--chart-1) rounded-full w-2 h-2" />
                         <span className="text-[0.70rem] text-muted-foreground uppercase">
                           Sent
                         </span>
@@ -102,7 +102,7 @@ export function MessageStatsChart({ data }: MessageStatsChartProps) {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="bg-[var(--chart-2)] rounded-full w-2 h-2" />
+                        <div className="bg-(--chart-2) rounded-full w-2 h-2" />
                         <span className="text-[0.70rem] text-muted-foreground uppercase">
                           Received
                         </span>

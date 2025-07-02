@@ -30,7 +30,7 @@ export const MessageError = ({ message }: MessageErrorProps) => {
           <span className="font-medium text-destructive text-sm">{message.name}</span>
         </div>
 
-        <div className="bg-destructive/10 mb-4 px-4 py-3 border-1 border-destructive rounded-xl">
+        <div className="bg-destructive/10 mb-4 px-4 py-3 border border-destructive rounded-xl">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 font-semibold text-destructive">
               {message.error?.error_title}

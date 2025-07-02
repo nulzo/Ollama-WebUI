@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { StandardModel } from '../types/models';
 import { useTheme } from '@/components/theme/theme-provider';
+import { useProcessedModels, SortKey } from '../hooks/use-processed-models';
 
 interface ModelSelectProps {
   value?: string;
@@ -140,15 +141,6 @@ const formatContextLength = (length: number): string => {
   return length.toString();
 };
 
-type SortKey =
-  | 'provider'
-  | 'name_asc'
-  | 'name_desc'
-  | 'context_asc'
-  | 'context_desc'
-  | 'price_asc'
-  | 'price_desc';
-
 const sortOptions: Record<
   SortKey,
   { label: string; icon: React.ComponentType<{ className?: string }> }
@@ -162,98 +154,262 @@ const sortOptions: Record<
   price_desc: { label: 'Price (High-Low)', icon: ArrowDown10 },
 };
 
+interface ModelSelectHeaderProps {
+  search: string;
+  setSearch: (search: string) => void;
+  sortKey: SortKey;
+  setSortKey: (sortKey: SortKey) => void;
+  allProviders: string[];
+  selectedProviders: string[];
+  setSelectedProviders: (providers: string[]) => void;
+}
+
+function ModelSelectHeader({
+  search,
+  setSearch,
+  sortKey,
+  setSortKey,
+  allProviders,
+  selectedProviders,
+  setSelectedProviders,
+}: ModelSelectHeaderProps) {
+  return (
+    <div className="flex items-center gap-2 px-3 py-1 border-b">
+      <div className="relative flex-1">
+        <CommandInput
+          placeholder="Search models..."
+          value={search}
+          onValueChange={setSearch}
+          className="h-9 w-full"
+        />
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
+            {React.createElement(sortOptions[sortKey].icon, { className: 'h-4 w-4' })}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {Object.entries(sortOptions).map(([key, { label, icon: Icon }]) => (
+            <DropdownMenuCheckboxItem
+              key={key}
+              checked={sortKey === key}
+              onSelect={() => setSortKey(key as SortKey)}
+              className="flex items-center gap-2"
+            >
+              <Icon className="size-3 text-muted-foreground" />
+              <span>{label}</span>
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-9 w-9 relative shrink-0">
+            <Filter className="h-4 w-4" />
+            {selectedProviders.length > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center rounded-full text-xs"
+              >
+                {selectedProviders.length}
+              </Badge>
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[200px]">
+          <DropdownMenuLabel>Filter by Provider</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <ScrollArea className="h-[250px]">
+            {allProviders.map(provider => (
+              <DropdownMenuCheckboxItem
+                key={provider}
+                checked={selectedProviders.includes(provider)}
+                onSelect={e => {
+                  e.preventDefault();
+                  const newSelectedProviders = selectedProviders.includes(provider)
+                    ? selectedProviders.filter(p => p !== provider)
+                    : [...selectedProviders, provider];
+                  setSelectedProviders(newSelectedProviders);
+                }}
+              >
+                {provider.charAt(0).toUpperCase() + provider.slice(1)}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </ScrollArea>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+interface ModelSelectListProps {
+  groupedModels: Record<string, StandardModel[]>;
+  value?: string;
+  onValueChange: (value: string) => void;
+  setOpen: (open: boolean) => void;
+  setSearch: (search: string) => void;
+}
+
+function ModelSelectList({
+  groupedModels,
+  value,
+  onValueChange,
+  setOpen,
+  setSearch,
+}: ModelSelectListProps) {
+  const capitalize = (s: string) => s?.charAt(0)?.toUpperCase() + s?.slice(1);
+
+  return (
+    <CommandList>
+      <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
+        No models found.
+      </CommandEmpty>
+      <TooltipProvider delayDuration={100}>
+        <div className="p-2">
+          {Object.keys(groupedModels).map(provider => (
+            <div key={provider} className="mb-2">
+              <div className="flex gap-2 px-2 py-2 align-bottom items-baseline">
+                <span className="font-semibold text-sm">{capitalize(provider)}</span>
+                <span className="text-[10px] items-baseline align-bottom text-muted-foreground">
+                  {groupedModels[provider].length} model
+                  {groupedModels[provider].length !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                {groupedModels[provider].map((model: StandardModel) => (
+                  <CommandItem
+                    key={model.id}
+                    value={model.id}
+                    className="p-0"
+                    onSelect={() => {
+                      onValueChange(model.id);
+                      setOpen(false);
+                      setSearch('');
+                    }}
+                  >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={cn(
+                            'relative flex items-center w-full p-2 rounded-lg cursor-pointer hover:bg-accent/50',
+                            value === model.id && 'bg-accent text-accent-foreground'
+                          )}
+                        >
+                          <div className="flex items-center w-full gap-2">
+                            <div className="flex items-center justify-center size-6 bg-foreground p-1 rounded ml-2">
+                              <ProviderIcon className="invert" provider={model.provider} />
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate" title={model.name}>
+                                {model.name}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center shrink-0 gap-1 ml-auto">
+                              {model.vision_enabled && (
+                                <div
+                                  className={cn(
+                                    'p-1 rounded items-center flex justify-center',
+                                    value === model.id
+                                      ? 'bg-accent-foreground/10'
+                                      : 'bg-accent'
+                                  )}
+                                >
+                                  <Eye className="h-2 w-2 text-muted-foreground" />
+                                </div>
+                              )}
+
+                              {model.tools_enabled && (
+                                <div
+                                  className={cn(
+                                    'p-1 rounded items-center flex justify-center',
+                                    value === model.id
+                                      ? 'bg-accent-foreground/10'
+                                      : 'bg-accent'
+                                  )}
+                                >
+                                  <Wrench className="text-muted-foreground" />
+                                </div>
+                              )}
+
+                              <div
+                                className={cn(
+                                  'text-xs font-semibold rounded px-1.5 py-0.5 items-center flex justify-center',
+                                  value === model.id ? 'bg-accent-foreground/10' : 'bg-accent'
+                                )}
+                              >
+                                {formatContextLength(
+                                  model.context_length || model.max_input_tokens
+                                )}
+                              </div>
+
+                              {model.pricing &&
+                                (() => {
+                                  const priceInfo = formatPrice(model.pricing.prompt);
+                                  if (!priceInfo || !priceInfo.amount) return null;
+
+                                  return (
+                                    <div
+                                      className={cn(
+                                        'text-xs font-semibold rounded px-1.5 py-0.5 items-center flex justify-center',
+                                        value === model.id
+                                          ? 'bg-accent-foreground/10'
+                                          : 'bg-accent'
+                                      )}
+                                    >
+                                      {priceInfo.amount}
+                                      <span className="text-muted-foreground/80 ml-0.5">
+                                        {priceInfo.unit}
+                                      </span>
+                                    </div>
+                                  );
+                                })()}
+                            </div>
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      {model.description && (
+                        <TooltipContent side="right" align="start" className="max-w-xs z-50">
+                          <div className="p-2">
+                            <p className="font-semibold text-sm mb-1">{model.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {model.description}
+                            </p>
+                          </div>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </CommandItem>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </TooltipProvider>
+    </CommandList>
+  );
+}
+
 export function ModelSelect({ value, onValueChange, className }: ModelSelectProps) {
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const { data: modelsData, isLoading } = useModels();
-
-  const [sortKey, setSortKey] = useState<SortKey>('provider');
-  const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
-
-  const formattedModels = useMemo(() => {
-    if (!modelsData) return [];
-    return Object.values(modelsData).flat();
-  }, [modelsData]);
-
-  const allProviders = useMemo(() => {
-    const providers = new Set(formattedModels.map(m => m.provider));
-    return Array.from(providers).sort();
-  }, [formattedModels]);
-
-  const processedModels = useMemo(() => {
-    let models = formattedModels;
-
-    // 1. Filter by provider
-    if (selectedProviders.length > 0) {
-      models = models.filter(model => selectedProviders.includes(model.provider));
-    }
-
-    // 2. Filter by search text
-    if (search) {
-      models = models.filter(
-        model =>
-          model.name.toLowerCase().includes(search.toLowerCase()) ||
-          model.description?.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    // 3. Sort
-    switch (sortKey) {
-      case 'context_desc':
-        models.sort((a, b) => (b.context_length || 0) - (a.context_length || 0));
-        break;
-      case 'context_asc':
-        models.sort((a, b) => (a.context_length || 0) - (b.context_length || 0));
-        break;
-      case 'price_asc':
-        models.sort((a, b) => (a.pricing?.prompt || 0) - (b.pricing?.prompt || 0));
-        break;
-      case 'price_desc':
-        models.sort((a, b) => (b.pricing?.prompt || 0) - (a.pricing?.prompt || 0));
-        break;
-      case 'name_asc':
-        models.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'name_desc':
-        models.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-      case 'provider': // Fallthrough, grouping will handle it
-      default:
-        // Keep original order for provider grouping, but sort within groups later
-        break;
-    }
-
-    return models;
-  }, [formattedModels, search, sortKey, selectedProviders]);
-
-  const groupedModels: Record<string, StandardModel[]> = useMemo(() => {
-    const groups = processedModels.reduce(
-      (acc, model) => {
-        const key = sortKey === 'provider' ? model.provider : 'All Models';
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-        acc[key].push(model);
-        return acc;
-      },
-      {} as Record<string, StandardModel[]>
-    );
-
-    // Sort models within each group by name for provider view
-    if (sortKey === 'provider') {
-      for (const provider in groups) {
-        groups[provider].sort((a, b) => a.name.localeCompare(b.name));
-      }
-      return Object.entries(groups)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .reduce(
-          (acc, [key, value]) => ({ ...acc, [key]: value }),
-          {} as Record<string, StandardModel[]>
-        );
-    }
-
-    return groups;
-  }, [processedModels, sortKey]);
+  const {
+    isLoading,
+    allProviders,
+    groupedModels,
+    sortKey,
+    setSortKey,
+    selectedProviders,
+    setSelectedProviders,
+    search,
+    setSearch,
+    formattedModels,
+  } = useProcessedModels();
 
   if (isLoading) {
     return (
@@ -274,7 +430,6 @@ export function ModelSelect({ value, onValueChange, className }: ModelSelectProp
     );
   }
 
-  const capitalize = (s: string) => s?.charAt(0)?.toUpperCase() + s?.slice(1);
   const selectedModel = formattedModels.find(model => model.id === value);
 
   return (
@@ -302,207 +457,22 @@ export function ModelSelect({ value, onValueChange, className }: ModelSelectProp
       </PopoverTrigger>
       <PopoverContent className="p-0 w-[550px]" align="start" side="bottom">
         <Command shouldFilter={false} className="max-h-[500px]">
-          <div className="flex items-center gap-2 px-3 py-1 border-b">
-            <div className="relative flex-1">
-              {/* <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> */}
-              <CommandInput
-                placeholder="Search models..."
-                value={search}
-                onValueChange={setSearch}
-                className="h-9 w-full"
-              />
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
-                  {React.createElement(sortOptions[sortKey].icon, { className: 'h-4 w-4' })}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Sort By</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {Object.entries(sortOptions).map(([key, { label, icon: Icon }]) => (
-                  <DropdownMenuCheckboxItem
-                    key={key}
-                    checked={sortKey === key}
-                    onSelect={() => setSortKey(key as SortKey)}
-                    className="flex items-center gap-2"
-                  >
-                    <Icon className="size-3 text-muted-foreground" />
-                    <span>{label}</span>
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 relative shrink-0">
-                  <Filter className="h-4 w-4" />
-                  {selectedProviders.length > 0 && (
-                    <Badge
-                      variant="destructive"
-                      className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center rounded-full text-xs"
-                    >
-                      {selectedProviders.length}
-                    </Badge>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuLabel>Filter by Provider</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <ScrollArea className="h-[250px]">
-                  {allProviders.map(provider => (
-                    <DropdownMenuCheckboxItem
-                      key={provider}
-                      checked={selectedProviders.includes(provider)}
-                      onSelect={e => {
-                        e.preventDefault();
-                        setSelectedProviders(prev =>
-                          prev.includes(provider)
-                            ? prev.filter(p => p !== provider)
-                            : [...prev, provider]
-                        );
-                      }}
-                    >
-                      {provider.charAt(0).toUpperCase() + provider.slice(1)}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-                </ScrollArea>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <CommandList>
-            <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
-              No models found.
-            </CommandEmpty>
-            <TooltipProvider delayDuration={100}>
-              <div className="p-2">
-                {Object.keys(groupedModels).map(provider => (
-                  <div key={provider} className="mb-2">
-                    <div className="flex gap-2 px-2 py-2 align-bottom items-baseline">
-                      <span className="font-semibold text-sm">{capitalize(provider)}</span>
-                      <span className="text-[10px] items-baseline align-bottom text-muted-foreground">
-                        {groupedModels[provider].length} model
-                        {groupedModels[provider].length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1">
-                      {groupedModels[provider].map((model: StandardModel) => (
-                        <CommandItem
-                          key={model.id}
-                          value={model.id}
-                          className="p-0"
-                          onSelect={() => {
-                            onValueChange(model.id);
-                            setOpen(false);
-                            setSearch('');
-                          }}
-                        >
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div
-                                className={cn(
-                                  'relative flex items-center w-full p-2 rounded-lg cursor-pointer hover:bg-accent/50',
-                                  value === model.id && 'bg-accent text-accent-foreground'
-                                )}
-                              >
-                                <div className="flex items-center w-full gap-2">
-                                  <div className="flex items-center justify-center size-6 bg-foreground p-1 rounded ml-2">
-                                    <ProviderIcon className="invert" provider={model.provider} />
-                                  </div>
-
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-sm truncate" title={model.name}>
-                                      {model.name}
-                                    </p>
-                                  </div>
-
-                                  <div className="flex items-center shrink-0 gap-1 ml-auto">
-                                    {model.vision_enabled && (
-                                      <div
-                                        className={cn(
-                                          'p-1 rounded items-center flex justify-center',
-                                          value === model.id
-                                            ? 'bg-accent-foreground/10'
-                                            : 'bg-accent'
-                                        )}
-                                      >
-                                        <Eye className="h-2 w-2 text-muted-foreground" />
-                                      </div>
-                                    )}
-
-                                    {model.tools_enabled && (
-                                      <div
-                                        className={cn(
-                                          'p-1 rounded items-center flex justify-center',
-                                          value === model.id
-                                            ? 'bg-accent-foreground/10'
-                                            : 'bg-accent'
-                                        )}
-                                      >
-                                        <Wrench className="text-muted-foreground" />
-                                      </div>
-                                    )}
-
-                                    <div
-                                      className={cn(
-                                        'text-xs font-semibold rounded px-1.5 py-0.5 items-center flex justify-center',
-                                        value === model.id ? 'bg-accent-foreground/10' : 'bg-accent'
-                                      )}
-                                    >
-                                      {formatContextLength(
-                                        model.context_length || model.max_input_tokens
-                                      )}
-                                    </div>
-
-                                    {model.pricing &&
-                                      (() => {
-                                        const priceInfo = formatPrice(model.pricing.prompt);
-                                        if (!priceInfo || !priceInfo.amount) return null;
-
-                                        return (
-                                          <div
-                                            className={cn(
-                                              'text-xs font-semibold rounded px-1.5 py-0.5 items-center flex justify-center',
-                                              value === model.id
-                                                ? 'bg-accent-foreground/10'
-                                                : 'bg-accent'
-                                            )}
-                                          >
-                                            {priceInfo.amount}
-                                            <span className="text-muted-foreground/80 ml-0.5">
-                                              {priceInfo.unit}
-                                            </span>
-                                          </div>
-                                        );
-                                      })()}
-                                  </div>
-                                </div>
-                              </div>
-                            </TooltipTrigger>
-                            {model.description && (
-                              <TooltipContent side="right" align="start" className="max-w-xs z-50">
-                                <div className="p-2">
-                                  <p className="font-semibold text-sm mb-1">{model.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {model.description}
-                                  </p>
-                                </div>
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                        </CommandItem>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </TooltipProvider>
-          </CommandList>
+          <ModelSelectHeader
+            search={search}
+            setSearch={setSearch}
+            sortKey={sortKey}
+            setSortKey={setSortKey}
+            allProviders={allProviders}
+            selectedProviders={selectedProviders}
+            setSelectedProviders={setSelectedProviders}
+          />
+          <ModelSelectList
+            groupedModels={groupedModels}
+            value={value}
+            onValueChange={onValueChange}
+            setOpen={setOpen}
+            setSearch={setSearch}
+          />
         </Command>
       </PopoverContent>
     </Popover>

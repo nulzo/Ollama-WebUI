@@ -18,7 +18,7 @@ function Layout({ children }: AppLayoutProps) {
   const { isSettingsOpen } = useSettings();
 
   return (
-    <div className="flex h-screen max-h-[100dvh] overflow-hidden">
+    <div className="flex h-screen max-h-dvh overflow-hidden">
       {/* Sidebar */}
       <Sidebar conversationList={<ConversationList />} />
       

@@ -4,15 +4,15 @@ import { Message } from '../types/message';
 // Define a maximum number of messages to keep in memory
 const MAX_STREAMING_MESSAGES = 20; // Reduced from 50 to 20 for better memory usage
 
-interface ChatState {
+export type ChatStatus = 'idle' | 'generating' | 'waiting' | 'error';
+
+export interface ChatState {
   streamingMessages: Message[];
-  isGenerating: boolean;
-  isWaiting: boolean;
+  status: ChatStatus;
   currentConversationId: string | null;
   setStreamingMessages: (messages: Message[], conversationId?: string) => void;
   updateLastMessage: (content: string) => void;
-  setIsGenerating: (generating: boolean) => void;
-  setIsWaiting: (waiting: boolean) => void;
+  setStatus: (status: ChatStatus) => void;
   cleanupOldMessages: () => void;
   resetState: () => void;
   clearConversationMessages: (conversationId: string) => void;
@@ -21,8 +21,7 @@ interface ChatState {
 
 export const useChatStore = create<ChatState>((set, get) => ({
   streamingMessages: [],
-  isGenerating: false,
-  isWaiting: false,
+  status: 'idle',
   currentConversationId: null,
   
   setStreamingMessages: (messages, conversationId) => set(state => {
@@ -56,8 +55,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return { streamingMessages: messages };
     }),
     
-  setIsGenerating: (generating) => set({ isGenerating: generating }),
-  setIsWaiting: (waiting) => set({ isWaiting: waiting }),
+  setStatus: (status) => set({ status: status }),
   
   // Add a cleanup method to be called periodically
   cleanupOldMessages: () => set(state => ({
@@ -67,8 +65,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   // Complete reset of state
   resetState: () => set({
     streamingMessages: [],
-    isGenerating: false,
-    isWaiting: false,
+    status: 'idle',
     currentConversationId: null
   }),
   

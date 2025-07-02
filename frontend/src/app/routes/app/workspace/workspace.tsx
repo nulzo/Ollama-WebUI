@@ -765,7 +765,7 @@ export function WorkspaceRoute() {
   };
 
   return (
-    <div className="scrollbar-hidden z-10 relative flex flex-col flex-auto justify-between pt-12 w-[100%] max-w-full h-0 overflow-auto">
+    <div className="scrollbar-hidden z-10 relative flex flex-col flex-auto justify-between pt-12 w-full max-w-full h-0 overflow-auto">
       <div className="relative mx-auto w-full md:max-w-2xl lg:max-w-3xl xl:max-w-4xl 2xl:max-w-5xl h-full">
         <div className="flex flex-col h-full">
           <Head title="Workspace" description="Manage your AI workspace" />

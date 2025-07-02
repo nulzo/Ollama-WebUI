@@ -9,6 +9,10 @@ import { StandardModel } from '@/features/models/types/models';
 import { useSearchParams } from 'react-router-dom';
 import { useSettings } from '@/components/settings/settings-context.tsx';
 
+interface ConversationAreaHeaderProps {
+  onNewChat: () => void;
+}
+
 const ThemeToggleButton = () => {
   const { theme, setTheme } = useTheme();
   const [animate, setAnimate] = useState(false);
@@ -38,7 +42,7 @@ const ThemeToggleButton = () => {
   );
 };
 
-export function ConversationAreaHeader() {
+export function ConversationAreaHeader({ onNewChat }: ConversationAreaHeaderProps) {
   const { model, setModel } = useModelStore();
   const { data: providerModelsData } = useModels();
   const [searchParams] = useSearchParams();
@@ -86,6 +90,7 @@ export function ConversationAreaHeader() {
             variant="ghost" 
             size="sm" 
             className="flex items-center gap-1"
+            onClick={onNewChat}
           >
             <PlusCircle className="size-4" strokeWidth="1.5" />
             <span>New Chat</span>

@@ -13,7 +13,7 @@ import { Prompt } from './prompt';
 interface PromptCardProps {
   prompt: Prompt;
   onEdit: (prompt: Prompt) => void;
-  onDelete: () => void;
+  onDelete: (id: string) => void;
 }
 
 export const PromptCard = ({ prompt, onEdit, onDelete }: PromptCardProps) => (
@@ -32,7 +32,7 @@ export const PromptCard = ({ prompt, onEdit, onDelete }: PromptCardProps) => (
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => onEdit(prompt)}>Edit</DropdownMenuItem>
-          <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+          <DropdownMenuItem onClick={() => onDelete(prompt.id)} className="text-destructive focus:text-destructive">
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

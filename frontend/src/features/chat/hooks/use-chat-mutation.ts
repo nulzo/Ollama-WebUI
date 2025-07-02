@@ -5,6 +5,7 @@ import { useCallback, useRef, useEffect } from 'react';
 import { useChatStore } from '../stores/chat-store';
 import { useNavigate } from 'react-router-dom';
 import { useModelStore } from '@/features/models/store/model-store';
+import { handleStreamChunk } from '../services/stream-service';
 
 export function useChatMutation(conversation_id?: string) {
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -15,12 +16,18 @@ export function useChatMutation(conversation_id?: string) {
   const {
     setStreamingMessages,
     updateLastMessage,
-    setIsGenerating,
-    setIsWaiting,
-    isGenerating,
+    status,
+    setStatus,
     currentConversationId,
-    setCurrentConversationId
+    setCurrentConversationId,
   } = useChatStore();
+
+  const storeActions = {
+    setStreamingMessages,
+    updateLastMessage,
+    setStatus,
+    setCurrentConversationId,
+  };
 
   // Update current conversation ID when the component mounts or conversation_id changes
   useEffect(() => {
@@ -38,7 +45,7 @@ export function useChatMutation(conversation_id?: string) {
         setStreamingMessages(filteredMessages, conversation_id);
       }
     }
-  }, [conversation_id, currentConversationId, setCurrentConversationId]);
+  }, [conversation_id, currentConversationId, setCurrentConversationId, setStreamingMessages]);
 
   const handleCancel = useCallback(() => {
     console.log('Cancel button clicked, abort controller:', abortControllerRef.current);
@@ -51,8 +58,8 @@ export function useChatMutation(conversation_id?: string) {
     }
     
     // Always set generating to false to update UI immediately
-    setIsGenerating(false);
-  }, [setIsGenerating]);
+    setStatus('idle');
+  }, [setStatus]);
 
   const mutation = useMutation({
     mutationFn: async ({ 
@@ -75,17 +82,29 @@ export function useChatMutation(conversation_id?: string) {
       const assistantName = model.name || 'Assistant';
 
       abortControllerRef.current = new AbortController();
-      setIsGenerating(true);
-      setIsWaiting(false);
+      setStatus('generating');
 
-      // Add initial messages only if we're in an existing conversation
+      // Add initial messages for both new and existing conversations
       if (conversation_id) {
         // Set the current conversation ID
         setCurrentConversationId(conversation_id);
         
-        // Create new messages for the current conversation - only add the assistant message
-        // The user message will be added by the API response to avoid duplication
+        // Create both user and assistant messages with proper timestamps
+        const baseTimestamp = Date.now();
         const newMessages = [
+          // User message first - with slightly earlier timestamp
+          {
+            role: 'user' as const,
+            content: message,
+            model: modelName,
+            name: user.username || 'User',
+            liked_by: [],
+            has_images: Boolean(images && images.length > 0),
+            provider: providerName,
+            conversation_uuid: conversation_id,
+            created_at: new Date(baseTimestamp).toISOString(),
+          },
+          // Assistant message second - with later timestamp
           {
             role: 'assistant' as const,
             content: '',
@@ -95,7 +114,7 @@ export function useChatMutation(conversation_id?: string) {
             has_images: false,
             provider: providerName,
             conversation_uuid: conversation_id,
-            created_at: new Date().toISOString(),
+            created_at: new Date(baseTimestamp + 1).toISOString(),
           },
         ];
         
@@ -116,168 +135,62 @@ export function useChatMutation(conversation_id?: string) {
           provider: providerName,
           images: images || [],
           knowledge_ids,
-          function_call: function_call || false // Ensure we always pass a boolean value
-        }
+          function_call: function_call || false,
+        };
         
         console.log('Sending message with options:', new_msg);
         
         await api.streamCompletion(
           new_msg,
           chunk => {
-            console.log('Received chunk in callback:', chunk);
-            
-            // Handle the chunk based on its type
-            if (typeof chunk === 'string') {
-              console.log('Chunk is a string, attempting to parse as JSON');
-              try {
-                // Try to parse it as JSON if it's a string
-                const parsedChunk = JSON.parse(chunk);
-                console.log('Successfully parsed string chunk as JSON:', parsedChunk);
-                handleChunk(parsedChunk);
-              } catch (e) {
-                console.log('Failed to parse as JSON, treating as plain text');
-                // If it's just a plain string, update the last message with it
-                updateLastMessage(chunk);
-              }
-            } else {
-              console.log('Chunk is already an object:', chunk);
-              // It's already a StreamChunk object
-              handleChunk(chunk);
-            }
+            handleStreamChunk(
+              {
+                chunk,
+                queryClient,
+                navigate,
+                model: {
+                  id: modelId,
+                  name: assistantName,
+                  model: modelName,
+                  provider: providerName,
+                },
+                storeActions,
+                userMessage: message,
+              },
+              conversation_id,
+            );
           },
-          abortControllerRef.current.signal
+          abortControllerRef.current.signal,
         );
       } catch (error) {
-        console.log('Caught error in mutation:', error);
         throw error; // Let onError handle all errors
       } finally {
-        setIsGenerating(false);
+        setStatus('idle');
         abortControllerRef.current = null;
-      }
-      
-      // Helper function to handle chunk objects
-      function handleChunk(parsedChunk: any) {
-        console.log('Handling chunk:', parsedChunk);
-        
-        // Handle different status types
-        if (parsedChunk.status === 'waiting') {
-          console.log('Setting waiting state to true');
-          setIsWaiting(true);
-          return;
-        } else if (parsedChunk.status === 'generating') {
-          console.log('Setting waiting state to false');
-          setIsWaiting(false);
-        } else if (parsedChunk.status === 'cancelled') {
-          // Handle cancelled status from the server
-          console.log('Received cancelled status from server');
-          
-          // If there's content in the chunk (like " [cancelled]"), append it
-          if (parsedChunk.content) {
-            console.log('Appending cancellation content:', parsedChunk.content);
-            updateLastMessage(parsedChunk.content);
-          } else {
-            // Otherwise just append [cancelled] marker
-            console.log('Appending [cancelled] marker');
-            updateLastMessage(' [cancelled]');
-          }
-          
-          // Set generating to false to update UI
-          setIsGenerating(false);
-          return;
-        } else if (parsedChunk.status === 'done') {
-          console.log('Generation complete');
-          setIsGenerating(false);
-        } else if (parsedChunk.status === 'tool_call') {
-          // Handle tool calls
-          console.log('Received tool call:', parsedChunk);
-          
-          // Update the message with tool call information
-          if (parsedChunk.tool_calls && parsedChunk.tool_calls.length > 0) {
-            // We don't need to update the content here as the tool calls will be displayed
-            // in the ToolCallList component
-            
-            // Invalidate the messages query to refresh the UI with the tool calls
-            queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: conversation_id || parsedChunk.conversation_uuid }] });
-          }
-          
-          return;
-        }
-
-        // If this is a new conversation
-        if (parsedChunk.conversation_uuid && parsedChunk.status === 'created') {
-          const newConversationId = parsedChunk.conversation_uuid;
-          console.log('New conversation created:', newConversationId);
-
-          // Update the current conversation ID
-          setCurrentConversationId(newConversationId);
-
-          // Set initial messages for the new conversation - only add the assistant message
-          // The user message will be added by the API response to avoid duplication
-          const newMessages = [
-            {
-              role: 'assistant' as const,
-              content: '',
-              model: modelName,
-              name: assistantName,
-              liked_by: [],
-              has_images: false,
-              provider: providerName,
-              conversation_uuid: newConversationId,
-              created_at: new Date().toISOString(),
-            },
-          ];
-          
-          setStreamingMessages(newMessages, newConversationId);
-
-          // Invalidate for sidebar
-          queryClient.invalidateQueries({ queryKey: ['conversations'] });
-
-          // Route to the new conversation - use replace to avoid navigation history issues
-          navigate(`/?c=${newConversationId}`, { replace: true });
-          
-          // Invalidate queries after navigation
-          setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ['messages', { conversation_id: newConversationId }] });
-          }, 0);
-          
-          return;
-        }
-
-        // Handle regular content updates
-        if (parsedChunk.content) {
-          console.log('Updating last message with content:', parsedChunk.content);
-          updateLastMessage(parsedChunk.content);
-        }
       }
     },
     onError: error => {
-      console.log('Error in mutation:', error);
-      
       if (error.name === 'AbortError') {
-        console.log('Handling AbortError in onError handler');
-        
-        // Update the last message to show it was cancelled
         const streamingMessages = useChatStore.getState().streamingMessages;
         if (streamingMessages.length > 0) {
           const lastMessage = streamingMessages[streamingMessages.length - 1];
           if (lastMessage.role === 'assistant') {
-            console.log('Appending [cancelled] to last assistant message');
             updateLastMessage(' [cancelled]');
           }
         }
+        // Set status to idle if the request was cancelled
+        setStatus('idle');
       } else {
         console.error('Chat error:', error);
         updateLastMessage(' Error');
+        setStatus('error');
       }
-      
-      // Always set generating to false to update UI
-      setIsGenerating(false);
     },
   });
 
   return {
     mutation,
-    isGenerating,
+    status,
     handleCancel,
   };
 }

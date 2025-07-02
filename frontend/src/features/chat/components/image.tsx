@@ -233,7 +233,7 @@ export const Image = ({ src, images = [], currentIndex = 0 }: ImageProps) => {
         </motion.div>
       </DialogTrigger>
 
-      <DialogContent className="bg-black/50 backdrop-blur-md p-0 border-none w-[100%] h-screen">
+      <DialogContent className="bg-black/50 backdrop-blur-md p-0 border-none w-full h-screen">
         <div
           ref={containerRef}
           className="relative flex justify-center items-center w-full h-full"

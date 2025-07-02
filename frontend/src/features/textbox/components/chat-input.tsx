@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
+import { useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { Prompt } from '@/features/prompts/prompt';
 import { PromptSuggestions } from '@/features/chat/components/prompts/prompt-suggestions';
 import { KnowledgeSuggestions } from '@/features/chat/components/knowledge';
@@ -10,6 +10,7 @@ import { usePrompts } from '@/features/prompts/api/get-prompts';
 import { useConversation } from '@/features/chat/hooks/use-conversation';
 import { useChatStore } from '@/features/chat/stores/chat-store';
 import { KnowledgeSelector } from '@/features/chat/components/knowledge-selector';
+import { useChatInputState } from '../hooks/use-chat-input-state';
 
 export interface ChatInputProps {
   onSubmit: (message: string, images?: string[], knowledgeIds?: string[], functionCall?: boolean) => void;
@@ -17,7 +18,6 @@ export interface ChatInputProps {
   messages?: any[];
   placeholder?: string;
   onCancel?: () => void;
-  isGenerating?: boolean;
   functionCall?: boolean;
 }
 
@@ -172,19 +172,6 @@ const KnowledgeSuggestionsContainer = memo(({
   );
 });
 
-// Create a stable message setter that doesn't change on re-renders
-const useStableMessageSetter = (setMessage: React.Dispatch<React.SetStateAction<string>>) => {
-  const setMessageRef = useRef(setMessage);
-  
-  useEffect(() => {
-    setMessageRef.current = setMessage;
-  }, [setMessage]);
-  
-  return useCallback((value: string) => {
-    setMessageRef.current(value);
-  }, []);
-};
-
 // Create a stable selector for the model store to prevent infinite loops
 const modelSelector = (state: { model: any }) => state.model;
 
@@ -195,66 +182,39 @@ export const ChatInputBase = ({
   messages = [], 
   placeholder = 'Send a message (use / for prompts, @ for knowledge)',
   onCancel,
-  isGenerating: externalIsGenerating = false,
   functionCall = false,
 }: ChatInputProps) => {
-  const [message, setMessage] = useState('');
-  const [images, setImages] = useState<string[]>([]);
-  const [suggestions, setSuggestions] = useState<Prompt[]>([]);
-  const [promptIndex, setPromptIndex] = useState(-1);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [selectedKnowledgeIds, setSelectedKnowledgeIds] = useState<string[]>([]);
-  
-  // New state for knowledge suggestions
-  const [knowledgeSuggestions, setKnowledgeSuggestions] = useState<Knowledge[]>([]);
-  const [knowledgeIndex, setKnowledgeIndex] = useState(-1);
-  const [knowledgeSelectedIndex, setKnowledgeSelectedIndex] = useState(0);
-  
-  // Use the stable selector to prevent infinite loops
+  const [state, dispatch] = useChatInputState();
+  const {
+    message,
+    images,
+    suggestions,
+    promptIndex,
+    selectedIndex,
+    selectedKnowledgeIds,
+    knowledgeSuggestions,
+    knowledgeIndex,
+    knowledgeSelectedIndex,
+  } = state;
+
   const model = useModelStore(modelSelector);
-  
-  // Get the current conversation ID
   const { conversation } = useConversation();
-  
-  // Use external isGenerating if provided, otherwise get from store
-  const storeIsGenerating = useChatStore(state => state.isGenerating);
-  const isGenerating = externalIsGenerating !== undefined ? externalIsGenerating : storeIsGenerating;
-  
-  // Get the mutation with the conversation ID if we need to handle cancel internally
-  const mutation = useChatMutation(conversation || undefined);
-  
-  // Use external onCancel if provided, otherwise use mutation.handleCancel
+  const status = useChatStore(state => state.status);
+  const isGenerating = status === 'generating' || status === 'waiting';
+  const { handleCancel: cancelMutation } = useChatMutation(conversation || undefined);
+
   const handleCancel = useCallback(() => {
-    console.log('Cancelling generation from chat input');
     if (onCancel) {
       onCancel();
     } else {
-      mutation.handleCancel();
+      cancelMutation();
     }
-  }, [onCancel, mutation]);
-  
+  }, [onCancel, cancelMutation]);
+
   const filterTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const stableSetMessage = useStableMessageSetter(setMessage);
-  
   const { data } = usePrompts();
-
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [suggestions]);
-
-  useEffect(() => {
-    setKnowledgeSelectedIndex(0);
-  }, [knowledgeSuggestions]);
-
-  // Log isGenerating changes for debugging
-  useEffect(() => {
-    console.log('isGenerating state changed:', isGenerating);
-  }, [isGenerating]);
-
-  // Memoize the prompt data to avoid unnecessary re-filtering
   const promptsData = useMemo(() => data?.data || [], [data?.data]);
 
-  // Debounced filter function for prompts and knowledge
   const debouncedFilterSuggestions = useCallback((searchText: string) => {
     if (filterTimeoutRef.current) {
       clearTimeout(filterTimeoutRef.current);
@@ -273,19 +233,19 @@ export const ChatInputBase = ({
 
         // Only show suggestions if we have matches or if there's text after the slash
         if (filtered.length > 0 || query.length > 0) {
-          setSuggestions(filtered);
-          setPromptIndex(searchText.lastIndexOf('/'));
+          dispatch({ type: 'SET_SUGGESTIONS', payload: filtered });
+          dispatch({ type: 'SET_PROMPT_INDEX', payload: searchText.lastIndexOf('/') });
           // Close knowledge suggestions when showing prompt suggestions
-          setKnowledgeSuggestions([]);
-          setKnowledgeIndex(-1);
+          dispatch({ type: 'SET_KNOWLEDGE_SUGGESTIONS', payload: [] });
+          dispatch({ type: 'SET_KNOWLEDGE_INDEX', payload: -1 });
         } else {
-          setSuggestions([]);
-          setPromptIndex(-1);
+          dispatch({ type: 'SET_SUGGESTIONS', payload: [] });
+          dispatch({ type: 'SET_PROMPT_INDEX', payload: -1 });
         }
       } else {
         // Close prompt suggestions when no slash command is present
-        setSuggestions([]);
-        setPromptIndex(-1);
+        dispatch({ type: 'SET_SUGGESTIONS', payload: [] });
+        dispatch({ type: 'SET_PROMPT_INDEX', payload: -1 });
         
         // Check for knowledge suggestions (@)
         const knowledgeMatch = searchText.match(/@(\w*)$/);
@@ -293,22 +253,19 @@ export const ChatInputBase = ({
           const query = knowledgeMatch[1].toLowerCase();
           // We'll fetch and filter knowledge items in the KnowledgeSuggestions component
           // Just set the index here
-          setKnowledgeIndex(searchText.lastIndexOf('@'));
-          setKnowledgeSuggestions([{}] as any); // Just a placeholder to trigger the component
+          dispatch({ type: 'SET_KNOWLEDGE_INDEX', payload: searchText.lastIndexOf('@') });
+          dispatch({ type: 'SET_KNOWLEDGE_SUGGESTIONS', payload: [{}] as any }); // Just a placeholder to trigger the component
         } else {
           // Close knowledge suggestions when no @ is present
-          setKnowledgeSuggestions([]);
-          setKnowledgeIndex(-1);
+          dispatch({ type: 'SET_KNOWLEDGE_SUGGESTIONS', payload: [] });
+          dispatch({ type: 'SET_KNOWLEDGE_INDEX', payload: -1 });
         }
       }
     }, 150); // 150ms debounce delay
-  }, [promptsData]);
+  }, [promptsData, dispatch]);
 
-  // Replace the original useEffect with the debounced version
   useEffect(() => {
     debouncedFilterSuggestions(message);
-    
-    // Cleanup function
     return () => {
       if (filterTimeoutRef.current) {
         clearTimeout(filterTimeoutRef.current);
@@ -322,42 +279,41 @@ export const ChatInputBase = ({
     const before = message.slice(0, promptIndex);
     const after = message.slice(message.indexOf(' ', promptIndex) + 1 || message.length);
     const newText = `${before}${prompt.content}${after}`;
-    stableSetMessage(newText);
-    setSuggestions([]);
-  }, [message, promptIndex, stableSetMessage]);
+    dispatch({ type: 'SET_MESSAGE', payload: newText });
+    dispatch({ type: 'SET_SUGGESTIONS', payload: [] });
+  }, [message, promptIndex, dispatch]);
 
   const handleKnowledgeSelect = useCallback((knowledge: Knowledge) => {
     if (knowledgeIndex === -1) return;
 
     // Add the knowledge ID to the selected knowledge IDs
     if (!selectedKnowledgeIds.includes(knowledge.id)) {
-      setSelectedKnowledgeIds(prev => [...prev, knowledge.id]);
+      dispatch({ type: 'ADD_KNOWLEDGE_ID', payload: knowledge.id });
     }
 
     // Replace the @query with the knowledge name
     const before = message.slice(0, knowledgeIndex);
     const after = message.slice(message.indexOf(' ', knowledgeIndex) + 1 || message.length);
     const newText = `${before}${after}`;
-    stableSetMessage(newText);
-    setKnowledgeSuggestions([]);
-  }, [message, knowledgeIndex, stableSetMessage, selectedKnowledgeIds]);
+    dispatch({ type: 'SET_MESSAGE', payload: newText });
+    dispatch({ type: 'SET_KNOWLEDGE_SUGGESTIONS', payload: [] });
+  }, [message, knowledgeIndex, selectedKnowledgeIds, dispatch]);
 
   // Add a handler for removing knowledge items
   const handleRemoveKnowledge = useCallback((id: string) => {
-    setSelectedKnowledgeIds(prev => prev.filter(knowledgeId => knowledgeId !== id));
-  }, []);
+    dispatch({ type: 'REMOVE_KNOWLEDGE_ID', payload: id });
+  }, [dispatch]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    // Handle prompt suggestions
     if (suggestions.length > 0) {
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedIndex(prev => (prev > 0 ? prev - 1 : suggestions.length - 1));
+          dispatch({ type: 'SET_SELECTED_INDEX', payload: selectedIndex > 0 ? selectedIndex - 1 : suggestions.length - 1 });
           break;
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : 0));
+          dispatch({ type: 'SET_SELECTED_INDEX', payload: selectedIndex < suggestions.length - 1 ? selectedIndex + 1 : 0 });
           break;
         case 'Enter':
           if (!e.ctrlKey && !e.metaKey && suggestions.length > 0) {
@@ -369,7 +325,7 @@ export const ChatInputBase = ({
           break;
         case 'Escape':
           e.preventDefault();
-          setSuggestions([]);
+          dispatch({ type: 'SET_SUGGESTIONS', payload: [] });
           break;
       }
       return;
@@ -380,11 +336,11 @@ export const ChatInputBase = ({
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
-          setKnowledgeSelectedIndex(prev => (prev > 0 ? prev - 1 : knowledgeSuggestions.length - 1));
+          dispatch({ type: 'SET_KNOWLEDGE_SELECTED_INDEX', payload: knowledgeSelectedIndex > 0 ? knowledgeSelectedIndex - 1 : knowledgeSuggestions.length - 1 });
           break;
         case 'ArrowDown':
           e.preventDefault();
-          setKnowledgeSelectedIndex(prev => (prev < knowledgeSuggestions.length - 1 ? prev + 1 : 0));
+          dispatch({ type: 'SET_KNOWLEDGE_SELECTED_INDEX', payload: knowledgeSelectedIndex < knowledgeSuggestions.length - 1 ? knowledgeSelectedIndex + 1 : 0 });
           break;
         case 'Enter':
           if (!e.ctrlKey && !e.metaKey && knowledgeSuggestions.length > 0) {
@@ -396,16 +352,24 @@ export const ChatInputBase = ({
           break;
         case 'Escape':
           e.preventDefault();
-          setKnowledgeSuggestions([]);
+          dispatch({ type: 'SET_KNOWLEDGE_SUGGESTIONS', payload: [] });
           break;
       }
     }
-  }, [suggestions, selectedIndex, handlePromptSelect, knowledgeSuggestions, knowledgeSelectedIndex, handleKnowledgeSelect]);
+  }, [
+    suggestions,
+    selectedIndex,
+    handlePromptSelect,
+    knowledgeSuggestions,
+    knowledgeSelectedIndex,
+    handleKnowledgeSelect,
+    dispatch,
+  ]);
 
   const closeSuggestions = useCallback(() => {
-    setSuggestions([]);
-    setKnowledgeSuggestions([]);
-  }, []);
+    dispatch({ type: 'SET_SUGGESTIONS', payload: [] });
+    dispatch({ type: 'SET_KNOWLEDGE_SUGGESTIONS', payload: [] });
+  }, [dispatch]);
 
   const handleSubmitMessage = useCallback(() => {
     if (!message.trim() && images.length === 0) return;
@@ -422,24 +386,16 @@ export const ChatInputBase = ({
     onSubmit(message, images, selectedKnowledgeIds, functionCall);
     
     // Reset state
-    setMessage('');
-    setImages([]);
-    // Don't reset knowledge IDs to maintain context across messages
-    // setSelectedKnowledgeIds([]);
-    
-    // Close suggestions if open
-    if (suggestions.length > 0) {
-      closeSuggestions();
-    }
-  }, [message, images, onSubmit, selectedKnowledgeIds, suggestions, closeSuggestions, functionCall]);
+    dispatch({ type: 'RESET' });
+  }, [message, images, onSubmit, selectedKnowledgeIds, functionCall, dispatch]);
 
   const handleImageUpload = useCallback((base64Images: string[]) => {
-    setImages(prev => [...prev, ...base64Images]);
-  }, []);
+    base64Images.forEach(img => dispatch({ type: 'ADD_IMAGE', payload: img }));
+  }, [dispatch]);
 
   const handleRemoveImage = useCallback((index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-  }, []);
+    dispatch({ type: 'REMOVE_IMAGE', payload: index });
+  }, [dispatch]);
 
   // Memoize the search term for prompts to avoid recalculating it on every render
   const promptSearchTerm = useMemo(() => 
@@ -471,7 +427,7 @@ export const ChatInputBase = ({
   // Memoize the textarea props to prevent unnecessary re-renders
   const textareaProps = useMemo(() => ({
     text: message,
-    setText: stableSetMessage,
+    setText: (text: string) => dispatch({ type: 'SET_MESSAGE', payload: text }),
     onSubmit: handleSubmitMessage,
     model: modelName,
     onImageUpload: handleImageUpload,
@@ -483,10 +439,16 @@ export const ChatInputBase = ({
     isGenerating,
     placeholder,
     selectedKnowledgeIds,
-    setSelectedKnowledgeIds
+    setSelectedKnowledgeIds: (value: React.SetStateAction<string[]>) => {
+      if (typeof value === 'function') {
+        dispatch({ type: 'SET_SELECTED_KNOWLEDGE_IDS', payload: value(selectedKnowledgeIds) });
+      } else {
+        dispatch({ type: 'SET_SELECTED_KNOWLEDGE_IDS', payload: value });
+      }
+    },
   }), [
     message, 
-    stableSetMessage, 
+    dispatch, 
     handleSubmitMessage, 
     modelName, 
     handleImageUpload, 

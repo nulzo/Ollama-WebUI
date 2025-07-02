@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { PanelLeft, PanelRight, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button.tsx';
 import { CringeLogo } from '@/assets/cringelogo.tsx';
 
@@ -50,7 +50,7 @@ export const SidebarHeader = ({
             onClick={toggleSidebar}
             className="group relative flex justify-center items-center w-10 h-9 font-bold text-sm"
           >
-            <PanelRightClose className="size-4 stroke-foreground" />
+            <PanelRight className="size-4.5 stroke-foreground" />
           </Button>
         </motion.div>
 
@@ -85,7 +85,7 @@ export const SidebarHeader = ({
               onClick={toggleSidebar}
               className="group relative flex justify-center items-center w-10 h-9 font-bold text-sm"
             >
-              <PanelRightOpen className="size-4 stroke-foreground" />
+              <PanelLeft className="size-4.5 stroke-foreground" />
             </Button>
           </motion.div>
         </div>

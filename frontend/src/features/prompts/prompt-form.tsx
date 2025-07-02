@@ -20,7 +20,7 @@ const promptFormSchema = z.object({
   command: z.string().min(2, { message: 'Command must be at least 2 characters.' }),
   description: z.string().optional(),
   content: z.string().min(1, { message: 'Prompt content is required.' }),
-  tags: z.array(z.string()).optional(),
+  tags: z.union([z.array(z.string()), z.string()]).optional(),
 });
 
 type PromptFormValues = z.infer<typeof promptFormSchema>;
@@ -38,13 +38,21 @@ export function PromptForm({ prompt, onSubmit }: PromptFormProps) {
       command: prompt?.command || '',
       description: prompt?.description || '',
       content: prompt?.content || '',
-      tags: prompt?.tags || [],
+      tags: prompt?.tags?.join(', ') || '',
     },
   });
 
+  const handleSubmit = (values: PromptFormValues) => {
+    const newValues = {
+      ...values,
+      tags: typeof values.tags === 'string' ? values.tags.split(',').map(tag => tag.trim()) : values.tags,
+    };
+    onSubmit(newValues);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="title"
@@ -107,6 +115,23 @@ export function PromptForm({ prompt, onSubmit }: PromptFormProps) {
                 />
               </FormControl>
               <FormDescription>Use {'{variable}'} syntax for template variables</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="tags"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tags</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter comma-separated tags..." {...field} />
+              </FormControl>
+              <FormDescription>
+                Add tags to your prompt to help organize and find them later.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

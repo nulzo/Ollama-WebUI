@@ -58,7 +58,7 @@ export function SettingsPanel() {
       <div className="p-4 flex flex-col space-y-4 h-full">
         <h2 className="text-lg font-semibold">Settings</h2>
         
-        <div className="flex-grow">
+        <div className="grow">
           <div>
             <Label htmlFor="system-prompt">System Prompt</Label>
             <Textarea 

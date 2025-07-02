@@ -68,7 +68,7 @@ export const LoginRoute = () => {
   }
 
   return (
-    <main className="flex flex-col place-items-center bg-background selection:bg-primary/50 px-6 lg:px-8 py-24 sm:py-32 h-screen min-h-full max-h-[100dvh] font-inter text-foreground overflow-auto">
+    <main className="flex flex-col place-items-center bg-background selection:bg-primary/50 px-6 lg:px-8 py-24 sm:py-32 h-screen min-h-full max-h-dvh font-inter text-foreground overflow-auto">
       <img src={logo} className="size-24" />
       <p className="mt-2 font-semibold text-4xl">CringeGPT™</p>
       <p className="mt-1 text-muted-foreground">An Open Source Software provided by CringeAI</p>

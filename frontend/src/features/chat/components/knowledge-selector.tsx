@@ -93,7 +93,7 @@ export function KnowledgeSelector({ selectedKnowledgeIds, onSelectionChange }: K
                     onClick={() => handleToggleKnowledge(knowledge)}
                   >
                     <div className="flex flex-1 items-center gap-2 min-w-0">
-                      <div className="flex-shrink-0">
+                      <div className="shrink-0">
                         {isSelected ? (
                           <div className="flex justify-center items-center bg-primary rounded-full w-5 h-5">
                             <Check className="size-3 text-white" />

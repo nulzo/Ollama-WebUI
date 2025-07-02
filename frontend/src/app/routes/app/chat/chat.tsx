@@ -135,16 +135,14 @@ const ChatContent = memo(
     functionCall: boolean;
     setFunctionCall: (value: boolean) => void;
   }) => {
-    // Get the model from the store
     const model = useModelStore(state => state.model);
     
     return (
       <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0">
           <ChatContainer conversation_id={searchParamString} />
         </div>
-        <div className="p-4 border-t">
-          {/* Function Call Toggle - Redesigned for better UX */}
+        <div className="p-4 border-t flex-shrink-0">
           {model?.tools_enabled && (
             <div className="flex justify-end items-center mb-2">
               <TooltipProvider>

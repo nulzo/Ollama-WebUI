@@ -84,27 +84,12 @@ export function useChatMutation(conversation_id?: string) {
       abortControllerRef.current = new AbortController();
       setStatus('generating');
 
-      // Add initial messages for both new and existing conversations
       if (conversation_id) {
-        // Set the current conversation ID
         setCurrentConversationId(conversation_id);
         
-        // Create both user and assistant messages with proper timestamps
-        const baseTimestamp = Date.now();
+        // Only add the assistant's placeholder message to the streaming store.
+        // The user's message will appear once the query is invalidated and refetched, preventing duplication.
         const newMessages = [
-          // User message first - with slightly earlier timestamp
-          {
-            role: 'user' as const,
-            content: message,
-            model: modelName,
-            name: user.username || 'User',
-            liked_by: [],
-            has_images: Boolean(images && images.length > 0),
-            provider: providerName,
-            conversation_uuid: conversation_id,
-            created_at: new Date(baseTimestamp).toISOString(),
-          },
-          // Assistant message second - with later timestamp
           {
             role: 'assistant' as const,
             content: '',
@@ -114,7 +99,7 @@ export function useChatMutation(conversation_id?: string) {
             has_images: false,
             provider: providerName,
             conversation_uuid: conversation_id,
-            created_at: new Date(baseTimestamp + 1).toISOString(),
+            created_at: new Date().toISOString(),
           },
         ];
         

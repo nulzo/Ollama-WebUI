@@ -88,7 +88,8 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     if (!containerRef.current) return;
 
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 50;
+    // A threshold of 50px to decide if the user is at the bottom
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
 
     setShouldAutoScroll(isAtBottom);
     setShowScrollButton(!isAtBottom);
@@ -103,51 +104,36 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     return () => container.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Auto-scroll to bottom when new messages arrive (only if user is at bottom)
+  // Auto-scroll to bottom for new messages
   useEffect(() => {
     if (shouldAutoScroll && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [allMessages, shouldAutoScroll]);
 
-  // Set scroll to bottom immediately when conversation changes or messages load
-  useEffect(() => {
-    if (containerRef.current) {
-      // Set scroll position directly to bottom without animation
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  }, [conversation_id, allMessages.length]);
-
   // Clean up messages when component mounts or conversation changes
   useEffect(() => {
-    // Clean up messages when component mounts
     const cleanupStore = useChatStore.getState().cleanupOldMessages;
     cleanupStore();
     
-    // Set up periodic cleanup every 30 seconds
     const cleanupInterval = setInterval(() => {
       cleanupStore();
     }, 30000);
     
-    // Clean up on unmount or when conversation changes
     return () => {
       clearInterval(cleanupInterval);
       cleanupStore();
       
-      // Only reset streaming state if we're unmounting completely, not just changing conversations
       if (!conversation_id) {
-        // Reset streaming state to prevent memory leaks
         useChatStore.getState().resetState();
       }
     };
   }, [conversation_id]);
 
-  // Function to check if a message was cancelled
   const isMessageCancelled = useCallback((content: string) => {
     return content && typeof content === 'string' && content.endsWith('[cancelled]');
   }, []);
 
-  // Function to format message content by removing the [cancelled] marker
   const formatMessageContent = useCallback((content: string) => {
     if (content && typeof content === 'string' && isMessageCancelled(content)) {
       return content.replace('[cancelled]', '');
@@ -156,36 +142,20 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
   }, [isMessageCancelled]);
 
   const renderedMessages = useMemo(() => {
-    const isGenerating = status === 'generating';
-    const isWaiting = status === 'waiting';
-    
-    return allMessages.map((message, index) => {
-      const isCancelled = isMessageCancelled(message.content);
-      const formattedContent = formatMessageContent(message.content);
-      
-      return (
-        <Message
-          key={`${message.id || message.conversation_uuid}-${index}`}
-          message={{
-            ...message,
-            content: formattedContent
-          }}
-          isTyping={
-            isGenerating &&
-            index === allMessages.length - 1 &&
-            message.role === 'assistant'
-          }
-          isWaiting={
-            isWaiting &&
-            index === allMessages.length - 1 &&
-            message.role === 'assistant'
-          }
-          isLoading={false}
-          isCancelled={Boolean(isCancelled)}
-        />
-      );
-    });
-  }, [allMessages, isMessageCancelled, formatMessageContent, status]);
+    return allMessages.map((message, index) => (
+      <Message
+        key={`${message.id || message.conversation_uuid}-${index}`}
+        message={{
+          ...message,
+          content: formatMessageContent(message.content),
+        }}
+        isTyping={status === 'generating' && index === allMessages.length - 1 && message.role === 'assistant'}
+        isWaiting={status === 'waiting' && index === allMessages.length - 1 && message.role === 'assistant'}
+        isLoading={false}
+        isCancelled={!!isMessageCancelled(message.content)}
+      />
+    ));
+  }, [allMessages, status, formatMessageContent, isMessageCancelled]);
 
   const handleScrollToBottomClick = useCallback(() => {
     setShouldAutoScroll(true);
@@ -196,29 +166,21 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
 
   return (
     <div className="relative flex flex-col h-full bg-background">
-      {/* Messages container - normal scrollable layout */}
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 overflow-y-auto p-4"
       >
-        <div className="flex flex-col space-y-4 p-4">
-          {/* Loading indicator for fetching more messages */}
+        <div className="flex flex-col-reverse space-y-4 space-y-reverse">
+          <div ref={messagesEndRef} />
+          {[...renderedMessages].reverse()}
           {isFetchingNextPage && (
             <div className="flex justify-center py-4">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           )}
-          
-          {/* Render all messages */}
-          {renderedMessages}
-          
-          {/* Messages end ref */}
-          <div ref={messagesEndRef} />
         </div>
       </div>
-
-      {/* Scroll to bottom button */}
       <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-10">
         <ScrollToBottomButton
           isVisible={showScrollButton}

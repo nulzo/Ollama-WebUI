@@ -110,6 +110,14 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     }
   }, [allMessages, shouldAutoScroll]);
 
+  // Set scroll to bottom immediately when conversation changes or messages load
+  useEffect(() => {
+    if (containerRef.current) {
+      // Set scroll position directly to bottom without animation
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [conversation_id, allMessages.length]);
+
   // Clean up messages when component mounts or conversation changes
   useEffect(() => {
     // Clean up messages when component mounts
@@ -188,35 +196,25 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
 
   return (
     <div className="relative flex flex-col h-full bg-background">
-      {/* 
-        The flex-col-reverse technique is used for a pure CSS solution to start the chat at the bottom.
-        1. The outer container handles scrolling (`overflow-y-auto`).
-        2. The inner container uses `flex-col-reverse` to stack items from bottom to top.
-           This makes the browser's default scroll position (the "start") become the visual bottom of the chat.
-        3. `space-y-reverse` is needed to apply spacing correctly in a reversed flex column.
-      */}
+      {/* Messages container - normal scrollable layout */}
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-4"
+        className="flex-1 overflow-y-auto"
       >
-        <div className="flex flex-col-reverse space-y-4 space-y-reverse">
-          {/* Messages end ref - Placed at the start of the DOM, which is the visual bottom in a reversed column. */}
-          <div ref={messagesEndRef} />
-
-          {/* 
-            Render messages in reverse.
-            `flex-col-reverse` reverses the DOM order, so we must reverse the array
-            to display messages in the correct chronological order (newest at the bottom). 
-          */}
-          {[...renderedMessages].reverse()}
-          
-          {/* Loading indicator for fetching more messages - Placed at the end of the DOM, which is the visual top. */}
+        <div className="flex flex-col space-y-4 p-4">
+          {/* Loading indicator for fetching more messages */}
           {isFetchingNextPage && (
             <div className="flex justify-center py-4">
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           )}
+          
+          {/* Render all messages */}
+          {renderedMessages}
+          
+          {/* Messages end ref */}
+          <div ref={messagesEndRef} />
         </div>
       </div>
 

@@ -116,7 +116,7 @@ export const SidebarButton = ({
     <Button
       variant={variant}
       size="icon"
-      className="group relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm"
+      className="group text-muted-foreground hover:text-foreground relative flex justify-start gap-2.5 w-full h-9 font-normal text-sm"
       onClick={onClick}
     >
       <div className="left-3 absolute flex items-center">

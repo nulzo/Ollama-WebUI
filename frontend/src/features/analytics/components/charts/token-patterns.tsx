@@ -39,14 +39,10 @@ export function TokenPatterns({ rawEvents }: TokenPatternsProps) {
         };
       }
 
-      console.log('EVENT', event);
-
       acc[date].total_tokens += event.tokens;
       acc[date].prompt_tokens += event.prompt_tokens;
       acc[date].completion_tokens += event.completion_tokens;
       acc[date].conversations.add(event.metadata.conversation_id);
-
-
 
       return acc;
     },

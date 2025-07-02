@@ -8,16 +8,13 @@ import { api } from '@/lib/api-client';
 
 const getUser = async (): Promise<User | null> => {
   const token = localStorage.getItem('token');
-  console.log('Token from localStorage:', token); // Debugging line
   if (!token) {
-    console.log('No token found, returning null'); // Debugging line
     return null;
   }
 
   try {
     // Updated endpoint to fetch the current user
-    const response = await api.get('/users/me/');
-    console.log('Current User:', response);
+    const response = await api.get<User>('/users/me/');
     return response;
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -39,10 +36,9 @@ export const loginInputSchema = z.object({
 export type LoginInput = z.infer<typeof loginInputSchema>;
 
 const loginWithEmailAndPassword = async (data: LoginInput): Promise<AuthResponse> => {
-  const response = await api.post('/auth/login/', data);
-  const { token, user_id, email } = response.data;
-  localStorage.setItem('token', token);
-  return { user: { id: user_id, email } };
+  const response = await api.post<{ token: string; user: User }>('/auth/login/', data);
+  localStorage.setItem('token', response.token);
+  return { user: response.user, token: response.token };
 };
 
 export const registerInputSchema = z.object({
@@ -54,10 +50,9 @@ export const registerInputSchema = z.object({
 export type RegisterInput = z.infer<typeof registerInputSchema>;
 
 const registerWithEmailAndPassword = async (data: RegisterInput): Promise<AuthResponse> => {
-  const response = await api.post('/auth/register/', data);
-  const { token, user_id, email } = response.data;
-  localStorage.setItem('token', token);
-  return { user: { id: user_id, email } };
+  const response = await api.post<{ token: string; user: User }>('/auth/register/', data);
+  localStorage.setItem('token', response.token);
+  return { user: response.user, token: response.token };
 };
 
 const authConfig = {

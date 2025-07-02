@@ -22,7 +22,6 @@ const colors = [
 ];
 
 export function CostAnalysis({ data }: CostAnalysisProps) {
-  console.log('DATA', data);
   if (!data) return null;
 
   // Get unique models from the data

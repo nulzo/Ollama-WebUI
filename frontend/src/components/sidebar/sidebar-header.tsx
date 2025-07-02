@@ -67,8 +67,7 @@ export const SidebarHeader = ({
               ease: 'easeInOut',
             }}
           >
-            CringeAI
-            <span className="font-normal text-primary text-xs">alpha 0.0.1</span>
+            
           </motion.div>
 
           <motion.div

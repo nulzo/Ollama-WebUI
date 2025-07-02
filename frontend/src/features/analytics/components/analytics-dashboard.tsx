@@ -97,8 +97,6 @@ export function AnalyticsDashboard() {
       </div>
     );
 
-  console.log(analytics);
-
   if (!analytics) return <div>No data</div>;
 
 
@@ -126,7 +124,7 @@ export function AnalyticsDashboard() {
       <MessageAnalytics rawEvents={analytics.rawEvents} />
       <PeakUsageHeatmap data={analytics.rawEvents} />
       <TokenEfficiency rawEvents={analytics.rawEvents} />
-      <HourlyActivity data={analytics.timeAnalysis} />
+      <HourlyActivity data={analytics.timeAnalysis.map(t => ({ hour: t.hour, count: t.requests }))} />
       <ConversationFlow rawEvents={analytics.rawEvents} />
       <ResponseTimeDistribution rawEvents={analytics.rawEvents} />
 
@@ -218,7 +216,7 @@ export function AnalyticsDashboard() {
                 {tabs.map((tab, index) => (
                   <div
                     key={index}
-                    ref={(el) => (tabRefs.current[index] = el)}
+                    ref={(el) => { tabRefs.current[index] = el }}
                     className={`px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px] ${
                       index === activeIndex ? 'text-foreground' : 'text-muted-foreground'
                     }`}

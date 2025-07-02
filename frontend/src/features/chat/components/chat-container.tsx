@@ -5,7 +5,8 @@ import { useChatMutation } from '../hooks/use-chat-mutation';
 import { useChatStore } from '../stores/chat-store';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Loader2, X } from 'lucide-react';
-import { throttle } from '@/utils/throttle';
+import { useMessageScroll } from '../hooks/use-message-scroll';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ScrollToBottomButtonProps {
   onClick: () => void;
@@ -16,47 +17,33 @@ export const ScrollToBottomButton: React.FC<ScrollToBottomButtonProps> = ({
   onClick,
   isVisible,
 }) => {
-  if (!isVisible) return null;
   return (
-    <Button
-      onClick={onClick}
-      variant="ghost"
-      className="flex items-center gap-1 bg-input border rounded-lg"
-      aria-label="Scroll to bottom"
-    >
-      <span>Scroll to bottom</span>
-      <ChevronDown className="w-4 h-4" />
-    </Button>
-  );
-};
-
-interface CancelButtonProps {
-  onClick: () => void;
-}
-
-export const CancelButton: React.FC<CancelButtonProps> = ({ onClick }) => {
-  return (
-    <Button
-      onClick={onClick}
-      variant="destructive"
-      className="flex items-center gap-2 shadow-lg"
-      aria-label="Cancel generation"
-    >
-      <X className="w-4 h-4" />
-      <span>Stop generating</span>
-    </Button>
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Button
+            onClick={onClick}
+            variant="outline"
+            size="icon"
+            className="rounded-full shadow-lg"
+            aria-label="Scroll to bottom"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </Button>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
 export function ChatContainer({ conversation_id }: { conversation_id: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const [showScrollButton, setShowScrollButton] = useState(false);
-  const [showLoadMore, setShowLoadMore] = useState(false);
-  const previousConversationIdRef = useRef<string | null>(null);
-
   const { handleCancel } = useChatMutation(conversation_id);
-  const { messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages({
+  const { messages = [], fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages({
     conversation_id,
   });
   const { 
@@ -71,12 +58,6 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
   useEffect(() => {
     if (conversation_id && conversation_id !== currentConversationId) {
       setCurrentConversationId(conversation_id);
-      
-      // Force scroll to bottom when changing conversations
-      setShouldAutoScroll(true);
-      
-      // Remember the previous conversation ID
-      previousConversationIdRef.current = currentConversationId;
     }
   }, [conversation_id, currentConversationId, setCurrentConversationId]);
 
@@ -87,22 +68,19 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
 
   // Combine existing messages and any streaming updates for the current conversation
   const allMessages = useMemo(() => {
-    return [...messages, ...currentStreamingMessages];
+    return [...messages, ...currentStreamingMessages].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
   }, [messages, currentStreamingMessages]);
 
-  // Whenever messages or streaming updates change, scroll to the bottom if the user hasn't scrolled up
-  useEffect(() => {
-    if (
-      shouldAutoScroll &&
-      containerRef.current &&
-      (currentStreamingMessages.length > 0 || isGenerating)
-    ) {
-      containerRef.current.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      });
+  const lastStreamingMessageContent = useMemo(() => {
+    if (currentStreamingMessages.length > 0) {
+      return currentStreamingMessages[currentStreamingMessages.length - 1].content;
     }
-  }, [allMessages, shouldAutoScroll, isGenerating, currentStreamingMessages.length]);
+    return '';
+  }, [currentStreamingMessages]);
+
+  const { containerRef, showScrollButton, scrollToBottom } = useMessageScroll(allMessages);
 
   // Clean up messages when component mounts or conversation changes
   useEffect(() => {
@@ -128,59 +106,6 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     };
   }, [conversation_id]);
 
-  // Update scroll position state.
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    const distanceFromBottom = Math.abs(scrollTop);
-
-    // Show load more button when near top and more messages exist
-    if (Math.abs(scrollTop) > scrollHeight - clientHeight - 200 && hasNextPage) {
-      setShowLoadMore(true);
-    } else {
-      setShowLoadMore(false);
-    }
-
-    // Update auto-scroll and button visibility based on scroll position
-    const isNearBottom = distanceFromBottom < 200;
-    setShouldAutoScroll(isNearBottom);
-    setShowScrollButton(!isNearBottom);
-  }, [hasNextPage]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    
-    // Create a throttled scroll handler to reduce the frequency of scroll event processing
-    const throttledScrollHandler = throttle(() => {
-      if (!containerRef.current) return;
-      const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-      const distanceFromBottom = Math.abs(scrollTop);
-  
-      // Show load more button when near top and more messages exist
-      if (Math.abs(scrollTop) > scrollHeight - clientHeight - 200 && hasNextPage) {
-        setShowLoadMore(true);
-      } else {
-        setShowLoadMore(false);
-      }
-  
-      // Update auto-scroll and button visibility based on scroll position
-      const isNearBottom = distanceFromBottom < 200;
-      setShouldAutoScroll(isNearBottom);
-      setShowScrollButton(!isNearBottom);
-    }, 100); // Throttle to once every 100ms
-    
-    container.addEventListener('scroll', throttledScrollHandler);
-    
-    return () => {
-      container.removeEventListener('scroll', throttledScrollHandler);
-      // Clear any pending throttled calls
-      if (typeof throttledScrollHandler.cancel === 'function') {
-        throttledScrollHandler.cancel();
-      }
-    };
-  }, [hasNextPage]);
-
   // Function to check if a message was cancelled
   const isMessageCancelled = useCallback((content: string) => {
     return content && typeof content === 'string' && content.endsWith('[cancelled]');
@@ -194,81 +119,53 @@ export function ChatContainer({ conversation_id }: { conversation_id: string }) 
     return content;
   }, [isMessageCancelled]);
 
+  const renderedMessages = useMemo(() => {
+    return allMessages.map((message, index) => {
+      const isCancelled = isMessageCancelled(message.content);
+      const formattedContent = formatMessageContent(message.content);
+      
+      return (
+        <Message
+          key={`${message.id || message.conversation_uuid}-${index}`}
+          message={{
+            ...message,
+            content: formattedContent
+          }}
+          isTyping={
+            isGenerating &&
+            index === allMessages.length - 1 &&
+            message.role === 'assistant' &&
+            !isWaiting
+          }
+          isWaiting={
+            isGenerating &&
+            index === allMessages.length - 1 &&
+            message.role === 'assistant' &&
+            isWaiting
+          }
+          isLoading={false}
+          isCancelled={Boolean(isCancelled)}
+        />
+      );
+    });
+  }, [allMessages, isMessageCancelled, isGenerating, isFetchingNextPage, isWaiting]);
+
   return (
-    <div className="relative flex flex-col h-full">
-      <div
-        ref={containerRef}
-        onScroll={handleScroll}
-        className="flex flex-col-reverse flex-1 [overflow-anchor:none] overflow-y-auto scroll-smooth"
-      >
-        <div className="flex flex-col gap-2 px-4 py-2">
-          {/* Load More Button */}
-        {showLoadMore && (
+    <div
+      ref={containerRef}
+      className="relative flex-1 overflow-y-auto"
+    >
+      <div className="flex flex-col gap-2 px-4 py-2">
+        {isFetchingNextPage && (
           <div className="flex justify-center py-4">
-            <Button
-              variant="link"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              className="flex items-center gap-2"
-            >
-              {isFetchingNextPage ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                'Load older messages'
-              )}
-            </Button>
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         )}
-
-        {allMessages.map((message, index) => {
-          const isCancelled = isMessageCancelled(message.content);
-          const formattedContent = formatMessageContent(message.content);
-          
-          return (
-            <Message
-              key={`${message.id || message.conversation_uuid}-${index}`}
-              message={{
-                ...message,
-                content: formattedContent
-              }}
-              isTyping={
-                isGenerating &&
-                index === allMessages.length - 1 &&
-                message.role === 'assistant' &&
-                !isWaiting
-              }
-              isWaiting={
-                isGenerating &&
-                index === allMessages.length - 1 &&
-                message.role === 'assistant' &&
-                isWaiting
-              }
-              isLoading={false}
-              isCancelled={Boolean(isCancelled)}
-            />
-          );
-        })}
-      </div>
+        {renderedMessages}
       </div>
 
-      <div className="right-0 bottom-0 left-0 absolute pointer-events-none">
-        <div className="-top-10 left-1/2 z-10 absolute transform -translate-x-1/2 pointer-events-auto">
-          <ScrollToBottomButton
-            isVisible={showScrollButton}
-            onClick={() => {
-              if (containerRef.current) {
-                containerRef.current.scrollTo({
-                  top: containerRef.current.scrollHeight,
-                  behavior: 'smooth',
-                });
-                setShouldAutoScroll(true);
-              }
-            }}
-          />
-        </div>
-      </div>
-      <div className="absolute top-0 right-0 p-2">
-        {isGenerating && <CancelButton onClick={handleCancel} />}
+      <div className="absolute bottom-4 right-4 z-10">
+        <ScrollToBottomButton isVisible={showScrollButton} onClick={scrollToBottom} />
       </div>
     </div>
   );

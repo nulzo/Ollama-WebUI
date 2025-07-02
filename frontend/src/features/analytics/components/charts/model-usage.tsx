@@ -6,7 +6,7 @@ interface ModelUsageChartProps {
   data?: Array<{
     model: string;
     tokens: number;
-    cost: string;
+    cost: number;
   }>;
 }
 
@@ -23,7 +23,7 @@ export function ModelUsageChart({ data }: ModelUsageChartProps) {
   const chartData = data.map(item => ({
     name: item.model,
     value: item.tokens,
-    cost: parseFloat(item.cost),
+    cost: item.cost,
   }));
 
   const chartConfig = {

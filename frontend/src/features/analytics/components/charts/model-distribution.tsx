@@ -7,7 +7,7 @@ interface ModelDistributionProps {
   data?: Array<{
     model: string;
     tokens: number;
-    cost: string;
+    cost: number;
   }>;
 }
 
@@ -84,12 +84,12 @@ export function ModelDistribution({ data }: ModelDistributionProps) {
   if (!data) return null;
 
   const totalTokens = data.reduce((acc, item) => acc + item.tokens, 0);
-  const totalCost = data.reduce((acc, item) => acc + parseFloat(item.cost), 0);
+  const totalCost = data.reduce((acc, item) => acc + item.cost, 0);
 
   const chartData = data.map(item => ({
     name: item.model,
     value: item.tokens,
-    cost: parseFloat(item.cost),
+    cost: item.cost,
     percentage: (item.tokens / totalTokens) * 100
   }));
 

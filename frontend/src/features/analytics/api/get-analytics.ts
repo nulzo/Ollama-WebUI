@@ -16,7 +16,7 @@ export const getAnalytics = async (
   }
 
   // Transform the raw events into aggregated data
-  return response.data;
+  return transformAnalyticsResponse(response.data);
 
 };
 
